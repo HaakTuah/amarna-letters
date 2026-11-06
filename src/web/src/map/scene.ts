@@ -3,42 +3,14 @@
  * believe and remember. Built from the frames only (the court's own earlier sights, its own people as it believes them, the
  * news that reached it), never from anything it could not know.
  */
-import {
-  WorldMap,
-  newGameConfig,
-  parsePower,
-  travelTurns,
-  type InboxKind,
-  type Power,
-  type UnitKind,
-} from "@amarna/engine";
-import {
-  coverOf,
-  isMove,
-  ownerFor,
-  type FrameBand,
-  type FrameCover,
-  type FrameClimate,
-  type FrameMove,
-  type FrameSiege,
-  type FrameUnit,
-  type SeasonFrame,
-  type FrameGovernor,
-  type Mood,
-  moodOfObeyed,
-} from "../session/frames.ts";
+import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
+import { coverOf, isMove, ownerFor, type FrameBand, type FrameCover, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, between, city, lengthOf, route, type Pt } from "./art.ts";
 import { ownFiguresAt } from "./known.ts";
 import { remember, type Remembered } from "./memory.ts";
 
-export type MoveStyle =
-  | "Move"
-  | "Attack"
-  | "Bounce"
-  | "Support"
-  | "SupportCut"
-  | "Convoy";
+export type MoveStyle = "Move" | "Attack" | "Bounce" | "Support" | "SupportCut" | "Convoy";
 export type TravellerKind = "Envoy" | "Spy" | "Gold";
 export type PersonKind = "Envoy" | "Spy" | "Captive" | "Missing";
 
@@ -121,10 +93,8 @@ export interface SceneCapture {
 export function captureLine(c: SceneCapture): string {
   const holder = c.to !== null ? powerName(c.to) : "nobody";
   const f = c.from;
-  if (c.how === "Taken")
-    return `taken by ${holder}${f !== null ? ` from ${powerName(f)}` : ""}`;
-  if (c.how === "Passed")
-    return `passed to ${holder}${f !== null ? ` from ${powerName(f)}` : ""}`;
+  if (c.how === "Taken") return `taken by ${holder}${f !== null ? ` from ${powerName(f)}` : ""}`;
+  if (c.how === "Passed") return `passed to ${holder}${f !== null ? ` from ${powerName(f)}` : ""}`;
   return `now held by ${holder}${f !== null ? `, no longer by ${powerName(f)}` : ""}`;
 }
 
@@ -194,48 +164,21 @@ export interface MapScene {
 }
 
 /** How a province is held: by its king from his own seat, through a governor, or by a vassal of `overlord`. */
-export type Holding =
-  | { kind: "ruled" }
-  | { kind: "governed" }
-  | { kind: "vassal"; overlord: Power };
+export type Holding = { kind: "ruled" } | { kind: "governed" } | { kind: "vassal"; overlord: Power };
 
 /** Item 17++, part C: the holding, governors and mood of the land, as the viewer knows them. */
-function holdingsFor(
-  f: SeasonFrame,
-  viewer: Power | null,
-  owner: Map<string, Power | null>,
-): Pick<MapScene, "holding" | "governors" | "mood"> {
-  const bonds =
-    viewer === null
-      ? f.bonds
-      : (f.knownBonds.get(viewer) ?? new Map<Power, Power>());
-  const governors = new Map(
-    [
-      ...(viewer === null
-        ? f.governed
-        : (f.governedKnown.get(viewer) ?? new Map<string, FrameGovernor>())),
-    ].filter(([id, g]) => owner.get(id) === g.power),
-  );
+function holdingsFor(f: SeasonFrame, viewer: Power | null, owner: Map<string, Power | null>): Pick<MapScene, "holding" | "governors" | "mood"> {
+  const bonds = viewer === null ? f.bonds : (f.knownBonds.get(viewer) ?? new Map<Power, Power>());
+  const governors = new Map([...(viewer === null ? f.governed : (f.governedKnown.get(viewer) ?? new Map<string, FrameGovernor>()))].filter(([id, g]) => owner.get(id) === g.power));
   const holding = new Map<string, Holding>();
   for (const [id, o] of owner) {
     if (o === null) continue;
     const over = bonds.get(o);
-    holding.set(
-      id,
-      over !== undefined
-        ? { kind: "vassal", overlord: over }
-        : governors.has(id)
-          ? { kind: "governed" }
-          : { kind: "ruled" },
-    );
+    holding.set(id, over !== undefined ? { kind: "vassal", overlord: over } : governors.has(id) ? { kind: "governed" } : { kind: "ruled" });
   }
   const mood = new Map<string, { mood: Mood; age: number }>();
-  if (viewer === null)
-    for (const [id, n] of f.obeyed)
-      mood.set(id, { mood: moodOfObeyed(n), age: 0 });
-  else
-    for (const [id, r] of f.moodRead.get(viewer) ?? [])
-      mood.set(id, { mood: r.mood, age: Math.max(0, f.turn - r.turn) });
+  if (viewer === null) for (const [id, n] of f.obeyed) mood.set(id, { mood: moodOfObeyed(n), age: 0 });
+  else for (const [id, r] of f.moodRead.get(viewer) ?? []) mood.set(id, { mood: r.mood, age: Math.max(0, f.turn - r.turn) });
   return { holding, governors, mood };
 }
 
@@ -247,45 +190,25 @@ function holdingsFor(
 export type LandState = "Drought" | "Flooded" | "Spoiled" | "Low";
 
 const stateOf = (c: FrameClimate): LandState =>
-  c.kind === "Drought"
-    ? "Drought"
-    : c.river === "nile" && !c.ruinous
-      ? "Low"
-      : c.since === 0
-        ? "Flooded"
-        : "Spoiled";
-const landOf = (f: SeasonFrame): Map<string, LandState> =>
-  new Map(
-    f.climate.flatMap((c) => c.provinces.map((p) => [p, stateOf(c)] as const)),
-  );
+  c.kind === "Drought" ? "Drought" : c.river === "nile" && !c.ruinous ? "Low" : c.since === 0 ? "Flooded" : "Spoiled";
+const landOf = (f: SeasonFrame): Map<string, LandState> => new Map(f.climate.flatMap((c) => c.provinces.map((p) => [p, stateOf(c)] as const)));
 
 /** The walls a viewer knows in a frame. */
-export function wallsIn(
-  f: SeasonFrame,
-  viewer: Power | null,
-): Map<string, number> {
+export function wallsIn(f: SeasonFrame, viewer: Power | null): Map<string, number> {
   if (viewer === null) return f.walls;
   return f.knownWalls.get(viewer) ?? f.walls;
 }
 
 const Map_ = WorldMap.default;
 
-export const unitKindName = (k: UnitKind): string =>
-  k === "Army" ? "army" : "fleet";
+export const unitKindName = (k: UnitKind): string => (k === "Army" ? "army" : "fleet");
 
 const capOf = (p: Power): string => Map_.capital(p).id;
 
 /** The frame at an index, clamped to the frames there are. */
-export const frameAt = (
-  frames: readonly SeasonFrame[],
-  index: number,
-): SeasonFrame => frames[Math.min(Math.max(index, 0), frames.length - 1)];
+export const frameAt = (frames: readonly SeasonFrame[], index: number): SeasonFrame => frames[Math.min(Math.max(index, 0), frames.length - 1)];
 
-export function buildScene(
-  frames: readonly SeasonFrame[],
-  index: number,
-  viewer: Power | null,
-): MapScene {
+export function buildScene(frames: readonly SeasonFrame[], index: number, viewer: Power | null): MapScene {
   const f = frameAt(frames, index);
   index = f.index;
   const prev = index > 0 ? frameAt(frames, index - 1) : null;
@@ -327,10 +250,7 @@ export function buildScene(
     const builtKinds = ["Roads", "Stations", "Harbour", "Water"];
     for (const x of Map_.landProvinces) {
       // Its own land as its record shows it (never by the true owner), or as last seen, whichever is newer.
-      const j = Math.max(
-        ownFiguresAt(frames, Math.min(index, frames.length - 1), p, x.id) ?? -1,
-        lastSeen.get(x.id) ?? -1,
-      );
+      const j = Math.max(ownFiguresAt(frames, Math.min(index, frames.length - 1), p, x.id) ?? -1, lastSeen.get(x.id) ?? -1);
       if (j < 0) continue;
       const fj = frameAt(frames, j);
       for (const k of builtKinds) {
@@ -349,10 +269,7 @@ export function buildScene(
     units.push(
       ...stack(
         // Its own as it knows them (bug #615; frames saved before have none: as they stand), others' where it sees them.
-        [
-          ...(f.knownUnits?.get(p) ?? f.units.filter((u) => u.power === p)),
-          ...f.units.filter((u) => u.power !== p && now.has(u.province)),
-        ],
+        [...(f.knownUnits?.get(p) ?? f.units.filter((u) => u.power === p)), ...f.units.filter((u) => u.power !== p && now.has(u.province))],
         false,
         0,
         index,
@@ -373,10 +290,7 @@ export function buildScene(
   }
 
   // The orders the viewer saw resolve: every one in god view, a court's own and those it could see in a seat view.
-  const seen: FrameMove[] =
-    viewer !== null
-      ? (f.seenBy.get(viewer) ?? []).map((i) => f.moves[i])
-      : f.moves;
+  const seen: FrameMove[] = viewer !== null ? (f.seenBy.get(viewer) ?? []).map((i) => f.moves[i]) : f.moves;
   const [moves, destroyed] = movesOf(
     f,
     prev,
@@ -391,75 +305,23 @@ export function buildScene(
       const now = ownerFor(f, prov.id, viewer);
       if (was === now) continue;
       // Taken by arms only if the viewer saw the new owner march in.
-      const taken =
-        now !== null &&
-        seen.some(
-          (m) =>
-            isMove(m) && m.succeeded && m.target === prov.id && m.power === now,
-        );
-      const how: CaptureHow = taken
-        ? "Taken"
-        : viewer === null || viewer === was || viewer === now
-          ? "Passed"
-          : "Unseen";
+      const taken = now !== null && seen.some((m) => isMove(m) && m.succeeded && m.target === prov.id && m.power === now);
+      const how: CaptureHow = taken ? "Taken" : viewer === null || viewer === was || viewer === now ? "Passed" : "Unseen";
       captures.push({ province: prov.id, from: was, to: now, how });
     }
 
   const [travellers, people] = peopleOf(f, viewer);
   const news = viewer !== null ? newsOf(frames, index, viewer) : [];
   // As the court knows them (bug #517): the engine's own reckoning, carried in the frame.
-  const sieges =
-    viewer !== null ? [...(f.knownSieges.get(viewer) ?? [])] : [...f.sieges];
+  const sieges = viewer !== null ? [...(f.knownSieges.get(viewer) ?? [])] : [...f.sieges];
 
-  const owner = new Map(
-    Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const),
-  );
+  const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
   // As the engine's own view of a court shows them: in its sight, or in land it holds and knows it holds; in land it lost
   // without knowing, as it last held it, until word of the loss arrives (map/known.ts), never vanishing at once.
-  const own =
-    viewer === null
-      ? new Map<string, { frame: SeasonFrame; age: number }>()
-      : ownLand(
-          frames,
-          viewer,
-          Math.min(Math.max(index, 0), frames.length - 1),
-        );
+  const own = viewer === null ? new Map<string, { frame: SeasonFrame; age: number }>() : ownLand(frames, viewer, Math.min(Math.max(index, 0), frames.length - 1));
   const stores = viewer === null ? f.stores : storesOf(own);
-  const bands: SceneBand[] =
-    viewer === null
-      ? f.bands.map((b) => ({ ...b, age: 0 }))
-      : bandsOf(f, viewer, own);
-  return {
-    index,
-    latest: index >= frames.length - 1,
-    viewer,
-    frame: f,
-    fogAge: fog,
-    owner,
-    units,
-    moves,
-    destroyed,
-    captures,
-    travellers,
-    people,
-    news,
-    sieges,
-    walls: wallsIn(f, viewer),
-    land,
-    bands,
-    own,
-    built,
-    builtKnown,
-    stores,
-    memory: remember(
-      frames,
-      index,
-      viewer,
-      new Set(bands.map((b) => b.province)),
-    ),
-    prev,
-    ...holdingsFor(f, viewer, owner),
-  };
+  const bands: SceneBand[] = viewer === null ? f.bands.map((b) => ({ ...b, age: 0 })) : bandsOf(f, viewer, own);
+  return { index, latest: index >= frames.length - 1, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, own, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev, ...holdingsFor(f, viewer, owner) };
 }
 
 /**
@@ -471,14 +333,7 @@ export function buildScene(
  */
 export type OwnEconomy =
   | { live: true }
-  | {
-      live: false;
-      age: number;
-      stores: number;
-      settled: number | undefined;
-      countAge?: number;
-      fed: number | undefined;
-    }
+  | { live: false; age: number; stores: number; settled: number | undefined; countAge?: number; fed: number | undefined }
   | null;
 
 export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
@@ -487,37 +342,20 @@ export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
   if (scene.viewer === null) {
     if (scene.latest) return { live: true };
     const f = scene.frame;
-    return {
-      live: false,
-      age: 0,
-      stores: f.stores.get(id) ?? 0,
-      settled: f.settled.get(id),
-      fed: f.fed.get(id),
-    };
+    return { live: false, age: 0, stores: f.stores.get(id) ?? 0, settled: f.settled.get(id), fed: f.fed.get(id) };
   }
   const own = scene.own.get(id);
   if (own === undefined) return null;
   if (own.age === 0 && scene.latest) return { live: true };
   const c = own.frame.counted.get(scene.viewer)?.get(id);
-  return {
-    live: false,
-    age: own.age,
-    stores: own.frame.stores.get(id) ?? 0,
-    settled: c?.settled,
-    countAge: c === undefined ? undefined : scene.frame.turn - c.turn,
-    fed: own.frame.fed.get(id),
-  };
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: c?.settled, countAge: c === undefined ? undefined : scene.frame.turn - c.turn, fed: own.frame.fed.get(id) };
 }
 
 /** A band as a viewer's map shows it, with the seasons since its word of it. */
 export type SceneBand = FrameBand & { age: number };
 
 /** A court's own land: each province it knows it holds, with the season its map shows it as (`ownFiguresAt`). */
-function ownLand(
-  frames: readonly SeasonFrame[],
-  viewer: Power,
-  at: number,
-): Map<string, { frame: SeasonFrame; age: number }> {
+function ownLand(frames: readonly SeasonFrame[], viewer: Power, at: number): Map<string, { frame: SeasonFrame; age: number }> {
   const out = new Map<string, { frame: SeasonFrame; age: number }>();
   for (const p of Map_.landProvinces) {
     const k = ownFiguresAt(frames, at, viewer, p.id);
@@ -527,9 +365,7 @@ function ownLand(
 }
 
 /** A court's own stores: each province it knows it holds, as of the season its map shows that land (`ownFiguresAt`). */
-function storesOf(
-  own: Map<string, { frame: SeasonFrame }>,
-): Map<string, number> {
+function storesOf(own: Map<string, { frame: SeasonFrame }>): Map<string, number> {
   const out = new Map<string, number>();
   for (const [id, { frame }] of own) {
     const n = frame.stores.get(id);
@@ -539,33 +375,18 @@ function storesOf(
 }
 
 /** The bands a court knows of: those in its sight now, and in its own land as that land's figures stand on its map. */
-function bandsOf(
-  f: SeasonFrame,
-  viewer: Power,
-  own: Map<string, { frame: SeasonFrame; age: number }>,
-): SceneBand[] {
+function bandsOf(f: SeasonFrame, viewer: Power, own: Map<string, { frame: SeasonFrame; age: number }>): SceneBand[] {
   const sight = f.sight.get(viewer);
-  const out: SceneBand[] = f.bands
-    .filter((b) => sight?.has(b.province) ?? false)
-    .map((b) => ({ ...b, age: 0 }));
+  const out: SceneBand[] = f.bands.filter((b) => sight?.has(b.province) ?? false).map((b) => ({ ...b, age: 0 }));
   const seen = new Set(out.map((b) => b.province));
   for (const [id, { frame, age }] of own) {
     if (seen.has(id)) continue;
-    out.push(
-      ...frame.bands
-        .filter((b) => b.province === id)
-        .map((b) => ({ ...b, age })),
-    );
+    out.push(...frame.bands.filter((b) => b.province === id).map((b) => ({ ...b, age })));
   }
   return out;
 }
 
-function stack(
-  units: readonly FrameUnit[],
-  ghost: boolean,
-  age: number,
-  seenAt: number,
-): SceneUnit[] {
+function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {
   const groups = new Map<string, FrameUnit[]>();
   for (const u of units) {
     const k = `${u.province}|${u.power}|${u.kind}`;
@@ -574,9 +395,7 @@ function stack(
     g.push(u);
   }
   return [...groups.values()].map((g) => ({
-    key: ghost
-      ? `g:${g[0].province}:${g[0].power}:${g[0].kind}`
-      : `u:${g[0].id}`,
+    key: ghost ? `g:${g[0].province}:${g[0].power}:${g[0].kind}` : `u:${g[0].id}`,
     power: g[0].power,
     kind: g[0].kind,
     province: g[0].province,
@@ -592,67 +411,27 @@ function stack(
  * `sight`: a court's sight as the season began (null in god view): it can tell a march was an attack on troops only if it
  * saw them standing there. `wallsBefore`: the walls the viewer knew as the season began.
  */
-function movesOf(
-  f: SeasonFrame,
-  prev: SeasonFrame | null,
-  seen: readonly FrameMove[],
-  sight: Set<string> | null,
-  wallsBefore: Map<string, number> | null,
-): [SceneMove[], SceneUnit[]] {
+function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameMove[], sight: Set<string> | null, wallsBefore: Map<string, number> | null): [SceneMove[], SceneUnit[]] {
   const moves: SceneMove[] = [];
   const destroyed: SceneUnit[] = [];
   if (prev === null) return [moves, destroyed];
   for (const m of seen) {
-    if (m.destroyed)
-      destroyed.push({
-        key: `x:${m.power}:${m.from}`,
-        power: m.power,
-        kind: m.kind,
-        province: m.from,
-        count: 1,
-        men: 0,
-        ghost: false,
-        age: 0,
-        seenAt: f.index,
-      });
+    if (m.destroyed) destroyed.push({ key: `x:${m.power}:${m.from}`, power: m.power, kind: m.kind, province: m.from, count: 1, men: 0, ghost: false, age: 0, seenAt: f.index });
     if (m.order === "move" && m.target !== null) {
       const t = m.target;
       // Foreign troops in the way: standing there as the season began (in the court's sight) and not marched out of it.
       const met =
         sight === null || sight.has(t)
-          ? (prev.units.find(
-              (u) =>
-                u.province === t &&
-                u.power !== m.power &&
-                !seen.some(
-                  (x) =>
-                    isMove(x) &&
-                    x.succeeded &&
-                    x.from === t &&
-                    x.power === u.power &&
-                    x.kind === u.kind,
-                ),
-            ) ?? null)
+          ? (prev.units.find((u) => u.province === t && u.power !== m.power && !seen.some((x) => isMove(x) && x.succeeded && x.from === t && x.power === u.power && x.kind === u.kind)) ?? null)
           : null;
       const foreignUnit = met !== null;
       const foreignLand = m.targetOwner !== null && m.targetOwner !== m.power;
       // Walls not its own: getting in is an attack, but takes the city only if it stormed them (it then holds it).
-      const walls =
-        m.targetOwner !== m.power && (wallsBefore ?? prev.walls).has(t);
+      const walls = m.targetOwner !== m.power && (wallsBefore ?? prev.walls).has(t);
       const attack = foreignUnit || foreignLand || walls;
-      const style: MoveStyle = !m.succeeded
-        ? "Bounce"
-        : attack
-          ? "Attack"
-          : "Move";
+      const style: MoveStyle = !m.succeeded ? "Bounce" : attack ? "Attack" : "Move";
       const took = (f.owner.get(t) ?? null) === m.power;
-      const verb = m.succeeded
-        ? attack
-          ? walls && !took
-            ? "got within the walls of"
-            : "attacked and took"
-          : "moved to"
-        : "was stopped short of";
+      const verb = m.succeeded ? (attack ? (walls && !took ? "got within the walls of" : "attacked and took") : "moved to") : "was stopped short of";
       moves.push({
         power: m.power,
         kind: m.kind,
@@ -690,45 +469,21 @@ function movesOf(
 }
 
 /** The fraction of the way a traveller has come by the season after this frame, kept off both ends. */
-const progressOf = (now: number, depart: number, arrive: number): number =>
-  arrive <= depart
-    ? 0.5
-    : Math.min(Math.max((now - depart - 0.5) / (arrive - depart), 0.12), 0.88);
+const progressOf = (now: number, depart: number, arrive: number): number => (arrive <= depart ? 0.5 : Math.min(Math.max((now - depart - 0.5) / (arrive - depart), 0.12), 0.88));
 
 /** The people on the road and standing somewhere, as the viewer knows them: in god view as they are. */
-export const peopleOf = (
-  f: SeasonFrame,
-  viewer: Power | null,
-): [SceneTraveller[], ScenePerson[]] =>
-  viewer === null ? godPeople(f) : seatPeople(f, viewer);
+export const peopleOf = (f: SeasonFrame, viewer: Power | null): [SceneTraveller[], ScenePerson[]] => (viewer === null ? godPeople(f) : seatPeople(f, viewer));
 
 function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
   const travellers: SceneTraveller[] = [];
   const people: ScenePerson[] = [];
   const now = f.index + 1;
   for (const j of f.journeys) {
-    const c =
-      j.characterId !== null ? (f.people.get(j.characterId) ?? null) : null;
-    const base = {
-      key: j.id,
-      progress: progressOf(now, j.depart, j.arrive),
-      depart: j.depart,
-      arrive: j.arrive,
-      characterId: j.characterId,
-      believed: false,
-    };
+    const c = j.characterId !== null ? (f.people.get(j.characterId) ?? null) : null;
+    const base = { key: j.id, progress: progressOf(now, j.depart, j.arrive), depart: j.depart, arrive: j.arrive, characterId: j.characterId, believed: false };
     switch (j.kind) {
       case "EnvoyOutbound":
-        travellers.push({
-          ...base,
-          kind: "Envoy",
-          owner: j.from,
-          fromProvince: capOf(j.from),
-          toProvince: capOf(j.to),
-          title: `${c?.name ?? "An envoy"}, envoy of ${powerName(j.from)} to ${powerName(j.to)}`,
-          gold: j.gold,
-          destination: j.to,
-        });
+        travellers.push({ ...base, kind: "Envoy", owner: j.from, fromProvince: capOf(j.from), toProvince: capOf(j.to), title: `${c?.name ?? "An envoy"}, envoy of ${powerName(j.from)} to ${powerName(j.to)}`, gold: j.gold, destination: j.to });
         break;
       case "EnvoyHomebound":
         travellers.push({
@@ -743,8 +498,7 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
         });
         break;
       case "SpyOutbound": {
-        const post =
-          c?.mission != null ? capOf(c.mission) : (c?.watch ?? capOf(j.to));
+        const post = c?.mission != null ? capOf(c.mission) : (c?.watch ?? capOf(j.to));
         travellers.push({
           ...base,
           kind: "Spy",
@@ -758,18 +512,8 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
         break;
       }
       case "SpyHomebound": {
-        const from =
-          c?.watch != null && c.mission === null ? c.watch : capOf(j.from);
-        travellers.push({
-          ...base,
-          kind: "Spy",
-          owner: j.to,
-          fromProvince: from,
-          toProvince: capOf(j.to),
-          title: `${c?.name ?? "A spy"}, on the road home to ${powerName(j.to)}`,
-          gold: 0,
-          destination: j.to,
-        });
+        const from = c?.watch != null && c.mission === null ? c.watch : capOf(j.from);
+        travellers.push({ ...base, kind: "Spy", owner: j.to, fromProvince: from, toProvince: capOf(j.to), title: `${c?.name ?? "A spy"}, on the road home to ${powerName(j.to)}`, gold: 0, destination: j.to });
         break;
       }
       case "Ransom":
@@ -800,25 +544,9 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
       });
     else if (c.status !== "Employed" || c.employer === null) continue;
     else if (c.duty === "Detained" && c.heldBy !== null)
-      people.push({
-        id: c.id,
-        kind: "Captive",
-        owner: c.employer,
-        province: capOf(c.heldBy),
-        title: `${c.name}, envoy of ${powerName(c.employer)}, detained by ${powerName(c.heldBy)}`,
-        believed: false,
-        double: dbl,
-      });
+      people.push({ id: c.id, kind: "Captive", owner: c.employer, province: capOf(c.heldBy), title: `${c.name}, envoy of ${powerName(c.employer)}, detained by ${powerName(c.heldBy)}`, believed: false, double: dbl });
     else if (c.duty === "EnvoyAtCourt" && c.at !== null)
-      people.push({
-        id: c.id,
-        kind: "Envoy",
-        owner: c.employer,
-        province: capOf(c.at),
-        title: `${c.name}, envoy of ${powerName(c.employer)} at the court of ${powerName(c.at)}`,
-        believed: false,
-        double: dbl,
-      });
+      people.push({ id: c.id, kind: "Envoy", owner: c.employer, province: capOf(c.at), title: `${c.name}, envoy of ${powerName(c.employer)} at the court of ${powerName(c.at)}`, believed: false, double: dbl });
     else if (c.duty === "SpyPosted") {
       const place = c.at !== null ? capOf(c.at) : c.watch;
       if (place !== null)
@@ -843,8 +571,7 @@ const DueBack = /due back about turn (\d+)/u;
 
 /** Where a court believes a servant stands: the province it keeps for him (bug #734), else the court its words name. */
 function placeOf(cover: FrameCover): string | null {
-  if (cover.province !== null && Map_.exists(cover.province))
-    return cover.province;
+  if (cover.province !== null && Map_.exists(cover.province)) return cover.province;
   const m = AtCourt.exec(cover.whereText);
   const court = m !== null ? parsePower(m[1]) : null;
   return court !== null ? capOf(court) : null;
@@ -854,10 +581,7 @@ function placeOf(cover: FrameCover): string | null {
  * A court's own people where it believes them, and foreign people only while they stand at its own court in its sight:
  * envoys received there and anyone it holds. Foreign spies it has not caught are never shown.
  */
-function seatPeople(
-  f: SeasonFrame,
-  p: Power,
-): [SceneTraveller[], ScenePerson[]] {
+function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]] {
   const travellers: SceneTraveller[] = [];
   const people: ScenePerson[] = [];
   const now = f.index + 1;
@@ -866,44 +590,18 @@ function seatPeople(
     const cover = coverOf(c, p);
     if (cover !== null) {
       if (cover.heldAt !== null) {
-        people.push({
-          id: c.id,
-          kind: "Captive",
-          owner: p,
-          province: capOf(cover.heldAt),
-          title: `${c.name}, your servant, held captive by ${powerName(cover.heldAt)} (as you last heard)`,
-          believed: true,
-          double: false,
-        });
+        people.push({ id: c.id, kind: "Captive", owner: p, province: capOf(cover.heldAt), title: `${c.name}, your servant, held captive by ${powerName(cover.heldAt)} (as you last heard)`, believed: true, double: false });
         continue;
       }
       switch (cover.believed) {
         case "SpyPosted": {
           const post = placeOf(cover);
-          if (post !== null)
-            people.push({
-              id: c.id,
-              kind: "Spy",
-              owner: p,
-              province: post,
-              title: `${c.name}, your spy, at their post as far as you know`,
-              believed: true,
-              double: false,
-            });
+          if (post !== null) people.push({ id: c.id, kind: "Spy", owner: p, province: post, title: `${c.name}, your spy, at their post as far as you know`, believed: true, double: false });
           break;
         }
         case "EnvoyAtCourt": {
           const court = placeOf(cover);
-          if (court !== null)
-            people.push({
-              id: c.id,
-              kind: "Envoy",
-              owner: p,
-              province: court,
-              title: `${c.name}, your envoy, at that court as far as you know`,
-              believed: true,
-              double: false,
-            });
+          if (court !== null) people.push({ id: c.id, kind: "Envoy", owner: p, province: court, title: `${c.name}, your envoy, at that court as far as you know`, believed: true, double: false });
           break;
         }
         case "EnvoyHomebound": {
@@ -912,21 +610,11 @@ function seatPeople(
           const arrive = Number.parseInt(due[1], 10);
           const so = SetOut.exec(cover.timingText);
           const abroad = so !== null ? parsePower(so[2]) : null;
-          const from =
-            abroad !== null
-              ? capOf(abroad)
-              : c.mission !== null
-                ? capOf(c.mission)
-                : (c.watch ?? home);
-          const depart =
-            arrive - travelTurns(newGameConfig(), Map_, from, home, now);
+          const from = abroad !== null ? capOf(abroad) : c.mission !== null ? capOf(c.mission) : (c.watch ?? home);
+          const depart = arrive - travelTurns(newGameConfig(), Map_, from, home, now);
           travellers.push({
             key: `b:${c.id}`,
-            kind:
-              c.calling.toLowerCase().includes("spy") ||
-              cover.whereText.startsWith("in ")
-                ? "Spy"
-                : "Envoy",
+            kind: c.calling.toLowerCase().includes("spy") || cover.whereText.startsWith("in ") ? "Spy" : "Envoy",
             owner: p,
             fromProvince: from,
             toProvince: home,
@@ -967,34 +655,15 @@ function seatPeople(
         }
         case "Detained":
           if (c.mission !== null)
-            people.push({
-              id: c.id,
-              kind: "Missing",
-              owner: p,
-              province: capOf(c.mission),
-              title: `${c.name}, your envoy, has not returned from ${powerName(c.mission)}`,
-              believed: true,
-              double: false,
-            });
+            people.push({ id: c.id, kind: "Missing", owner: p, province: capOf(c.mission), title: `${c.name}, your envoy, has not returned from ${powerName(c.mission)}`, believed: true, double: false });
           break;
       }
       continue;
     }
 
-    if (
-      c.employer === p &&
-      (c.status === "Employed" || c.status === "Captured")
-    ) {
+    if (c.employer === p && (c.status === "Employed" || c.status === "Captured")) {
       if (c.status === "Captured" && c.heldBy !== null) {
-        people.push({
-          id: c.id,
-          kind: "Captive",
-          owner: p,
-          province: capOf(c.heldBy),
-          title: `${c.name}, your servant, held captive by ${powerName(c.heldBy)}`,
-          believed: false,
-          double: false,
-        });
+        people.push({ id: c.id, kind: "Captive", owner: p, province: capOf(c.heldBy), title: `${c.name}, your servant, held captive by ${powerName(c.heldBy)}`, believed: false, double: false });
         continue;
       }
       switch (c.duty) {
@@ -1002,31 +671,13 @@ function seatPeople(
         case "EnvoyHomebound":
         case "SpyOutbound": {
           const j = f.journeys.find(
-            (x) =>
-              x.characterId === c.id &&
-              (x.kind === "EnvoyOutbound" ||
-                x.kind === "EnvoyHomebound" ||
-                x.kind === "SpyOutbound" ||
-                x.kind === "SpyHomebound"),
+            (x) => x.characterId === c.id && (x.kind === "EnvoyOutbound" || x.kind === "EnvoyHomebound" || x.kind === "SpyOutbound" || x.kind === "SpyHomebound"),
           );
           if (j === undefined) break;
           const spy = j.kind === "SpyOutbound" || j.kind === "SpyHomebound";
-          const outbound =
-            j.kind === "EnvoyOutbound" || j.kind === "SpyOutbound";
-          const from = outbound
-            ? home
-            : j.kind === "SpyHomebound" &&
-                c.mission === null &&
-                c.watch !== null
-              ? c.watch
-              : capOf(j.from);
-          const to = !outbound
-            ? home
-            : spy
-              ? c.mission !== null
-                ? capOf(c.mission)
-                : (c.watch ?? capOf(j.to))
-              : capOf(j.to);
+          const outbound = j.kind === "EnvoyOutbound" || j.kind === "SpyOutbound";
+          const from = outbound ? home : j.kind === "SpyHomebound" && c.mission === null && c.watch !== null ? c.watch : capOf(j.from);
+          const to = !outbound ? home : spy ? (c.mission !== null ? capOf(c.mission) : (c.watch ?? capOf(j.to))) : capOf(j.to);
           const dest = outbound ? (spy ? (c.mission ?? p) : j.to) : p;
           travellers.push({
             key: j.id,
@@ -1046,79 +697,27 @@ function seatPeople(
           break;
         }
         case "EnvoyAtCourt":
-          if (c.at !== null)
-            people.push({
-              id: c.id,
-              kind: "Envoy",
-              owner: p,
-              province: capOf(c.at),
-              title: `${c.name}, your envoy at the court of ${powerName(c.at)}`,
-              believed: false,
-              double: false,
-            });
+          if (c.at !== null) people.push({ id: c.id, kind: "Envoy", owner: p, province: capOf(c.at), title: `${c.name}, your envoy at the court of ${powerName(c.at)}`, believed: false, double: false });
           break;
         case "SpyPosted": {
           const place = c.at !== null ? capOf(c.at) : c.watch;
           if (place !== null)
-            people.push({
-              id: c.id,
-              kind: "Spy",
-              owner: p,
-              province: place,
-              title: `${c.name}, your spy watching ${c.at !== null ? powerName(c.at) : provinceName(place)}`,
-              believed: false,
-              double: false,
-            });
+            people.push({ id: c.id, kind: "Spy", owner: p, province: place, title: `${c.name}, your spy watching ${c.at !== null ? powerName(c.at) : provinceName(place)}`, believed: false, double: false });
           break;
         }
         case "Detained":
           if (c.mission !== null)
-            people.push({
-              id: c.id,
-              kind: "Missing",
-              owner: p,
-              province: capOf(c.mission),
-              title: `${c.name}, your envoy, has not returned from ${powerName(c.mission)}`,
-              believed: false,
-              double: false,
-            });
+            people.push({ id: c.id, kind: "Missing", owner: p, province: capOf(c.mission), title: `${c.name}, your envoy, has not returned from ${powerName(c.mission)}`, believed: false, double: false });
           break;
       }
       continue;
     }
 
     // Foreign people the court can see: envoys before it, and anyone it holds.
-    if (
-      c.heldBy === p &&
-      (c.status === "Captured" ||
-        c.status === "Employed" ||
-        c.status === "Free")
-    )
-      people.push({
-        id: c.id,
-        kind: "Captive",
-        owner: c.status === "Captured" ? c.confessed : c.employer,
-        province: home,
-        title: `${c.name}, held at your court`,
-        believed: false,
-        double: false,
-      });
-    else if (
-      c.status === "Employed" &&
-      c.duty === "EnvoyAtCourt" &&
-      c.at === p &&
-      c.employer !== null &&
-      c.employer !== p
-    )
-      people.push({
-        id: c.id,
-        kind: "Envoy",
-        owner: c.employer,
-        province: home,
-        title: `${c.name}, envoy of ${powerName(c.employer)}, at your court`,
-        believed: false,
-        double: false,
-      });
+    if (c.heldBy === p && (c.status === "Captured" || c.status === "Employed" || c.status === "Free"))
+      people.push({ id: c.id, kind: "Captive", owner: c.status === "Captured" ? c.confessed : c.employer, province: home, title: `${c.name}, held at your court`, believed: false, double: false });
+    else if (c.status === "Employed" && c.duty === "EnvoyAtCourt" && c.at === p && c.employer !== null && c.employer !== p)
+      people.push({ id: c.id, kind: "Envoy", owner: c.employer, province: home, title: `${c.name}, envoy of ${powerName(c.employer)}, at your court`, believed: false, double: false });
   }
 
   // Gold it sent as a ransom, on its own road.
@@ -1142,27 +741,15 @@ function seatPeople(
 }
 
 /** The rumours and spy reports a court has received up to this season, the latest from each place, for eight seasons. */
-function newsOf(
-  frames: readonly SeasonFrame[],
-  index: number,
-  p: Power,
-): SceneNews[] {
+function newsOf(frames: readonly SeasonFrame[], index: number, p: Power): SceneNews[] {
   const latest = new Map<string, SceneNews>();
   for (let j = 1; j <= index; j++)
     for (const n of frameAt(frames, j).news.filter((n) => n.court === p)) {
-      const place =
-        n.province ?? (n.fromCourt !== null ? capOf(n.fromCourt) : null);
+      const place = n.province ?? (n.fromCourt !== null ? capOf(n.fromCourt) : null);
       if (place === null) continue;
       const age = index + 1 - n.turn;
       if (age > 8) continue;
-      latest.set(place + n.kind, {
-        province: place,
-        kind: n.kind,
-        age: Math.max(0, age),
-        title: n.title,
-        body: n.body,
-        observed: n.observed,
-      });
+      latest.set(place + n.kind, { province: place, kind: n.kind, age: Math.max(0, age), title: n.title, body: n.body, observed: n.observed });
     }
   return [...latest.values()];
 }
@@ -1179,65 +766,33 @@ export interface PathStep {
  * A character's places season by season up to this frame, as the viewer knows them: the truth in god view; for a court, its
  * own servant where it believed them, and anyone else only while at its court.
  */
-export function pathOf(
-  frames: readonly SeasonFrame[],
-  index: number,
-  viewer: Power | null,
-  id: string,
-): PathStep[] {
+export function pathOf(frames: readonly SeasonFrame[], index: number, viewer: Power | null, id: string): PathStep[] {
   const path: PathStep[] = [];
   for (let j = 0; j <= Math.min(index, frames.length - 1); j++) {
     const f = frames[j];
     const c = f.people.get(id);
     if (c === undefined) continue;
-    const [travellers, people] =
-      viewer !== null ? seatPeople(f, viewer) : godPeople(f);
+    const [travellers, people] = viewer !== null ? seatPeople(f, viewer) : godPeople(f);
     const t = travellers.find((x) => x.characterId === id && x.kind !== "Gold");
     if (t !== undefined) {
-      path.push({
-        index: j,
-        at: along(route(t.fromProvince, t.toProvince), t.progress),
-        where: "on the road",
-        on: { from: t.fromProvince, to: t.toProvince, progress: t.progress },
-      });
+      path.push({ index: j, at: along(route(t.fromProvince, t.toProvince), t.progress), where: "on the road", on: { from: t.fromProvince, to: t.toProvince, progress: t.progress } });
       continue;
     }
     const s = people.find((x) => x.id === id);
     if (s !== undefined) {
-      path.push({
-        index: j,
-        at: city(s.province),
-        where: s.title,
-        on: { province: s.province },
-      });
+      path.push({ index: j, at: city(s.province), where: s.title, on: { province: s.province } });
       continue;
     }
     // At a court: god view knows everyone's place; a court knows its own people at home.
-    const known =
-      viewer === null ||
-      (c.employer === viewer && coverOf(c, viewer) === null && c.at === viewer);
-    if (known && c.at !== null && c.status !== "Dead")
-      path.push({
-        index: j,
-        at: city(Map_.capital(c.at).id),
-        where: `at the court of ${powerName(c.at)}`,
-        on: { province: Map_.capital(c.at).id },
-      });
+    const known = viewer === null || (c.employer === viewer && coverOf(c, viewer) === null && c.at === viewer);
+    if (known && c.at !== null && c.status !== "Dead") path.push({ index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}`, on: { province: Map_.capital(c.at).id } });
     // At his seat: a court's own governor where it believes he sits (the frame's `governedKnown`, by `seatKnown`); god
     // view, where he truly sits. Keyed on that belief alone, never his true employer, cover, duty or life, which would
     // end the line before word of a moved seat, a death, a turning or a rising reached his king.
     else {
       const held = viewer === null ? f.governed : f.governedKnown.get(viewer);
-      const seat = [...(held?.values() ?? [])].find(
-        (g) => g.character === id,
-      )?.seat;
-      if (seat !== undefined)
-        path.push({
-          index: j,
-          at: city(seat),
-          where: `governing from ${provinceName(seat)}`,
-          on: { province: seat },
-        });
+      const seat = [...(held?.values() ?? [])].find((g) => g.character === id)?.seat;
+      if (seat !== undefined) path.push({ index: j, at: city(seat), where: `governing from ${provinceName(seat)}`, on: { province: seat } });
     }
   }
   return path;
@@ -1252,12 +807,7 @@ export function traceOf(path: readonly PathStep[]): Pt[] {
   const push = (seg: readonly Pt[]): void => {
     for (const p of seg) {
       const q = pts[pts.length - 1];
-      if (
-        q === undefined ||
-        Math.abs(q.x - p.x) > 1e-6 ||
-        Math.abs(q.y - p.y) > 1e-6
-      )
-        pts.push(p);
+      if (q === undefined || Math.abs(q.x - p.x) > 1e-6 || Math.abs(q.y - p.y) > 1e-6) pts.push(p);
     }
   };
   path.forEach((step, i) => {
@@ -1265,22 +815,14 @@ export function traceOf(path: readonly PathStep[]): Pt[] {
     const a = path[i - 1].on;
     const b = step.on;
     const next = "from" in b ? b.from : b.province;
-    if (
-      "from" in a &&
-      "from" in b &&
-      a.from === b.from &&
-      a.to === b.to &&
-      b.progress >= a.progress
-    )
-      return push(between(route(a.from, a.to), a.progress, b.progress));
+    if ("from" in a && "from" in b && a.from === b.from && a.to === b.to && b.progress >= a.progress) return push(between(route(a.from, a.to), a.progress, b.progress));
     // From where he was to where his next road began (or where he next stood), then along that road as far as he had come.
     // Seen on a road, he is not known to have reached its end: he leaves it by whichever end is the shorter way on.
     let left = "from" in a ? a.to : a.province;
     if ("from" in a) {
       const road = route(a.from, a.to);
       const back = a.progress * lengthOf(road) + lengthOf(route(a.from, next));
-      const on =
-        (1 - a.progress) * lengthOf(road) + lengthOf(route(a.to, next));
+      const on = (1 - a.progress) * lengthOf(road) + lengthOf(route(a.to, next));
       if (back < on) left = a.from;
       push(between(road, a.progress, left === a.to ? 1 : 0));
     }

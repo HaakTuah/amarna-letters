@@ -7,17 +7,10 @@ import { sideScroll } from "../ui/side-scroll.ts";
 import { Emblem } from "./Emblem.tsx";
 import { sleepLine } from "./SeasonPanel.tsx";
 
-const short = (p: Power): string =>
-  p === "Babylonia" ? "Babylon" : p === "Alashiya" ? "Alashiya" : powerName(p);
+const short = (p: Power): string => (p === "Babylonia" ? "Babylon" : p === "Alashiya" ? "Alashiya" : powerName(p));
 
-const title = (
-  p: Power,
-  held: number,
-  fallen: boolean,
-  s: FrameSleep | null,
-): string =>
-  `${powerName(p)}: ${held} provinces${fallen ? ", fallen" : ""}` +
-  (s?.asleep ? `; asleep, wakes by ${when(s.wakeAt, null)} at the latest` : "");
+const title = (p: Power, held: number, fallen: boolean, s: FrameSleep | null): string =>
+  `${powerName(p)}: ${held} provinces${fallen ? ", fallen" : ""}` + (s?.asleep ? `; asleep, wakes by ${when(s.wakeAt, null)} at the latest` : "");
 
 /**
  * The seven courts along the top of the map: each power's colour and emblem (the key to the board), how many provinces it
@@ -28,10 +21,8 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
   const [open, setOpen] = useState<Power | null>(null);
   const f = scene.frame;
   const god = scene.viewer === null;
-  const heldBy = (p: Power): number =>
-    [...f.owner.values()].filter((o) => o === p).length;
-  const sleepOf = (p: Power): FrameSleep | null =>
-    god ? (f.sleep.get(p) ?? null) : null;
+  const heldBy = (p: Power): number => [...f.owner.values()].filter((o) => o === p).length;
+  const sleepOf = (p: Power): FrameSleep | null => (god ? (f.sleep.get(p) ?? null) : null);
   const otherNames = open !== null ? kingOtherNames(scene.viewer, open) : [];
   return (
     <div className="courtbar">
@@ -51,11 +42,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
               <span className="cname">{short(p)}</span>
               <span className="ccount">{held}</span>
               {sleep?.asleep && (
-                <svg
-                  className="moon"
-                  viewBox="-10 -10 20 20"
-                  aria-label="asleep"
-                >
+                <svg className="moon" viewBox="-10 -10 20 20" aria-label="asleep">
                   <use href="#g-moon" />
                 </svg>
               )}
@@ -69,28 +56,14 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
             <Emblem power={open} /> {powerName(open)}
           </strong>{" "}
           · {kingFor(scene.viewer, open)} · {heldBy(open)} provinces
-          {god
-            ? `, ${f.units.filter((u) => u.power === open).length} units`
-            : scene.viewer === open
-              ? `, ${(f.knownUnits?.get(open) ?? f.units.filter((u) => u.power === open)).length} units`
-              : ""}
+          {god ? `, ${f.units.filter((u) => u.power === open).length} units` : scene.viewer === open ? `, ${(f.knownUnits?.get(open) ?? f.units.filter((u) => u.power === open)).length} units` : ""}
           {f.eliminated.has(open) ? " · fallen" : ""}
           {/* His other names, on his card only (item 17+). */}
-          {otherNames.length > 0 && (
-            <div className="small muted">
-              Also known as {otherNames.join("; ")}
-            </div>
-          )}
+          {otherNames.length > 0 && <div className="small muted">Also known as {otherNames.join("; ")}</div>}
           {sleepOf(open) !== null ? (
             <div className="small">{sleepLine(sleepOf(open)!, null)}</div>
           ) : (
-            god &&
-            f.sleep.size > 0 && (
-              <div className="small muted">
-                This king does not sleep (script and human kings play every
-                season).
-              </div>
-            )
+            god && f.sleep.size > 0 && <div className="small muted">This king does not sleep (script and human kings play every season).</div>
           )}
         </div>
       )}

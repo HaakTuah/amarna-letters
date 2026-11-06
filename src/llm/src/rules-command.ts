@@ -3,15 +3,7 @@
  * better, mandates in their fixed vocabulary, and standing orders carried out by commanders. Split from rules.ts, since
  * files stay under 50 KB.
  */
-import {
-  CommandData,
-  CourtData,
-  EngageValues,
-  MandateTaskValues,
-  MostGovernorLevies,
-  RoadOdds,
-  type GameConfig,
-} from "@amarna/engine";
+import { CommandData, CourtData, EngageValues, MandateTaskValues, MostGovernorLevies, RoadOdds, type GameConfig } from "@amarna/engine";
 
 export function commandRules(c: GameConfig): string {
   const pct = (x: number): string => `${x}`;

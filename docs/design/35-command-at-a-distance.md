@@ -71,7 +71,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 ## Distance inside the realm (`turn/couriers.ts`, `rules/court.ts`)
 
 - **The court is wherever the king is** (`GameState.court`, `courtOf`, `TurnEngine.courtAt`): travel, envoys, reports,
-  archives and the fall read it where they read the map's capital before.
+  archives and the fall read it where they read the map's capital before. 
 - **Couriers** (`courierSeasons`): a lone traveller's pace on the fastest road; 0 where a courier makes it within the season
   (45 days of road). `sendOrders`: an order for a unit or place beyond that sets out with a courier (`GameState.couriers`),
   bound to its unit as a scheduled order is, and is carried out in the season it arrives; orders arriving join the season's

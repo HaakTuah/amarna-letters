@@ -5,7 +5,7 @@ A strategy game with no diplomacy rules, set among the seven Great Kings of the 
 Every treaty, alliance and betrayal is invented by the players. Kings never speak to each other
 directly: every word travels with an envoy who has motives of their own.
 
-This is the prototype described in the design document _Amarna Letters — Prototype Design Document_.
+This is the prototype described in the design document *Amarna Letters — Prototype Design Document*.
 Its job is to test one hypothesis: if communication is delayed, mediated by people with their own
 motives, and impossible to verify fully, then norms of trust, reputation and enforcement emerge
 on their own.
@@ -17,8 +17,8 @@ and envoy is a script player, and a whole game costs nothing.
 
 ![The message trail: what Alashiya's king wrote, beside what his envoy said abroad and reported home](docs/archive/rounds/2026-10-19-visual-overhaul/desktop-dark-trail.jpg)
 
-_The message trail. Every message exists in three versions: what the king wrote, what the envoy
-said at the foreign court, and what the envoy reported home. The gaps between them are the game._
+*The message trail. Every message exists in three versions: what the king wrote, what the envoy
+said at the foreign court, and what the envoy reported home. The gaps between them are the game.*
 
 ## How to play
 
@@ -53,7 +53,6 @@ rumours, and those can be late, shaded or false.
 ### What a king can do
 
 **Armies and fleets.**
-
 - Move, hold, support and convoy, as in Diplomacy, but each unit fights by its men, shaped by its commander, with
   its supports; ties bounce, and there are no dice. The loser loses men and falls back, and one beaten three to one,
   or with nowhere to go, is destroyed. You may support any power's unit, which is how alliances fight together.
@@ -68,7 +67,6 @@ rumours, and those can be late, shaded or false.
   a unit left hungry or unpaid for long mutinies.
 
 **Land and gold.**
-
 - Take a city by conquest, or as your vassal by a sealed tablet: no city is bought.
 - Cede provinces, give troops, and send gold with an envoy.
 - Debase the gold you send. The receiver's ledger counts it at face value until they pay
@@ -76,7 +74,6 @@ rumours, and those can be late, shaded or false.
 - Strengthen the walls of a city you hold, up to level 3, for 50 shekels times the new level.
 
 **Envoys and letters.**
-
 - Send up to three envoys a season, each with a letter of up to 1,500 characters, a mandate
   saying what it may agree to, gold, and tablets. An envoy takes one to three seasons each way,
   by distance.
@@ -85,7 +82,6 @@ rumours, and those can be late, shaded or false.
   court stands with you.
 
 **Tablets.**
-
 - Write a treaty on a tablet (20 shekels) for your envoy to offer for sealing.
 - Send a copy of a sealed tablet to a third court as evidence.
 - Repudiate a tablet your envoy sealed in your name as beyond his authority: what it granted ends, and word of it rides
@@ -95,7 +91,6 @@ rumours, and those can be late, shaded or false.
 - Tablets are evidence only: nothing in the engine enforces them.
 
 **Court and spies.**
-
 - Hire from the open market, where people name their own price, and dismiss servants.
 - Run background checks on what a person hides.
 - Post spies at a foreign court or in a province, and pay watchmen against other kings' spies.
@@ -104,7 +99,6 @@ rumours, and those can be late, shaded or false.
   what you see and propose troop orders and levies. The omens darken as the end grows likelier, in your court's own voice.
 
 **Command at a distance.**
-
 - Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
   against what your court knows: one for land lost or besieged out of your sight goes out, and you hear how it went when
@@ -120,7 +114,6 @@ rumours, and those can be late, shaded or false.
   a tribute and a price you name: if he takes it, the land is his, bound to you by a sealed vassal tablet.
 
 **The land and its people.**
-
 - Each province's people farm, give the grain you ask of them into its stores, and eat what they keep. Ask a share of
   the harvest (a third by default), which never squeezes them but lets them hide more the older your count and the
   farther they lie, or an amount of one province, which you get but can judge only by your count: too much and they go
@@ -213,15 +206,15 @@ There is one winner. Shared victory for sworn allies is a house rule, off by def
 Every king reads every power's opening position. The script kings each play a temperament of their
 own, varied a little in every game.
 
-| Power         | Capital                 | Tier   | Starts with                                                                                                                                                                                                               | How the script king plays                                                                                                  |
-| ------------- | ----------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **Egypt**     | Akhetaten               | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,200 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust"               |
-| **Hatti**     | Hattusa                 | Strong | 15,000 men at Hattusa, Samuha, in Kizzuwatna, Tuwanuwa, Nesa and Sapinuwa, a few ships off Kizzuwatna, 300 shekels                                                                                                        | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade                                     |
-| **Babylonia** | Babili                  | Strong | armies in Babili, Dur-Kurigalzu, Nippur and Sippar (10,000 men in all), 600 shekels                                                                                                                                       | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
-| **Mitanni**   | Washukanni              | Middle | armies in Washukanni, Harran and Taidu (10,000 men in all), 450 shekels                                                                                                                                                   | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria                    |
-| **Assyria**   | Ashur                   | Middle | armies in Ashur, Ninua and Arbail (4,000 men in all), 300 shekels                                                                                                                                                         | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King                              |
-| **Arzawa**    | Apasa                   | Weak   | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels                                                                                                                                                    | "The western opportunist": the most cunning and least honest                                                               |
-| **Alashiya**  | the harbour of Alashiya | Weak   | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels                                                                                                                                       | "The copper merchant": the island trader, the most cautious and least aggressive                                           |
+| Power | Capital | Tier | Starts with | How the script king plays |
+|---|---|---|---|---|
+| **Egypt** | Akhetaten | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,200 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
+| **Hatti** | Hattusa | Strong | 15,000 men at Hattusa, Samuha, in Kizzuwatna, Tuwanuwa, Nesa and Sapinuwa, a few ships off Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
+| **Babylonia** | Babili | Strong | armies in Babili, Dur-Kurigalzu, Nippur and Sippar (10,000 men in all), 600 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
+| **Mitanni** | Washukanni | Middle | armies in Washukanni, Harran and Taidu (10,000 men in all), 450 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
+| **Assyria** | Ashur | Middle | armies in Ashur, Ninua and Arbail (4,000 men in all), 300 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
+| **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
+| **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
 
 **The opening by the best estimate.** Where no source speaks, the opening takes the middle of the published experts'
 estimates, cited in `docs/history/`: the realms' people, the size of towns reckoned from their area, how often the Nile
@@ -345,14 +338,14 @@ them Sonnet.
 
 Pick a preset, choose whether to watch or take a seat, and begin.
 
-| Preset                                | Kings                                                                                        | Envoys and spies | Narrator   | Rough cost of a game                |
-| ------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------- | ---------- | ----------------------------------- |
-| **Free**                              | Script kings                                                                                 | Script           | Template   | $0, no key needed                   |
-| **Budget**                            | Haiku 5.5                                                                                    | Haiku 5.5        | Haiku 5.5  | about $9 ($5 in the background)     |
-| **Counsel**                           | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5        | Sonnet 5.5 | about $90 ($55 in the background)   |
-| **Standard** (recommended)            | Sonnet 5.5                                                                                   | Haiku 5.5        | Sonnet 5.5 | about $110 ($65 in the background)  |
-| **Showcase**                          | Opus 5.5                                                                                     | Haiku 5.5        | Opus 5.5   | about $180 ($105 in the background) |
-| **Local agents** (this computer only) | Claude Code agents                                                                           | Script           | Template   | your Claude subscription, no key    |
+| Preset | Kings | Envoys and spies | Narrator | Rough cost of a game |
+|---|---|---|---|---|
+| **Free** | Script kings | Script | Template | $0, no key needed |
+| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $9 ($5 in the background) |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $90 ($55 in the background) |
+| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $110 ($65 in the background) |
+| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $180 ($105 in the background) |
+| **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
 The costs are the start page's estimates for an age of the usual length (about 80 seasons), from the token counts of a
 recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache; a plan reads only
@@ -595,15 +588,15 @@ The site is `src/web/dist`. If it is served from a sub-path, set `<base href>` i
 Every game is deterministic: the same seed and the same decisions give the same game, and every
 log replays exactly.
 
-| Package          | What it is                                                                                                                                                                                                                                                               |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/engine`     | The deterministic engine: map, state, orders, validator, adjudicator, economy, envoys, tablets, spies, catastrophes, scoring. Pure TypeScript, no I/O; a lint config keeps out clocks, unseeded randomness, culture-sensitive text and inexact `Math`.                   |
-| `src/game`       | Seats, character minds and the narrator as interfaces; the runner that records every decision; script kings (temperaments, memory, a look-ahead over likely rival orders) and script characters; signal detection.                                                       |
-| `src/llm`        | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator, file seats and the local bridge. Calls are posted with `fetch`, in the browser and the batch runner alike. |
-| `src/web`        | Vite and React app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. The engine, the script kings and characters run in a Web Worker; the page only shows what it sends.                                              |
-| `src/batch`      | Node runner for unattended games, on worker threads.                                                                                                                                                                                                                     |
-| `src/*/test`     | The tests (Vitest), ported from the C# suite: engine, script kings and characters, model layer against a simulated API, and the web map's scenes.                                                                                                                        |
-| `tests/fixtures` | Recorded model games (JSON lines), kept as data. The C# build the game was converted from (build order item 5+) was removed after the fix pass; it is in `develop`'s history at commit `5b4caa2`.                                                                        |
+| Package | What it is |
+|---|---|
+| `src/engine` | The deterministic engine: map, state, orders, validator, adjudicator, economy, envoys, tablets, spies, catastrophes, scoring. Pure TypeScript, no I/O; a lint config keeps out clocks, unseeded randomness, culture-sensitive text and inexact `Math`. |
+| `src/game` | Seats, character minds and the narrator as interfaces; the runner that records every decision; script kings (temperaments, memory, a look-ahead over likely rival orders) and script characters; signal detection. |
+| `src/llm` | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator, file seats and the local bridge. Calls are posted with `fetch`, in the browser and the batch runner alike. |
+| `src/web` | Vite and React app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. The engine, the script kings and characters run in a Web Worker; the page only shows what it sends. |
+| `src/batch` | Node runner for unattended games, on worker threads. |
+| `src/*/test` | The tests (Vitest), ported from the C# suite: engine, script kings and characters, model layer against a simulated API, and the web map's scenes. |
+| `tests/fixtures` | Recorded model games (JSON lines), kept as data. The C# build the game was converted from (build order item 5+) was removed after the fix pass; it is in `develop`'s history at commit `5b4caa2`. |
 
 ### Design notes
 
@@ -616,10 +609,10 @@ build order item by item, with each item's report in `docs/rounds/`.
 The music and sounds are rendered from two CC0 sample libraries, VS Chamber Orchestra: Community Edition and the
 Versilian Community Sample Library (Versilian Studios; `docs/audio/SOURCES.md`).
 
-The game was inspired by Irving Finkel's _Curator's Corner_ episode 100, "Reading the Pharaoh's
+The game was inspired by Irving Finkel's *Curator's Corner* episode 100, "Reading the Pharaoh's
 private mail with Irving Finkel" (The British Museum,
-<https://www.youtube.com/watch?v=3MZq_ZQDhJA>), and leans on William L. Moran's _The Amarna
-Letters_ for the translations of the letters themselves.
+<https://www.youtube.com/watch?v=3MZq_ZQDhJA>), and leans on William L. Moran's *The Amarna
+Letters* for the translations of the letters themselves.
 
 The libraries, samples and map data the game ships, with their licences, are listed in its third-party notices
 (`third-party-notices.txt` beside the game, linked from the About page's Credits; written by the web build from

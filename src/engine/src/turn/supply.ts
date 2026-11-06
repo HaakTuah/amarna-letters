@@ -13,13 +13,7 @@ import { cmpStr, sortBy } from "../core/seq.ts";
 import type { SupplyOrder } from "../model/orders.ts";
 import { gain, remember } from "../model/people.ts";
 import { type Power, powerName } from "../model/power.ts";
-import {
-  isAlive,
-  logEvent,
-  notify,
-  unitAt,
-  type Unit,
-} from "../model/state.ts";
+import { isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { wordFromKing } from "../rules/court.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
@@ -46,34 +40,11 @@ P.setSupply = function (p, o) {
   const gold = Math.max(0, o.gold);
   // Where its king named it, and so reckons its word's road (bug #615).
   const named = o.named ?? o.unit;
-  if (
-    gold > 0 &&
-    !this.pay(
-      p,
-      gold,
-      `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name}`,
-      o,
-      "no word was sent",
-    )
-  )
-    return;
+  if (gold > 0 && !this.pay(p, gold, `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name}`, o, "no word was sent")) return;
   const seasons = wordFromKing(S, this.map, p, named);
   const at = S.turn + (Number.isFinite(seasons) ? seasons : 1);
-  S.foodWord.push({
-    power: p,
-    unit: u.id,
-    province: named,
-    buy: o.buy,
-    gold,
-    at,
-  });
-  logEvent(
-    S,
-    "supply",
-    `${p} sent word to its army in ${this.map.get(named).name} to ${o.buy ? "buy" : "take"} its food${gold > 0 ? `, with ${gold} shekels` : ""}.`,
-    [p],
-    o.buy ? "supply-word-buy" : "supply-word-take",
-  );
+  S.foodWord.push({ power: p, unit: u.id, province: named, buy: o.buy, gold, at });
+  logEvent(S, "supply", `${p} sent word to its army in ${this.map.get(named).name} to ${o.buy ? "buy" : "take"} its food${gold > 0 ? `, with ${gold} shekels` : ""}.`, [p], o.buy ? "supply-word-buy" : "supply-word-take");
   notify(
     S,
     p,
@@ -95,24 +66,9 @@ P.foodArrives = function () {
       // The army is gone or no longer his: the courier brings the gold back, as word from there comes (bug #615), or, his
       // king fallen, it stays where he carried it, in the purse of that land's people (nothing vanishes).
       const back = this.heardAt(w.power, w.province);
-      if (w.gold > 0 && isAlive(S, w.power) && back > S.turn + S.deliveryOffset)
-        S.sent.push(
-          newRemittance({
-            power: w.power,
-            province: w.province,
-            gold: w.gold,
-            due: back,
-            home: true,
-            food: true,
-          }),
-        );
-      else if (w.gold > 0 && isAlive(S, w.power))
-        this.credit(w.power, w.gold, this.courtAt(w.power), false);
-      else if (w.gold > 0)
-        this.spendAt(
-          this.map.get(w.province).isSea ? this.courtAt(w.power) : w.province,
-          w.gold,
-        );
+      if (w.gold > 0 && isAlive(S, w.power) && back > S.turn + S.deliveryOffset) S.sent.push(newRemittance({ power: w.power, province: w.province, gold: w.gold, due: back, home: true, food: true }));
+      else if (w.gold > 0 && isAlive(S, w.power)) this.credit(w.power, w.gold, this.courtAt(w.power), false);
+      else if (w.gold > 0) this.spendAt(this.map.get(w.province).isSea ? this.courtAt(w.power) : w.province, w.gold);
       continue;
     }
     u.buy = w.buy;
@@ -126,24 +82,13 @@ P.keepsFoodGold = function (u) {
   const c = this.commanderOf(u);
   if (c === null || u.chest <= 0) return false;
   // A script commander's formula (first guess): his greed times his disloyalty.
-  if (c.traits.greed * (100 - c.traits.loyalty) < UnrestData.keepFood)
-    return false;
+  if (c.traits.greed * (100 - c.traits.loyalty) < UnrestData.keepFood) return false;
   const kept = Math.min(u.chest, u.savings);
   u.chest = 0;
   u.savings -= kept;
   gain(c, kept, "Skimmed");
-  remember(
-    c,
-    this.s.turn,
-    `I kept the ${formatMoney(kept)} my king sent for the army's food in ${this.map.get(u.province).name}, and let the men take what they needed.`,
-  );
-  logEvent(
-    this.s,
-    "supply",
-    `${c.name} kept the gold ${u.power} sent for its army's food in ${this.map.get(u.province).name}.`,
-    [],
-    "supply-kept",
-  );
+  remember(c, this.s.turn, `I kept the ${formatMoney(kept)} my king sent for the army's food in ${this.map.get(u.province).name}, and let the men take what they needed.`);
+  logEvent(this.s, "supply", `${c.name} kept the gold ${u.power} sent for its army's food in ${this.map.get(u.province).name}.`, [], "supply-kept");
   return true;
 };
 
@@ -166,42 +111,15 @@ export class TakenBook {
   /** Each taking remembered of whoever took, and word of it to the land's ruler: his people's complaint, or a grievance. */
   settle(e: TurnEngine): void {
     const S = e.s;
-    for (const [prov, by] of sortBy(this.took.entries(), [
-      ([k]: [string, Dict<Power, number>]) => k,
-      cmpStr,
-    ])) {
+    for (const [prov, by] of sortBy(this.took.entries(), [([k]: [string, Dict<Power, number>]) => k, cmpStr])) {
       const holder = S.owner.getOrDefault(prov, null);
       const name = e.map.get(prov).name;
-      for (const [p, n] of sortBy(by.entries(), [
-        ([k]: [Power, number]) => k,
-        cmpStr,
-      ])) {
+      for (const [p, n] of sortBy(by.entries(), [([k]: [Power, number]) => k, cmpStr])) {
         // Item 17++: a taking its people remember of whoever's troops took it, by how much of their food it was.
-        e.take(
-          prov,
-          p,
-          idiv(
-            n * UnrestData.taken,
-            Math.max(1, this.base.getOrDefault(prov, 0)),
-          ),
-        );
+        e.take(prov, p, idiv(n * UnrestData.taken, Math.max(1, this.base.getOrDefault(prov, 0))));
         if (holder === null || !isAlive(S, holder)) continue;
-        if (p === holder)
-          e.tell(
-            holder,
-            prov,
-            "Notice",
-            "The people complain",
-            `The people of ${name} complain that your own troops took ${measures(n)} of their food this season.`,
-          );
-        else
-          e.tell(
-            holder,
-            prov,
-            "Notice",
-            "Troops took food",
-            `The troops of ${powerName(p)} took ${measures(n)} of food from your land in ${name} this season.`,
-          );
+        if (p === holder) e.tell(holder, prov, "Notice", "The people complain", `The people of ${name} complain that your own troops took ${measures(n)} of their food this season.`);
+        else e.tell(holder, prov, "Notice", "Troops took food", `The troops of ${powerName(p)} took ${measures(n)} of food from your land in ${name} this season.`);
       }
     }
   }

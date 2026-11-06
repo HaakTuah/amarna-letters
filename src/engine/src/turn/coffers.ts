@@ -11,25 +11,11 @@
 import { Dict } from "../core/collections.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import {
-  type Bill,
-  billTotal,
-  type Coffer,
-  newBill,
-  newCoffer,
-  newRemittance,
-} from "../model/coffers.ts";
+import { type Bill, billTotal, type Coffer, newBill, newCoffer, newRemittance } from "../model/coffers.ts";
 import { forMen } from "../model/land.ts";
 import type { SendOrder } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
-import {
-  isAlive,
-  logEvent,
-  notify,
-  siegeOf,
-  unitLabel,
-  type Unit,
-} from "../model/state.ts";
+import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { buildGold, levelOf, upkeepGold, WorksData } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -52,12 +38,7 @@ declare module "./core.ts" {
      * Pays for work done far off (works, a levy, a unit's pay): from the coffer, what it lacks on a bill carried home;
      * null if neither will do (a debt unpaid there, or no road for a bill). Who is paid the coffer's part is the caller's.
      */
-    payFar(
-      p: Power,
-      province: string,
-      amount: number,
-      unit?: Unit | null,
-    ): { coffer: number; credit: number } | null;
+    payFar(p: Power, province: string, amount: number, unit?: Unit | null): { coffer: number; credit: number } | null;
     /** Why nothing far off is done on credit there (`payFar` gave null): a debt unpaid, or no road for a bill. */
     noCredit(p: Power, province: string): string;
     /** Gold sent with the couriers to a far province's coffer (order send): it leaves the treasury now. */
@@ -80,17 +61,9 @@ function intoCoffer(e: TurnEngine, c: Coffer, gold: number): void {
 }
 
 /** Whether a load can go from the province to the king's court by road (`lootHome` sends it by courier otherwise, #740). */
-export const homeRoad = (
-  e: TurnEngine,
-  p: Power,
-  province: string,
-): boolean => {
+export const homeRoad = (e: TurnEngine, p: Power, province: string): boolean => {
   const cap = e.courtAt(p);
-  return (
-    province !== cap &&
-    e.s.owner.getOrDefault(cap, null) === p &&
-    e.tradeRoute(p, province, cap, false) !== null
-  );
+  return province !== cap && e.s.owner.getOrDefault(cap, null) === p && e.tradeRoute(p, province, cap, false) !== null;
 };
 
 /** Seasons a bill or gold takes from a province with no road for word: never; credit is not given there (null). */
@@ -108,21 +81,17 @@ P.isFar = function (p, province) {
 P.cofferOf = function (p, province, make = false) {
   const S = this.s;
   if (S.owner.getOrDefault(province, null) !== p) return null;
-  let c =
-    S.coffers.find((x) => x.province === province && x.power === p) ?? null;
-  if (c === null && make)
-    S.coffers.push((c = newCoffer({ province, power: p })));
+  let c = S.coffers.find((x) => x.province === province && x.power === p) ?? null;
+  if (c === null && make) S.coffers.push((c = newCoffer({ province, power: p })));
   return c;
 };
 
 P.receiveAt = function (p, province, gold, income = true) {
   if (gold <= 0) return;
   if (this.isFar(p, province)) {
-    if (this.s.owner.getOrDefault(province, null) === p)
-      intoCoffer(this, this.cofferOf(p, province, true)!, gold);
+    if (this.s.owner.getOrDefault(province, null) === p) intoCoffer(this, this.cofferOf(p, province, true)!, gold);
     // Far off in another's land, it goes home as a load; with no road home for it, it stays among the people there.
-    else if (homeRoad(this, p, province))
-      this.lootHome(p, province, gold, [], "");
+    else if (homeRoad(this, p, province)) this.lootHome(p, province, gold, [], "");
     else this.spendAt(province, gold);
     return;
   }
@@ -132,8 +101,7 @@ P.receiveAt = function (p, province, gold, income = true) {
 };
 
 P.goldAt = function (p, province) {
-  if (!this.isFar(p, province))
-    return Math.max(0, this.s.treasuries.get(p).gold);
+  if (!this.isFar(p, province)) return Math.max(0, this.s.treasuries.get(p).gold);
   return this.cofferOf(p, province)?.gold ?? 0;
 };
 
@@ -157,35 +125,16 @@ P.payFar = function (p, province, amount, unit = null) {
   if ((c?.owed ?? 0) > 0 || d === null) return null;
   if (c !== null) c.gold = 0;
   const rest = amount - have;
-  let b =
-    S.bills.find(
-      (x) => x.power === p && x.province === province && x.turn === S.turn,
-    ) ?? null;
+  let b = S.bills.find((x) => x.power === p && x.province === province && x.turn === S.turn) ?? null;
   // Due when word of this season's doings there could reach the court (`heardAt`).
-  if (b === null)
-    S.bills.push(
-      (b = newBill({
-        power: p,
-        province,
-        turn: S.turn,
-        due: this.heardAt(p, province),
-      })),
-    );
-  if (unit !== null)
-    b.units.push({
-      unit: unit.id,
-      gold: rest,
-      label: unitLabel(unit),
-      missed: unit.unpaid,
-    });
+  if (b === null) S.bills.push((b = newBill({ power: p, province, turn: S.turn, due: this.heardAt(p, province) })));
+  if (unit !== null) b.units.push({ unit: unit.id, gold: rest, label: unitLabel(unit), missed: unit.unpaid });
   else b.works += rest;
   return { coffer: have, credit: rest };
 };
 
 P.noCredit = function (p, province) {
-  return (this.cofferOf(p, province)?.owed ?? 0) > 0
-    ? "too little gold in its coffer, and no credit there while a debt is unpaid"
-    : "too little gold in its coffer, and no road for a bill to come home by";
+  return (this.cofferOf(p, province)?.owed ?? 0) > 0 ? "too little gold in its coffer, and no credit there while a debt is unpaid" : "too little gold in its coffer, and no road for a bill to come home by";
 };
 
 P.sendGold = function (p, o) {
@@ -195,21 +144,8 @@ P.sendGold = function (p, o) {
   // treasury nor a notice says more (Codex, #635). With no road at all it arrives as word does, and comes back.
   if (!this.pay(p, o.gold, `the gold for ${name}`, o, "none was sent")) return;
   const d = reach(this, p, o.province) ?? 1;
-  S.sent.push(
-    newRemittance({
-      power: p,
-      province: o.province,
-      gold: o.gold,
-      due: S.turn + Math.max(1, d),
-    }),
-  );
-  notify(
-    S,
-    p,
-    "Resolution",
-    "Gold sent",
-    `${formatMoney(o.gold)} left your treasury with your couriers for the coffer of ${name}; word will come when it reaches there, if the province is still yours and open by then.`,
-  );
+  S.sent.push(newRemittance({ power: p, province: o.province, gold: o.gold, due: S.turn + Math.max(1, d) }));
+  notify(S, p, "Resolution", "Gold sent", `${formatMoney(o.gold)} left your treasury with your couriers for the coffer of ${name}; word will come when it reaches there, if the province is still yours and open by then.`);
   logEvent(S, "gold-sent", `${p} sent gold to ${name}.`, [p], "gold-sent");
 };
 
@@ -232,47 +168,19 @@ P.goldArrives = function () {
     }
     if (x.home) {
       this.receiveAt(x.power, this.courtAt(x.power), x.gold, false);
-      say(
-        x.power,
-        x.food
-          ? `The ${formatMoney(x.gold)} you sent for your troops' food in ${name} came back with your couriers, into the treasury: they found none of yours there.`
-          : `The ${formatMoney(x.gold)} you sent to ${name} came back with your couriers, into the treasury.`,
-      );
+      say(x.power, x.food ? `The ${formatMoney(x.gold)} you sent for your troops' food in ${name} came back with your couriers, into the treasury: they found none of yours there.` : `The ${formatMoney(x.gold)} you sent to ${name} came back with your couriers, into the treasury.`);
       continue;
     }
     const held = S.owner.getOrDefault(x.province, null) === x.power;
     if (held && siegeOf(S, x.province) === null) {
       intoCoffer(this, this.cofferOf(x.power, x.province, true)!, x.gold);
-      this.tell(
-        x.power,
-        x.province,
-        "Notice",
-        "Gold sent",
-        `The ${formatMoney(x.gold)} you sent reached the coffer of ${name}.`,
-      );
+      this.tell(x.power, x.province, "Notice", "Gold sent", `The ${formatMoney(x.gold)} you sent reached the coffer of ${name}.`);
       // Kept until word of it comes; told at once (word within the season), it leaves the list with the notice.
-      if (this.heardAt(x.power, x.province) > S.turn + S.deliveryOffset)
-        S.sent.push(
-          newRemittance({
-            power: x.power,
-            province: x.province,
-            gold: x.gold,
-            due: this.heardAt(x.power, x.province),
-            landed: true,
-          }),
-        );
+      if (this.heardAt(x.power, x.province) > S.turn + S.deliveryOffset) S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: this.heardAt(x.power, x.province), landed: true }));
       continue;
     }
     // Home again as word from there comes.
-    S.sent.push(
-      newRemittance({
-        power: x.power,
-        province: x.province,
-        gold: x.gold,
-        due: this.heardAt(x.power, x.province),
-        home: true,
-      }),
-    );
+    S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: this.heardAt(x.power, x.province), home: true }));
   }
   // Bills carried home: the treasury pays them as far as it can.
   const bills = sortBy(
@@ -292,11 +200,7 @@ P.goldArrives = function () {
     let paid = 0;
     for (const { unit: id, gold, label, missed } of b.units) {
       // A fleet in cargo service is with its ship, not among the units.
-      const u =
-        S.units.find((x) => x.id === id && x.power === b.power) ??
-        S.caravans.find((v) => v.ship?.id === id && v.power === b.power)
-          ?.ship ??
-        null;
+      const u = S.units.find((x) => x.id === id && x.power === b.power) ?? S.caravans.find((v) => v.ship?.id === id && v.power === b.power)?.ship ?? null;
       if (t.gold >= gold) {
         t.gold -= gold;
         paid += gold;
@@ -330,27 +234,14 @@ P.goldArrives = function () {
         c.owed += owed - now;
       }
     }
-    const of = [
-      b.works > 0 ? "its works and levies" : "",
-      b.units.length > 0 ? "the pay of your troops there" : "",
-    ]
-      .filter((x) => x !== "")
-      .join(" and ");
+    const of = [b.works > 0 ? "its works and levies" : "", b.units.length > 0 ? "the pay of your troops there" : ""].filter((x) => x !== "").join(" and ");
     let l = `A bill came home from ${name} for ${of}, done on credit in turn ${b.turn}: ${formatMoney(total)}`;
     if (paid >= total) l += ", paid.";
     else {
       l += `, of which the treasury could pay ${formatMoney(paid)}.`;
-      if (short.length > 0)
-        l += ` Unpaid: ${short.join(", ")}, who count it a season of missing pay.`;
-      if (owed > 0)
-        l += ` ${formatMoney(owed)} is owed to the people of ${name}: nothing more is done there on credit until its coffer has paid it.`;
-      logEvent(
-        S,
-        "bill-unpaid",
-        `${b.power} could not pay a bill from ${name}.`,
-        [b.power],
-        "bill-unpaid",
-      );
+      if (short.length > 0) l += ` Unpaid: ${short.join(", ")}, who count it a season of missing pay.`;
+      if (owed > 0) l += ` ${formatMoney(owed)} is owed to the people of ${name}: nothing more is done there on credit until its coffer has paid it.`;
+      logEvent(S, "bill-unpaid", `${b.power} could not pay a bill from ${name}.`, [b.power], "bill-unpaid");
     }
     say(b.power, l);
   }
@@ -364,21 +255,9 @@ function seasonNeed(e: TurnEngine, p: Power, province: string): number {
   for (const w of S.works.filter((x) => x.province === province && !x.labour)) {
     const level = levelOf(S, w.kind, province);
     need += upkeepGold(w.kind, Math.min(level, w.keep));
-    if (w.keep > level && level < WorksData[w.kind].most)
-      need += buildGold(
-        w.kind,
-        province,
-        w.kind === "Policing" ? w.keep - level : level + 1,
-      );
+    if (w.keep > level && level < WorksData[w.kind].most) need += buildGold(w.kind, province, w.kind === "Policing" ? w.keep - level : level + 1);
   }
-  for (const u of S.units.filter(
-    (x) => x.power === p && x.province === province,
-  ))
-    need += forMen(
-      u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep,
-      u.kind,
-      u.men,
-    );
+  for (const u of S.units.filter((x) => x.power === p && x.province === province)) need += forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men);
   return need;
 }
 
@@ -392,20 +271,8 @@ P.coffersSettle = function () {
       S.coffers.splice(S.coffers.indexOf(c), 1);
       if (holder !== null && isAlive(S, holder) && c.gold > 0) {
         this.receiveAt(holder, c.province, c.gold, false);
-        this.tell(
-          holder,
-          c.province,
-          "Notice",
-          "A coffer taken",
-          `The coffer ${c.power} kept in ${name} fell to you with the province: ${formatMoney(c.gold)}, ${this.isFar(holder, c.province) ? "kept there in your own coffer" : "into your treasury"}.`,
-        );
-        logEvent(
-          S,
-          "coffer-taken",
-          `${holder} took the coffer of ${name}.`,
-          this.nearOf(c.province, holder),
-          "coffer-taken",
-        );
+        this.tell(holder, c.province, "Notice", "A coffer taken", `The coffer ${c.power} kept in ${name} fell to you with the province: ${formatMoney(c.gold)}, ${this.isFar(holder, c.province) ? "kept there in your own coffer" : "into your treasury"}.`);
+        logEvent(S, "coffer-taken", `${holder} took the coffer of ${name}.`, this.nearOf(c.province, holder), "coffer-taken");
       } else this.spendAt(c.province, c.gold);
       continue;
     }
@@ -421,15 +288,9 @@ P.coffersSettle = function () {
         this.lootHome(c.power, c.province, c.gold, [], "");
         c.gold = 0;
       }
-    } else if (
-      siegeOf(S, c.province) === null &&
-      reach(this, c.power, c.province) !== null &&
-      homeRoad(this, c.power, c.province)
-    ) {
+    } else if (siegeOf(S, c.province) === null && reach(this, c.power, c.province) !== null && homeRoad(this, c.power, c.province)) {
       // With no road home, or no word, it keeps all it has.
-      const keep =
-        seasonNeed(this, c.power, c.province) *
-        (reach(this, c.power, c.province)! + 1);
+      const keep = seasonNeed(this, c.power, c.province) * (reach(this, c.power, c.province)! + 1);
       const home = c.gold - keep;
       if (home > 0) {
         c.gold -= home;
@@ -446,11 +307,8 @@ export function goldSent(e: TurnEngine, p: Power): number {
     sum(
       e.s.sent.filter((x) => x.power === p && !x.landed),
       (x) => x.gold,
-    ) +
-    sum(
-      e.s.journeys.filter(
-        (j) => j.kind === "Word" && j.news === "Loot" && j.to === p,
-      ),
+    ) + sum(
+      e.s.journeys.filter((j) => j.kind === "Word" && j.news === "Loot" && j.to === p),
       (j) => lootOf(j).gold,
     )
   );

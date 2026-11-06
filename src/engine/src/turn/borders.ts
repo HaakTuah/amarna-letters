@@ -15,20 +15,10 @@ import { cmpStr } from "../core/text.ts";
 import { grainWorth, needOf } from "../model/economy.ts";
 import { countryNeed, LandData, reckonedOf } from "../model/land.ts";
 import { seasonOfTurn } from "../model/map.ts";
-import type {
-  DeportOrder,
-  ExpelOrder,
-  ReturnRunawaysOrder,
-  WelcomeOrder,
-} from "../model/orders.ts";
+import type { DeportOrder, ExpelOrder, ReturnRunawaysOrder, WelcomeOrder } from "../model/orders.ts";
 import { type Power, powerName, whose, whoseLand } from "../model/power.ts";
 import { isAlive, logEvent, ownedBy, siegeOf } from "../model/state.ts";
-import {
-  cheapestRoute,
-  fastestPoints,
-  legPoints,
-  PointsPerDay,
-} from "../model/travel.ts";
+import { cheapestRoute, fastestPoints, legPoints, PointsPerDay } from "../model/travel.ts";
 import { TurnEngine } from "./core.ts";
 import { people, share, shift } from "./people.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
@@ -40,10 +30,7 @@ export const PeopleTitle = "People";
 declare module "./core.ts" {
   interface TurnEngine {
     livingScore(province: string): number;
-    bestRefuge(
-      from: string,
-      fed?: Dict<string, number>,
-    ): { to: string; score: number; here: number } | null;
+    bestRefuge(from: string, fed?: Dict<string, number>): { to: string; score: number; here: number } | null;
     refuge(from: string, n: number, why: string): void;
     moveLoose(from: string, to: string, n: number): void;
     looseLeave(province: string, n: number): void;
@@ -52,14 +39,7 @@ declare module "./core.ts" {
     deport(p: Power, o: DeportOrder): void;
     returnRunaways(p: Power, o: ReturnRunawaysOrder): void;
     expel(p: Power, o: ExpelOrder): void;
-    sendPeople(
-      by: Power,
-      from: string,
-      to: string,
-      n: number,
-      gold: number,
-      freeable?: boolean,
-    ): [number, number, number];
+    sendPeople(by: Power, from: string, to: string, n: number, gold: number, freeable?: boolean): [number, number, number];
     deporteesOnRoad(): Dict<Power, string[]>;
   }
 }
@@ -72,11 +52,7 @@ const P = TurnEngine.prototype;
  */
 P.livingScore = function (province) {
   if (siegeOf(this.s, province) !== null) return 0;
-  return idiv(
-    this.s.fed.getOrDefault(province, 1000) *
-      (100 - Math.min(100, this.burden(province))),
-    100,
-  );
+  return idiv(this.s.fed.getOrDefault(province, 1000) * (100 - Math.min(100, this.burden(province))), 100);
 };
 
 /**
@@ -93,17 +69,8 @@ P.bestRefuge = function (from, fed) {
     .filter((x) => !Map.get(x).isSea)
     .map((x) => [x, this.livingScore(x)] as const);
   S.fed = was;
-  const best = sortBy(
-    scored,
-    [([, v]) => -v, (a: number, b: number) => a - b],
-    [([x]) => x, cmpStr],
-  )[0];
-  if (
-    best === undefined ||
-    best[1] <= 0 ||
-    best[1] * 100 <= here * (100 + LandData.refugeMargin)
-  )
-    return null;
+  const best = sortBy(scored, [([, v]) => -v, (a: number, b: number) => a - b], [([x]) => x, cmpStr])[0];
+  if (best === undefined || best[1] <= 0 || best[1] * 100 <= here * (100 + LandData.refugeMargin)) return null;
   return { to: best[0], score: best[1], here };
 };
 
@@ -126,29 +93,10 @@ P.refuge = function (from, n, why) {
   const nameA = Map.get(from).name;
   const nameB = Map.get(best).name;
   // Word of it comes from each land to its king's court, by the road if far (bug #517).
-  if (a !== null && isAlive(S, a))
-    this.tell(
-      a,
-      from,
-      "Notice",
-      PeopleTitle,
-      `From ${nameA}, ${people(n)} people fled ${why} into ${nameB}${whoseLand(nameB, b)}.`,
-    );
+  if (a !== null && isAlive(S, a)) this.tell(a, from, "Notice", PeopleTitle, `From ${nameA}, ${people(n)} people fled ${why} into ${nameB}${whoseLand(nameB, b)}.`);
   if (b !== null && isAlive(S, b))
-    this.tell(
-      b,
-      best,
-      "Notice",
-      PeopleTitle,
-      `Into ${nameB} came ${people(n)} people fleeing ${why} from ${nameA}${whoseLand(nameA, a)}. You may settle them (order welcome)${a !== null ? ` or send them back (order return runaways)` : ""}.`,
-    );
-  logEvent(
-    S,
-    "refugees",
-    `${people(n)} people fled ${why} from ${nameA} into ${nameB}.`,
-    [...this.nearOf(from, a), ...this.nearOf(best, b)],
-    "refugees",
-  );
+    this.tell(b, best, "Notice", PeopleTitle, `Into ${nameB} came ${people(n)} people fleeing ${why} from ${nameA}${whoseLand(nameA, a)}. You may settle them (order welcome)${a !== null ? ` or send them back (order return runaways)` : ""}.`);
+  logEvent(S, "refugees", `${people(n)} people fled ${why} from ${nameA} into ${nameB}.`, [...this.nearOf(from, a), ...this.nearOf(best, b)], "refugees");
 };
 
 /** Loose men move between provinces, with their share of the gold the loose carry there and of its runaways. */
@@ -171,15 +119,13 @@ P.moveLoose = function (from, to, n) {
       const m = idiv(r * take, a.loose);
       if (m <= 0) continue;
       ran.set(k, r - m);
-      if (S.owner.getOrDefault(to, null) !== k)
-        into.set(k, into.getOrDefault(k, 0) + m);
+      if (S.owner.getOrDefault(to, null) !== k) into.set(k, into.getOrDefault(k, 0) + m);
     }
   const fled = S.owner.getOrDefault(from, null);
   const holder = S.owner.getOrDefault(to, null);
   // Those leaving a king's land for another's are his runaways now, those already counted for another king apart.
   if (fled !== null && holder !== fled) {
-    const counted =
-      ran === undefined ? 0 : [...ran.values()].reduce((x, y) => x + y, 0);
+    const counted = ran === undefined ? 0 : [...ran.values()].reduce((x, y) => x + y, 0);
     const own = Math.max(0, take - idiv(counted * take, Math.max(1, a.loose)));
     if (own > 0) into.set(fled, into.getOrDefault(fled, 0) + own);
   }
@@ -243,12 +189,8 @@ P.robbing = function () {
     // inside the walls (item 11a+, "Everything is somewhere").
     const besieged = siegeOf(S, prov.id) !== null;
     const gold = besieged ? 0 : rate(LandData.robPermille, m.purse);
-    const grain = besieged
-      ? 0
-      : rate(LandData.robPermille, this.stores(prov.id));
-    const country = besieged
-      ? rate(LandData.robPermille, S.granary.getOrDefault(prov.id, 0))
-      : 0;
+    const grain = besieged ? 0 : rate(LandData.robPermille, this.stores(prov.id));
+    const country = besieged ? rate(LandData.robPermille, S.granary.getOrDefault(prov.id, 0)) : 0;
     if (gold > 0) {
       m.purse -= gold;
       S.loot.set(prov.id, S.loot.getOrDefault(prov.id, 0) + gold);
@@ -262,35 +204,13 @@ P.robbing = function () {
       S.loot.set(prov.id, loot - spent);
       this.spendAt(prov.id, spent);
     }
-    if (
-      holder === null ||
-      !isAlive(S, holder) ||
-      gold + grainWorth(grain + country) < 5
-    )
-      continue;
-    const line =
-      country > 0
-        ? `${prov.name} (${measures(country)} from the farmers' granaries outside the walls)`
-        : `${prov.name} (${formatMoney(gold)} from its people's purse${grain > 0 ? `, ${measures(grain)} from your stores` : ""})`;
+    if (holder === null || !isAlive(S, holder) || gold + grainWorth(grain + country) < 5) continue;
+    const line = country > 0 ? `${prov.name} (${measures(country)} from the farmers' granaries outside the walls)` : `${prov.name} (${formatMoney(gold)} from its people's purse${grain > 0 ? `, ${measures(grain)} from your stores` : ""})`;
     // Of a far province, by the word from there (bug #615, as troops standing there change what is taken).
-    if (this.isFar(holder, prov.id))
-      this.tell(
-        holder,
-        prov.id,
-        "Notice",
-        EconomyTitle,
-        `Loose men robbed ${line}.`,
-      );
+    if (this.isFar(holder, prov.id)) this.tell(holder, prov.id, "Notice", EconomyTitle, `Loose men robbed ${line}.`);
     else lines.set(holder, [...lines.getOrDefault(holder, []), line]);
   }
-  for (const [p, l] of lines.entries())
-    logEvent(
-      S,
-      "robbed",
-      `Loose men robbed ${p}'s land: ${l.join("; ")}.`,
-      [p],
-      "robbed",
-    );
+  for (const [p, l] of lines.entries()) logEvent(S, "robbed", `Loose men robbed ${p}'s land: ${l.join("; ")}.`, [p], "robbed");
   return lines;
 };
 
@@ -302,46 +222,19 @@ P.welcome = function (p, o) {
   const room = Math.max(0, reckonedOf(this.map, o.province).room - x.settled);
   const n = Math.min(x.loose, room);
   if (S.owner.getOrDefault(o.province, null) !== p) {
-    this.lostOrder(
-      p,
-      o,
-      o.province,
-      "Order failed",
-      `No loose men were settled in ${name}: you no longer hold it.`,
-      "you no longer hold it",
-    );
+    this.lostOrder(p, o, o.province, "Order failed", `No loose men were settled in ${name}: you no longer hold it.`, "you no longer hold it");
     return;
   }
   if (n <= 0) {
-    this.tell(
-      p,
-      o.province,
-      "Rejected",
-      "Order failed",
-      `No loose men were settled in ${name}: ${x.loose <= 0 ? "there are none there" : "its land has no room for more"}.`,
-    );
+    this.tell(p, o.province, "Rejected", "Order failed", `No loose men were settled in ${name}: ${x.loose <= 0 ? "there are none there" : "its land has no room for more"}.`);
     return;
   }
-  const fled = [...(S.runaways.tryGet(o.province)?.entries() ?? [])]
-    .filter(([, r]) => r > 0)
-    .map(([k]) => k);
+  const fled = [...(S.runaways.tryGet(o.province)?.entries() ?? [])].filter(([, r]) => r > 0).map(([k]) => k);
   x.loose -= n;
   shift(x, n, idiv(n * LandData.menPercent, 100));
   this.looseLeave(o.province, n);
-  this.tell(
-    p,
-    o.province,
-    "Resolution",
-    PeopleTitle,
-    `You settled ${people(n)} loose men on the land of ${name}.`,
-  );
-  logEvent(
-    S,
-    "welcome",
-    `${p} settled ${people(n)} loose men in ${name}${fled.length > 0 ? `, among them runaways from ${fled.join(" and ")}` : ""}.`,
-    this.nearOf(o.province, p),
-    "welcomed",
-  );
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You settled ${people(n)} loose men on the land of ${name}.`);
+  logEvent(S, "welcome", `${p} settled ${people(n)} loose men in ${name}${fled.length > 0 ? `, among them runaways from ${fled.join(" and ")}` : ""}.`, this.nearOf(o.province, p), "welcomed");
 };
 
 /**
@@ -351,47 +244,15 @@ P.welcome = function (p, o) {
  */
 P.sendPeople = function (by, from, to, n, gold, freeable = false) {
   const S = this.s;
-  const days = idiv(
-    fastestPoints(this.map, from, to, seasonOfTurn(S.turn)),
-    PointsPerDay,
-  );
-  const stray = !Number.isFinite(days)
-    ? LandData.strayMost
-    : clamp(
-        idiv(days - LandData.strayAfter, LandData.strayPerDays),
-        0,
-        LandData.strayMost,
-      );
+  const days = idiv(fastestPoints(this.map, from, to, seasonOfTurn(S.turn)), PointsPerDay);
+  const stray = !Number.isFinite(days) ? LandData.strayMost : clamp(idiv(days - LandData.strayAfter, LandData.strayPerDays), 0, LandData.strayMost);
   const fled = idiv(n * stray, 100);
   const dead = idiv((n - fled) * LandData.deportDead, 100);
   this.peopleOf(from).loose += fled;
-  const seasons = Math.max(
-    1,
-    Math.ceil(
-      (Number.isFinite(days) ? days : S.config.travelDays) /
-        Math.max(1, S.config.travelDays),
-    ),
-  );
+  const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
   // Deportees walk a road of their own, where they can be freed (item 11a+).
-  const route = freeable
-    ? (cheapestRoute(this.map, from, to, (a, b) =>
-        legPoints(this.map, a, b, seasonOfTurn(S.turn), {
-          sneaking: false,
-          ways: waysOf(S),
-        }),
-      )?.route ?? [])
-    : [];
-  S.walking.push({
-    home: to,
-    men: n - fled - dead,
-    arrives: S.turn + seasons,
-    savings: gold,
-    deported: true,
-    by,
-    route,
-    departs: S.turn,
-    from,
-  });
+  const route = freeable ? (cheapestRoute(this.map, from, to, (a, b) => legPoints(this.map, a, b, seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) }))?.route ?? []) : [];
+  S.walking.push({ home: to, men: n - fled - dead, arrives: S.turn + seasons, savings: gold, deported: true, by, route, departs: S.turn, from });
   return [n - fled - dead, dead, fled];
 };
 
@@ -413,26 +274,13 @@ P.deporteesOnRoad = function () {
   for (const w of [...S.walking]) {
     if (!w.deported || w.route.length < 2 || w.men <= 0) continue;
     const span = Math.max(1, w.arrives - w.departs);
-    const at = (turn: number): number =>
-      Math.min(
-        w.route.length - 1,
-        Math.floor(
-          ((w.route.length - 1) * clamp(turn - w.departs, 0, span)) / span,
-        ),
-      );
+    const at = (turn: number): number => Math.min(w.route.length - 1, Math.floor(((w.route.length - 1) * clamp(turn - w.departs, 0, span)) / span));
     const stretch = w.route.slice(at(S.turn - 1), at(S.turn) + 1);
     const by = w.by as Power;
     const homeland = Map.get(w.from).home;
-    const frees = (k: Power): boolean =>
-      k !== by &&
-      ((homeland !== null && k === homeland) ||
-        (S.roadsClosed.tryGet(k) ?? []).includes(by));
+    const frees = (k: Power): boolean => k !== by && ((homeland !== null && k === homeland) || (S.roadsClosed.tryGet(k) ?? []).includes(by));
     // Freed only on land, where they can stand (a fleet in the waters they are shipped across cannot take them off).
-    const where = stretch.find(
-      (x) =>
-        !Map.get(x).isSea &&
-        S.units.some((u) => u.province === x && frees(u.power)),
-    );
+    const where = stretch.find((x) => !Map.get(x).isSea && S.units.some((u) => u.province === x && frees(u.power)));
     if (where === undefined) continue;
     const freer = sortBy(
       S.units.filter((u) => u.province === where && frees(u.power)),
@@ -440,24 +288,11 @@ P.deporteesOnRoad = function () {
     )[0].power;
     S.walking.splice(S.walking.indexOf(w), 1);
     this.peopleOf(where).loose += w.men;
-    if (w.savings > 0)
-      S.loot.set(where, S.loot.getOrDefault(where, 0) + w.savings);
+    if (w.savings > 0) S.loot.set(where, S.loot.getOrDefault(where, 0) + w.savings);
     const name = Map.get(where).name;
-    say(
-      by,
-      `${upper(whose(freer))} troops in ${name} freed ${people(w.men)} people you were deporting from ${Map.get(w.from).name}: they are loose men there now.`,
-    );
-    say(
-      freer,
-      `Your troops in ${name} freed ${people(w.men)} people ${powerName(by)} was deporting from ${Map.get(w.from).name}: they are loose men there now${S.owner.getOrDefault(where, null) === freer ? ", and you may settle them (order welcome)" : ""}.`,
-    );
-    logEvent(
-      S,
-      "deport",
-      `${freer}'s troops freed ${people(w.men)} people ${by} was deporting, in ${name}.`,
-      [by, freer],
-      "deportees-freed",
-    );
+    say(by, `${upper(whose(freer))} troops in ${name} freed ${people(w.men)} people you were deporting from ${Map.get(w.from).name}: they are loose men there now.`);
+    say(freer, `Your troops in ${name} freed ${people(w.men)} people ${powerName(by)} was deporting from ${Map.get(w.from).name}: they are loose men there now${S.owner.getOrDefault(where, null) === freer ? ", and you may settle them (order welcome)" : ""}.`);
+    logEvent(S, "deport", `${freer}'s troops freed ${people(w.men)} people ${by} was deporting, in ${name}.`, [by, freer], "deportees-freed");
   }
   return lines;
 };
@@ -486,38 +321,16 @@ P.deport = function (p, o) {
   if (why !== null || n <= 0) {
     const text = `Nobody was deported from ${from.name}: ${why ?? "it has no settled people left"}.`;
     // Land lost out of the king's sight, at either end: word of it comes home by the road (bug #467).
-    if (S.owner.getOrDefault(o.province, null) !== p)
-      this.lostOrder(
-        p,
-        o,
-        o.province,
-        "Order failed",
-        text,
-        "you no longer hold it",
-      );
-    else if (
-      !Map.get(o.to).isSea &&
-      S.owner.getOrDefault(o.to, null) !== p &&
-      !Map.isHome(p, from.id)
-    )
-      this.lostOrder(p, o, o.to, "Order failed", text, why ?? "");
+    if (S.owner.getOrDefault(o.province, null) !== p) this.lostOrder(p, o, o.province, "Order failed", text, "you no longer hold it");
+    else if (!Map.get(o.to).isSea && S.owner.getOrDefault(o.to, null) !== p && !Map.isHome(p, from.id)) this.lostOrder(p, o, o.to, "Order failed", text, why ?? "");
     else this.tell(p, o.province, "Rejected", "Order failed", text);
     return;
   }
   const m = this.market(o.province);
-  const gold = o.purse
-    ? idiv(m.purse * n, Math.max(1, x.settled + x.loose))
-    : 0;
+  const gold = o.purse ? idiv(m.purse * n, Math.max(1, x.settled + x.loose)) : 0;
   m.purse -= gold;
   shift(x, -n, -men);
-  const [arrive, dead, fled] = this.sendPeople(
-    p,
-    o.province,
-    o.to,
-    n,
-    gold,
-    true,
-  );
+  const [arrive, dead, fled] = this.sendPeople(p, o.province, o.to, n, gold, true);
   this.tell(
     p,
     o.province,
@@ -525,18 +338,10 @@ P.deport = function (p, o) {
     PeopleTitle,
     `You deported ${people(n)} people from ${from.name} to ${Map.get(o.to).name}${gold > 0 ? `, with their share of the purse (${formatMoney(gold)})` : ""}: ${people(arrive)} are on the road` +
       (dead > 0 ? `, ${people(dead)} will die on the way` : "") +
-      (fled > 0
-        ? `, and ${people(fled)} slipped away and stay loose in ${from.name}`
-        : "") +
+      (fled > 0 ? `, and ${people(fled)} slipped away and stay loose in ${from.name}` : "") +
       ".",
   );
-  logEvent(
-    S,
-    "deport",
-    `${p} deported ${people(n)} people from ${from.name} to ${Map.get(o.to).name}.`,
-    this.nearOf(o.province, p),
-    "deported",
-  );
+  logEvent(S, "deport", `${p} deported ${people(n)} people from ${from.name} to ${Map.get(o.to).name}.`, this.nearOf(o.province, p), "deported");
 };
 
 /**
@@ -548,34 +353,18 @@ P.returnRunaways = function (p, o) {
   const Map = this.map;
   const name = Map.get(o.province).name;
   const ran = S.runaways.tryGet(o.province);
-  const n = Math.min(
-    ran?.getOrDefault(o.to, 0) ?? 0,
-    this.peopleOf(o.province).loose,
-  );
+  const n = Math.min(ran?.getOrDefault(o.to, 0) ?? 0, this.peopleOf(o.province).loose);
   const home = sortBy(
     ownedBy(S, o.to).filter((x) => !Map.get(x).isSea && siegeOf(S, x) === null),
     [(x: string) => Map.hops(o.province, x), (a: number, b: number) => a - b],
     [(x: string) => x, cmpStr],
   )[0];
   if (S.owner.getOrDefault(o.province, null) !== p) {
-    this.lostOrder(
-      p,
-      o,
-      o.province,
-      "Order failed",
-      `No runaways were sent back from ${name}: you no longer hold it.`,
-      "you no longer hold it",
-    );
+    this.lostOrder(p, o, o.province, "Order failed", `No runaways were sent back from ${name}: you no longer hold it.`, "you no longer hold it");
     return;
   }
   if (n <= 0 || home === undefined || !isAlive(S, o.to)) {
-    this.tell(
-      p,
-      o.province,
-      "Rejected",
-      "Order failed",
-      `No runaways were sent back from ${name}: ${n <= 0 ? `there are none from ${whose(o.to)} land there` : `${powerName(o.to)} has no land to take them`}.`,
-    );
+    this.tell(p, o.province, "Rejected", "Order failed", `No runaways were sent back from ${name}: ${n <= 0 ? `there are none from ${whose(o.to)} land there` : `${powerName(o.to)} has no land to take them`}.`);
     return;
   }
   const x = this.peopleOf(o.province);
@@ -586,20 +375,8 @@ P.returnRunaways = function (p, o) {
   ran!.set(o.to, ran!.get(o.to) - n);
   this.looseLeave(o.province, 0);
   const [arrive] = this.sendPeople(p, o.province, home, n, gold);
-  this.tell(
-    p,
-    o.province,
-    "Resolution",
-    PeopleTitle,
-    `You sent ${people(n)} runaways from ${whose(o.to)} land in ${name} back to ${powerName(o.to)}: ${people(arrive)} are on the road to ${Map.get(home).name}.`,
-  );
-  logEvent(
-    S,
-    "runaways",
-    `${p} sent ${people(n)} runaways from ${name} back to ${o.to}.`,
-    this.nearOf(o.province, p, o.to),
-    "runaways-returned",
-  );
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You sent ${people(n)} runaways from ${whose(o.to)} land in ${name} back to ${powerName(o.to)}: ${people(arrive)} are on the road to ${Map.get(home).name}.`);
+  logEvent(S, "runaways", `${p} sent ${people(n)} runaways from ${name} back to ${o.to}.`, this.nearOf(o.province, p, o.to), "runaways-returned");
 };
 
 /**
@@ -611,29 +388,13 @@ P.expel = function (p, o) {
   const S = this.s;
   const prov = this.map.get(o.province);
   const before = S.expelled.getOrDefault(o.province, 0);
-  const after = Math.min(
-    LandData.expelMost,
-    before + idiv((100 - before) * clamp(o.percent, 0, 100), 100),
-  );
+  const after = Math.min(LandData.expelMost, before + idiv((100 - before) * clamp(o.percent, 0, 100), 100));
   if (S.owner.getOrDefault(o.province, null) !== p) {
-    this.lostOrder(
-      p,
-      o,
-      o.province,
-      "Order failed",
-      `Nobody was put out of ${prov.name}: you no longer hold it.`,
-      "you no longer hold it",
-    );
+    this.lostOrder(p, o, o.province, "Order failed", `Nobody was put out of ${prov.name}: you no longer hold it.`, "you no longer hold it");
     return;
   }
   if (siegeOf(S, o.province) === null || after <= before) {
-    this.tell(
-      p,
-      o.province,
-      "Rejected",
-      "Order failed",
-      `Nobody was put out of ${prov.name}: ${siegeOf(S, o.province) === null ? "it is not besieged" : before > 0 && after <= before ? "only the fighting men and those who feed them are left" : "you named nobody to put out"}.`,
-    );
+    this.tell(p, o.province, "Rejected", "Order failed", `Nobody was put out of ${prov.name}: ${siegeOf(S, o.province) === null ? "it is not besieged" : before > 0 && after <= before ? "only the fighting men and those who feed them are left" : "you named nobody to put out"}.`);
     return;
   }
   S.expelled.set(o.province, after);
@@ -642,26 +403,11 @@ P.expel = function (p, o) {
   const perMeasure = countryNeed(prov, r.settled, r.settled);
   const x = this.peopleOf(o.province);
   const need = needOf(prov);
-  const townsfolk =
-    perMeasure <= 0
-      ? 0
-      : idiv(idiv(need * (after - before), 100) * r.settled, perMeasure);
+  const townsfolk = perMeasure <= 0 ? 0 : idiv(idiv(need * (after - before), 100) * r.settled, perMeasure);
   const [n] = share(x, townsfolk);
   shift(x, -n, 0);
   x.loose += n;
-  this.tell(
-    p,
-    o.province,
-    "Resolution",
-    PeopleTitle,
-    `You put ${people(n)} people who cannot fight out of ${prov.name}: they are refugees outside the walls, and the city eats ${after}% less while the siege lasts.`,
-  );
-  logEvent(
-    S,
-    "expel",
-    `${p} put ${people(n)} people out of besieged ${prov.name}.`,
-    this.nearOf(o.province, p),
-    "mouths-expelled",
-  );
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You put ${people(n)} people who cannot fight out of ${prov.name}: they are refugees outside the walls, and the city eats ${after}% less while the siege lasts.`);
+  logEvent(S, "expel", `${p} put ${people(n)} people out of besieged ${prov.name}.`, this.nearOf(o.province, p), "mouths-expelled");
   this.refuge(o.province, n, "the siege");
 };

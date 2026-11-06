@@ -21,12 +21,7 @@ export function newCoffer(init: Partial<Coffer> = {}): Coffer {
   return { province: "", power: "Egypt", gold: 0, owed: 0, ...init };
 }
 
-export const CofferSchema: ObjSchema<Coffer> = obj("Coffer", newCoffer, {
-  province: S,
-  power: S,
-  gold: I,
-  owed: I,
-});
+export const CofferSchema: ObjSchema<Coffer> = obj("Coffer", newCoffer, { province: S, power: S, gold: I, owed: I });
 
 /**
  * A bill carried home from a far province (or a far army's place): what was done there on credit in one season, due at
@@ -55,38 +50,13 @@ export interface BillUnit {
   missed: number;
 }
 
-export const BillUnitSchema: ObjSchema<BillUnit> = obj(
-  "BillUnit",
-  (init: Partial<BillUnit> = {}) => ({
-    unit: "",
-    gold: 0,
-    label: "",
-    missed: 0,
-    ...init,
-  }),
-  { unit: S, gold: I, label: S, missed: I },
-);
+export const BillUnitSchema: ObjSchema<BillUnit> = obj("BillUnit", (init: Partial<BillUnit> = {}) => ({ unit: "", gold: 0, label: "", missed: 0, ...init }), { unit: S, gold: I, label: S, missed: I });
 
 export function newBill(init: Partial<Bill> = {}): Bill {
-  return {
-    power: "Egypt",
-    province: "",
-    turn: 0,
-    due: 0,
-    works: 0,
-    units: [],
-    ...init,
-  };
+  return { power: "Egypt", province: "", turn: 0, due: 0, works: 0, units: [], ...init };
 }
 
-export const BillSchema: ObjSchema<Bill> = obj("Bill", newBill, {
-  power: S,
-  province: S,
-  turn: I,
-  due: I,
-  works: I,
-  units: list(() => BillUnitSchema),
-});
+export const BillSchema: ObjSchema<Bill> = obj("Bill", newBill, { power: S, province: S, turn: I, due: I, works: I, units: list(() => BillUnitSchema) });
 
 /** Gold on the road inside a realm with its couriers: sent out to a far province's coffer, or coming home from one that was lost. */
 export interface Remittance {
@@ -109,24 +79,10 @@ export interface Remittance {
 }
 
 export function newRemittance(init: Partial<Remittance> = {}): Remittance {
-  return {
-    power: "Egypt",
-    province: "",
-    gold: 0,
-    due: 0,
-    home: false,
-    landed: false,
-    food: false,
-    ...init,
-  };
+  return { power: "Egypt", province: "", gold: 0, due: 0, home: false, landed: false, food: false, ...init };
 }
 
-export const RemittanceSchema: ObjSchema<Remittance> = obj(
-  "Remittance",
-  newRemittance,
-  { power: S, province: S, gold: I, due: I, home: B, landed: B, food: B },
-);
+export const RemittanceSchema: ObjSchema<Remittance> = obj("Remittance", newRemittance, { power: S, province: S, gold: I, due: I, home: B, landed: B, food: B });
 
 /** A bill's whole sum. */
-export const billTotal = (b: Bill): number =>
-  b.works + b.units.reduce((a, x) => a + x.gold, 0);
+export const billTotal = (b: Bill): number => b.works + b.units.reduce((a, x) => a + x.gold, 0);

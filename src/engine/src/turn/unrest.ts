@@ -20,30 +20,9 @@ import { BattleData, battleLosses, seatOf } from "../model/command.ts";
 import { courierSeasons } from "../rules/court.ts";
 import { menIn, shareOfFull, wallMenOf } from "../model/land.ts";
 import { EconomyData } from "../model/economy.ts";
-import {
-  gain,
-  newRisingView,
-  remember,
-  type Character,
-} from "../model/people.ts";
-import {
-  AllPowers,
-  land,
-  type Power,
-  powerName,
-  whose,
-} from "../model/power.ts";
-import {
-  findCharacter,
-  isAlive,
-  logEvent,
-  newId,
-  newUnit,
-  siegeOf,
-  wallsOf,
-  type Unit,
-  loseUnit,
-} from "../model/state.ts";
+import { gain, newRisingView, remember, type Character } from "../model/people.ts";
+import { AllPowers, land, type Power, powerName, whose } from "../model/power.ts";
+import { findCharacter, isAlive, logEvent, newId, newUnit, siegeOf, wallsOf, type Unit, loseUnit } from "../model/state.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { terrainOf } from "../model/geography.ts";
@@ -64,17 +43,9 @@ declare module "./core.ts" {
      * Force: the troops of `p` standing in `province`, and for its holder next to it, against its own men of fighting age;
      * leaving out those `without` names (a governor's levies, which would follow him).
      */
-    forceIn(
-      province: string,
-      p: Power,
-      without?: ((u: Unit) => boolean) | null,
-    ): number;
+    forceIn(province: string, p: Power, without?: ((u: Unit) => boolean) | null): number;
     /** What `p` weighs with the people of `province`: force plus love, his own and that of the men serving him there. */
-    weightIn(
-      province: string,
-      p: Power,
-      strength?: Dict<Power, number>,
-    ): number;
+    weightIn(province: string, p: Power, strength?: Dict<Power, number>): number;
     /** The unrest at which a province is near breaking from its holder, as `restless` counts it. */
     revoltAt(province: string): number;
     /** A character of standing in `province` who wants it, against its holder: the man who would lead its revolt. */
@@ -85,10 +56,7 @@ declare module "./core.ts" {
      * Whether the people of `province` would follow `c` rather than its holder, and those of the holder's levies there
      * (raised from it, under no commander) who follow him: split off from the rest, which stay the king's.
      */
-    turnsWith(
-      province: string,
-      c: Character,
-    ): { province: boolean; levies: Unit[]; stayed: [Unit, Unit][] };
+    turnsWith(province: string, c: Character): { province: boolean; levies: Unit[]; stayed: [Unit, Unit][] };
     /** Each season, once the people have eaten: the ledger kept, whom each province obeys, governors' reports, rulers rising in lawless land. */
     obeySeason(): void;
   }
@@ -105,12 +73,7 @@ P.give = function (province, by, points) {
   if (points > 0) entry(this, province, by, points);
 };
 
-function entry(
-  e: TurnEngine,
-  province: string,
-  by: string,
-  points: number,
-): void {
+function entry(e: TurnEngine, province: string, by: string, points: number): void {
   const S = e.s;
   let book = S.ledger.tryGet(province);
   if (book === undefined) S.ledger.set(province, (book = new Dict()));
@@ -138,23 +101,13 @@ P.revoltAt = function () {
  * dispositions"): ambitious, and not loyal to its holder. A model character answers for himself (`risePlan`).
  */
 function wants(c: Character, holder: Power): boolean {
-  return (
-    c.status !== "Dead" &&
-    c.status !== "Captured" &&
-    c.traits.ambition >= D.wants &&
-    (c.employer !== holder || c.traits.loyalty < D.disloyal)
-  );
+  return c.status !== "Dead" && c.status !== "Captured" && c.traits.ambition >= D.wants && (c.employer !== holder || c.traits.loyalty < D.disloyal);
 }
 
 /** Whether `c` chose, last season when he was asked, to lead the people of `province` against its master. */
 function chose(e: TurnEngine, c: Character, province: string): boolean {
   const plan = c.risePlan;
-  return (
-    plan !== null &&
-    plan.province === province &&
-    plan.turn === e.s.turn - 1 &&
-    plan.rise
-  );
+  return plan !== null && plan.province === province && plan.turn === e.s.turn - 1 && plan.rise;
 }
 
 /** Whether `c` stands in `province`: at the court there, governing it, or posted to it as a resident or a watcher. */
@@ -162,10 +115,7 @@ function standsIn(e: TurnEngine, c: Character, province: string): boolean {
   if (c.status === "Dead" || c.status === "Captured") return false;
   if (c.at !== null && e.courtAt(c.at) === province) return true;
   const gov = e.governorOf(province);
-  return (
-    (gov !== null && gov[1] === c) ||
-    (c.watchProvince === province && c.status === "Employed")
-  );
+  return (gov !== null && gov[1] === c) || (c.watchProvince === province && c.status === "Employed");
 }
 
 P.wantsIt = function (province) {
@@ -184,11 +134,9 @@ function leaders(e: TurnEngine, province: string): Character[] {
   if (holder === null) return [];
   const name = e.map.get(province).name;
   const found: Character[] = [];
-  const able = (c: Character): boolean =>
-    c.status !== "Dead" && c.status !== "Captured";
+  const able = (c: Character): boolean => c.status !== "Dead" && c.status !== "Captured";
   const gov = e.governorOf(province);
-  if (gov !== null && gov[0].power === holder && able(gov[1]))
-    found.push(gov[1]);
+  if (gov !== null && gov[0].power === holder && able(gov[1])) found.push(gov[1]);
   for (const b of e.bandsAt(province).filter((b) => b.men >= BandData.least)) {
     const c = findCharacter(S, b.leaderId);
     if (c !== null && able(c)) found.push(c);
@@ -197,23 +145,10 @@ function leaders(e: TurnEngine, province: string): Character[] {
     if (
       c.employer !== holder &&
       standsIn(e, c, province) &&
-      (standing(e, province, c.id) > 0 ||
-        c.facts.some(
-          (f) =>
-            f.tag === "origin" &&
-            f.text.startsWith("Ruled ") &&
-            f.text.includes(`from ${name}.`),
-        ))
+      (standing(e, province, c.id) > 0 || c.facts.some((f) => f.tag === "origin" && f.text.startsWith("Ruled ") && f.text.includes(`from ${name}.`)))
     )
       found.push(c);
-  return sortBy(
-    [...new Set(found)],
-    [
-      (c: Character) => -characterWeight(e, province, c),
-      (a: number, b: number) => a - b,
-    ],
-    [(c: Character) => c.id, cmpStr],
-  );
+  return sortBy([...new Set(found)], [(c: Character) => -characterWeight(e, province, c), (a: number, b: number) => a - b], [(c: Character) => c.id, cmpStr]);
 }
 
 /**
@@ -221,36 +156,21 @@ function leaders(e: TurnEngine, province: string): Character[] {
  * whether he leads them ("Rising"): a script answers by his traits, a model for himself; a rising he chooses breaks out
  * the next season, if they would still follow him then.
  */
-function askLeaders(
-  e: TurnEngine,
-  province: string,
-  holder: Power,
-  held: number,
-): void {
+function askLeaders(e: TurnEngine, province: string, holder: Power, held: number): void {
   const S = e.s;
   for (const c of leaders(e, province)) {
     const w = characterWeight(e, province, c);
     // A man in the holder's service there lends him his own following until he turns: weighed without it.
-    const his =
-      c.employer === holder && c.status === "Employed" && !chose(e, c, province)
-        ? standing(e, province, c.id)
-        : 0;
+    const his = c.employer === holder && c.status === "Employed" && !chose(e, c, province) ? standing(e, province, c.id) : 0;
     if (w <= held - his + D.margin) continue;
     // Asked this season already, or his choice to lead a rising stands for this one. A man of standing in several
     // provinces (a governor of a region, item 17++) decides once a season, for the first of them he is asked about: his
     // choice to rise is kept until its own province is reckoned, never overwritten by the question of another.
     const plan = c.risePlan;
-    if (plan !== null && (plan.turn === S.turn || chose(e, c, plan.province)))
-      continue;
+    if (plan !== null && (plan.turn === S.turn || chose(e, c, plan.province))) continue;
     c.risePlan = { turn: S.turn, province, rise: wants(c, holder) };
     // For the record (seen by nobody): a man asked whether he leads them, and what his traits would answer.
-    logEvent(
-      S,
-      "rising",
-      `${c.name} was asked whether he leads the people of ${e.map.get(province).name} against ${holder}.`,
-      [],
-      c.risePlan.rise ? "rising-would" : "rising-asked",
-    );
+    logEvent(S, "rising", `${c.name} was asked whether he leads the people of ${e.map.get(province).name} against ${holder}.`, [], c.risePlan.rise ? "rising-would" : "rising-asked");
     const gov = e.governorOf(province);
     const band = e.bandOf(c);
     e.mindRequests.push(
@@ -266,21 +186,9 @@ function askLeaders(
           holder,
           employer: c.employer,
           governs: gov !== null && gov[1] === c,
-          followers:
-            Math.round(
-              (risenMen(e, province, holder, c) -
-                (band !== null && band.province === province && !band.ship
-                  ? band.men
-                  : 0)) /
-                100,
-            ) * 100,
-          troops: S.units
-            .filter((u) => u.power === holder && u.province === province)
-            .reduce((a, u) => a + menIn(u), 0),
-          band:
-            band !== null && band.province === province && !band.ship
-              ? band.men
-              : 0,
+          followers: Math.round((risenMen(e, province, holder, c) - (band !== null && band.province === province && !band.ship ? band.men : 0)) / 100) * 100,
+          troops: S.units.filter((u) => u.power === holder && u.province === province).reduce((a, u) => a + menIn(u), 0),
+          band: band !== null && band.province === province && !band.ship ? band.men : 0,
         }),
       }),
     );
@@ -295,51 +203,29 @@ function askLeaders(
 function menOf(e: TurnEngine, province: string): number {
   const men = Math.max(1, e.peopleOf(province).men);
   const t = terrainOf(province);
-  return t === "Rough"
-    ? men * 2
-    : t === "Open"
-      ? Math.max(1, idiv(men, 2))
-      : men;
+  return t === "Rough" ? men * 2 : t === "Open" ? Math.max(1, idiv(men, 2)) : men;
 }
 
 /**
  * Force from `men` standing in a province and `near` next to it or at its gates, against its own men: those next door
  * weigh a quarter as much, and at most `nearMost` together, since they answer it only when they march.
  */
-function forceOf(
-  e: TurnEngine,
-  province: string,
-  men: number,
-  near: number,
-): number {
+function forceOf(e: TurnEngine, province: string, men: number, near: number): number {
   if (men + near <= 0) return 0;
   const of = 4 * menOf(e, province);
-  return Math.min(
-    D.forceMost,
-    idiv(D.force * men * 4, of) +
-      Math.min(D.nearMost, idiv(D.force * near, of)),
-  );
+  return Math.min(D.forceMost, idiv(D.force * men * 4, of) + Math.min(D.nearMost, idiv(D.force * near, of)));
 }
 
 P.forceIn = function (province, p, without = null) {
   const S = this.s;
   if (!isAlive(S, p)) return 0;
   // A foe before walls he has not stormed stands at its gates, not within them: his men weigh as men next door do.
-  const outside =
-    S.owner.getOrDefault(province, null) !== p &&
-    wallsOf(S, province) > 0 &&
-    (S.breached.tryGet(province) ?? null) !== p;
+  const outside = S.owner.getOrDefault(province, null) !== p && wallsOf(S, province) > 0 && (S.breached.tryGet(province) ?? null) !== p;
   const next = new Set(this.map.neighbors(province));
   let men = 0;
   let near = 0;
   for (const u of S.units) {
-    if (
-      u.power !== p ||
-      u.kind !== "Army" ||
-      this.guestOf(u) !== null ||
-      (without !== null && without(u))
-    )
-      continue;
+    if (u.power !== p || u.kind !== "Army" || this.guestOf(u) !== null || (without !== null && without(u))) continue;
     if (u.province === province && !outside) men += menIn(u);
     else if (u.province === province || next.has(u.province)) near += menIn(u);
   }
@@ -347,72 +233,41 @@ P.forceIn = function (province, p, without = null) {
 };
 
 /** The love its people bear `p` and the men serving him there who do not want it for themselves. */
-function loveOf(
-  e: TurnEngine,
-  province: string,
-  p: Power,
-  except: string | null = null,
-): number {
+function loveOf(e: TurnEngine, province: string, p: Power, except: string | null = null): number {
   let love = standing(e, province, p);
   for (const [actor, v] of e.s.ledger.tryGet(province)?.entries() ?? []) {
     if (actor === p || actor === except) continue;
     const c = findCharacter(e.s, actor);
-    if (
-      c !== null &&
-      c.employer === p &&
-      c.status === "Employed" &&
-      standsIn(e, c, province) &&
-      !chose(e, c, province)
-    )
-      love += v;
+    if (c !== null && c.employer === p && c.status === "Employed" && standsIn(e, c, province) && !chose(e, c, province)) love += v;
   }
   return love;
 }
 
 /** The master's weakness: his court's city besieged, his realm shrunk below what it started with. */
-function weakness(
-  e: TurnEngine,
-  p: Power,
-  strength: Dict<Power, number>,
-): number {
+function weakness(e: TurnEngine, p: Power, strength: Dict<Power, number>): number {
   const S = e.s;
   let w = siegeOf(S, e.courtAt(p)) !== null ? D.besieged : 0;
   let now = strength.tryGet(p);
   if (now === undefined) strength.set(p, (now = e.strength(p)));
   const start = S.startStrength.getOrDefault(p, 0);
-  if (start > 0 && now < start)
-    w += clamp(idiv(D.weakness * (start - now), start), 0, D.weakness);
+  if (start > 0 && now < start) w += clamp(idiv(D.weakness * (start - now), start), 0, D.weakness);
   return w;
 }
 
 P.weightIn = function (province, p, strength = new Dict<Power, number>()) {
   const holder = this.s.owner.getOrDefault(province, null);
-  return (
-    this.forceIn(province, p) +
-    loveOf(this, province, p) -
-    (p === holder ? weakness(this, p, strength) : 0)
-  );
+  return this.forceIn(province, p) + loveOf(this, province, p) - (p === holder ? weakness(this, p, strength) : 0);
 };
 
 /** What a character weighs with the people of `province`: his standing there, and his band's men as force. */
-function characterWeight(
-  e: TurnEngine,
-  province: string,
-  c: Character,
-): number {
+function characterWeight(e: TurnEngine, province: string, c: Character): number {
   const band = e.bandOf(c);
-  const men =
-    band !== null && band.province === province && !band.ship ? band.men : 0;
+  const men = band !== null && band.province === province && !band.ship ? band.men : 0;
   return standing(e, province, c.id) + forceOf(e, province, men, 0);
 }
 
 /** Whether `w` clears `against` by the margin: exactly at it, the seeded dice decide. */
-function clears(
-  e: TurnEngine,
-  province: string,
-  w: number,
-  against: number,
-): boolean {
+function clears(e: TurnEngine, province: string, w: number, against: number): boolean {
   if (w !== against + D.margin) return w > against + D.margin;
   return e.r("obey", province).chance(0.5);
 }
@@ -430,11 +285,7 @@ P.turnsWith = function (province, c) {
   const S = this.s;
   const holder = S.owner.getOrDefault(province, null);
   if (holder === null) return { province: false, levies: [], stayed: [] };
-  const raised = (u: Unit): boolean =>
-    u.power === holder &&
-    u.province === province &&
-    u.home === province &&
-    u.commander === null;
+  const raised = (u: Unit): boolean => u.power === holder && u.province === province && u.home === province && u.commander === null;
   const levies: Unit[] = [];
   const stayed: [Unit, Unit][] = [];
   for (const u of S.units.filter(raised)) {
@@ -443,41 +294,19 @@ P.turnsWith = function (province, c) {
     const going = idiv(u.men * this.follows(u, c.id), 100);
     if (going <= 0) continue;
     if (going < u.men) {
-      const stay = newUnit({
-        id: newId(S, "u"),
-        since: S.turn,
-        raisedAt: u.province,
-        power: u.power,
-        kind: u.kind,
-        province: u.province,
-        home: u.home,
-        men: u.men - going,
-        food: idiv(u.food * (u.men - going), u.men),
-        buy: u.buy,
-      });
+      const stay = newUnit({ id: newId(S, "u"), since: S.turn, raisedAt: u.province, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
       u.food -= stay.food;
       u.men = going;
       S.units.push(stay);
-      this.armyEntry(
-        stay,
-        holder,
-        S.armies.tryGet(u.id)?.getOrDefault(holder, 0) ?? 0,
-      );
+      this.armyEntry(stay, holder, S.armies.tryGet(u.id)?.getOrDefault(holder, 0) ?? 0);
       stayed.push([stay, u]);
     }
     levies.push(u);
   }
   const strength = new Dict<Power, number>();
   // The man who turns no longer stands for his king: his own regard is his, not his master's.
-  const held =
-    this.forceIn(province, holder, (u) => levies.includes(u)) +
-    loveOf(this, province, holder, c.id) -
-    weakness(this, holder, strength);
-  return {
-    province: characterWeight(this, province, c) > held + D.margin,
-    levies,
-    stayed,
-  };
+  const held = this.forceIn(province, holder, (u) => levies.includes(u)) + loveOf(this, province, holder, c.id) - weakness(this, holder, strength);
+  return { province: characterWeight(this, province, c) > held + D.margin, levies, stayed };
 };
 
 P.obeySeason = function () {
@@ -485,8 +314,7 @@ P.obeySeason = function () {
   // Memory fades: every entry a tenth nearer nothing a season, and at least a point.
   for (const [prov, book] of [...S.ledger.entries()]) {
     for (const [k, v] of [...book.entries()]) {
-      const left =
-        v - Math.sign(v) * Math.max(1, idiv(Math.abs(v) * D.fade, 100));
+      const left = v - Math.sign(v) * Math.max(1, idiv(Math.abs(v) * D.fade, 100));
       if (Math.sign(left) !== Math.sign(v) || left === 0) book.delete(k);
       else book.set(k, left);
     }
@@ -499,66 +327,32 @@ P.obeySeason = function () {
   const strength = new Dict<Power, number>();
   const changes: [string, Rival | null][] = [];
   const affirmed = new Set<string>();
-  const cleared =
-    (prov: string) =>
-    (w: number, against: number): boolean =>
-      clears(this, prov, w, against);
-  const declared = (
-    prov: string,
-    holder: Power | null,
-    against: number,
-  ): void => {
+  const cleared = (prov: string) => (w: number, against: number): boolean => clears(this, prov, w, against);
+  const declared = (prov: string, holder: Power | null, against: number): void => {
     const p = this.declareIn(prov, holder, against, affirmed, cleared(prov));
-    if (p !== null)
-      changes.push([
-        prov,
-        { power: p, character: null, weight: 0, taken: true },
-      ]);
+    if (p !== null) changes.push([prov, { power: p, character: null, weight: 0, taken: true }]);
   };
   S.restless.clear();
   S.obeyed.clear();
-  for (const prov of sortBy(
-    [...this.map.landProvinces],
-    [(x) => x.id, cmpStr],
-  )) {
+  for (const prov of sortBy([...this.map.landProvinces], [(x) => x.id, cmpStr])) {
     const holder = S.owner.getOrDefault(prov.id, null);
     // Troops that broke in and have since left stand within its walls no more.
-    const broke = S.breached.tryGet(prov.id) ?? null;
-    if (
-      broke !== null &&
-      !S.units.some((u) => u.power === broke && u.province === prov.id)
-    )
-      S.breached.delete(prov.id);
+    const broke = (S.breached.tryGet(prov.id) ?? null);
+    if (broke !== null && !S.units.some((u) => u.power === broke && u.province === prov.id)) S.breached.delete(prov.id);
     if (holder === null || !isAlive(S, holder)) {
       // Land without a ruler obeys a power whose troops' weight clears what its people accept; its own heads rise below.
       // Its walls keep out troops that have not stormed them: those at its gates take it only by siege or storm.
       const rival = bestRival(this, prov.id, null);
-      const inside =
-        rival?.power != null &&
-        (wallsOf(S, prov.id) <= 0 ||
-          (S.breached.tryGet(prov.id) ?? null) === rival.power);
-      if (
-        inside &&
-        siegeOf(S, prov.id) === null &&
-        clears(this, prov.id, rival.weight, D.floor)
-      )
-        changes.push([prov.id, rival]);
+      const inside = rival?.power != null && (wallsOf(S, prov.id) <= 0 || (S.breached.tryGet(prov.id) ?? null) === rival.power);
+      if (inside && siegeOf(S, prov.id) === null && clears(this, prov.id, rival.weight, D.floor)) changes.push([prov.id, rival]);
       else if (siegeOf(S, prov.id) === null) declared(prov.id, null, D.floor);
       continue;
     }
     const rival = bestRival(this, prov.id, holder);
     // A governor who would lead it takes with him the levies he raised there: they are no force against him.
     const gov = this.governorOf(prov.id);
-    const levies =
-      rival?.character != null && gov !== null && gov[1] === rival.character
-        ? (u: Unit): boolean => u.home === prov.id && u.commander === null
-        : null;
-    const held =
-      levies === null
-        ? this.weightIn(prov.id, holder, strength)
-        : this.forceIn(prov.id, holder, levies) +
-          loveOf(this, prov.id, holder) -
-          weakness(this, holder, strength);
+    const levies = rival?.character != null && gov !== null && gov[1] === rival.character ? (u: Unit): boolean => u.home === prov.id && u.commander === null : null;
+    const held = levies === null ? this.weightIn(prov.id, holder, strength) : this.forceIn(prov.id, holder, levies) + loveOf(this, prov.id, holder) - weakness(this, holder, strength);
     askLeaders(this, prov.id, holder, held);
     const lead = held - Math.max(rival?.weight ?? D.floor, D.floor);
     if (lead < D.threshold) S.restless.set(prov.id, D.threshold - lead);
@@ -566,20 +360,12 @@ P.obeySeason = function () {
     // A besieged city is the siege's; at the court only a foe's troops standing in it take it (a coup is another thing,
     // which the game does not model).
     if (siegeOf(S, prov.id) !== null) continue;
-    const within = (p: Power): boolean =>
-      S.units.some((u) => u.power === p && u.province === prov.id) &&
-      (wallsOf(S, prov.id) <= 0 || (S.breached.tryGet(prov.id) ?? null) === p);
-    if (
-      this.courtAt(holder) === prov.id &&
-      !(rival?.power != null && within(rival.power))
-    )
-      continue;
+    const within = (p: Power): boolean => S.units.some((u) => u.power === p && u.province === prov.id) && (wallsOf(S, prov.id) <= 0 || (S.breached.tryGet(prov.id) ?? null) === p);
+    if (this.courtAt(holder) === prov.id && !(rival?.power != null && within(rival.power))) continue;
     // The master's weakness is the moment for a rising ("not an entry in the ledger but the moment, when a low standing
     // becomes a rising"); against a foreign king's troops his beaten armies already weigh as the force he has left.
-    const against =
-      rival?.power != null ? held + weakness(this, holder, strength) : held;
-    if (rival !== null && clears(this, prov.id, rival.weight, against))
-      changes.push([prov.id, rival]);
+    const against = rival?.power != null ? held + weakness(this, holder, strength) : held;
+    if (rival !== null && clears(this, prov.id, rival.weight, against)) changes.push([prov.id, rival]);
     else if (held < D.floor) changes.push([prov.id, null]);
     // Item 17++: a power its people favour whose troops are not there has it only by taking it up.
     else declared(prov.id, holder, held + weakness(this, holder, strength));
@@ -605,45 +391,22 @@ P.reckonObedience = function (province, strength = new Dict<Power, number>()) {
     return 1000;
   }
   const rival = bestRival(this, province, holder);
-  setDegree(
-    S,
-    province,
-    this.weightIn(province, holder, strength) -
-      Math.max(rival?.weight ?? D.floor, D.floor),
-  );
+  setDegree(S, province, this.weightIn(province, holder, strength) - Math.max(rival?.weight ?? D.floor, D.floor));
   return S.obeyed.getOrDefault(province, 1000);
 };
 
 /** The one who weighs most with a province against its holder, or null: powers by their troops in it, men by their standing. */
-function bestRival(
-  e: TurnEngine,
-  province: string,
-  holder: Power | null,
-): Rival | null {
+function bestRival(e: TurnEngine, province: string, holder: Power | null): Rival | null {
   const S = e.s;
   let best: Rival | null = null;
   const consider = (r: Rival): void => {
     if (best === null || r.weight > best.weight) best = r;
   };
   const powers = sortBy(
-    [
-      ...new Set(
-        S.units
-          .filter(
-            (u) =>
-              u.power !== holder &&
-              u.kind === "Army" &&
-              u.province === province &&
-              isAlive(S, u.power),
-          )
-          .map((u) => u.power),
-      ),
-    ],
+    [...new Set(S.units.filter((u) => u.power !== holder && u.kind === "Army" && u.province === province && isAlive(S, u.power)).map((u) => u.power))],
     [(x: Power) => x, cmpStr],
   );
-  for (const p of powers)
-    if (e.forceIn(province, p) > 0)
-      consider({ power: p, character: null, weight: e.weightIn(province, p) });
+  for (const p of powers) if (e.forceIn(province, p) > 0) consider({ power: p, character: null, weight: e.weightIn(province, p) });
   const c = holder === null ? null : e.wantsIt(province);
   if (c !== null)
     consider({
@@ -669,24 +432,14 @@ function seasonEntries(e: TurnEngine): void {
     const fed = S.fed.getOrDefault(prov.id, 1000);
     if (fed < 1000) e.take(prov.id, hand, idiv(D.hunger * (1000 - fed), 1000));
     const t = travelTurns(S.config, e.map, e.courtAt(holder), prov.id, S.turn);
-    const seen =
-      hand !== holder
-        ? 100
-        : 100 -
-          Math.min(
-            D.farMost,
-            D.far * Math.max(0, Number.isFinite(t) ? t - 1 : 4),
-          );
+    const seen = hand !== holder ? 100 : 100 - Math.min(D.farMost, D.far * Math.max(0, Number.isFinite(t) ? t - 1 : 4));
     let given = 0;
     const next = new Set(e.map.neighbors(prov.id));
-    if (S.units.some((u) => u.power === holder && u.province === prov.id))
-      given += D.troops;
-    else if (S.units.some((u) => u.power === holder && next.has(u.province)))
-      given += D.near;
+    if (S.units.some((u) => u.power === holder && u.province === prov.id)) given += D.troops;
+    else if (S.units.some((u) => u.power === holder && next.has(u.province))) given += D.near;
     given += D.policing * levelOf(S, "Policing", prov.id);
     e.give(prov.id, holder, idiv(given * seen, 100));
-    if (fed >= 1000 && e.climatePercent(prov.id) >= 100)
-      e.give(prov.id, hand, idiv(D.harvest * seen, 100));
+    if (fed >= 1000 && e.climatePercent(prov.id) >= 100) e.give(prov.id, hand, idiv(D.harvest * seen, 100));
     const over = idiv((e.burden(prov.id) - EconomyData.taxPercent) * D.tax, 10);
     if (over > 0) e.take(prov.id, hand, over);
     else e.give(prov.id, hand, idiv(-over * seen, 100));
@@ -698,14 +451,7 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
   const S = e.s;
   const holder = S.owner.getOrDefault(id, null);
   const name = e.map.get(id).name;
-  const seeing = (extra: Power[]): Power[] => [
-    ...new Set([
-      ...AllPowers.filter(
-        (x) => isAlive(S, x) && Views.sight(S, e.map, x).has(id),
-      ),
-      ...extra,
-    ]),
-  ];
+  const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, e.map, x).has(id)), ...extra])];
   if (rival?.taken === true && rival.power !== null) {
     // Its old and new masters learn of it by the road, unless they see it (hidden information).
     e.provinceTakenUp(id, rival.power, seeing([]));
@@ -717,20 +463,8 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
     e.setOwner(id, p);
     e.sack(id, p, true);
     e.takeArchive(p, id);
-    e.tell(
-      p,
-      id,
-      "Battle",
-      "A province won",
-      `${name}, which had no ruler, now answers to you: your men stand in it.`,
-    );
-    logEvent(
-      S,
-      "obey",
-      `${name}, which had no ruler, now answers to ${p}: its men stand in it.`,
-      seeing([p]),
-      "obey-power",
-    );
+    e.tell(p, id, "Battle", "A province won", `${name}, which had no ruler, now answers to you: your men stand in it.`);
+    logEvent(S, "obey", `${name}, which had no ruler, now answers to ${p}: its men stand in it.`, seeing([p]), "obey-power");
     return;
   }
   const love = standing(e, id, holder);
@@ -738,79 +472,32 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
   const own = powerName(holder).replace(/^the /, "") === name;
   const whyFor = (to: Power | null): string =>
     to === holder
-      ? love < 0
-        ? "you took more from its people than you gave them"
-        : "your hold on it was weak"
-      : love < 0
-        ? `${own ? "its own ruler" : `the king of ${powerName(holder)}`} took more from its people than he gave them`
-        : `${own ? "its own ruler's" : whose(holder)} hold on it was weak`;
+      ? love < 0 ? "you took more from its people than you gave them" : "your hold on it was weak"
+      : love < 0 ? `${own ? "its own ruler" : `the king of ${powerName(holder)}`} took more from its people than he gave them` : `${own ? "its own ruler's" : whose(holder)} hold on it was weak`;
   const why = whyFor(null);
   if (rival !== null && rival.power !== null) {
     const p = rival.power;
-    const how =
-      e.forceIn(id, p) >= loveOf(e, id, p)
-        ? `${whose(p)} men stand at its gates`
-        : `its people favour ${powerName(p)}`;
+    const how = e.forceIn(id, p) >= loveOf(e, id, p) ? `${whose(p)} men stand at its gates` : `its people favour ${powerName(p)}`;
     // A rival whose agents stirred its people these last two years has his reward (for the record, seen by nobody).
-    if (
-      S.events.some(
-        (x) =>
-          x.kind === "stir" &&
-          x.turn >= S.turn - 8 &&
-          x.text.startsWith(`${p}'s agent`) &&
-          x.text.includes(`the people of ${name} against`),
-      )
-    )
-      logEvent(
-        S,
-        "stir",
-        `${name}, whose people ${p}'s agents stirred, now answers to ${p}.`,
-        [],
-        "stir-won",
-      );
+    if (S.events.some((x) => x.kind === "stir" && x.turn >= S.turn - 8 && x.text.startsWith(`${p}'s agent`) && x.text.includes(`the people of ${name} against`)))
+      logEvent(S, "stir", `${name}, whose people ${p}'s agents stirred, now answers to ${p}.`, [], "stir-won");
     e.setOwner(id, p);
     // Taken by force: its taker's men carry off what they can, and a court's city gives up its archive.
     if (e.forceIn(id, p) > 0) e.sack(id, p, true);
     e.takeArchive(p, id);
-    e.tell(
-      holder,
-      id,
-      "Battle",
-      "A province lost",
-      `${name} now answers to ${powerName(p)}: ${how}, and ${whyFor(holder)}.`,
-    );
-    e.tell(
-      p,
-      id,
-      "Battle",
-      "A province won",
-      `${name} now answers to you: ${how}, and ${why}.`,
-    );
-    logEvent(
-      S,
-      "obey",
-      `${name} now answers to ${p}: ${how}, and ${why}.`,
-      seeing([holder, p]),
-      "obey-power",
-    );
+    e.tell(holder, id, "Battle", "A province lost", `${name} now answers to ${powerName(p)}: ${how}, and ${whyFor(holder)}.`);
+    e.tell(p, id, "Battle", "A province won", `${name} now answers to you: ${how}, and ${why}.`);
+    logEvent(S, "obey", `${name} now answers to ${p}: ${how}, and ${why}.`, seeing([holder, p]), "obey-power");
     return;
   }
   const leader = rival?.character ?? null;
   const gov = e.governorOf(id);
   // A governor who leads it takes the levies he raised there with him; any other troops of the master there fight it.
-  const turning =
-    leader !== null && gov !== null && gov[1] === leader
-      ? e.turnsWith(id, leader)
-      : null;
+  const turning = leader !== null && gov !== null && gov[1] === leader ? e.turnsWith(id, leader) : null;
   const levies = turning?.levies ?? [];
-  const troops = S.units.filter(
-    (u) => u.power === holder && u.province === id && !levies.includes(u),
-  );
+  const troops = S.units.filter((u) => u.power === holder && u.province === id && !levies.includes(u));
   // The master's troops there meet the rising as combat says: its men against theirs.
-  if (
-    troops.length > 0 &&
-    !risingWins(e, id, holder, leader, troops, levies, seeing)
-  ) {
+  if (troops.length > 0 && !risingWins(e, id, holder, leader, troops, levies, seeing)) {
     // Beaten, his levies are the king's still: those who would have followed him and those who would not are one unit again.
     for (const [stay, from] of turning?.stayed ?? []) {
       from.men += stay.men;
@@ -835,18 +522,8 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
       "A province rises",
       `${name} has risen against you behind ${how}, and is lost to you: ${whyFor(holder)}. ${leader.name} rules it in his own name now.`,
     );
-    logEvent(
-      S,
-      "revolt",
-      `${name} rose against ${holder} behind ${leader.name}: ${why}.`,
-      [],
-      "revolt-led",
-    );
-    remember(
-      leader,
-      S.turn,
-      `The people of ${name} rose against ${holder}, and I led them.`,
-    );
+    logEvent(S, "revolt", `${name} rose against ${holder} behind ${leader.name}: ${why}.`, [], "revolt-led");
+    remember(leader, S.turn, `The people of ${name} rose against ${holder}, and I led them.`);
     e.ruleOwn(id, leader, {
       how: "revolt",
       from: holder,
@@ -869,30 +546,15 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
     "A province rises",
     `${name} has risen against you with nobody at its head: ${whyFor(holder)}. Your officers were driven out, and nobody holds it now.`,
   );
-  logEvent(
-    S,
-    "revolt",
-    `${name} rose against ${holder} with nobody at its head, and fell lawless: ${why}.`,
-    seeing([holder]),
-    "revolt-lawless",
-  );
+  logEvent(S, "revolt", `${name} rose against ${holder} with nobody at its head, and fell lawless: ${why}.`, seeing([holder]), "revolt-lawless");
 }
 
 /** The men who rise behind `leader` (with nobody at their head: against a master they hate), with his band there. */
-function risenMen(
-  e: TurnEngine,
-  id: string,
-  holder: Power,
-  leader: Character | null,
-): number {
+function risenMen(e: TurnEngine, id: string, holder: Power, leader: Character | null): number {
   const love = loveOf(e, id, holder);
-  const lean =
-    leader === null ? -love : standing(e, id, leader.id) - Math.max(0, love);
+  const lean = leader === null ? -love : standing(e, id, leader.id) - Math.max(0, love);
   const band = leader === null ? null : e.bandOf(leader);
-  return (
-    idiv(e.peopleOf(id).men * clamp(lean, D.riseLeast, 100), 100) +
-    (band !== null && band.province === id && !band.ship ? band.men : 0)
-  );
+  return idiv(e.peopleOf(id).men * clamp(lean, D.riseLeast, 100), 100) + (band !== null && band.province === id && !band.ship ? band.men : 0);
 }
 
 /**
@@ -905,77 +567,34 @@ function risenMen(
  * land that answers to another now, and a rising beaten leaves its leader followed by half as many. Returns whether the
  * rising won.
  */
-function risingWins(
-  e: TurnEngine,
-  id: string,
-  holder: Power,
-  leader: Character | null,
-  troops: Unit[],
-  levies: Unit[],
-  seeing: (extra: Power[]) => Power[],
-): boolean {
+function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character | null, troops: Unit[], levies: Unit[], seeing: (extra: Power[]) => Power[]): boolean {
   const S = e.s;
   const name = e.map.get(id).name;
   const people = e.peopleOf(id);
   for (const u of troops) u.men = menIn(u);
   const love = loveOf(e, id, holder);
   const risen = risenMen(e, id, holder, leader);
-  const loyal =
-    love > 0 ? idiv(people.men * Math.min(100, love), 100 * D.loyalShare) : 0;
+  const loyal = love > 0 ? idiv(people.men * Math.min(100, love), 100 * D.loyalShare) : 0;
   // The levies who follow him fight beside the men who rise, as his band does.
   for (const u of levies) u.men = menIn(u);
   const band = leader === null ? null : e.bandOf(leader);
-  const banded =
-    band !== null && band.province === id && !band.ship ? band : null;
-  const followers: { men: number }[] =
-    banded !== null ? [...levies, banded] : levies;
+  const banded = band !== null && band.province === id && !band.ship ? band : null;
+  const followers: { men: number }[] = banded !== null ? [...levies, banded] : levies;
   const own = risen - (banded?.men ?? 0);
-  const rising =
-    wallMenOf(risen, 100) +
-    levies.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0);
-  const garrison =
-    troops.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0) +
-    wallMenOf(loyal, 100);
-  const who =
-    leader === null ? "with nobody at their head" : `behind ${leader.name}`;
+  const rising = wallMenOf(risen, 100) + levies.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0);
+  const garrison = troops.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0) + wallMenOf(loyal, 100);
+  const who = leader === null ? "with nobody at their head" : `behind ${leader.name}`;
   if (garrison >= rising) {
     // Put down: the men who rose, his band and the levies who followed him lose as a beaten side does, the dead among them,
     // and the man who led them is followed by half as many.
     const x = battleLosses(garrison, rising);
-    const fell = idiv(
-      (own + followers.reduce((a, f) => a + f.men, 0)) * x.loserPercent,
-      100,
-    );
+    const fell = idiv((own + followers.reduce((a, f) => a + f.men, 0)) * x.loserPercent, 100);
     risenLose(e, id, fell, own, followers);
-    for (const u of troops)
-      u.men = Math.max(
-        1,
-        u.men -
-          idiv(
-            idiv(fell * x.winnerShare, 100) * u.men,
-            Math.max(
-              1,
-              troops.reduce((a, t) => a + t.men, 0),
-            ),
-          ),
-      );
+    for (const u of troops) u.men = Math.max(1, u.men - idiv(idiv(fell * x.winnerShare, 100) * u.men, Math.max(1, troops.reduce((a, t) => a + t.men, 0))));
     const book = S.ledger.tryGet(id);
-    if (leader !== null && book !== undefined && book.has(leader.id))
-      book.set(leader.id, idiv(book.get(leader.id), 2));
-    e.tell(
-      holder,
-      id,
-      "Battle",
-      "A rising put down",
-      `The people of ${name} rose against you, ${who}, and your troops there put them down.`,
-    );
-    logEvent(
-      S,
-      "revolt",
-      `The people of ${name} rose against ${holder}, ${who}, and its troops there put them down.`,
-      seeing([holder]),
-      "revolt-crushed",
-    );
+    if (leader !== null && book !== undefined && book.has(leader.id)) book.set(leader.id, idiv(book.get(leader.id), 2));
+    e.tell(holder, id, "Battle", "A rising put down", `The people of ${name} rose against you, ${who}, and your troops there put them down.`);
+    logEvent(S, "revolt", `The people of ${name} rose against ${holder}, ${who}, and its troops there put them down.`, seeing([holder]), "revolt-crushed");
     return false;
   }
   // The rising wins: the master's troops lose as a beaten side does, the dead among them and the rest run; a unit left with
@@ -994,13 +613,7 @@ function risingWins(
     loseUnit(S, u);
     e.liftSiegesOf(u.id);
   }
-  e.tell(
-    holder,
-    id,
-    "Battle",
-    "A garrison beaten",
-    `The people of ${name} rose ${who} and beat your troops there.`,
-  );
+  e.tell(holder, id, "Battle", "A garrison beaten", `The people of ${name} rose ${who} and beat your troops there.`);
   return true;
 }
 
@@ -1008,23 +621,13 @@ function risingWins(
  * Those who rose lose `lost` men in all, shared by their number: `own`, the land's own men (the dead among them, the rest
  * loose), and the band and levies who followed their leader (the same, each keeping a man at least).
  */
-function risenLose(
-  e: TurnEngine,
-  id: string,
-  lost: number,
-  own: number,
-  followers: { men: number }[],
-): void {
+function risenLose(e: TurnEngine, id: string, lost: number, own: number, followers: { men: number }[]): void {
   const all = own + followers.reduce((a, f) => a + f.men, 0);
   if (lost <= 0 || all <= 0) return;
   const people = e.peopleOf(id);
   const theirs = idiv(lost * own, all);
   if (theirs > 0 && people.settled > 0)
-    e.killSettled(
-      id,
-      idiv(idiv(theirs * BattleData.dead, 100) * 1000, people.settled),
-      idiv(idiv(theirs * (100 - BattleData.dead), 100) * 1000, people.settled),
-    );
+    e.killSettled(id, idiv(idiv(theirs * BattleData.dead, 100) * 1000, people.settled), idiv(idiv(theirs * (100 - BattleData.dead), 100) * 1000, people.settled));
   for (const f of followers) {
     const gone = Math.min(f.men - 1, idiv(lost * f.men, all));
     if (gone <= 0) continue;
@@ -1042,34 +645,16 @@ function reports(e: TurnEngine): void {
   seatLetters(e);
   for (const g of sortBy([...S.governors], [(x) => x.province, cmpStr])) {
     const found = e.governorOf(g.province);
-    if (
-      found === null ||
-      found[0] !== g ||
-      S.owner.getOrDefault(g.province, null) !== g.power
-    )
-      continue;
+    if (found === null || found[0] !== g || S.owner.getOrDefault(g.province, null) !== g.power) continue;
     const c = found[1];
     const said = wants(c, g.power) ? "quiet" : e.moodOf(g.province);
     // Item 17++: from his seat, so word of a far province of his reaches him late, and his letter reaches the king from there.
     const seat = seatOf(g);
     const late = courierSeasons(S, e.map, g.province, seat);
-    e.readMood({
-      power: g.power,
-      province: g.province,
-      mood: said,
-      known: e.heardAt(g.power, seat, late),
-      source: "governor",
-    });
+    e.readMood({ power: g.power, province: g.province, mood: said, known: e.heardAt(g.power, seat, late), source: "governor" });
     if (said === g.mood) continue;
     g.mood = said;
-    e.tell(
-      g.power,
-      seat,
-      "Notice",
-      "Your governor writes",
-      `${c.name}, your governor of ${e.map.get(g.province).name}, writes that its people are ${said}.`,
-      late,
-    );
+    e.tell(g.power, seat, "Notice", "Your governor writes", `${c.name}, your governor of ${e.map.get(g.province).name}, writes that its people are ${said}.`, late);
   }
 }
 
@@ -1083,33 +668,15 @@ function seatLetters(e: TurnEngine): void {
   const S = e.s;
   const told = new Set<string>();
   for (const g of sortBy([...S.governors], [(x) => x.province, cmpStr])) {
-    if (
-      told.has(g.character) ||
-      g.seatHeard <= S.turn ||
-      g.seatWas === seatOf(g)
-    )
-      continue;
+    if (told.has(g.character) || g.seatHeard <= S.turn || g.seatWas === seatOf(g)) continue;
     const c = findCharacter(S, g.character);
-    if (
-      c === null ||
-      c.status === "Dead" ||
-      c.duty !== "Governing" ||
-      wants(c, g.power)
-    )
-      continue;
+    if (c === null || c.status === "Dead" || c.duty !== "Governing" || wants(c, g.power)) continue;
     told.add(g.character);
     const seat = seatOf(g);
     const at = e.heardAt(g.power, seat);
     if (at >= g.seatHeard) continue;
-    for (const x of S.governors.filter((y) => y.character === g.character))
-      x.seatHeard = Math.min(x.seatHeard, at);
-    e.tell(
-      g.power,
-      seat,
-      "Notice",
-      "Your governor writes",
-      `${c.name}, your governor, writes that he now sits at ${e.map.get(seat).name}: ${e.map.get(g.seatWas).name} is no longer his to govern.`,
-    );
+    for (const x of S.governors.filter((y) => y.character === g.character)) x.seatHeard = Math.min(x.seatHeard, at);
+    e.tell(g.power, seat, "Notice", "Your governor writes", `${c.name}, your governor, writes that he now sits at ${e.map.get(seat).name}: ${e.map.get(g.seatWas).name} is no longer his to govern.`);
   }
 }
 
@@ -1121,24 +688,12 @@ function stirSeason(e: TurnEngine): void {
   const S = e.s;
   // Gold for stirring that one no longer on his errand still carries (caught on the road, dismissed, turned): his purse
   // holds it now, on him wherever he is: kept from an errand, not skimmed (as `capture` and the road home count it).
-  for (const c of S.characters.filter(
-    (c) =>
-      c.stirGold > 0 &&
-      !(
-        c.status === "Employed" &&
-        (c.duty === "SpyOutbound" ||
-          c.duty === "SpyPosted" ||
-          c.duty === "EnvoyHomebound")
-      ),
-  )) {
+  for (const c of S.characters.filter((c) => c.stirGold > 0 && !(c.status === "Employed" && (c.duty === "SpyOutbound" || c.duty === "SpyPosted" || c.duty === "EnvoyHomebound")))) {
     gain(c, c.stirGold, "Carried");
     c.stirGold = 0;
   }
   for (const c of sortBy(
-    S.characters.filter(
-      (c) =>
-        c.stirGold > 0 && c.duty === "SpyPosted" && c.watchProvince !== null,
-    ),
+    S.characters.filter((c) => c.stirGold > 0 && c.duty === "SpyPosted" && c.watchProvince !== null),
     [(c: Character) => c.id, cmpStr],
   )) {
     const prov = c.watchProvince!;
@@ -1146,27 +701,13 @@ function stirSeason(e: TurnEngine): void {
     if (holder === null || holder === c.employer) continue;
     const spent = Math.min(c.stirGold, Math.max(50, idiv(c.stirGold, 2)));
     c.stirGold -= spent;
-    const kept = idiv(
-      spent * Math.max(0, c.traits.greed - c.traits.loyalty),
-      200,
-    );
+    const kept = idiv(spent * Math.max(0, c.traits.greed - c.traits.loyalty), 200);
     if (kept > 0) gain(c, kept, "Skimmed");
     const given = spent - kept;
     e.spendAt(prov, given);
-    if (c.employer !== null)
-      e.give(prov, c.employer, idiv(given * D.stir, 100));
-    remember(
-      c,
-      S.turn,
-      `I spent ${given} shekels of my master's gold among the people of ${e.map.get(prov).name}, stirring them against ${holder}.`,
-    );
-    logEvent(
-      S,
-      "stir",
-      `${c.employer ?? "Someone"}'s agent spent ${given} shekels stirring the people of ${e.map.get(prov).name} against ${holder}.`,
-      c.employer !== null ? [c.employer] : [],
-      "stir",
-    );
+    if (c.employer !== null) e.give(prov, c.employer, idiv(given * D.stir, 100));
+    remember(c, S.turn, `I spent ${given} shekels of my master's gold among the people of ${e.map.get(prov).name}, stirring them against ${holder}.`);
+    logEvent(S, "stir", `${c.employer ?? "Someone"}'s agent spent ${given} shekels stirring the people of ${e.map.get(prov).name} against ${holder}.`, c.employer !== null ? [c.employer] : [], "stir");
   }
 }
 
@@ -1181,10 +722,7 @@ function lawlessRulers(e: TurnEngine): void {
   // Chiefs holding lawless land: a season more for each band that stayed where it was, its chief wanting it.
   for (const b of sortBy([...S.bands], [(x: Band) => x.id, cmpStr])) {
     const c = findCharacter(S, b.leaderId);
-    const lawless =
-      !b.ship &&
-      S.owner.getOrDefault(b.province, null) === null &&
-      !e.map.get(b.province).isSea;
+    const lawless = !b.ship && S.owner.getOrDefault(b.province, null) === null && !e.map.get(b.province).isSea;
     if (!lawless || c === null || c.traits.ambition < D.wants) {
       b.held = 0;
       b.heldAt = "";
@@ -1195,17 +733,9 @@ function lawlessRulers(e: TurnEngine): void {
       b.held = 0;
     }
     b.held++;
-    const hold =
-      b.rose === "commander" || b.rose === "captain"
-        ? D.captainHold
-        : D.chiefHold;
+    const hold = b.rose === "commander" || b.rose === "captain" ? D.captainHold : D.chiefHold;
     const men = e.peopleOf(b.province).men;
-    if (
-      b.held < hold ||
-      b.men * 100 < men * D.chiefMen ||
-      S.units.some((u) => u.province === b.province)
-    )
-      continue;
+    if (b.held < hold || b.men * 100 < men * D.chiefMen || S.units.some((u) => u.province === b.province)) continue;
     const name = e.map.get(b.province).name;
     e.ruleOwn(b.province, c, {
       how: "chief",
@@ -1221,21 +751,12 @@ function lawlessRulers(e: TurnEngine): void {
   }
   // An elder, in a walled town without a ruler.
   for (const prov of sortBy([...e.map.landProvinces], [(x) => x.id, cmpStr])) {
-    if (
-      S.owner.getOrDefault(prov.id, null) !== null ||
-      S.units.some((u) => u.province === prov.id)
-    )
-      continue;
+    if (S.owner.getOrDefault(prov.id, null) !== null || S.units.some((u) => u.province === prov.id)) continue;
     const walls = levelOf(S, "Walls", prov.id);
     if (walls <= 0) continue;
     const since = S.takenAt.getOrDefault(prov.id, S.turn);
     const rng = e.r("elder", prov.id);
-    if (
-      !rng.chance(
-        Math.min(100, walls * D.elder + D.elderWait * (S.turn - since)) / 100,
-      )
-    )
-      continue;
+    if (!rng.chance(Math.min(100, walls * D.elder + D.elderWait * (S.turn - since)) / 100)) continue;
     const c = e.newHead(prov.id, "elder", rng);
     e.ruleOwn(prov.id, c, {
       how: "elder",
@@ -1249,3 +770,4 @@ function lawlessRulers(e: TurnEngine): void {
     });
   }
 }
+
