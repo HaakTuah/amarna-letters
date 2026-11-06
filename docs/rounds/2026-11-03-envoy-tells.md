@@ -61,10 +61,10 @@ That is the deception the owner keeps, and a king learns it only by checking. A 
 court now reads neutral (0.000) rather than warm.
 
 **The regression batch** (`scripts/sim.sh --games 20 --seed 1`, 6 November, on `develop` at `62f4f94` and on this
-branch after the review's first round, which is the last change to what the envoys say): no signal moved by more than
-a few in a hundred. A capital fell in 20 of 20 games on both, the first in season 4, none in the first two seasons;
-kingdoms fallen 453 and 452; declarations 615 and 627, crowns asked 62 and 59, tribute and census within a few in ten
-thousand. The script kings play as before.
+branch's last code, `57040e4`). No signal moved by more than a few in a hundred: a capital fell in 20 of 20 games on
+both, the first in season 4 and none in the first two seasons; kingdoms fallen 465 and 453; declarations 651 and 666;
+letters 6,629 and 6,716; tribute sent 1,231 and 1,243 times; vassal tablets sealed 222 and 221. The small counts
+(crowns asked 49 and 57) move as seeds do when any choice changes. The script kings play as before.
 
 ## Reviews
 
