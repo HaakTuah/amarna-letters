@@ -183,6 +183,12 @@ visibly: storms at sea, snow in the passes, rivers in flood, an avalanche taking
   layer's clash already names; a unit destroyed where it stood has no seal, since the seat's scene does not say by whom.
 - **"Sieges tighten"**: in the sieges' beat each siege the seat knows of shows a ring of tents closing round its city; the
   camp itself lands with the season's results as before.
+- **The season's scenes over the pieces**: a battle is fought where the armies stand, so its medallion, flare and seal
+  under the units' layer were hidden by the very tokens they concern in a crowded province; the scenes layer now lies over
+  the pieces (it takes no pointer, and shows only in its beat). Principle: pace by meaning, so the great moments can be
+  taken in.
+- **The effects drawn still**: the flare, the weather and the tents fade with their scene instead of moving, since moving
+  shapes cost the phone a third more long frames (below). Principle: smooth on a phone.
 
 ### First guesses (presentation only)
 
@@ -191,7 +197,21 @@ giving way to the tight over the sieges' beat.
 
 ### Frame times
 
-FRAMES
+Soak tool, seed 1, phone profile (390x844, CPU 4x), two minutes a run, `develop`'s build run beside this part's pair by
+pair (as in part D; the machine carried this item's benchmarks, load about 12, and a run of one build varied by up to four
+points).
+
+| Run | `develop`: frames over 50 ms | Part E's build |
+|---|---|---|
+| Fast, first build, two pairs | 1,147 of 5,328 (21.5%) | 1,150 of 5,206 (22.1%) |
+| Normal, first build, four pairs | 1,432 of 17,382 (8.2%) | 1,744 of 15,553 (11.2%) |
+| Normal, roads only (no new scenes), two pairs | 666 of 8,806 (7.6%) | 685 of 9,080 (7.5%) |
+| Normal, as merged, two pairs | 682 of 9,179 (7.4%) | 730 of 8,889 (8.2%) |
+
+The pieces' roads, trails, dust and heel cost nothing measurable. The first build's battle flare, weather and closing tents
+were shapes animated by `transform`, which the browser repaints every frame: a third more long frames at Normal. They
+are now drawn still and fade with their scene (the tents' rings by opacity alone); what is left, under a point, is within
+the runs' spread, as part D's was. The bar stays where part G left it (#666).
 
 Questions for the owner: none.
 
