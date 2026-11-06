@@ -77,8 +77,36 @@ describe("TradeTests", () => {
     untilHome(s, e);
     Assert.true(s.events.some((x) => x.signal === "toll-paid"));
     Assert.contains("Your caravan paid Mitanni's toll at Washukanni: 16 measures of grain and 20 shekels, 20 in a hundred.", notices(s, "Hatti", "Markets and caravans"));
-    Assert.contains("Your tolls brought", notices(s, "Mitanni", "Tolls"));
-    Assert.contains("16 measures of grain into the stores where the goods crossed and 20 shekels into the treasury", notices(s, "Mitanni", "Tolls"));
+    // Washukanni is Mitanni's capital: its tolls' gold goes into the treasury, and word of them comes at once (#736).
+    Assert.contains("Your tolls at Washukanni brought 16 measures of grain into its stores and 20 shekels into your treasury.", notices(s, "Mitanni", "Tolls"));
+  });
+
+  test("A toll taken at a far border is told to its king by the road, with where its gold went (#736)", () => {
+    // Nesa, on Hatti's road to Karkamish and far from Egypt's court: Egypt tolls Hatti's goods there.
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Egypt", "Carchemish");
+    const e = new TurnEngine(s);
+    // Egypt holds Nesa and keeps it: its army stands there, so the province answers to it.
+    s.owner.set("nesa", "Egypt");
+    s.units = s.units.filter((u) => !(u.province === "nesa" && u.power === "Hatti"));
+    s.units.find((x) => x.power === "Egypt" && x.kind === "Army")!.province = "nesa";
+    s.tolls.push(newToll({ holder: "Egypt", percent: 20 }));
+    s.stores.set("hattusa", 200);
+    s.treasuries.get("Hatti").gold = 1000;
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [trade("hattusa", "carchemish", 100, 100)] })]]));
+    for (let i = 0; i < 3 && !s.events.some((x) => x.signal === "toll-paid"); i++) {
+      s.turn++;
+      e.beginTurn();
+    }
+    const paid = single(s.events, (x) => x.signal === "toll-paid");
+    const word = e.heardAt("Egypt", "nesa");
+    Assert.true(word > paid.turn);
+    // Not told at once, nor in the event its court could not have seen.
+    Assert.false(paid.visibleTo.includes("Egypt"));
+    Assert.equal("", notices(s, "Egypt", "Tolls"));
+    // The word comes by the road, from the border, and says the gold went into Nesa's coffer.
+    const j = single(s.journeys, (x) => x.to === "Egypt" && (x.text ?? "").includes("Your tolls at Nesa"));
+    Assert.equal(word, j.arriveTurn);
+    Assert.contains("into the coffer of Nesa", j.text!);
   });
 
   test("Smuggling: no toll is paid, but the odds of being found grow with the load and the watchmen", () => {

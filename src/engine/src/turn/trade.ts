@@ -37,8 +37,11 @@ import { RoadOdds } from "./travel.ts";
 export const TollsTitle = "Tolls";
 
 /** What each holder's tolls and seizures brought in this season, told once at its end. */
-/** A season's tolls by power: what its own tolls took in and the smugglers its people found. */
-export type TollBook = Dict<Power, { grain: number; gold: number; found: number }>;
+/**
+ * A season's tolls by power and border province: what its tolls took in there and the smugglers its people found there,
+ * so word of each comes from its own border (#736).
+ */
+export type TollBook = Dict<Power, Dict<string, { grain: number; gold: number; found: number }>>;
 
 /**
  * How a caravan goes through foreign land: openly (false), off the road through all of it as smugglers (true), or, a
@@ -156,8 +159,10 @@ P.atBorder = function (c, a, b, book) {
   // Whatever happens at the border, the traders learn the tolls that stand there on their king's goods.
   noteTolls(c.word, S.tolls, k, c.power);
   const entry = (): { grain: number; gold: number; found: number } => {
-    let e = book.tryGet(k);
-    if (e === undefined) book.set(k, (e = { grain: 0, gold: 0, found: 0 }));
+    let at = book.tryGet(k);
+    if (at === undefined) book.set(k, (at = new Dict()));
+    let e = at.tryGet(b);
+    if (e === undefined) at.set(b, (e = { grain: 0, gold: 0, found: 0 }));
     return e;
   };
   const sneaking = c.ship === null && (c.sneak || (!c.trade && this.roadsShutTo(c.power, b)));
@@ -175,7 +180,7 @@ P.atBorder = function (c, a, b, book) {
     e.found++;
     const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
     this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${whose(k)} people, and ${c.sneak ? "their" : "its"} goods were seized: ${goods(c.grain, c.gold + c.pay)}.`);
-    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [...this.caravanNear(c, b), k], c.sneak ? "smuggler-found" : "caravan-found");
+    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [...this.caravanNear(c, b), ...this.nearOf(b, k)], c.sneak ? "smuggler-found" : "caravan-found");
     return "seized";
   }
   if ((S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, b)) {
@@ -197,7 +202,7 @@ P.atBorder = function (c, a, b, book) {
   e.gold += gold;
   if (grain + gold > 0) {
     this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${name === powerName(k) ? "the" : whose(k)} toll at ${name}: ${goods(grain, gold)}, ${rate} in a hundred.`);
-    logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [...this.caravanNear(c, b), k], "toll-paid");
+    logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [...this.caravanNear(c, b), ...this.nearOf(b, k)], "toll-paid");
   }
   return "pass";
 };
@@ -561,14 +566,20 @@ export function goods(grain: number, gold: number): string {
   return [grain > 0 || gold <= 0 ? `${measures(grain)} of grain` : "", gold > 0 ? formatMoney(gold) : ""].filter((x) => x !== "").join(" and ");
 }
 
-/** Each holder hears once what his tolls brought in and the smugglers his people found this season. */
+/**
+ * Each holder hears, from each border where his tolls took something in or his people found smugglers this season, what
+ * came in there and where its gold went (`credit`: a far province's coffer, else the treasury), as word comes from that
+ * border (#736).
+ */
 P.tellTolls = function (book) {
-  const S = this.s;
-  for (const [k, e] of book.entries()) {
-    if (e.grain + e.gold + e.found <= 0) continue;
-    const into = [e.grain > 0 ? `${measures(e.grain)} of grain into the stores where the goods crossed` : "", e.gold > 0 ? `${formatMoney(e.gold)} into the treasury` : ""].filter((x) => x !== "");
-    const seized = e.found > 0 ? `, with what your people seized from ${e.found === 1 ? "a smuggler" : `${e.found} smugglers`}` : "";
-    notify(S, k, "Notice", TollsTitle, `Your tolls brought ${into.length > 0 ? into.join(" and ") : "nothing in"}${seized}.`);
+  for (const [k, at] of book.entries()) {
+    for (const [b, e] of at.entries()) {
+      if (e.grain + e.gold + e.found <= 0) continue;
+      const name = this.map.get(b).name;
+      const into = [e.grain > 0 ? `${measures(e.grain)} of grain into its stores` : "", e.gold > 0 ? `${formatMoney(e.gold)} ${this.isFar(k, b) ? `into the coffer of ${name}` : "into your treasury"}` : ""].filter((x) => x !== "");
+      const seized = e.found > 0 ? `, with what your people seized from ${e.found === 1 ? "a smuggler" : `${e.found} smugglers`}` : "";
+      this.tell(k, b, "Notice", TollsTitle, `Your tolls at ${name} brought ${into.length > 0 ? into.join(" and ") : "nothing in"}${seized}.`);
+    }
   }
 };
 
