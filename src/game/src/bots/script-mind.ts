@@ -35,7 +35,6 @@ import {
   courtHead,
   idNumber,
   pick,
-  type Power,
 } from "@amarna/engine";
 import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
@@ -243,8 +242,8 @@ export function swaps(t: Traits, keptGold: number, forgeSkill: number, belief: n
 }
 
 /**
- * Whether the host spoke no threat to the envoy's lord and refused nothing: a court an honest envoy may speak of warmly,
- * in the words a bought or frightened one uses (#591).
+ * Whether the host spoke no threat, to anyone, and refused nothing: a court an honest envoy may speak of warmly, in the
+ * words a bought or frightened one uses (#591).
  */
 function warmCourt(trail: { exchanges: readonly unknown[] } | null, heard: readonly Clause[], hostWords: readonly string[]): boolean {
   if (trail === null || (heard.length === 0 && hostWords.length === 0)) return false;

@@ -33,8 +33,9 @@ version, and a check that the script kings' trust readings still behave.
   friendship" in the quote's place beside its own "bought" or "soothe" line. Words with any threat in them, to anyone,
   are never told as kindly spoken; each exchange picks its form apart, so two do not repeat one shape; "He spoke kindly,
   and said" became "He answered me without anger", and "seeks peace with you" became "spoke no ill of you", since a
-  court that merely did not threaten has not said it seeks peace. The guard checks the shape too. A frightened envoy still says "all is well" in every report, where an honest one says it at a warm court
-  about one season in four: the wording marks nothing, but how often it comes does. #591 asks about phrasing, and a
+  court that merely did not threaten has not said it seeks peace. The guard checks the shape too. A frightened envoy
+  still says "all is well" in every report, where an honest one says it at a warm court about one season in four: the
+  wording marks nothing, but how often it comes does. #591 asks about phrasing, and a
   frightened envoy that always soothes is the motive the game models, so it stays.
 - **Save version 62.** The script kings' reading of reports changes.
 - **The guard:** `src/game/test/envoy-tells.test.ts` plays each kind of envoy over sixty seasons. Every form a bribed or
