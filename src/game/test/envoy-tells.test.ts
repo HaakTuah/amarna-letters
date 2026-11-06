@@ -5,7 +5,7 @@ import { Home } from "../src/bots/envoy-words.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 /** A script envoy's report home from a warm court (Hatti spoke no threat), in season `turn`. */
-async function reportOf(traits: Partial<Traits>, bribed: boolean, turn: number, asked = "Tell your lord that my armies are few."): Promise<string> {
+async function reportOf(traits: Partial<Traits>, bribed: boolean, turn: number, asked = "Tell your lord that my armies are few.", host = "Go in peace. My brother is dear to me."): Promise<string> {
   const envoy = newCharacter({ id: "c1", name: "Keliya", origin: "Mitanni", calling: "scribe", status: "Employed", employer: "Egypt", traits: newTraits(traits) });
   if (bribed) envoy.facts.push(newFact({ id: "f1", text: "Took 40 shekels from the king of Hatti.", secrecy: "Hidden", tag: "bribe", knownBy: ["Hatti"] }));
   const trail = newMessageTrail({
@@ -13,7 +13,7 @@ async function reportOf(traits: Partial<Traits>, bribed: boolean, turn: number, 
     turn,
     from: "Egypt",
     to: "Hatti",
-    exchanges: [newExchange({ host: "Go in peace. My brother is dear to me.", envoy: "I will carry your words." })],
+    exchanges: [newExchange({ host, envoy: "I will carry your words." })],
     outcomes: bribed ? [`accepted 40 shekels from Hatti (asked: ${asked})`] : [],
   });
   const ctx = newMindContext({
@@ -67,5 +67,11 @@ describe("EnvoyTellsTests", () => {
         Assert.true(kinds.filter((k) => k === "warm").length <= 1, `a ${who} envoy stacks warm lines: ${r}`);
         Assert.true(!kinds.slice(kinds.indexOf("warm") + 1).includes("quote") || !kinds.includes("warm"), `a ${who} envoy quotes the king after summing up: ${r}`);
       }
+  });
+
+  // In free press a refusal comes in words, with no clause to mark it: an honest envoy still calls no such court warm.
+  test.each(["I will not seal this tablet now.", "I refuse your proposal.", "We reject what your lord asks."])("An honest envoy adds no warm line after %s", async (refusal) => {
+    const honest = await Promise.all(Array.from({ length: 60 }, (_, i) => reportOf({ loyalty: 70, courage: 60, ambition: 30 }, false, i + 1, undefined, refusal)));
+    for (const r of honest) Assert.true(!shape(r).includes("warm"), `a warm line after a refusal: ${r}`);
   });
 });

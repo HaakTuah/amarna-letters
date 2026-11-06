@@ -242,13 +242,13 @@ export function swaps(t: Traits, keptGold: number, forgeSkill: number, belief: n
 }
 
 /**
- * Whether the host spoke no threat, to anyone, and refused nothing: a court an honest envoy may speak of warmly, in the
+ * Whether the host spoke no threat, to anyone, and refused nothing, in clauses or in words: a court an honest envoy may speak of warmly, in the
  * words a bought or frightened one uses (#591).
  */
 function warmCourt(trail: { exchanges: readonly unknown[] } | null, heard: readonly Clause[], hostWords: readonly string[]): boolean {
   if (trail === null || (heard.length === 0 && hostWords.length === 0)) return false;
   if (heard.some((x) => x.kind === "threat" || x.kind === "refuse")) return false;
-  return !hostWords.some((w) => TextKit.sentences(w).some((s) => TextKit.isThreat(s)));
+  return !hostWords.some((w) => TextKit.sentences(w).some((s) => TextKit.isThreat(s) || TextKit.isRefusal(s)));
 }
 
 function report(ctx: MindContext): MindReply {

@@ -49,10 +49,10 @@ one host's words at a warm, a plain and a cold court:
 | Court | `develop`: honest / bribed / frightened | This branch |
 | --- | --- | --- |
 | Warm ("Go in peace. My brother is dear to me.") | 0.040 / 0.080 / 0.060 | 0.050 / 0.060 / 0.040 |
-| Plain ("I have heard your words.") | 0.000 / 0.060 / 0.020 | 0.013 / 0.030 / 0.000 |
-| Cold ("If your lord does not withdraw, I will burn his cities.") | −0.040 / 0.040 / 0.020 | −0.040 / 0.030 / 0.000 |
+| Plain ("I have heard your words.") | 0.000 / 0.060 / 0.020 | 0.010 / 0.020 / 0.000 |
+| Cold ("If your lord does not withdraw, I will burn his cities.") | −0.040 / 0.040 / 0.020 | −0.040 / 0.020 / 0.000 |
 
-Measured again on 6 November, after the review's fixes, by the same harness as `envoy-tells.test.ts` (a throwaway
+Measured again on 6 November, after Codex's review, by the same harness as `envoy-tells.test.ts` (a throwaway
 test, not kept), on `develop` and on this branch.
 
 An honest report of threats reads as cold as before, so the trust readings still behave. The envoy's frame no longer
@@ -67,6 +67,13 @@ kingdoms fallen 453 and 452; declarations 615 and 627, crowns asked 62 and 59, t
 thousand. The script kings play as before.
 
 ## Reviews
+
+Codex's code review (P1×3, P2×1), all fixed: the plain quote forms written once (`Said`, composed into `Home.quoted`);
+the tone paragraph in `docs/design/07-script-kings/04-memory-and-learning.md` now lists eight warm words; a refusal in
+words (free press: "I will not seal this tablet now") keeps a court from counting as warm (`TextKit.isRefusal`, read
+broadly, since a missed warm line costs nothing); and the two "bought" forms carry the same warmth ("and a king who
+desires peace" dropped, which an honest envoy could not truly say of a court that merely did not threaten), with the
+words test now run on a plain quote too.
 
 The fresh-eyes slop review (Opus, high), three rounds: 7, 8, 9. Round 1 found the shape of a report still marking a
 bribed envoy (its passed-on message after the closing lines; two warm lines stacked); round 2, the guard blind to the
