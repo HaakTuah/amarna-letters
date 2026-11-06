@@ -71,17 +71,17 @@ describe("BribedEnvoyTests", () => {
     return (await new ScriptMind().write(ctx)).text;
   }
 
-  test("A bribed envoy vouches for the hosts message in the hosts own words", async () => {
+  // #591: a bought envoy passes on the host's message in the host's own words, quoted as any envoy quotes a king, so no
+  // phrasing marks it.
+  test("A bribed envoy passes on the hosts message in the hosts own words, as any envoy quotes a king", async () => {
     let report = await reportOf("Carry my words faithfully, and tell Pharaoh that I send him my love and wish him long life.");
-    Assert.contains(
-      'At the court of Hatti the king told me "I send him my love and wish him long life", and I saw for myself that it is so.',
-      report,
-    );
+    Assert.true(saysOneOf(report, Home.said, { W: "I send him my love and wish him long life" }), report);
+    Assert.doesNotContain("saw for myself", report);
   });
 
   test("A bribed envoy asked to speak well of another king calls him a friend", async () => {
     let report = await reportOf("Speak well of Mitanni to your lord.");
-    Assert.contains("At the court of Hatti I saw for myself that Mitanni is a true friend to you.", report);
+    Assert.true(saysOneOf(report, Home.said, { W: "Mitanni is a friend to your lord." }), report);
 
     // Of the host itself it already says as much.
     let host = await reportOf("Speak well of Hatti to your lord.");
