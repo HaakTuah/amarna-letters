@@ -34,7 +34,7 @@ const P = TurnEngine.prototype;
 
 P.setSupply = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p) return;
   const gold = Math.max(0, o.gold);
   if (gold > 0 && !this.pay(p, gold, `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}`, o, "no word was sent")) return;
@@ -50,6 +50,7 @@ P.setSupply = function (p, o) {
     "Word on the army's food",
     `Your couriers carry word to your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} to ${o.buy ? "buy its food where it stands" : "take its food from the land"}${gold > 0 ? `, with ${formatMoney(gold)}` : ""}; the word reaches it in turn ${at}.${o.buy && gold === 0 ? " No gold went with it, so it will take what it must." : ""}`,
   );
+  this.goneWord(p, o, u);
 };
 
 P.foodArrives = function () {

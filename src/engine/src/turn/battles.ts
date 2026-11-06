@@ -41,7 +41,9 @@ const P = TurnEngine.prototype;
 P.battles = function (result, sightBefore) {
   const S = this.s;
   const unit = (id: string): Unit | undefined => S.units.find((u) => u.id === id);
-  const seeing = (provinces: string[], ...sides: Power[]): Power[] => [...new HSet([...AllPowers.filter((p) => provinces.some((x) => sightBefore.get(p)?.has(x))), ...sides])];
+  // Those who saw it, and each side where its couriers reach from `told`, where its own notice is told from; a side
+  // farther off reads of it there, by the road (bug #600).
+  const seeing = (provinces: string[], told: string, ...sides: Power[]): Power[] => [...new HSet([...AllPowers.filter((p) => provinces.some((x) => sightBefore.get(p)?.has(x))), ...this.nearOf(told, ...sides)])];
   // The men each unit loses, and in which battle's province, in the order the battles were fought (the map's order of moves).
   const lost = new Dict<string, number>();
   const where = new Dict<string, string>();
@@ -81,7 +83,7 @@ P.battles = function (result, sightBefore) {
       logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, [winner.power], "commander-won");
     }
     if (lc !== null) lc.lost++;
-    battleNews(this, crushed ? { ...f, won: true } : f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], a.power, d.power), crushed);
+    battleNews(this, crushed ? { ...f, won: true } : f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], f.at, a.power, d.power), crushed);
   }
   // The men lost: some killed, the rest run and turn loose where the battle was fought (none at sea, where they drown).
   for (const [id, men] of lost) {
@@ -124,7 +126,7 @@ P.battles = function (result, sightBefore) {
         ? `Your fleet off ${this.map.get(u.province).name} was beaten and drew off${this.map.get(to).name.startsWith(this.map.get(u.province).name) ? " to sea" : ` into ${this.map.get(to).name}`}, ${u.men} men strong.`
         : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`,
     );
-    logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
+    logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], to, u.power), "fallback");
   }
   // A far weaker unit beaten where it stood is destroyed, though its land held the attackers out.
   for (const u of routedInPlace) if (!destroyed.includes(u) && S.units.includes(u)) destroyed.push(u);

@@ -4,7 +4,7 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, type FrameBand, type FrameCover, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, between, city, lengthOf, route, type Pt } from "./art.ts";
 import { ownFiguresAt } from "./known.ts";
@@ -564,17 +564,16 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
 }
 
 const AtCourt = /at the court of (\w+)/u;
-const InProvince = /^in (\w+)$/u;
 const SetOut = /set out in turn (\d+) for (\w+)/u;
 const DueThere = /due there about turn (\d+)/u;
 const DueBack = /due back about turn (\d+)/u;
 
-function placeOf(where: string): string | null {
-  const m = AtCourt.exec(where);
+/** Where a court believes a servant stands: the province it keeps for him (bug #734), else the court its words name. */
+function placeOf(cover: FrameCover): string | null {
+  if (cover.province !== null && Map_.exists(cover.province)) return cover.province;
+  const m = AtCourt.exec(cover.whereText);
   const court = m !== null ? parsePower(m[1]) : null;
-  if (court !== null) return capOf(court);
-  const n = InProvince.exec(where);
-  return n !== null && Map_.exists(n[1]) ? n[1] : null;
+  return court !== null ? capOf(court) : null;
 }
 
 /**
@@ -595,12 +594,12 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
       }
       switch (cover.believed) {
         case "SpyPosted": {
-          const post = placeOf(cover.whereText);
+          const post = placeOf(cover);
           if (post !== null) people.push({ id: c.id, kind: "Spy", owner: p, province: post, title: `${c.name}, your spy, at their post as far as you know`, believed: true, double: false });
           break;
         }
         case "EnvoyAtCourt": {
-          const court = placeOf(cover.whereText);
+          const court = placeOf(cover);
           if (court !== null) people.push({ id: c.id, kind: "Envoy", owner: p, province: court, title: `${c.name}, your envoy, at that court as far as you know`, believed: true, double: false });
           break;
         }

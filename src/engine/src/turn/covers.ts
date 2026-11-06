@@ -46,6 +46,7 @@ P.coverFor = function (c, master, believed, duty = null, where = null, seen = nu
       heldAt: view.status === "captured" ? c.heldBy : null,
       dutyText: duty ?? view.duty,
       whereText: where ?? view.where,
+      province: where === null ? view.province : null,
       timingText: timing ?? (duty === null ? view.timing : ""),
       fee: view.fee ?? c.contract?.fee ?? 0,
       advance: view.advance ?? c.contract?.advance ?? 0,

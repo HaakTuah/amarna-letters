@@ -77,7 +77,7 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
     d = undefined;
   }
   if (d === undefined) {
-    const nd = newDeclaration({ province, power: p });
+    const nd = newDeclaration({ province, power: p, since: S.turn });
     S.declarations.push(nd);
     // Part D (#431): its offer reaches him only if someone carries it, in the people's own words.
     this.sendOffer(nd, holder, `We declare for you: ${holder === null ? "we have no ruler" : `${whose(holder)} hold on us is weak`}.`);

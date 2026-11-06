@@ -12,7 +12,7 @@ import { BandData, type Band } from "../model/bands.ts";
 import { forMen, levySize, menAvailable } from "../model/land.ts";
 import { remember, spend, type Character } from "../model/people.ts";
 import { addRisen, AllPowers, land, type Power, type RisenPower, powerName } from "../model/power.ts";
-import { isAlive, logEvent, newId, newTreasury, newUnit, notify, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, newId, newTreasury, newUnit, notify, type Unit, keepGone } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { levelOf } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -123,6 +123,8 @@ P.ruleOwn = function (id, c, r) {
     followed.push(u);
   }
   for (const u of followed) {
+    // Bug #600: their king knows them as he last heard of them, until word of the turning comes.
+    keepGone(S, u);
     u.power = p;
     u.commander = null;
     u.mandate = null;
@@ -176,7 +178,7 @@ P.joinRealm = function (province, c, p) {
 
 /** A unit of `men` men of `province`, standing there, its home. */
 function newUnitFor(e: TurnEngine, p: Power, province: string, men: number): Unit {
-  const u = newUnit({ id: newId(e.s, "u"), power: p, kind: "Army", province, home: province, men });
+  const u = newUnit({ id: newId(e.s, "u"), power: p, kind: "Army", province, home: province, men, since: e.s.turn });
   e.s.units.push(u);
   return u;
 }

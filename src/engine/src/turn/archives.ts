@@ -127,7 +127,7 @@ P.takeArchive = function (taker, province) {
     notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${powerName(court)}; it held no tablet you did not hold already.`);
     return;
   }
-  if (this.lootHome(taker, province, 0, tablets, court))
+  if (this.lootHome(taker, province, 0, tablets, court) !== "here")
     notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${powerName(court)}: your scribes are carrying its ${tablets.length} tablet${tablets.length === 1 ? "" : "s"} home to your capital.`);
 };
 

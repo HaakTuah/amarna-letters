@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, OfferTerms, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newGrant, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
+import { Dict, LetterHeldTerms, OfferTerms, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newGrant, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
 // Item 17++, part D (#431, the owner: "Yes, expertly, if you think it is best"): a province's offer to an absent power
@@ -133,7 +133,7 @@ describe("OfferTests", () => {
     Assert.false(s.journeys.some((j) => j.kind === "Offer"));
     Assert.equal(OfferUnheard, d.known);
     const read = inboxOf(s, "Babylonia").find((i) => i.title === "A letter taken on the road")!;
-    Assert.equal(`Among what Ahmose carried, and so never delivered, was the word of the people of ${WorldMap.default.get("babylon").name} to Egypt: "The people of Babylon declare for you."`, read.body);
+    Assert.equal(`Among what Ahmose carried, and so never delivered, was the word of the people of ${WorldMap.default.get("babylon").name} to Egypt: "The people of Babylon declare for you." ${LetterHeldTerms}`, read.body);
     Assert.doesNotContain(OfferTerms, read.body);
     Assert.contains(s.events, (x) => x.signal === "offer-read");
     Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you");

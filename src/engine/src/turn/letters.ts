@@ -14,6 +14,7 @@ import { OfferCaught, offerWords, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { LetterHeldTerms } from "./held-letters.ts";
 import { basePrice } from "./court.ts";
 import { trustIn } from "./jobs.ts";
 import { reportsChoice } from "./own-choices.ts";
@@ -56,7 +57,7 @@ function courtAt(engine: TurnEngine, province: string): Power | null {
 P.carryLetters = function () {
   const S = this.s;
   const waiting = sortBy(
-    S.journeys.filter((j) => j.waitAt !== null && j.carrier === null),
+    S.journeys.filter((j) => j.waitAt !== null && j.carrier === null && j.caravan === null),
     [(j: Journey) => idNumber(j.id), cmpNum],
   );
   for (const letter of waiting) {
@@ -244,7 +245,9 @@ P.lettersGo = function () {
     } else if (c !== null && c.status === "Captured" && c.heldBy !== null && c.heldBy !== letter.to && letter.kind === "Offer" && isAlive(S, c.heldBy)) {
       // #553: so is a province's offer, in the people's own words; its king learns of it only from them.
       const from = this.map.get(letter.waitAt!).name;
-      notify(S, c.heldBy, "Notice", "A letter taken on the road", `${OfferCaught.opens}${c.name}${OfferCaught.people}${from} to ${powerName(letter.to)}: ${quoteWords(offerWords(letter))}`, c.id);
+      notify(S, c.heldBy, "Notice", "A letter taken on the road", `${OfferCaught.opens}${c.name}${OfferCaught.people}${from} to ${powerName(letter.to)}: ${quoteWords(offerWords(letter))} ${LetterHeldTerms}`, c.id);
+      // #592: and holds it.
+      this.holdLetter(c.heldBy, letter);
       logEvent(S, "letter", `${c.heldBy} read the offer of ${from}'s people to ${letter.to}, taken from ${c.name}.`, [c.heldBy], "offer-read");
     } else logEvent(S, "letter", `A letter to ${letter.to} was lost on the road with ${c?.name ?? "its carrier"}.`, [], "letter-lost");
   }

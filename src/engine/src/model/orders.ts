@@ -12,6 +12,7 @@ import type { GreetingOptions, TabletProposal } from "./records.ts";
 import type { Authority, GrantKind } from "./authority.ts";
 import type { JobWhat } from "./people.ts";
 import type { Mandate } from "./command.ts";
+import type { LetterFate } from "./held-letters.ts";
 
 export interface HoldOrder {
   type: "hold";
@@ -622,6 +623,25 @@ export interface PayRansomOrder {
   character: string;
 }
 /**
+ * #592: what to do with a province's offer the court holds, caught on the road: send it to `to` (its claimant or the
+ * land's king), or ask `to` a `price` for it.
+ */
+export interface LetterOrder {
+  type: "letter";
+  province: string;
+  fate: LetterFate;
+  to: Power;
+  price: number;
+  /** The turn its people wrote it, where the court holds more than one of theirs (`HeldLetterView.written`); null: the newest. */
+  written?: number | null;
+}
+/** #592: buy a province's offer another court holds and asked the price of; `written` as for `LetterOrder`. */
+export interface BuyLetterOrder {
+  type: "buyLetter";
+  province: string;
+  written?: number | null;
+}
+/**
  * An order a reply named but left incomplete or unreadable (a cession to no power anyone knows): the validator refuses it
  * with `reason`, so its king is told next season instead of the order vanishing.
  */
@@ -695,6 +715,8 @@ export type Order =
   | ForgeOrder
   | CaptiveOrder
   | PayRansomOrder
+  | LetterOrder
+  | BuyLetterOrder
   | SeizeHoardOrder
   | SellDebtOrder
   | PayCarriersOrder

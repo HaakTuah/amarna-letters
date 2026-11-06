@@ -3,7 +3,7 @@
  * sell at a dearer foreign market and gold to buy where grain is cheap, by caravan or, from a harbour with an idle fleet,
  * by ship; it smuggles a small load where tolls are heavy or the roads closed; it ships grain to a besieged harbour of its
  * own while its waters are open, and sells grain at a starving foreign harbour like any dear market; and it sets its tolls, none on the partners it promised free passage to on a sealed tablet
- * nor on its allies. Every number below is a first guess of the script's own.
+ * nor on its allies. A market whose people talk says lean its way need only pay its way: its caravan home brings their offer (#543). Every number below is a first guess of the script's own.
  */
 import { fundedThere, payFor } from "./coffers.ts";
 import { knownWays } from "./works.ts";
@@ -38,6 +38,7 @@ import {
   type UnitView,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { talkedOurWay } from "./talk.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
@@ -198,6 +199,9 @@ export function tradeOrders(
     [([k]: [string, MarketSeen]) => k, cmpStr],
   );
   if (markets.length === 0) return spent;
+  // #543: a market whose people talk says lean our way: our caravan coming home from it brings their offer, so a venture
+  // there need only pay its way.
+  const lured = new Set(talkedOurWay(b));
   // Commerce makes a king readier to trade: the share of the proceeds a venture must clear.
   const margin = 0.25 - 0.15 * p.commerce;
 
@@ -247,7 +251,7 @@ export function tradeOrders(
         const gain = (proceeds + worthBack) * survive - cost - atHome - (buyGold > 0 ? bought.paid : 0);
         const worth = proceeds + worthBack;
         // An idle fleet's pay is the same at war or in cargo service, so a voyage need clear less than a caravan.
-        const bar = how === "ship" ? Math.max(5, (margin / 2) * worth) : Math.max(15, margin * worth);
+        const bar = lured.has(k) ? 0 : how === "ship" ? Math.max(5, (margin / 2) * worth) : Math.max(15, margin * worth);
         if (worth <= 0 || gain < bar) continue;
         if (best !== null && gain <= best.gain) continue;
         const goldOut = buyGold > 0 && bought.taken > 0 ? Math.min(buyGold, Math.ceil((bought.paid * 100) / Math.max(1, keep))) : 0;

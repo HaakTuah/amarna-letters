@@ -1,7 +1,7 @@
 /** What each court sees: the seat view, sight, the walls it knows, and how it sees each person and tablet. */
 import { listed } from "./wording.ts";
 import { newsOffered } from "./news.ts";
-import { Dict, HSet } from "../core/collections.ts";
+import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr, split } from "../core/text.ts";
@@ -23,13 +23,14 @@ import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
 import { grantStandsFor, newGrantView } from "../model/authority.ts";
-import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
+import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newHeldLetterView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
+import { ownPlaces, plannedAsKnown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
@@ -84,29 +85,13 @@ function routineTreasury(i: InboxItem): boolean {
 }
 
 /**
- * The troops a court sees: its own as their last reports place them, and others' where it sees. A report never puts two
- * troops in one province: one shown where another stands (or is shown) is shown by an older report of its own whose place
- * is free, and left out if it has none (never by where it truly is: that news has not come yet). Each unit is placed in
- * turn, so two reported into one province never take the same older place.
+ * The troops a court sees: its own where its orders name them (`ownPlaces`: by their last reports, never two in one
+ * province), and others' where it sees them.
  */
 function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(province: string): boolean }, view: (u: Unit) => UnitView): UnitView[] {
-  const pairs: [Unit, UnitView | null][] = s.units.filter((u) => u.power === p || seen.has(u.province)).map((u) => [u, view(u)]);
-  for (const pair of pairs) {
-    const [u, x] = pair;
-    if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
-    if (u.trail.length === 0 || engine.wordFrom(p, u.province) <= 0) continue;
-    pair[1] = null;
-    const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
-    const d = engine.wordFrom(p, u.province);
-    for (let i = u.trail.length - 2 - d; i >= 0; i--) {
-      const r = trailEntry(u.trail[i]);
-      if (!taken.has(r.province)) {
-        pair[1] = { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
-        break;
-      }
-    }
-  }
-  return pairs.map(([, x]) => x).filter((x): x is UnitView => x !== null);
+  // Bug #600: its own as it knows them (raised, and not yet heard to be gone), each by the report that places it.
+  const own = ownPlaces(engine, p, seen).map(({ unit, at }) => (at === null || at === reportIndex(engine, unit) ? view(unit) : { ...view(unit), ...trailEntry(unit.trail[at]), reported: reportedAt(engine, unit, at) }));
+  return [...own, ...s.units.filter((u) => u.power !== p && seen.has(u.province)).map(view)];
 }
 
 function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
@@ -150,7 +135,6 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     gold: ledger(t),
     unassayedGold: t.lots.map((l) => newLotView({ id: l.id, from: l.from, stated: l.stated, weighed: l.face, arrivedTurn: l.arrivedTurn })),
     income: engine.income(p),
-    upkeep: engine.upkeep(p),
     // Bug #540: its works as it knows its land, those farther off as last reported.
     ...(() => {
       const works = [...own.values()].flatMap((x) => x.works);
@@ -220,7 +204,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       ),
     units: unitsSeen(s, engine, p, seen, (u) =>
       u.power === p
-        ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
+        ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried({ ...u, men: (reportOf(engine, u) as { men?: number }).men ?? u.men }), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
         : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
     ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
@@ -252,8 +236,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     const entries: ScheduledOrders[] = [];
     for (const x of sleep.scheduled) {
       const last = entries.length > 0 ? entries[entries.length - 1] : null;
-      if (last !== null && last.turn === x.turn && sameConditions(last.conditions, x.conditions)) last.orders.push(asShown(s, p, x));
-      else entries.push(newScheduledOrders({ turn: x.turn, orders: [asShown(s, p, x)], conditions: [...x.conditions] }));
+      // A unit raised far off is named by its levy until word of its raising comes (bug #600).
+      const shown = asShown(s, p, plannedAsKnown(engine, p, x));
+      if (last !== null && last.turn === x.turn && sameConditions(last.conditions, x.conditions)) last.orders.push(shown);
+      else entries.push(newScheduledOrders({ turn: x.turn, orders: [shown], conditions: [...x.conditions] }));
     }
     v.scheduled = sortBy(entries, [(e: ScheduledOrders) => e.turn, cmpNum]);
   }
@@ -324,6 +310,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // As word of them has reached it: one ended stands until word of its end comes; taken up once word of that came home.
   v.moods = [...moodsKnown(s, p).values()].map((r) => newMoodSeenView({ province: r.province, mood: r.mood, seen: r.seen, source: r.source }));
   v.declared = s.declarations.filter((d) => d.power === p && declarationKnown(d, s.turn)).map((d) => newDeclaredView({ province: d.province, from: d.from, takenUp: d.takenKnown !== null && d.takenKnown <= s.turn }));
+  // #592: offers it holds, and those offered it for sale once word of the asking has come (their words only once bought).
+  v.lettersHeld = s.lettersHeld.filter((h) => h.heldBy === p && h.known <= s.turn).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, words: h.words, written: h.written, heldBy: p, askedOf: h.askedOf, price: h.price }));
+  v.lettersOffered = s.lettersHeld.filter((h) => h.askedOf === p && h.askKnown !== null && h.askKnown <= s.turn && h.bought === null).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, written: h.written, heldBy: h.heldBy, askedOf: p, price: h.price }));
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
@@ -348,6 +337,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p && (w.from === "" || wordCame(engine, p, w.departs, w.from)));
   v.walking = sum(homeward.filter((w) => !w.deported), (w) => w.men);
   v.caravans.push(...caravansKnown(engine, p));
+  // What its troops cost as it knows them (bug #600).
+  v.upkeep = engine.upkeep(p, v.units.filter((u) => u.power === p));
   // Its strength as it reckons it: its gold by its ledger, which counts unassayed lots at their weight (a seat must never
   // see true strength, or it could read debased gold off the difference); bug #540: from what it knows, its land and
   // their stores as last reported, its troops and caravans as their reports have them.
@@ -477,6 +468,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     employer: ours || (c.status === "Employed" && here) ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
     duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
     where: ours || here ? whereText(c, viewer) : "",
+    province: ours && !captive ? landPlace(c) : null,
     timing: ours ? timingText(s, c) : "",
     fee: k === null ? null : k.fee + k.carried,
     advance: k?.advance ?? null,
@@ -590,6 +582,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     employer: cover.for,
     duty: held !== null ? captiveText(s, c.id, held, cover.for) : cover.dutyText,
     where: held !== null ? `at the court of ${held}` : cover.whereText,
+    province: held !== null ? null : cover.province,
     timing: held === null ? cover.timingText : "",
     fee: cover.fee,
     advance: cover.advance,
@@ -699,6 +692,18 @@ function knownDemand(s: GameState, id: string, heldAt: Power, payer: Power): Pen
   return found;
 }
 
+/** A province as the map names it (bug #734): never its id, which a king could repeat. */
+const placeName = (id: string | null): string => (id !== null && WorldMap.default.exists(id) ? WorldMap.default.get(id).name : (id ?? ""));
+
+/**
+ * The province one of the court's own people stands in out in the land, as his duty has it (bug #734), so it says no more
+ * than the words do: a post, a command, a governorship, or the road to one; null at a court.
+ */
+function landPlace(c: Character): string | null {
+  const posted = c.duty === "Leading" || c.duty === "Commanding" || c.duty === "Governing" || ((c.duty === "SpyPosted" || c.duty === "SpyOutbound") && c.missionTarget === null);
+  return posted || (c.at === null && c.status !== "Captured") ? c.watchProvince : null;
+}
+
 function dutyText(c: Character): string {
   if (c.duty === "UnderGuard") return "a captive on the road under guard";
   if (c.status === "Captured" && c.heldBy !== null) return `held captive at the court of ${c.heldBy}`;
@@ -707,26 +712,27 @@ function dutyText(c: Character): string {
       return "at court, ready for a mission";
     case "EnvoyOutbound":
       return `travelling as envoy to ${c.missionTarget ?? ""}`;
+    // Where he is, the line's other half says (`whereText`): each place once (bug #734).
     case "EnvoyAtCourt":
-      return `at the court of ${c.at ?? ""} as envoy`;
+      return "as envoy";
     case "EnvoyHomebound":
       return "on the road home";
     case "Detained":
       return `has not returned from ${c.missionTarget ?? ""}`;
     case "SpyOutbound":
-      return `travelling on a quiet errand to ${c.missionTarget ?? c.watchProvince ?? ""}`;
+      return `travelling on a quiet errand to ${c.missionTarget ?? placeName(c.watchProvince)}`;
     case "SpyPosted":
-      return `watching ${c.missionTarget !== null ? land(c.missionTarget) : c.watchProvince !== null && WorldMap.default.exists(c.watchProvince) ? WorldMap.default.get(c.watchProvince).name : (c.watchProvince ?? "")}`;
+      return `watching ${c.missionTarget !== null ? land(c.missionTarget) : placeName(c.watchProvince)}`;
     case "Travelling":
       return "travelling on their own way";
     case "Leading":
-      return `leading a band in ${c.watchProvince ?? ""}`;
+      return `leading a band in ${placeName(c.watchProvince)}`;
     case "Commanding":
-      return `commanding an army in ${c.watchProvince ?? ""}`;
+      return `commanding an army in ${placeName(c.watchProvince)}`;
     case "Governing":
-      return `governing ${c.watchProvince ?? ""}`;
+      return `governing ${placeName(c.watchProvince)}`;
     case "Ruling":
-      return `ruling ${c.at ?? ""} in his own name`;
+      return "ruling in his own name";
   }
 }
 
@@ -734,7 +740,10 @@ function whereText(c: Character, viewer: Power): string {
   if (c.status === "Captured") return c.heldBy === viewer ? "in your prison" : c.heldBy !== null && c.employer === viewer ? `at the court of ${c.heldBy}` : "unknown";
   if (c.duty === "Detained" && c.employer === viewer) return "unknown";
   if (c.at !== null) return c.at === viewer ? "at your court" : `at the court of ${c.at}`;
-  return c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
+  // Out in the land: the province by its name, unless the duty already names it (bug #734).
+  if (c.watchProvince === null) return "travelling";
+  if (c.duty === "Leading" || c.duty === "Commanding" || c.duty === "Governing" || (c.duty === "SpyPosted" && c.missionTarget === null)) return "";
+  return `in ${placeName(c.watchProvince)}`;
 }
 
 /**
@@ -835,33 +844,3 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
   return { march: u.march, marchDays: Math.ceil(left / PointsPerDay) };
 }
 
-/**
- * Item 13: an own unit beyond what a courier brings within the season is shown as its last report has it: where it stood
- * and with how many men, as many seasons ago as the road from it is long.
- */
-/**
- * One season's report of a unit: where it stood, its men, food, hunger and pay owed, its chest and whether it buys, and
- * its men's savings (bug #540); older saves carry fewer.
- */
-function trailEntry(t: string): {
-  province: string;
-  men: number;
-  food?: number;
-  hungry?: number;
-  unpaid?: number;
-  chest?: number;
-  buy?: boolean;
-  savings?: number;
-} {
-  const [province, men, food, hungry, unpaid, chest, buy, savings] = t.split("|");
-  const fed = food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
-  const chested = chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
-  return savings === undefined ? chested : { ...chested, savings: Number(savings) };
-}
-
-function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
-  const d = engine.wordFrom(u.power, u.province);
-  if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
-  const i = Math.max(0, u.trail.length - 1 - d);
-  return { ...trailEntry(u.trail[i]), reported: engine.s.turn - (u.trail.length - 1 - i), march: null, marchDays: 0 };
-}
