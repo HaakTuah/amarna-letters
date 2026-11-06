@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { KnownProviders, endpointAllowed } from "@amarna/llm";
-import { contentSecurityPolicy, cspPlugin } from "../csp.ts";
+import { contentSecurityPolicy, cspPlugin, inlineScripts } from "../csp.ts";
 
 const directive = (policy: string, name: string): string[] =>
   policy
@@ -32,9 +32,15 @@ describe("the content security policy", () => {
     const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
     const transform = cspPlugin().transformIndexHtml as { handler: (h: string) => string };
     const out = transform.handler(html);
-    const inline = /<script>([\s\S]*?)<\/script>/u.exec(html)![1]!;
-    expect(out).toContain(`content="${contentSecurityPolicy([inline])}"`);
+    const scripts = inlineScripts(html);
+    expect(scripts).toHaveLength(1);
+    expect(scripts[0]).toContain("amarna-theme");
+    expect(out).toContain(`content="${contentSecurityPolicy(scripts)}"`);
     expect(out.indexOf("Content-Security-Policy")).toBeLessThan(out.indexOf("<script"));
+  });
+
+  it("hashes inline scripts in any letter case and skips those loaded from a file", () => {
+    expect(inlineScripts('<SCRIPT type="text/javascript">a()</Script ><script type="module" src="x.js"></script><script>b()</script>')).toEqual(["a()", "b()"]);
   });
 
   it("allows the settings screen only listed endpoints and addresses on this machine", () => {

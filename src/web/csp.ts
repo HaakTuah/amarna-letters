@@ -29,7 +29,19 @@ export function contentSecurityPolicy(inlineScripts: readonly string[]): string 
   ].join("; ");
 }
 
-const InlineScript = /<script>([\s\S]*?)<\/script>/gu;
+/** The contents of the page's inline scripts (those with no `src`), found by any letter case and attributes. */
+export function inlineScripts(html: string): string[] {
+  const lower = html.toLowerCase();
+  const out: string[] = [];
+  for (let at = lower.indexOf("<script"); at >= 0; at = lower.indexOf("<script", at + 1)) {
+    const open = lower.indexOf(">", at);
+    const close = lower.indexOf("</script", open);
+    if (open < 0 || close < 0) throw new Error("index.html has a script tag with no end.");
+    if (!/\ssrc\s*=/u.test(lower.slice(at, open))) out.push(html.slice(open + 1, close));
+    at = close;
+  }
+  return out;
+}
 
 /** Writes the policy into the built page, first in its head, with a hash for each inline script it has. */
 export function cspPlugin(): Plugin {
@@ -39,8 +51,7 @@ export function cspPlugin(): Plugin {
     transformIndexHtml: {
       order: "post",
       handler(html) {
-        const scripts = [...html.matchAll(InlineScript)].map((m) => m[1]!);
-        const meta = `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(scripts)}" />`;
+        const meta = `<meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy(inlineScripts(html))}" />`;
         const at = html.indexOf("<meta charset=\"utf-8\" />");
         if (at < 0) throw new Error("index.html has no charset meta to put the content security policy after.");
         const end = at + "<meta charset=\"utf-8\" />".length;
