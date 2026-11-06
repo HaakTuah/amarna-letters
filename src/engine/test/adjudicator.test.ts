@@ -2,59 +2,20 @@ import { describe, test } from "vitest";
 import {
   AdjudicationResult,
   Adjudicator,
-  Dict,
-  type Order,
-  type Power,
-  type Unit,
   WorldMap,
-  convoy,
-  first,
-  move,
-  newUnit,
   stormed,
-  support,
   FullUnit,
 } from "@amarna/engine";
+import { Board as BaseBoard } from "./board.ts";
 import { Assert } from "./support.ts";
 
 /** The provinces whose walls were stormed (the C# result's Stormed). */
 const stormedIn = (r: AdjudicationResult): string[] => r.assaults.filter(stormed).map((a) => a.province);
 
 describe("AdjudicatorTests", () => {
-  class Board {
-    units: Unit[] = [];
-    walls: Dict<string, number> = new Dict<string, number>();
-    owners: Dict<string, Power | null> = new Dict<string, Power | null>();
-    orders: Dict<string, Order> = new Dict<string, Order>();
-
-    a(p: Power, at: string): Board {
-      this.units.push(newUnit({ id: "u" + this.units.length, power: p, kind: "Army", province: at }));
-      return this;
-    }
-    f(p: Power, at: string): Board {
-      this.units.push(newUnit({ id: "u" + this.units.length, power: p, kind: "Fleet", province: at }));
-      return this;
-    }
-    move(at: string, to: string): Board {
-      this.orders.set(at, move(at, to));
-      return this;
-    }
-    support(at: string, supported: string, to: string | null = null): Board {
-      this.orders.set(at, support(at, supported, to));
-      return this;
-    }
-    convoy(at: string, army: string, to: string): Board {
-      this.orders.set(at, convoy(at, army, to));
-      return this;
-    }
-
+  class Board extends BaseBoard {
     run(): AdjudicationResult {
       return new Adjudicator(WorldMap.default).run(this.units, this.orders, this.owners, this.walls);
-    }
-
-    where(r: AdjudicationResult, startProvince: string): string | null {
-      let u = first(this.units, (x) => x.province === startProvince);
-      return r.newPositions.tryGet(u.id) ?? null;
     }
   }
 

@@ -39,7 +39,7 @@ release notes, naming anything they do not explain, such as a new address it con
 ci` then installs exactly the bytes the lock file names. A check that cannot be run leaves the release waiting, never
 skipped, and one that fails holds it back. These checks lower the odds of a bad release but never rule one out, for the
 version in use as much as for a new one; what limits the harm a bad one could do is the page's content security policy
-(the workshop lane in `docs/BUILD-PROGRESS.md`). One is held back only for a reason: it breaks something, runs or loads
+(`src/web/csp.ts`; `SECURITY.md`, rule 7). One is held back only for a reason: it breaks something, runs or loads
 worse, changes its licence, or its project is abandoned or changes hands. The reason is written in the closed PR and in
 an issue that stays open until the reason is gone.
 

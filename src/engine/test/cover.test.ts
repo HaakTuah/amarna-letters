@@ -39,6 +39,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
+import { begin as turnBegin } from "./turn-begin.ts";
 import { fresh, removeAll, Assert, firstOrNull, singleOrNull, skilled, smallWorld } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
@@ -46,12 +47,7 @@ import { captive as captiveOrder } from "@amarna/engine";
 // changes sides or dies abroad appears to its master as it would have in the normal course of events,
 // its back pay growing in the master's books as for anyone away, until word comes.
 describe("CoverTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]`, number: 15 }));
-    return e;
-  }
+  const begin = (s: GameState): TurnEngine => turnBegin(s, 15);
 
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();

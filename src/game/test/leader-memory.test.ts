@@ -20,25 +20,12 @@ import {
   single,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
-import { type CallSpec, type JsonAsker, type JsonObject, LeaderJournal, LlmLeaderSeat, Parse, Schemas, leaderRules } from "@amarna/llm";
+import { type JsonObject, LeaderJournal, LlmLeaderSeat, Parse, Schemas, leaderRules } from "@amarna/llm";
+import { ScriptedAsker } from "./scripted-asker.ts";
 import { at, str, Assert, last } from "../../engine/test/support.ts";
 
 // <summary>A model king's record of earlier seasons: its notes, its own summary of older seasons, its ledger of dealings, and what each request shows.</summary>
 describe("LeaderMemoryTests", () => {
-  // <summary>Answers each request with the JSON the test gives for it, and keeps every request.</summary>
-  class Scripted implements JsonAsker {
-    readonly #reply: (a0: CallSpec) => string;
-    constructor(reply: (a0: CallSpec) => string) {
-      this.#reply = reply;
-    }
-    asked: CallSpec[] = [];
-
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
-      this.asked.push(spec);
-      return Promise.resolve(JSON.parse(this.#reply(spec)) as JsonObject);
-    }
-  }
-
   const Host: string = `{"speech":"Tell your lord I am his brother.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
 
   // <summary>An orders reply with these notes, summary and ledger lines, holding Hatti's capital.</summary>
@@ -83,9 +70,9 @@ describe("LeaderMemoryTests", () => {
       ledger?: (turn: number) => [string, string][];
       host?: string;
     } = {},
-  ): Promise<[LlmLeaderSeat, Scripted]> {
+  ): Promise<[LlmLeaderSeat, ScriptedAsker]> {
     let turn = 0;
-    let asker = new Scripted((spec) =>
+    let asker = new ScriptedAsker((spec) =>
       spec.key.includes("/aud/")
         ? (opts.host ?? Host)
         : ordersOf(opts.notes?.(turn) ?? `notes of turn ${turn}`, opts.summary?.(turn) ?? "", ...(opts.ledger?.(turn) ?? [])),
@@ -95,7 +82,7 @@ describe("LeaderMemoryTests", () => {
     return [seat, asker];
   }
 
-  function lastOrdersRequest(asker: Scripted): string {
+  function lastOrdersRequest(asker: ScriptedAsker): string {
     return last(asker.asked, (s) => s.key.includes("/orders/")).user;
   }
 
@@ -196,7 +183,7 @@ describe("LeaderMemoryTests", () => {
   test("The summary and ledger are logged with the orders and a replay reads them", async () => {
     // Asked every season, so that every season has its orders.
     let state = newGame(4, newGameConfig({ capMin: 3, capMax: 3, endMedian: 10000, catastropheChance: 0, sleepingSeats: false }));
-    let asker = new Scripted((spec) =>
+    let asker = new ScriptedAsker((spec) =>
       spec.key.includes("/aud/") ? Host : ordersOf(`notes ${spec.turn}`, `summary written in turn ${spec.turn}`, ["Egypt", `ledger line of turn ${spec.turn}`]),
     );
     let bot = new ScriptLeader(4);

@@ -8,6 +8,7 @@
  */
 import { newModelCall, type ModelCall, failureOf } from "@amarna/game";
 import { CacheGate } from "./cache-gate.ts";
+import { AnthropicId } from "./endpoints.ts";
 import { CallLimiter, RealClock, isRetryable, isTooMany, waitBefore, LimiterDefaults, type Clock } from "./limiter.ts";
 import { BatchDiscount, ModelIds, PriceTable } from "./models.ts";
 import { readAsMeant } from "./reading.ts";
@@ -91,8 +92,6 @@ export function splitModel(ref: string, providers: Iterable<string>): { provider
   }
   return { provider: AnthropicId, model: ref };
 }
-
-export const AnthropicId = "anthropic";
 
 /** The note a reply that does not fit is sent back with, once. */
 export const retryNote = (error: string): string => `\n\n(Your previous reply could not be used: ${error}. Reply again.)`;

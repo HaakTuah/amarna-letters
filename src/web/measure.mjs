@@ -4,10 +4,9 @@
 // same script measured the C# build before the switch and the TypeScript build after it.
 //   node src/web/measure.mjs [--site <dir>] [--runs 3] [--throttle 4]     (default site: src/web/dist)
 import { createRequire } from "node:module";
-import { createServer } from "node:http";
-import { readFile, stat } from "node:fs/promises";
-import { extname, join, normalize, resolve } from "node:path";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { serveDist } from "./serve-dist.mjs";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
 const arg = (name, fallback) => {
@@ -17,41 +16,10 @@ const arg = (name, fallback) => {
 const site = resolve(arg("--site", fileURLToPath(new URL("./dist/", import.meta.url)))) + "/";
 const runs = Number(arg("--runs", "3"));
 const throttle = Number(arg("--throttle", "4"));
-const types = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".mjs": "text/javascript",
-  ".css": "text/css",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".json": "application/json",
-  ".wasm": "application/wasm",
-  ".dat": "application/octet-stream",
-  ".webmanifest": "application/manifest+json",
-};
 
 // As GitHub Pages serves a preview: under a sub-path, deep links get the app's page, no compression.
-const base = "/amarna-letters/pr-0/";
 let bytes = 0;
-const server = createServer(async (req, res) => {
-  const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
-  if (!path.startsWith(base)) return void res.writeHead(404).end();
-  let file = normalize(join(site, path.slice(base.length) || "index.html"));
-  if (!file.startsWith(site)) return void res.writeHead(403).end();
-  let body;
-  try {
-    if (!(await stat(file)).isFile()) throw new Error("not a file");
-    body = await readFile(file);
-  } catch {
-    file = join(site, "index.html");
-    body = await readFile(file);
-  }
-  if (file.endsWith("index.html")) body = Buffer.from(body.toString().replace('<base href="/" />', `<base href="${base}" />`));
-  bytes += body.length;
-  res.writeHead(200, { "content-type": types[extname(file)] ?? "application/octet-stream" }).end(body);
-});
-await new Promise((r) => server.listen(0, r));
-const root = `http://localhost:${server.address().port}${base}`;
+const { server, root } = await serveDist(site, { base: "/amarna-letters/pr-0/", onBody: (body) => (bytes += body.length) });
 const browser = await chromium.launch();
 
 async function once() {

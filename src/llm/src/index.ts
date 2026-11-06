@@ -18,6 +18,7 @@ export * from "./reading.ts";
 export * from "./background.ts";
 export * from "./anthropic.ts";
 export * from "./compatible.ts";
+export * from "./endpoints.ts";
 export * from "./simulated.ts";
 export * from "./exchange.ts";
 export * from "./bridge.ts";
