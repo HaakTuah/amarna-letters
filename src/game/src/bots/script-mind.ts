@@ -34,6 +34,7 @@ import {
   powerName,
   courtHead,
   idNumber,
+  pick,
 } from "@amarna/engine";
 import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
@@ -240,6 +241,16 @@ export function swaps(t: Traits, keptGold: number, forgeSkill: number, belief: n
   return keptGold > 0 && belief >= forgeSkill && t.courage >= 35;
 }
 
+/**
+ * Whether the host spoke no threat, to anyone, and refused nothing, in clauses or in words: a court an honest envoy may speak of warmly, in the
+ * words a bought or frightened one uses (#591).
+ */
+function warmCourt(trail: { exchanges: readonly unknown[] } | null, heard: readonly Clause[], hostWords: readonly string[]): boolean {
+  if (trail === null || (heard.length === 0 && hostWords.length === 0)) return false;
+  if (heard.some((x) => x.kind === "threat" || x.kind === "refuse")) return false;
+  return !hostWords.some((w) => TextKit.sentences(w).some((s) => TextKit.isThreat(s) || TextKit.isRefusal(s)));
+}
+
 function report(ctx: MindContext): MindReply {
   const c = ctx.self;
   const t = c.traits;
@@ -257,7 +268,6 @@ function report(ctx: MindContext): MindReply {
   const key = `${ctx.turn}|${c.id}|${host}`;
   const L = host === null ? "" : land(host);
   let answer: Clause[] = [];
-  let bribeNews: Clause[] = [];
 
   if (trail === null || host === null) {
     lines.push(say(Home, "backBare", key));
@@ -272,26 +282,41 @@ function report(ctx: MindContext): MindReply {
     const keptSome = trail.outcomes.some((o) => o.startsWith("kept "));
     // The host's answer in clauses, as it reports them (item 8); in structured press they are its words.
     const heard = trail.exchanges.flatMap((x) => x.clauses).filter((x) => !(keptSome && x.kind === "lightGift"));
-    bribeNews = bribed ? trail.exchanges.flatMap((x) => x.bribeClauses) : [];
+    const bribeNews = bribed ? trail.exchanges.flatMap((x) => x.bribeClauses) : [];
     answer = reportClauses(heard, bribeNews, t, faithful, bribed, fearful);
-    // The bribe's news comes last, and is told as what the envoy saw for itself.
-    const told = answer.slice(0, answer.length - bribeNews.length);
-    if (ctx.structured && told.length > 0) lines.push(`The king answered: "${renderClauses(told, host, lord)}"`);
-    for (const words of ctx.structured ? [] : hostWords) {
+    // In structured press the bribe's news is told in the one answer, as the king's own (#591: no second line marks it).
+    if (ctx.structured && answer.length > 0) lines.push(`The king answered: "${renderClauses(answer, host, lord)}"`);
+    for (const [i, words] of (ctx.structured ? [] : hostWords).entries()) {
       const sentences = TextKit.sentences(words).filter((s) => !keptSome || !TextKit.speaksOfWeighing(s));
       if (sentences.length === 0) continue;
-      if (faithful) lines.push(say(Home, "said", key, { W: TextKit.join(sentences) }));
-      else if (bribed || fearful) {
-        // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
-        const soft = sentences.filter((s) => !TextKit.isThreatTo(s, lord, host, true));
-        lines.push(soft.length > 0 ? say(Home, "saidKindly", key, { W: TextKit.join(soft) }) : say(Home, "friendship", key));
-      } else {
-        lines.push(say(Home, "said", key, { W: TextKit.join(sentences) }));
-      }
+      // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
+      const soft = sentences.filter((s) => !TextKit.isThreatTo(s, lord, host, true));
+      // A bought or frightened envoy quotes only what does not threaten its lord, and nothing if all of it does; an honest
+      // one quotes the king as he spoke. Either tells words with no threat in them as kindly spoken, or plainly, so no
+      // form marks one (#591); each exchange picks its form apart, so two do not repeat one shape.
+      const told = !faithful && (bribed || fearful) ? soft : sentences;
+      if (told.length > 0) lines.push(say(Home, told.some((s) => TextKit.isThreat(s)) ? "said" : "quoted", `${key}|${i}`, { W: TextKit.join(told) }));
+    }
+    // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, quoted as any envoy
+    // quotes the king, beside the king's other words (#591: no wording or place marks it). Asked to speak well of a
+    // king, it tells of him as the king's friend.
+    if (bribed && !ctx.structured) {
+      const asked = askedOf(trail);
+      const claim = TextKit.claim(asked, lord);
+      const praised = claim === null ? TextKit.praised(asked, lord) : null;
+      const W = claim ?? (praised !== null && praised !== host ? `${land(praised)} is a friend to your lord.` : null);
+      if (W !== null) lines.push(say(Home, "said", `${key}|claim`, { W }));
     }
     if (bribed) lines.push(say(Home, "bought", key, { L }));
     if (t.ambition >= 65) lines.push(say(Home, "boast", key));
     if (fearful && !bribed) lines.push(say(Home, "soothe", key, { L }));
+    // An honest envoy back from a court that spoke no threat sometimes says so in the words a bought or frightened one
+    // uses, so none of them marks one (#591).
+    else if (!bribed && warmCourt(trail, heard, hostWords)) {
+      // By the half-year, not the season, so the line and its form (chosen by the season) run through every pairing.
+      const warm = pick([null, "friendship", "bought", "soothe"] as const, `${Math.floor(ctx.turn / 2)}|${c.id}|${host}|warm`);
+      if (warm !== null) lines.push(say(Home, warm, key, { L }));
+    }
     // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
     if (trail.outcomes.includes(SealedOutcome)) lines.push(say(Home, "sealed", key));
     // An envoy that turned down the host's offer of a post tells its lord; one with little loyalty, or bought by that host,
@@ -310,20 +335,6 @@ function report(ctx: MindContext): MindReply {
   }
 
   const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(courtHead(host))));
-  // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
-  // something it saw for itself, first among what it saw. Asked to speak well of a king, it calls him a friend.
-  if (ctx.structured && bribed && host !== null) {
-    const news = answer.slice(answer.length - bribeNews.length);
-    if (news.length > 0) observations.unshift(`At the court of ${land(host)} I saw for myself that it is so: ${renderClauses(news, host, lord)}`);
-  } else if (bribed && host !== null && trail !== null) {
-    const asked = askedOf(trail);
-    const claim = TextKit.claim(asked, lord);
-    if (claim !== null) observations.unshift(`At the court of ${land(host)} the king told me "${claim}", and I saw for myself that it is so.`);
-    else {
-      const praised = TextKit.praised(asked, lord);
-      if (praised !== null && praised !== host) observations.unshift(`At the court of ${land(host)} I saw for myself that ${land(praised)} is a true friend to you.`);
-    }
-  }
   if (observations.length > 0) lines.push("What I saw: " + observations.join(" "));
 
   const skim = kept(cargo.gold, t);
