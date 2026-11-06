@@ -151,8 +151,13 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     road to the king it is bound to: a notice, and his map. The Great Kings hear of a change of the map every 4.3 to
     5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
     `docs/rounds/2026-11-03-news-beyond-sight.md`.
-  - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
-    land's king, or keep it back.
+  - ~~**#592:**~~ (done, #733) a caught offer is held by its captor, who sends it on (to its claimant or the land's
+    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 67. Report:
+    `docs/rounds/2026-11-06-held-offers.md`.
+  - **Held letters never lapse** (the fallback security review of #733, P2): a letter kept, never bought, or held by a
+    court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
+    games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is
+    the fix.
 
 - ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
   from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
@@ -268,6 +273,7 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 | #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
 | #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
 | #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
+| #592 | Heeding talk, with caught offers sent on to friends, sold to the land's king, and bought (`--talk-play-half`) | 0.78 growth to 0.73, 26 wins to 24, in 50 games; 1,628 offers sent, 152 arrived (107 by caravan); 1 offer caught and held | Too rare to tell: one catch in 50 games; for item 18 |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".

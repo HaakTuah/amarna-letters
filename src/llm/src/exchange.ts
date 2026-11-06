@@ -111,7 +111,8 @@ const LongestLine = 1000;
 
 /**
  * The schema as the request prints it: indented, but each object that holds no other object (a field: its type, enum and
- * description) on one line unless that line would pass `LongestLine`, and apostrophes left as they are.
+ * description) on one line unless that line would pass `LongestLine`, a list of values likewise, and apostrophes left as
+ * they are.
  */
 export function readable(node: unknown, depth = 0): string {
   const nested = (x: unknown): boolean => (x !== null && typeof x === "object" && !Array.isArray(x)) || (Array.isArray(x) && x.some(nested));
@@ -128,6 +129,15 @@ export function readable(node: unknown, depth = 0): string {
       `\n${pad}}`
     );
   if (Array.isArray(node) && node.some(nested)) return "[\n" + node.map((x) => inner + readable(x, depth + 1)).join(",\n") + `\n${pad}]`;
+  // A list of plain values too long for one line (the orders' actions): as many to a line as fit under `LongestLine`.
+  if (Array.isArray(node) && JSON.stringify(node).length > LongestLine) {
+    const lines: string[] = [];
+    for (const x of node.map((y) => JSON.stringify(y))) {
+      if (lines.length > 0 && lines[lines.length - 1].length + x.length + 1 <= LongestLine) lines[lines.length - 1] += `,${x}`;
+      else lines.push(x);
+    }
+    return "[\n" + lines.map((l) => inner + l).join(",\n") + `\n${pad}]`;
+  }
   if (node === null || node === undefined) return "null";
   return JSON.stringify(node);
 }
