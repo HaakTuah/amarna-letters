@@ -83,7 +83,8 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   so tints, border lines and seals are drawn as known. Walls are (since the review of the siege package): a court's map
   draws them standing now in its sight and as it last saw them elsewhere (`SeasonFrame.knownWalls`, `MapScene.walls`).
 - **Follow this character** builds a life from the record (`LifeRecord`): service, places season by season (and the
-  path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
+  path on the map, ending where the seat last knew them, with "last seen N seasons ago" beside that place when it is
+  not this season), missions with what was written, said and reported, and in god view the hidden traits, facts and
   the character's own memory; in a court's view only what that court knows: its own servants' service, the messages
   it sent, and those of envoys who have stood before it (never one still on the road to it). A court that only
   received an envoy sees that mission dated by its audience alone; the report home, and when it came, only the
