@@ -39,8 +39,8 @@ import { removeAll, Assert, toDict, oldWorld, commanded } from "../../engine/tes
 // <summary>A seat that may sleep, deciding from a script, and remembering when it was asked.</summary>
 export class Sleeper implements ISeat {
   readonly #decide: (a0: SeatView) => TurnSubmission;
-  readonly #host: ((a0: AudienceView) => HostReply) | null;
-  constructor(decide: (a0: SeatView) => TurnSubmission, host: ((a0: AudienceView) => HostReply) | null = null) {
+  readonly #host: ((a0: AudienceView, a1: SeatView) => HostReply) | null;
+  constructor(decide: (a0: SeatView) => TurnSubmission, host: ((a0: AudienceView, a1: SeatView) => HostReply) | null = null) {
     this.#decide = decide;
     this.#host = host;
   }
@@ -69,7 +69,7 @@ export class Sleeper implements ISeat {
       this.courts.push(court);
       this.audiences.push(view);
     }
-    return Promise.resolve(this.#host?.(view) ?? newHostReply({ speech: "Go in peace.", end: true }));
+    return Promise.resolve(this.#host?.(view, court) ?? newHostReply({ speech: "Go in peace.", end: true }));
   }
 }
 

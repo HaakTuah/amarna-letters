@@ -5,19 +5,10 @@ import { city } from "../src/map/features.ts";
 import { Moments, cuesAt } from "../src/audio/situation.ts";
 import { Apart, MapHeard, schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
+import { frame } from "./audio-frame.ts";
 
 // Item 19+++ fed by item 17a's stream: each sound of a season at its event's moment and place, heard by zoom. Each test
 // builds the two frames it needs by hand: a power or two, a province or two, no game.
-function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
-  return {
-    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(), knownSieges: new Map(),
-    knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
-    sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
-    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", ...over,
-  } as SeasonFrame;
-}
-
 const move = (power: Power, kind: "Army" | "Fleet", from: string, target: string, targetOwner: Power | null = null): FrameMove =>
   ({ power, kind, from, order: "move", target, to: null, helped: null, succeeded: true, destroyed: false, targetOwner }) as FrameMove;
 
