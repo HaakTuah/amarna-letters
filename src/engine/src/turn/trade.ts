@@ -18,6 +18,7 @@ import { caravanAt, caravanGone, newCaravan, setOut, type Caravan } from "../mod
 import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
 import { newMarketSeen, type MarketSeen } from "../model/views.ts";
 import { newWord, noteMarket, noteTolls, type Word } from "../model/word.ts";
+import { newJourney } from "../model/records.ts";
 import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
 import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
@@ -47,6 +48,9 @@ export type TollBook = Dict<Power, { grain: number; gold: number; found: number 
  */
 export type Sneak = boolean | "closed";
 
+/** How loot goes home (TurnEngine.lootHome): as a load on the road, by courier with the word, or at once. */
+export type LootWay = "road" | "word" | "here";
+
 /** What happens to a caravan at a border: it passes (perhaps paying), is turned back, or is found smuggling and seized. */
 export type AtBorder = "pass" | "turned" | "seized";
 
@@ -66,7 +70,8 @@ declare module "./core.ts" {
     setToll(p: Power, o: TollOrder): void;
     sack(province: string, taker: Power, stormed?: boolean): void;
     /** `to`: where the load goes, if not the taker's court (gold sent to a fallen capital he holds, item 13+). */
-    lootHome(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string, to?: string): boolean;
+    lootHome(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string, to?: string): LootWay;
+    lootByWord(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string): void;
     byLeave(u: Unit): boolean;
     tellTolls(book: TollBook): void;
     marketNow(province: string): MarketSeen;
@@ -335,13 +340,13 @@ P.caravanHome = function (c) {
     c.gold = 0;
   }
   const load = c.gold > 0 || c.archive.length > 0;
-  const onRoad = far && load && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf);
+  const onRoad = far && load && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf) === "road";
   if (onRoad) {
     S.caravans[S.caravans.length - 1].word = c.word;
     c.word = newWord();
     if (c.gold > 0) parts.push(`sent ${formatMoney(c.gold)} on to the treasury`);
   } else if (far && load) {
-    // No road on to the court: a captured archive reaches it at once, as loot does (TurnEngine.lootHome); its word as word does.
+    // No road on to the court: a captured archive goes on by courier with the word, as loot does (TurnEngine.lootHome).
   } else if (far) {
     // Kept with the caravan's last report among those gone (GameState.caravansGone) until its word comes.
   } else {
@@ -516,7 +521,7 @@ P.sack = function (province, taker, stormed = true) {
     if (part > 0) this.armyEntry(u, this.armyHand(u), UnrestData.plunder);
   });
   const name = this.map.get(province).name;
-  const home = this.lootHome(taker, province, king, [], "");
+  const home = this.lootHome(taker, province, king, [], "") !== "here";
   notify(
     S,
     taker,
@@ -530,23 +535,46 @@ P.sack = function (province, taker, stormed = true) {
 };
 
 /**
- * Loot going home to the taker's capital as a load (item 10+b): gold, a captured archive, or both. Where the taker holds
- * his capital and a road leads there, it travels like a caravan and can be waylaid; otherwise it reaches him at once
- * (true: it is on the road).
+ * Loot going home to the taker's capital (item 10+b): gold, a captured archive, or both. Where the taker holds his capital
+ * and a road leads there, it travels as a load like a caravan and can be waylaid ("road"). With no road for a load, his
+ * men send it by courier, and it reaches him with word from where it was taken ("word", #740), or at once where that word
+ * comes within the season ("here").
  */
 P.lootHome = function (taker, from, gold, archive, archiveOf, to) {
   const S = this.s;
   const cap = to ?? this.courtAt(taker);
   const route = from === cap || S.owner.getOrDefault(cap, null) !== taker ? null : this.tradeRoute(taker, from, cap, false);
   if (route === null) {
-    S.treasuries.get(taker).gold += gold;
-    S.treasuries.get(taker).income += gold;
-    this.archiveArrives(taker, archive, archiveOf, this.map.get(from).name);
-    return false;
+    const near = this.heardAt(taker, from) <= S.turn + S.deliveryOffset;
+    this.lootByWord(taker, from, gold, archive, archiveOf);
+    return near ? "here" : "word";
   }
   setOut(S, newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf, bill: 0 }));
-  return true;
+  return "road";
 };
+
+/**
+ * Loot sent home by courier, where no road takes it as a load (#726, #740): its gold into the treasury and the tablets
+ * into the archive when word from where it was taken comes (`heardAt`), never sooner; at once where that is this season.
+ */
+P.lootByWord = function (taker, from, gold, archive, archiveOf) {
+  const S = this.s;
+  const place = this.map.get(from).name;
+  const at = this.heardAt(taker, from);
+  if (at <= S.turn + S.deliveryOffset) {
+    lootArrives(this, taker, gold, archive, archiveOf, place);
+    return;
+  }
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: taker, to: taker, news: "Loot", text: [gold, archiveOf, place, ...archive].join("|"), seen: [from], reached: [S.turn] }));
+};
+
+/** Loot reaching its king's court by courier, or at once (TurnEngine.lootByWord). */
+export function lootArrives(e: TurnEngine, taker: Power, gold: number, archive: readonly string[], archiveOf: string, place: string): void {
+  const t = e.s.treasuries.get(taker);
+  t.gold += gold;
+  t.income += gold;
+  e.archiveArrives(taker, archive, archiveOf, place);
+}
 
 /** Does a unit stand by leave: in its king's own land, or land whose holder granted it passage or basing there? */
 P.byLeave = function (u) {

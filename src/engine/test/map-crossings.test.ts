@@ -226,12 +226,31 @@ describe("MapCrossingsTests", () => {
       Assert.false(held(s));
       Assert.doesNotContain(s.caravans, (c) => c.power === "Babylonia" && c.archive.includes("t726"));
       const word = e.heardAt("Babylonia", "nesa");
-      const courier = single(s.journeys, (j) => j.to === "Babylonia" && j.news === "Archive");
+      const courier = single(s.journeys, (j) => j.to === "Babylonia" && j.news === "Loot");
       Assert.equal(word, courier.arriveTurn);
       Assert.true(word > s.turn);
       // When it arrives, the tablet is the court's.
       e.wordArrives(courier);
       Assert.true(held(s));
     }
+  });
+
+  test("Loot with no road home reaches its king by courier with the word, not at once (#740)", () => {
+    // Babylonia's men in Nesa, a season of word from Babylon, send home a share of a sack with no road for a load.
+    const s = smallWorld(game(1), "Hatti", "Babylonia");
+    const e = new TurnEngine(s);
+    e.tradeRoute = () => null;
+    const before = s.treasuries.get("Babylonia").gold;
+    const word = e.heardAt("Babylonia", "nesa");
+    Assert.true(word > s.turn);
+    Assert.equal("word", e.lootHome("Babylonia", "nesa", 50, [], ""));
+    Assert.equal(before, s.treasuries.get("Babylonia").gold);
+    const courier = single(s.journeys, (j) => j.to === "Babylonia" && j.news === "Loot");
+    Assert.equal(word, courier.arriveTurn);
+    e.wordArrives(courier);
+    Assert.equal(before + 50, s.treasuries.get("Babylonia").gold);
+    // From land within the season's word of the court, it reaches the treasury at once.
+    Assert.equal("here", e.lootHome("Babylonia", "sippar", 20, [], ""));
+    Assert.equal(before + 70, s.treasuries.get("Babylonia").gold);
   });
 });

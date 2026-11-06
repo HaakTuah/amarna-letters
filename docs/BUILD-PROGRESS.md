@@ -160,6 +160,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**An archive a far force seizes on the road, sent home as a load (bug #726)**~~ (done, #742): it goes to the taker's
   capital by the road (`lootHome`), as a taken capital's archive does. Save version 64. Filed: #740 (loot with no road
   home arrives at once). Report: `docs/rounds/2026-11-06-far-archive-home.md`.
+- ~~**Loot with no road home, sent by courier (bug #740)**~~ (done, #PR): where no road takes a load home, `lootHome`
+  sends gold and tablets by courier, to reach the court with word from where they were taken. Save version 66. Report:
+  `docs/rounds/2026-11-06-loot-by-courier.md`.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
