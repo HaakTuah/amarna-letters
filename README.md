@@ -464,12 +464,15 @@ fall, each in its turn, and a short line closes the season with what changed. No
 roads as a column as long as its men are many, with dust behind it, a fleet heels under sail with its wake, envoys and
 gold go on with their caravans; a battle flares with the winner's seal, a siege's tents close round its city, and the
 storms, avalanches, floods, droughts and earthquakes play where they strike. Only what your court knows plays: an army
-appears where it was seen, and a disaster far away is news in that line, not a scene. On a computer, Space pauses and
-unpauses, 1 to 4 set the pace (seasons are turns, so the pace only sets how long each is watched: Slow, about 15
+appears where it was seen, and a disaster far away is news in that line, not a scene. On a computer every action has a key,
+after Crusader Kings III's own: Space pauses and unpauses, even in the middle of a season, 1 to 4 set the pace (seasons are turns, so the pace only sets how long each is watched: Slow, about 15
 seconds a season; Normal, about 6; Fast, about a second of highlights, though a capital falling still takes a moment;
 Simulate draws nothing and computes the game as fast as it can, showing only the count of seasons, then opens it at its
 last season to watch any part from the timeline), and + and − step between them; your own season always waits for your
-orders, and no key acts while you type. Each button's tooltip names its key.
+orders, and Enter seals them. Escape closes the window in front or opens the menu, F1 to F10 open the panels (F1 your
+seat, F2 the provinces, F5 the people, F9 the rules, and so on), E and R switch between the realms and the mood of the
+land, and W, A, S, D or the arrows move the map. No key acts while you type. Each button's tooltip names its key, and
+the Keys page lists them all and lets you change any of them; your keys are kept in your browser.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)

@@ -1,6 +1,6 @@
 /**
  * Keys on a computer (item 17+++a, "keys for everything"): one table of actions and their keys, after Crusader Kings III's
- * own and Europa Universalis IV's where it has no like, and one listener that runs them. A new key is a row here and a
+ * own, and one listener that runs them. A new key is a row here and a
  * handler where its action lives; each key can be changed on the Keys page (pages/Keys.tsx) and is remembered in this
  * browser. No key acts while something is being typed (a letter, a name, a number), nor with Ctrl, Alt or the Command
  * key held, which belong to the browser. The phone has no keys and is unchanged.
@@ -30,16 +30,12 @@ export interface Binding {
 export type KeyGroup = "Time" | "Turns and windows" | "The map";
 
 const key = (codes: readonly string[], label: string, chars?: readonly string[]): Binding => ({ codes, label, ...(chars !== undefined ? { chars } : {}) });
-/** No key by default: there is no like in Crusader Kings III or Europa Universalis IV; one can be given on the Keys page. */
+/** No key by default (no like in Crusader Kings III): one can be given on the Keys page. */
 const none: Binding = { codes: [], label: "" };
 
 /**
- * Each action's key by default, what it does in the Keys page's words, and its group. The keys are Crusader Kings III's:
- * Space, the pace keys, Escape, its F1 to F10 windows by meaning (F1 the ruler: here the seat; F2 the realm: the
- * provinces; F3 the military: the standings; F5 the courtiers: the people; F6 intrigue: the inbox; F7 factions: the
- * threads; F8 decisions: the events; F9 the encyclopedia: the rules), E for its realms map and the next of its map-mode
- * row for the mood; W, A, S, D and the arrows move the map; Enter ends one's season, as in Civilization, since seasons
- * are turns. F4 (the council) waits for the council's window.
+ * Each action's key by default, what it does in the Keys page's words, and its group: Crusader Kings III's keys by meaning,
+ * why each is where it is in `docs/design/54-keys.md`.
  */
 export const KeyDefaults: Record<KeyAction, { key: Binding; what: string; group: KeyGroup }> = {
   pause: { key: key(["Space"], "Space"), what: "Pause or play, even while a season plays out", group: "Time" },
