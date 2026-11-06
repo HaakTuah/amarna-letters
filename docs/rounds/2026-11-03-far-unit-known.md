@@ -64,8 +64,11 @@ out of `views.ts` (47 KB).
 ## Benchmarks
 
 The regression check (`scripts/sim.sh --games 20 --seed 1 --verify-replay`), at the code after review round 2: 20 of
-20 games replay exactly. Winners: Babylonia 11, Egypt 7, Hatti 1, Seha 1 (`develop` at the same seeds: below). The
-suite: 1635 tests pass.
+20 games replay exactly. Winners: Babylonia 11, Egypt 7, Hatti 1, Seha 1. `develop` at the same seeds (64b23865, run in
+a worktree with its own packages): 20 of 20 replay; Babylonia 9, Egypt 4, Hatti 4, Lukka 1, Seha 1, Suteans 1. Eleven
+of the twenty winners differ, as the script kings now read their far troops as reported (raised, gone, and their
+orders kept), which changes their play; no power is shut out. A regression check, not tuning. The suite: 1635 tests
+pass.
 
 ## Review, round 1
 
@@ -200,3 +203,8 @@ Round 2: 8 of 10, one blocking, two not:
   its king sees), given and refused, failing before the fix.
 - B. *(P3)* Point 8's answer said "fixed" before the numbers were in. Fixed: the benchmarks below.
 - C. *(P3)* An export nothing imports. Fixed.
+
+Round 3: 7 of 10. C fixed; B part-fixed (the `develop` numbers were promised, not given: now given, above); A still open
+in one case: the copy went after the live units, so troops that took its province hid it from the check, and the
+order was refused where it would be given. Fixed: the copies come first (`resolveSeason`); the test adds the case
+(the lost army's province taken), failing with the old order.
