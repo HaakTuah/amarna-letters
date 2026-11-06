@@ -40,18 +40,16 @@
 @keyframes heel { from { transform: rotate(-9deg); } to { transform: rotate(-2deg); } }
 
 /* Part E: a battle flares, the winner's seal on its clash; the world's hazards play where they strike (map/moments.ts); a
-   siege's tents close round its city in the sieges' beat. Each plays in its beat (--d, --ms). */
-.map .scene .flare { fill: none; stroke: var(--danger); stroke-width: 2.4; transform-box: fill-box; transform-origin: center; animation: flare calc(var(--ms) / 2) ease-out var(--d) 2 backwards; }
-@keyframes flare { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.9); opacity: 0; } }
+   siege's tents close round its city in the sieges' beat. All drawn still, fading with their scene (--d, --ms): a shape
+   animated by transform repaints every frame, which cost a slow phone a third more long frames. */
+.map .scene .flare { fill: var(--danger); fill-opacity: .85; stroke: var(--paper); stroke-width: .6; }
 .map .scene .weather { pointer-events: none; }
-.map .scene .rain path { stroke: #5b6f86; stroke-width: 1.3; stroke-linecap: round; stroke-opacity: .8; animation: rain .45s linear var(--d) infinite backwards; }
-@keyframes rain { from { transform: translate(2px, -6px); } to { transform: translate(-2px, 6px); } }
-.map .scene .slide circle { fill: #f2f0ea; stroke: #8a8378; stroke-width: .6; animation: slide calc(var(--ms) / 2) ease-in var(--d) 2 backwards; }
-@keyframes slide { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(18px, 20px); opacity: 0; } }
-.map .scene .swell ellipse { fill: none; stroke: #3f7fa8; stroke-width: 1.6; transform-box: fill-box; transform-origin: center; animation: swell calc(var(--ms) / 2) ease-out var(--d) 2 backwards; }
-@keyframes swell { from { transform: scale(.5); opacity: .9; } to { transform: scale(1.3); opacity: 0; } }
-.map .scene.siege .closing { animation: closing var(--ms) cubic-bezier(.3, .7, .25, 1) var(--d) both; }
-.map .scene.siege .closing use { fill: var(--bitumen); }
-@keyframes closing { from { transform: scale(1.6); } to { transform: scale(1); } }
-.map .scene.quake .scene-figs { animation: quake .12s linear var(--d) 6 backwards; }
-@keyframes quake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+.map .scene .rain path { stroke: #5b6f86; stroke-width: 1.3; stroke-linecap: round; stroke-opacity: .8; }
+.map .scene .slide circle { fill: #f2f0ea; stroke: #8a8378; stroke-width: .6; }
+.map .scene .swell ellipse { fill: none; stroke: #3f7fa8; stroke-width: 1.6; stroke-opacity: .8; }
+.map .scene.siege use { fill: var(--bitumen); }
+.map .scene.siege .ring { animation-duration: var(--ms); animation-delay: var(--d); animation-fill-mode: both; animation-timing-function: ease-in-out; }
+.map .scene.siege .wide { animation-name: ring-out; }
+.map .scene.siege .tight { animation-name: ring-in; }
+@keyframes ring-out { 0% { opacity: 1; } 60%, 100% { opacity: 0; } }
+@keyframes ring-in { 0%, 40% { opacity: 0; } 100% { opacity: 1; } }

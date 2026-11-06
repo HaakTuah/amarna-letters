@@ -186,8 +186,8 @@ visibly: storms at sea, snow in the passes, rivers in flood, an avalanche taking
 
 ### First guesses (presentation only)
 
-A figure for each seventh of the men's square root, at most 14; the trail's sizes; each effect (flare, weather) half its
-beat, played twice; the tents closing from 1.6 times their ring over the sieges' beat.
+A figure for each seventh of the men's square root, at most 14; the trail's sizes; the tents' rings (44 and 28), the wide
+giving way to the tight over the sieges' beat.
 
 ### Frame times
 

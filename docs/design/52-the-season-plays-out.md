@@ -180,11 +180,13 @@ what it does at the place, under its medallion:
 | men lost to winter on land | avalanche | snow and stone tumbling down |
 | a river in flood | flood | the water swelling |
 | a drought | the sun | |
-| an earthquake | the ground cracked | the medallion shaking |
+| an earthquake | the ground cracked | |
 | plague, a caravan robbed | fire, as before | |
 
-First guesses (presentation only): a figure for each seventh of the men's square root, at most 14; the trail's sizes; each effect's length a half of its beat,
-played twice.
+First guesses (presentation only): a figure for each seventh of the men's square root, at most 14; the trail's sizes; the
+tents' rings (44 and 28) and the wide giving way to the tight over the sieges' beat. The flare and the weather are drawn
+still and fade with their medallion: shapes animated by `transform` repaint every frame, and on the phone profile at
+Normal they cost about a third more long frames (the report's frame times).
 
 ## Smooth on a phone (part G)
 

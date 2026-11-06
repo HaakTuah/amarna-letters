@@ -156,19 +156,25 @@ const Figures: Readonly<Record<Figure, string>> = {
 
 /**
  * What the world does where a hazard strikes, under its medallion (part E: "the world acts on them visibly"): rain driving
- * over a storm, snow and stone tumbling down a pass, the water swelling over a flood. Played by the stylesheet in the beat.
+ * over a storm, snow and stone tumbling down a pass, the water swelling over a flood. Drawn still, fading in and out with
+ * the medallion (an animated shape repaints every frame, which cost a slow phone a third more long frames).
  */
 const Weather: Partial<Readonly<Record<Figure, string>>> = {
   storm: `<g class="weather rain">${[-16, -8, 0, 8, 16].map((x, i) => `<path d="M${x + 4},${-14 + (i % 2) * 5}l-5,12"/>`).join("")}</g>`,
-  avalanche: `<g class="weather slide">${[0, 1, 2, 3].map((i) => `<circle cx="${-12 + i * 3}" cy="${-14 + i * 2}" r="${2.4 - i * 0.3}" style="animation-delay:calc(var(--d) + ${i * 90}ms)"/>`).join("")}</g>`,
-  flood: `<g class="weather swell"><ellipse rx="16" ry="7"/><ellipse rx="16" ry="7" style="animation-delay:calc(var(--d) + 250ms)"/></g>`,
+  avalanche: `<g class="weather slide">${[0, 1, 2, 3].map((i) => `<circle cx="${-12 + i * 5}" cy="${-12 + i * 5}" r="${2.6 - i * 0.3}"/>`).join("")}</g>`,
+  flood: `<g class="weather swell"><ellipse rx="12" ry="5"/><ellipse rx="18" ry="8"/></g>`,
 };
 
-/** The tents of a siege closing round a city in the sieges' beat (part E: "sieges tighten"), a ring of them drawn inward. */
-const Tents = [0, 1, 2, 3, 4, 5].map((k) => {
-  const a = (k * Math.PI) / 3 + Math.PI / 6;
-  return `<use href="#fig-tent" x="${F(28 * Math.cos(a) - 5)}" y="${F(28 * Math.sin(a) - 5)}" width="10" height="10"/>`;
-}).join("");
+/** A siege's tents round its city at a ring's radius (sym units). */
+const tents = (r: number): string =>
+  [0, 1, 2, 3, 4, 5]
+    .map((k) => {
+      const a = (k * Math.PI) / 3 + Math.PI / 6;
+      return `<use href="#fig-tent" x="${F(r * Math.cos(a) - 5)}" y="${F(r * Math.sin(a) - 5)}" width="10" height="10"/>`;
+    })
+    .join("");
+/** The tents closing in (part E: "sieges tighten"): a wide ring giving way to a tight one, by their opacity alone. */
+const Closing = `<g class="ring wide">${tents(44)}</g><g class="ring tight">${tents(28)}</g>`;
 
 /**
  * A moment as the stylesheet plays it once from `at` for `ms` (playback.css), which the renderer then takes away: a great
@@ -178,10 +184,10 @@ export function momentMarkup(m: MapMoment, at: number, ms: number): string {
   if (m.at === null) return "";
   const time = `animation-delay:${Math.round(at)}ms;animation-duration:${Math.round(ms)}ms;--d:${Math.round(at)}ms;--ms:${Math.round(ms)}ms`;
   const place = `transform="translate(${F(m.at.x)},${F(m.at.y)})" style="${time}"`;
-  if (m.kind === "routine") return m.figure === "siege" ? `<g class="scene siege" ${place}><g class="sym"><g class="closing">${Tents}</g></g></g>` : "";
+  if (m.kind === "routine") return m.figure === "siege" ? `<g class="scene siege" ${place}><g class="sym">${Closing}</g></g>` : "";
   if (m.kind !== "great") return "";
   const side = m.side === undefined ? "" : `<g transform="translate(11,-11)"><circle class="tok-badge" r="5.6"/><use href="#em-${glyphId(m.side)}" class="tok-em e-${glyphId(m.side)}" x="-4.3" y="-4.3" width="8.6" height="8.6"/></g>`;
-  const flare = m.figure === "clash" ? `<circle class="flare" r="15"/>` : "";
+  const flare = m.figure === "clash" ? `<use href="#g-burst" class="flare" x="-25" y="-25" width="50" height="50"/>` : "";
   return (
     `<g class="scene ${m.phase === "disaster" ? "disaster " : ""}${m.figure}" ${place}><title>${esc(m.title)}</title>` +
     `<g class="sym">${Weather[m.figure] ?? ""}<g transform="translate(0,-34)">${flare}<circle class="scene-bg" r="15"/><g class="scene-figs">${Figures[m.figure]}</g>${side}</g></g></g>`
