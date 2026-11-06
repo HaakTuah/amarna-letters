@@ -38,6 +38,7 @@ import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
+import { authorKind, type Thread } from "@amarna/game";
 
 /** The keys handled with the page's tabs and cards (`windowKeys`), set after the page's early returns. */
 const WindowActions = [
@@ -45,7 +46,6 @@ const WindowActions = [
   "winSeat", "winProvinces", "winStandings", "winPeople", "winInbox", "winThreads", "winEvents", "winRules", "winChronicles",
   "winMind", "winTrail", "winFollow", "winLegends",
 ] as const;
-import { authorKind, type Thread } from "@amarna/game";
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
 const PhaseWords: Record<string, string> = {
