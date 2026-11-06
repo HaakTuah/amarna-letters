@@ -99,6 +99,8 @@ describe("BordersTests", () => {
     // The runaways among them shrank in proportion, and the gold the loose carried came into the purse with them.
     Assert.true(s.runaways.get(to).get(a) < 3000);
     Assert.true(s.markets.get(to).purse >= purse);
+    // The notice says it as a list, so a season's settlements share one line in the view.
+    Assert.contains(inboxOf(s, b), (i) => i.title === "People" && /^You settled loose men: (about )?[\d,]+ in [^ ]/.test(i.body));
   });
 
   test("Runaways sent back walk to their king's nearest land and settle there", () => {

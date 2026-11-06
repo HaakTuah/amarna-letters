@@ -21,13 +21,13 @@ describe("SiegeTextTests", () => {
     );
     let babylon = situation(Views.for(s, "Babylonia"));
     Assert.contains(
-      'LANDS (see WHAT YOU SEE and NEWS AND TRAVEL; a province you do not see is listed under its holder as last you heard, "heard in turn N"):',
+      'LANDS (see WHAT YOU SEE and NEWS AND TRAVEL):',
       babylon,
     );
     Assert.contains("babylon (walls 3) [Babylonia army]", babylon);
     Assert.contains("suhu (walls 2) [Babylonia army]", babylon);
     Assert.contains(
-      "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (held by no one, walls 2): worn down 1 of 2, since turn 1.",
+      "SIEGES (see WALLS AND SIEGES): your army besieges suhu (held by no one, walls 2): worn down 1 of 6 steps to a breach, since turn 1.",
       babylon,
     );
     // Assyria took Dur-Kurigalzu from Babylon by force: since item 17++ how firmly it obeys is nobody's number to read.
@@ -36,7 +36,7 @@ describe("SiegeTextTests", () => {
     Assert.doesNotContain("taken by force", babylon);
     Assert.doesNotContain("taken by force", situation(Views.for(s, "Egypt")));
     // Mitanni, next to Suhu, sees the siege too.
-    Assert.contains("Babylonia's army besieges suhu (held by no one, walls 2): worn down 1 of 2", situation(Views.for(s, "Mitanni")));
+    Assert.contains("Babylonia's army besieges suhu (held by no one, walls 2): worn down 1 of 6 steps to a breach", situation(Views.for(s, "Mitanni")));
   });
 
   test.each([

@@ -125,7 +125,8 @@ on sealed tablets comes with item 9.
   a change of the map heard. Script kings read it as any word of holders (`bots/tidings.ts`; `--no-tidings-play`,
   `--tidings-play-half` leave it unread, keeping the holder known before, to measure it).
 - **Structured**: each holder comes with its season and source ("seen", "word from abroad", or a traveller's name), shown
-  in the rulebook's LANDS ("heard in turn N, from Hani") and on the web map. Sharing reports with other courts ("Attach a
+  in the seat view's LANDS ("in sight", "heard in turn N, from Hani", or "as it stood at the start" where no word has
+  come since) and on the web map. Sharing reports with other courts ("Attach a
   report") is not built: it needs the structured press of item 8 and the carriers of item 11b.
 - **The web map** colours a seat's land by the holders it knows (`SeasonFrame.knownOwner`, `MapScene.owner`), and its fog
   shows the age of that news on land ("as of" a season), and of its last sight at sea.
