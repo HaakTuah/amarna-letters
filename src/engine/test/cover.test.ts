@@ -339,6 +339,14 @@ describe("CoverTests", () => {
     Assert.equal("Captured", char(caught, id).status);
   });
 
+  test("A caught province watcher recalled by its unknowing master reads as a free one does (bug #734)", () => {
+    let [caught, free, id] = caughtSpy("Egypt", "thebes");
+    new TurnEngine(caught).resolve(orders("Babylonia", recall(id)));
+    new TurnEngine(free).resolve(orders("Babylonia", recall(id)));
+    Assert.equal(seenOf(free, "Babylonia", id), seenOf(caught, "Babylonia", id));
+    Assert.equal("Captured", char(caught, id).status);
+  });
+
   test("A turned province watcher goes back to its province", () => {
     let s = smallWorld(newGame(4), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");

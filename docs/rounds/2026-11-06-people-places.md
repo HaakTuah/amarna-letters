@@ -26,6 +26,12 @@ Every file changed is under the 50 KB mark (`rules/views.ts` the largest).
 The same 10 script games (seed 1) before and after print the same summary line for line: the script kings play exactly
 as before. `scripts/test.sh`: 1633 passed, 1 skipped.
 
+## Review (Codex, round 1)
+
+One finding, fixed: a spy caught out of sight and then recalled by his unknowing court had his place written by the
+recall's own path (`recallCovered`) with the province's id, unlike a free spy's; it now names it, and keeps the place
+field, as the free one's line does. A test compares the two.
+
 ## Readings taken
 
 - **"In …" dropped where the duty names the place**, rather than the duty's place dropped: the duty says what he does
