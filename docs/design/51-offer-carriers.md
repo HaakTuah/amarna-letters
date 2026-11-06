@@ -39,6 +39,24 @@ caravans as carriers (#543), 64.
   captor, who reads it as a caught spy's report is read ("A letter taken on the road"): the people's own words, quoted
   (`quoteWords`, so the captor's court names nobody in them otherwise), and the claimant never hears it (`offer-read`).
   The letter holds the people's words alone (`offerWords`); the terms of answering it are added only for the claimant.
+- **Held** (#592, `model/held-letters.ts`, `turn/held-letters.ts`): the captor holds what he caught
+  (`GameState.lettersHeld`, `holdLetter`), from the season word of the taking reaches him (`HeldLetter.known`), and is
+  told so after its words (`LetterHeldTerms`). By order `letter` (validated in `rules/validator-letters.ts`, resolved
+  after the answers to provinces) he sends it on (`Send`): to its claimant, an offer like any other, whose notice names
+  him (`Journey.sentOnBy`, `LetterSent.toClaimant`); or to the land's king, who reads his people's words
+  ("A letter taken on the road", `LetterSent.toHolder`). Or he asks one of them a price (`Sell`, at least 1 shekel): word
+  of the asking reaches that king ("An offer for sale", `askKnown`), who buys it by order `buyLetter` from then, paying
+  from his treasury (`HeldLetter.bought`); the gold goes to the seller by the road (`LetterPrice` journey), and when it
+  comes the seller sends the letter, as sent on. An asking binds: the letter is neither repriced nor sent elsewhere,
+  so nothing that befalls it is told by its disappearing. Kept, it stays held after the people's leaning ends (nobody
+  learns of the end through it); sent on then, it finds no offer standing, and it is dated as written, so it never stands
+  for a later declaration of the same people (`HeldLetter.written`, `Declaration.since`, checked in `offerArrives`).
+  Whether its claimant has fallen is checked as the holder has heard (`heardFallen`). Each letter is its own, named by
+  the turn its people wrote it (`HeldLetter.written`, shown in the view; `letter` and `buyLetter` take it as `written`,
+  the newest when none is named; `letterHeld`, `letterOffered`): a fresh one stands beside an older, which the court
+  keeps knowing until word of the fresh one comes. The seat sees `SeatView.lettersHeld` and
+  `lettersOffered` (OFFERS YOU HOLD, OFFERS FOR SALE TO YOU; on the page, "Offers taken on the road"), and a sleeping
+  seat wakes for either. Save version 67.
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names
   who brought it (`offer-arrived`).
 - **Never carried**: when the declaration ends (its people no longer lean his way), its letter is dropped, waiting or on
@@ -71,3 +89,8 @@ caravans as carriers (#543), 64.
   province is eased as restless for four seasons (`Brain.offersRead`), a rival's warms him to its claimant. The same flags
   measure it.
 - Answering an offer is part C's (`bots/declarations.ts`), from the season it arrives.
+- A caught offer (#592, `bots/held-letters.ts`): sent on for nothing to a claimant the captor counts a friend
+  (`Brain.isFriend`), else offered for `LetterPrice` (60, first guess) to the land's king, or to the claimant where the
+  land is the captor's own. Offered one, a king buys it if he has `LetterSpare` (3) times its price. The land's king who
+  reads it, bought or sent, heeds it as a caught offer (`offersCaught`); a claimant sent one warms to the sender
+  (`offersSentUs`). Under the same talk flags.

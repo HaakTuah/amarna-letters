@@ -19,6 +19,7 @@ import { isAlive, logEvent, newId } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { wordHomeAt } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
+import { LetterHeldTerms } from "./held-letters.ts";
 
 /** First guesses, for item 18: what a caravan's master asks a province's people to carry their offer, a season of its road. */
 export const CaravanOfferData = { feePerSeason: 10 } as const;
@@ -138,8 +139,9 @@ P.caravanOffersTaken = function (c, taker, where) {
       S.journeys.push({ ...j, waitAt: null, arriveTurn: Math.max(S.turn, wordHomeAt(S, this.map, this.courtAt(taker), where, S.turn)) });
       continue;
     }
-    // By word from where it was taken, as any news from there (`tell`).
-    this.tell(taker, where, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))}`);
+    // By word from where it was taken, as any news from there (`tell`); he holds it from then (#592).
+    this.tell(taker, where, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))} ${LetterHeldTerms}`);
+    this.holdLetter(taker, j, this.heardAt(taker, where));
     // God's view only: the captor's court learns it by the notice above, when word from there comes.
     logEvent(S, "letter", `${taker} read the offer of ${from}'s people to ${j.to}, taken with ${noun(c)}.`, [], "offer-read");
   }
