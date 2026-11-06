@@ -97,6 +97,11 @@ export interface Journey {
    */
   border: string | null;
   fee: number;
+  /**
+   * #543: a province's offer carried by a caravan (its id) going from there to its claimant's land, as a traveller going
+   * that way would carry it; it arrives by his couriers from where the caravan ends its road there. Null otherwise.
+   */
+  caravan: string | null;
 }
 
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
@@ -146,6 +151,7 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     carrier: null,
     border: null,
     fee: 0,
+    caravan: null,
     ...init,
   };
 }
@@ -178,6 +184,7 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   carrier: opt(S),
   border: opt(S),
   fee: I,
+  caravan: opt(S),
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */

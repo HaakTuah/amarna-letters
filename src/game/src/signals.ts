@@ -52,6 +52,9 @@ export const SignalKinds: readonly string[] = [
   // Item 17++, part D: a province's offer sent, talk of it, its carriers (a spy, a man of the king's, paid or hired from the
   // people's purse), known to its carrier as news to sell, taken from him by robbers, and arrived.
   "offer-sent", "offer-talk", "offer-spy", "offer-own", "offer-paid", "offer-hired", "offer-news", "offer-robbed", "offer-read", "offer-arrived",
+  // #543: an offer taken by a caravan (the claimant's own, or another's paid), brought into his land or ending elsewhere,
+  // and talk of a leaning carried by traders.
+  "offer-caravan", "offer-caravan-paid", "offer-caravan-brought", "offer-caravan-lost", "offer-talk-traders",
   // Item 17++, part C: a governor given a province beside his own, governed from his seat.
   "govern-region", "cession-unkept",
   // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.

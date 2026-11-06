@@ -56,7 +56,7 @@ function courtAt(engine: TurnEngine, province: string): Power | null {
 P.carryLetters = function () {
   const S = this.s;
   const waiting = sortBy(
-    S.journeys.filter((j) => j.waitAt !== null && j.carrier === null),
+    S.journeys.filter((j) => j.waitAt !== null && j.carrier === null && j.caravan === null),
     [(j: Journey) => idNumber(j.id), cmpNum],
   );
   for (const letter of waiting) {
