@@ -90,7 +90,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
   locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
   `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
-  `--noUnusedLocals` again on the files open PRs held (one known: `renew` in `bots/statecraft-court.ts`). Looked at and
+  `--noUnusedLocals` again (6 November 2026: `realm.ts`, `validator-armies.ts` and `tidings.test.ts` cleared, #748)
+  on the files open PRs still held then: `turn/counts.ts` and `web/src/map/life.ts` (#744), and `turn/couriers.ts`,
+  `turn/economy.ts`, `turn/resolve.ts` and `turn/unrest.ts` (#612). Looked at and
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
   `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
   (the start screen; its saved-games card is 2.5 KB).

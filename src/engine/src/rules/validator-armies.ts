@@ -13,7 +13,7 @@ import { courtOf, wordHomeAt } from "./court.ts";
 
 /** Why the order is refused, null if it stands, or undefined if it is not one of these. */
 export function checkArmyOrder(v: Checking, order: Order): string | null | undefined {
-  const { S, Map, power, ceded, fortified, sallied, raisedIn, Sight, spend, ownUnit } = v;
+  const { S, Map, power, ceded, fortified, sallied, raisedIn, Sight, ownUnit } = v;
   switch (order.type) {
     // An order the reply named but left incomplete: refused with the reason, rather than dropped unseen.
     case "unreadable":
