@@ -78,7 +78,7 @@ describe("WorksTests", () => {
     e.worksSeason();
     Assert.equal(0, wallsOf(s, "thebes"));
     Assert.equal(1, planOf(s, "Walls", "thebes")!.progress);
-    Assert.contains("the walls of Waset: 1 of 2 seasons done towards level 1", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("The walls of Waset: 1 of 2 seasons' work done towards level 1", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     e.worksSeason();
     Assert.equal(1, wallsOf(s, "thebes"));
     Assert.contains(s.events, (x) => x.signal === "built" && x.text === "Egypt raised the walls of Waset to level 1.");
@@ -107,7 +107,7 @@ describe("WorksTests", () => {
     Assert.equal(others + come, s.corvee.get("thebes"));
     Assert.equal(0, planOf(s, "Walls", "thebes")!.progress);
     Assert.equal(come, planOf(s, "Walls", "thebes")!.done);
-    Assert.contains("went at that pace", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("and the work went slower", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     const half = planOf(s, "Walls", "thebes")!.done;
     s.corvee.clear();
     e.worksSeason();
@@ -158,7 +158,7 @@ describe("WorksTests", () => {
     Assert.equal(1, levelOf(s, "Roads", "thebes"));
     for (let i = 1; i < 6; i++) e.worksSeason();
     Assert.equal(0, levelOf(s, "Roads", "thebes"));
-    Assert.contains("the roads of Waset, unkept, fell to level 0", first(inboxOf(s, "Egypt"), (i) => i.title === "Works" && i.body.includes("roads of Waset, unkept, fell to")).body);
+    Assert.contains("The roads of Waset, unkept, fell to level 0", first(inboxOf(s, "Egypt"), (i) => i.title === "Works" && i.body.includes("roads of Waset, unkept, fell to")).body);
   });
 
   test("War stops a project, and a province that changes hands takes what stands with it, unkept until its new holder orders", () => {
@@ -168,7 +168,7 @@ describe("WorksTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "thebes" }));
     e.worksSeason();
     Assert.equal(0, planOf(s, "Roads", "thebes")!.progress);
-    Assert.contains("no work was done on the roads of Waset: war stops the work", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("War halted the work on the roads and watch of Waset", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     e.setOwner("thebes", "Hatti");
     Assert.equal(null, planOf(s, "Roads", "thebes"));
     Assert.equal(1, levelOf(s, "Roads", "thebes"));

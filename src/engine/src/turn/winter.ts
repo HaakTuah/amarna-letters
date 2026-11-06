@@ -123,14 +123,14 @@ P.loseToWinter = function (crossings, sightBefore) {
       WinterLossTitle,
       whole
         ? `Your ${what} from ${Map.get(x.from).name} was lost while ${where}, to ${why}.`
-        : `Your ${what} from ${Map.get(x.from).name} lost ${gone} men to ${why} while ${where}${supplied ? ", fewer for the food it carried" : ", more for want of food carried"}; ${u.men} are left.`,
+        : `Your ${what} from ${Map.get(x.from).name} lost ${gone} ${gone === 1 ? "man" : "men"} to ${why} while ${where}; ${u.men} are left.${supplied ? " The food it carried kept the losses down." : " It carried too little food, and lost the more for it."}`,
     );
     logEvent(
       S,
       "winter",
       whole
         ? `${u.power}'s ${unitLabel({ ...u, province: x.from })} was lost ${where}, to ${why}.`
-        : `${u.power}'s ${unitLabel({ ...u, province: x.from })} lost ${gone} men to ${why}, ${where}.`,
+        : `${u.power}'s ${unitLabel({ ...u, province: x.from })} lost ${gone} ${gone === 1 ? "man" : "men"} to ${why}, ${where}.`,
       distinct([...AllPowers.filter((p) => sightBefore.get(p)?.has(x.from) || sightBefore.get(p)?.has(x.to)), u.power]),
       "winter-loss",
     );

@@ -6,7 +6,8 @@
  * host's people (if it sneaks through land closed to its master), the lawlessness of the place or nature may stop it.
  * A king may close his roads to a court's travellers ("Passage and access"): his men turn back those who pass openly at
  * his border, and a traveller who knows goes round or sneaks through. Reports, rumours, ransoms and word of the world
- * travel by themselves until item 11b ({@link wordSeasons}), and so does news of who holds distant land (Views.knownHolders);
+ * travel by themselves until item 11b ({@link wordSeasons}); news of who holds distant land (Views.knownHolders) comes by
+ * the couriers' clock (wordHomeAt, bug #616);
  * travellers bring home the news of the land they crossed.
  */
 import { hostileAt, levelOf, policeAt, policeFound, waysOf } from "../model/works.ts";
@@ -17,13 +18,13 @@ import { terrainOf } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
-import { land, type Power, quoteWords } from "../model/power.ts";
+import { land, type Power, quoteWords, whose, powerName } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind, type InboxKind } from "../model/records.ts";
 import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { Views } from "../rules/views.ts";
+import { Views, WordSource } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 
 /**
@@ -238,7 +239,7 @@ P.readAtStation = function (j, c, province) {
   if (holder === null || holder === masterOf(j) || holder === counterpart(j) || d === null || d === undefined || d.letter.trim() === "") return;
   if (levelOf(S, "Stations", province) <= 0 || hostileAt(S, province, holder)) return;
   const name = this.map.get(province).name;
-  this.tell(holder, province, "SpyReport", "Read at a relay station", `At your relay station in ${name}, your men read the letter ${c.name} carries from ${j.from} to ${j.to}: ${quoteWords(d.letter)}`);
+  this.tell(holder, province, "SpyReport", "Read at a relay station", `At your relay station in ${name}, your men read the letter ${c.name} carries from ${powerName(j.from)} to ${powerName(j.to)}: ${quoteWords(d.letter)}`);
   logEvent(S, "station", `${holder}'s station men in ${name} read the letter ${c.name} carried from ${j.from} to ${j.to}.`, [holder], "station-read");
 };
 
@@ -420,11 +421,11 @@ P.stopped = function (j, c, province, stop) {
         j.cargo.gold = 0;
         j.cargo.goldStated = 0;
       }
-      j.turnedBack = `robbed by outlaws in ${name}` + (gold > 0 ? ` of the ${formatMoney(gold)} of gold sent home with ${c.name}` : "");
+      j.turnedBack = `robbed by outlaws in ${name}` + (gold > 0 ? ` of the ${formatMoney(gold)} of gold they carried` : "");
       j.arriveTurn = Math.max(j.arriveTurn, S.turn + 1);
       return;
     }
-    this.turnBack(j, c, j.route[j.leg], `outlaws robbed ${c.name} in ${name}` + (gold > 0 ? ` of the ${formatMoney(gold)} of gold carried` : "") + ", and the errand was given up", 0);
+    this.turnBack(j, c, j.route[j.leg], `outlaws robbed them in ${name}` + (gold > 0 ? ` of the ${formatMoney(gold)} of gold they carried` : "") + ", and the errand was given up", 0);
     return;
   }
   if (j.kind === "Travel") return;
@@ -432,7 +433,7 @@ P.stopped = function (j, c, province, stop) {
   remember(c, S.turn, `I turned back in ${name}: ${what}.`);
   logEvent(S, "travel", `${c.name}, of ${masterOf(j)}, turned back in ${name}: ${what}.`, [], "road-nature");
   this.trail(j.dispatch?.trailId ?? null)?.outcomes.push(`turned back in ${name} by ${what}`);
-  this.turnBack(j, c, j.route[j.leg], `${c.name} turned back in ${name}, stopped by ${what}`, gold);
+  this.turnBack(j, c, j.route[j.leg], `they turned back in ${name}, stopped by ${what}`, gold);
 };
 
 /**
@@ -457,7 +458,7 @@ P.convoyStopped = function (j, c, province, stop) {
             [(u) => idNumber(u.id), cmpNum],
           )[0].power
         : S.owner.getOrDefault(province, null)!;
-    notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${land(giver)} was sending you under guard, was taken from the guards in ${name} by ${taker}'s men.`, c.id);
+    notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, was taken from the guards in ${name} by ${whose(taker)} men.`, c.id);
     if (taker === lord) {
       c.duty = "None";
       this.releaseCaptive(taker, c);
@@ -470,7 +471,7 @@ P.convoyStopped = function (j, c, province, stop) {
     c.duty = "None";
     this.meet(c, taker);
     remember(c, S.turn, `${land(taker)}'s men took me from ${land(giver)}'s guards in ${name}; I am their captive now.`);
-    notify(S, taker, "Notice", "A captive taken on the road", `Your men in ${name} stopped ${land(giver)}'s guards taking ${c.name} to ${land(meant)} and took the captive from them. You may question, ransom, execute or release them.`, c.id);
+    notify(S, taker, "Notice", "A captive taken on the road", `Your men in ${name} stopped ${whose(giver)} guards taking ${c.name} to ${powerName(meant)} and took the captive from them. You may question, ransom, execute or release them.`, c.id);
     logEvent(S, "captive", `${taker}'s men took ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-taken");
     return;
   }
@@ -479,7 +480,7 @@ P.convoyStopped = function (j, c, province, stop) {
   c.at = null;
   this.releaseCaptive(meant, c);
   remember(c, S.turn, `Outlaws fell on ${land(giver)}'s guards in ${name}, and I slipped away in the confusion.`);
-  notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${land(giver)} was sending you under guard, escaped in ${name} when outlaws fell on the guards.`, c.id);
+  notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, escaped in ${name} when outlaws fell on the guards.`, c.id);
   logEvent(S, "captive", `${c.name} escaped ${giver}'s guards in ${name} when outlaws fell on them.`, [giver], "captive-escaped");
 };
 
@@ -503,7 +504,7 @@ P.captiveArrives = function (j) {
     j.to,
     "Notice",
     "A captive given to you",
-    `${land(j.from)}'s guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
+    `${whose(j.from)} guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
     c.id,
   );
   logEvent(S, "captive-handed", `${c.name}, handed over by ${j.from}, reached ${j.to} under guard.`, [j.from, j.to], "captive-arrived");
@@ -561,13 +562,13 @@ P.caughtOnRoad = function (j, c, captor, province) {
     c.watchProvince = null;
   }
   const trail = this.trail(j.dispatch?.trailId ?? j.cargo?.trailId ?? null);
-  trail?.outcomes.push(`caught on the road in ${name} by ${captor}'s men`);
-  const lines = spy ? [] : this.seize(c, lord, captor, j.dispatch, j.cargo, `taken from ${c.name}, envoy of ${lord}, caught on the road in ${name}`);
+  trail?.outcomes.push(`caught on the road in ${name} by ${whose(captor)} men`);
+  const lines = spy ? [] : this.seize(c, lord, captor, j.dispatch, j.cargo, `taken from ${c.name}, envoy of ${powerName(lord)}, caught on the road in ${name}`);
   const said = spy
-    ? `a spy of ${lord}, ${out ? `on the way to watch ${place ?? `the court of ${j.to}`}` : "on the way home"}.`
+    ? `a spy of ${powerName(lord)}, ${out ? `on the way to watch ${place ?? `the court of ${powerName(j.to)}`}` : "on the way home"}.`
     : j.dispatch !== null
-      ? `envoy of ${lord}, on his way to the court of ${j.to}. The letter he was to speak: ${quoteWords(j.dispatch.letter)}` + (j.dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(j.dispatch.mandate)}` : "")
-      : `envoy of ${lord}, on his way home from the court of ${j.from}.`;
+      ? `envoy of ${powerName(lord)}, on his way to the court of ${powerName(j.to)}. The letter he was to speak: ${quoteWords(j.dispatch.letter)}` + (j.dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(j.dispatch.mandate)}` : "")
+      : `envoy of ${powerName(lord)}, on his way home from the court of ${powerName(j.from)}.`;
   notify(
     S,
     captor,
@@ -649,6 +650,10 @@ P.wordArrives = function (j) {
     case "Job":
       notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
       break;
+    case "TidingsVassal":
+    case "TidingsAlly":
+      this.tidingsArrive(j);
+      break;
     case "Foiled":
       // Bug #467: a scheduled order foiled on land lost far away wakes its seat as the word of it comes (TurnEngine.lostOrder).
       S.sleep.tryGet(j.to)?.pendingWake.push(j.text ?? "");
@@ -682,8 +687,8 @@ P.roads = function (p, o) {
     o.court,
     o.close ? "RoadsClosed" : "RoadsOpened",
     o.close
-      ? `Word comes that the king of ${land(p)} has closed his roads to your people: his men turn back your envoys and servants at his border, unless they go to his own court; his troops anywhere may seize them.`
-      : `Word comes that the king of ${land(p)} has opened his roads to your people again.`,
+      ? `Word comes that the king of ${powerName(p)} has closed his roads to your people: his men turn back your envoys and servants at his border, unless they go to his own court; his troops anywhere may seize them.`
+      : `Word comes that the king of ${powerName(p)} has opened his roads to your people again.`,
   );
 };
 
@@ -693,9 +698,14 @@ P.seeLand = function () {
   for (const p of S.eliminated.length === 0 ? [...S.treasuries.keys()] : [...S.treasuries.keys()].filter((x) => isAlive(S, x))) {
     let book = S.known.tryGet(p);
     if (book === undefined) S.known.set(p, (book = new Dict()));
-    for (const id of Views.sight(S, this.map, p)) {
+    const seen = Views.sight(S, this.map, p);
+    for (const id of seen) {
       if (this.map.get(id).isSea) continue;
       book.set(id, newKnown({ owner: S.owner.getOrDefault(id, null), turn: S.turn, source: "seen" }));
     }
+    // Word come home from each province is kept as it came (bug #616): the couriers' roads it came by may be cut later,
+    // which must not take back what the court has heard.
+    for (const [id, k] of Views.knownHolders(S, this.map, p, seen).entries())
+      if (k.source === WordSource && (book.tryGet(id)?.turn ?? -1) < k.turn) book.set(id, k);
   }
 };

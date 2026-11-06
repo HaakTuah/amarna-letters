@@ -50,6 +50,12 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
   "Osorkon III, year 3 ... flooding of Karnak temple". How often: the medieval Roda nilometer record suggests a poor
   flood about one year in five and a disastrous one rarely, perhaps once a generation [C: Hassan's studies of the Roda record]; it gives a poor flood in some 14-28% of years: Fagan, *The Great Warming* (2010), p. 167, "28% of the years saw an inundation that fell short of expectations" (AD 622–999) [C]; Hassan (2007; PAGES summary) puts extremely low floods at "0-3%" in ordinary centuries and "20%" (AD 930–1070) and "14%" (AD 1070–1180) in anomalous ones [C]. No bad flood is recorded
   for Akhenaten's reign [S]. **Estimate [G]:** a low Nile one Akhet in six (the middle of Fagan, Hassan and the dossier's one in five; "fell short of expectations" may be milder than the game's cut of the harvest); a ruinous one, a flood so high it breaks the dykes and drowns villages, one in thirty, kept as a first guess: the estimates above count low floods, not high ones, and no published frequency of destructive high Niles was found.
+- <a id="03-nile-rise-north"></a>**The flood comes down the valley from the south**: it is seen first at Aswan and reaches Cairo
+  about a week later [B: [Wikipedia, Flooding of the Nile](https://en.wikipedia.org/wiki/Flooding_of_the_Nile): "The first
+  indications of the rise of the river in Akhet could be seen at the first of the cataracts of the Nile at Aswan", and
+  "Flooding reached Aswan about a week earlier than modern Cairo, and Luxor five to six days earlier than Cairo"]. The map
+  draws the Nile's flood rising from the south up its valley (item 17+++, part D); the Delta, which the source does not name,
+  comes last because it lies downstream of Cairo, at the head of the Delta, where the flood arrives after Aswan and Luxor.
 - <a id="03-tigris-euphrates-floods"></a>**The Tigris and the Euphrates** rise with the snowmelt in the Taurus and
   Zagros, the Tigris peaking in April and the Euphrates in May, at or just before the harvest [B:
   [Wikipedia, Agriculture in Mesopotamia](https://en.wikipedia.org/wiki/Agriculture_in_Mesopotamia), citing Sanlaville

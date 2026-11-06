@@ -35,6 +35,22 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
   broken promise of its own, and 20 off its name there. An envoy who goes over to a host at an audience takes a six-season
   job there, half handed over now (`jobOffer` is a fee a season).
 
+- **A ride** (#601, `turn/rides.ts`, save version 59; the owner: "paying for a courier is always a supply to demand issue,
+  a negotiation, no?"): a job whose errand is `ride` to a province the court knows it holds, beyond the season's reach
+  (the validator; offered at court, never by an envoy). The rider sets out as he takes it and is back at the next season's
+  start (`ridersBack`, after `recordReports`): the court's record of the province (`GameState.known`) is then as of the
+  ride's season, its source "your rider" and his name, so its holder, its officials' report (`reportKnown`) and the
+  sieges there (`siegesKnown`, which reads the court's record, #616) are as of then; the notices told from
+  there by then (`TurnEngine.tell` tags its word with the place) arrive with him. His price: his price a season for a job
+  (`basePrice`), moved half way to what he has heard a ride pays (`Character.heardRide`, set as `heardRate` is, from the
+  rides agreed where he stands), raised by `RideData` (first guesses) for each season sooner the report comes beyond the
+  first (20 in a hundred) and for the rides the court offers this season against the free people at its court (50 in a
+  hundred when they are as many, less as there are more); he takes down to 25 in a hundred less from a man of no greed,
+  nothing less from the greediest, and declining names his ask. A servant renewed for a ride asks as any rider does; a ride's term is 1. Script
+  kings (`bots/rides.ts`): at most one ride a season, for the oldest report of a far province with a siege known there or land
+  beside it held by a king hostile to them or who attacked them within 4 seasons, offered at 85 in a hundred of what they reckon he asks, the whole fee in hand, and 15
+  in a hundred more than the refused offer the next season; `--no-ride-play`, `--ride-play-half` turn it off.
+
 ### The characters' money
 
 - **Living** (`livingSeason`): a free person buys 2 measures of grain a season at the market where it stands (the

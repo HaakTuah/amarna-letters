@@ -1,4 +1,5 @@
 /** What each court sees: the seat view, sight, the walls it knows, and how it sees each person and tablet. */
+import { listed } from "./wording.ts";
 import { newsOffered } from "./news.ts";
 import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
@@ -8,8 +9,8 @@ import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
-import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, type Power } from "../model/power.ts";
+import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf } from "../model/works.ts";
@@ -165,17 +166,18 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him. Its
-      // end reaches the grantee by word too (bug #565).
+      // A grant by order (item 11a+), or a passage narrowed by a revocation (bug #611): its grantor knows it from the
+      // order; its grantee once the news reaches him. Its end reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
           (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (g.grantor === p || g.heardTurn <= s.turn) &&
+          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, cut: [...g.cut], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]
@@ -270,7 +272,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   for (const copy of s.copies.filter((x) => x.holder === p)) {
     const tab = s.tablets.find((x) => x.id === copy.tabletId);
     if (tab === undefined) continue;
-    v.tablets.push(tabletView(tab, copy));
+    v.tablets.push(tabletView(tab, copy, s.turn));
     archive.push(tab);
   }
   // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
@@ -323,6 +325,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     if (r > 0) v.resistance.set(prov.id, r);
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
+  // #587: the gold the court sent, until word of what became of it comes (it reached the coffer, or came back), with no
+  // day of arrival, which would tell it the roads before any word of them (Codex, #635).
+  v.goldSent = s.sent.filter((x) => x.power === p).map((x) => ({ province: x.province, gold: x.gold }));
+  // By the court's one clock for its land, the line its sight already draws (word home within the season).
+  v.far = v.provinces.filter((x) => engine.isFar(p, x.province)).map((x) => x.province);
   // Bug #540: walking home to the land it knows it holds; its caravans as their reports have come.
   const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p && (w.from === "" || wordCame(engine, p, w.departs, w.from)));
   v.walking = sum(homeward.filter((w) => !w.deported), (w) => w.men);
@@ -339,7 +346,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     sum([...own.values()], (x) => x.holding) +
       sum(v.units.filter((u) => u.power === p), (u) => carriedWorth(u.food, u.savings)) +
       sum(homeward, (w) => w.savings) +
-      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)),
+      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)) +
+      // #587: and the gold it sent ahead, which it knows is on the road.
+      sum(v.goldSent, (g) => g.gold),
   );
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
   // Its own, as it knows its land (bug #517), are among its provinces instead.
@@ -596,7 +605,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
 function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
   if (fee === null) return "";
   const e = k?.errand ?? null;
-  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${e.where} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
   const serves = `${errand}, for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done`;
   const standing = k === null ? "" : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
   if (until === null) return serves + standing;
@@ -720,7 +729,7 @@ function whereText(c: Character, viewer: Power): string {
  * are added. Never a copy id, which is each court's own: a name another court can read.
  */
 function tabletName(t: Tablet, among: Iterable<Tablet> | null = null): string {
-  const name = `the ${t.inventory ? "inventory" : "tablet"} sealed by ${listed(t.seals)}${t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ""}`;
+  const name = `the ${t.inventory ? "inventory" : "tablet"} sealed by ${sealers(t.seals)}${t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ""}`;
   let twin = false;
   if (among !== null)
     for (const o of among)
@@ -738,9 +747,9 @@ function capitalized(s: string): string {
   return (up.length === 1 ? up : s[0]) + s.slice(1);
 }
 
-/** "Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni". */
-function listed(seals: readonly Power[]): string {
-  return seals.length <= 1 ? seals.join("") : `${seals.slice(0, -1).join(", ")} and ${seals[seals.length - 1]}`;
+/** "Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni": the sealers by the names notices give them. */
+function sealers(seals: readonly Power[]): string {
+  return listed(seals.map((p) => powerName(p)));
 }
 
 /** A text's first eight words, marked "…" if there are more. */
@@ -749,7 +758,7 @@ function opening(text: string): string {
   return words.length <= 8 ? words.join(" ") : words.slice(0, 8).join(" ") + "…";
 }
 
-function tabletView(t: Tablet, copy: TabletCopy): TabletView {
+function tabletView(t: Tablet, copy: TabletCopy, turn: number): TabletView {
   // Item 12, "Reading a tablet": a tablet nobody at the court has read waits for a reader; its seals are plain to see.
   const unread = copy.unread === true;
   return newTabletView({
@@ -770,7 +779,8 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     byHand: t.byHand,
     byHandOf: t.byHandOf,
     within: copy.holder === t.byHandOf || (copy.holder === t.proposedBy && t.credentialsShown) ? t.within : null,
-    repudiatedTurn: t.repudiatedTurn,
+    // Bug #609: as its holder knows of it, by word for the other king; a third court is never told.
+    repudiatedTurn: repudiationKnown(t, copy.holder, turn) ? t.repudiatedTurn : null,
   });
 }
 

@@ -25,6 +25,8 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
+import { isThreadsKey, readThreads } from "./threads.ts";
+import { MindBook, MindPageSchema, readMindPage } from "./minds.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -370,6 +372,8 @@ export class GameLog {
   readonly shadows: ShadowDecision[] = [];
   /** The audits of lower rungs' decisions. Not used in replay. */
   readonly audits: Audit[] = [];
+  /** Item 17+++: the minds' own words season by season, each page kept when it changed (minds.ts). Not used in replay. */
+  readonly minds = new MindBook();
   private readonly index = new Map<string, string>();
   private readonly authors = new Map<string, Authorship>();
   /** Routes told before their decisions are recorded, by decision key. */
@@ -453,6 +457,7 @@ export class GameLog {
     for (const sh of sortBy(this.shadows, [(x: ShadowDecision) => x.turn, cmpNum], [(x: ShadowDecision) => x.key, cmpStr]))
       out += withType(serialize(ShadowDecisionSchema, sh), "shadow") + "\n";
     for (const a of sortBy(this.audits, [(x: Audit) => x.turn, cmpNum], [(x: Audit) => x.key, cmpStr])) out += withType(serialize(AuditSchema, a), "audit") + "\n";
+    for (const m of this.minds.pages) out += withType(serialize(MindPageSchema, m), "mind") + "\n";
     return out;
   }
 
@@ -472,6 +477,8 @@ export class GameLog {
           const at = line.indexOf('"value":');
           const json = at < 0 ? "null" : line.slice(at + 8, line.length - 1);
           const by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
+          // Item 17+++: the threads to watch are shown as told, so they are checked as written before anything reads them.
+          if (isThreadsKey(key)) readThreads(json);
           log.index.set(key, json);
           log.decisions.push({ key, json, by });
           if (by !== null) log.authors.set(key, by);
@@ -485,6 +492,9 @@ export class GameLog {
           break;
         case "audit":
           log.audits.push(deserialize<Audit>(AuditSchema, line));
+          break;
+        case "mind":
+          log.minds.add(readMindPage(node));
           break;
       }
     }

@@ -37,7 +37,7 @@ out of `views.ts` (47 KB).
   (`wakeFrom`, as #537 did for other orders). `GameState.lastSeen` holds the king's own outcomes only where his
   couriers reach.
 - **Rulebook** (`llm/src/rules-command.ts`), **README** (the map paragraph), **design note**
-  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 54** (53 goes to #610).
+  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 62** (54 on the branch until it was merged with `develop`, which had reached 61).
 - **Tests:** a twin in the twin canary (a far army beaten out of sight), failing on `develop` (its view, upkeep, last
   season, two events and the movement notice), passing here; #569's twin (a far levy that raised nothing) no longer
   lists its army's view, upkeep and scheduled binding as known leaks (#600), which the ratchet's last test proves; `units-known.test.ts`: a far unit lost stays as reported
@@ -141,10 +141,25 @@ as it now stands (below).
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).
 
-## Blocked
+## Blocked, then decided
 
 Codex's review of the escalation's commit found one more P1: a scheduled or standing order for a far unit lost out of
 sight is refused at once, since binding it (`TurnEngine.bind`) and checking a standing order's target look only at the
-units in the game. The review limit is reached, so the PR stays a draft, blocked: question #621.
+units in the game. The review limit was reached, so the PR stayed a draft: question #621.
 
-Questions for the owner: #621 (how #612 goes on). Filed: #615 (bug), #621 (question).
+The owner (3 November 2026; archive item 204) chose the first alternative: a fresh session fixes the one case, the PR is
+reviewed again, and it merges at a clean review; no fifth Codex round, the next review by the fallback reviewer.
+
+## The last case (6 November 2026)
+
+- **Merged with `develop`** (372 commits): the road home (#616's `wordFrom`, `wordHomeAt`) now times what a king hears of
+  his far troops (`reportIndex`, `raisedKnown`, `goneHeard`, a commander's leaving), replacing the road out this branch
+  used; `shownAt` gave way to `unitShownAt` over `ownPlaces`; the far lines of the season take `develop`'s new wording
+  (holds grouped, "Your ..."); #587's known leaks for the far-troops twins are gone, as `develop` fixed #587.
+- **A scheduled or standing order for a far unit lost out of sight is kept** (`ownNamed`, `turn/plans.ts`): `bind`, the
+  unit supported or convoyed, and a standing order's "when your unit is attacked" name the seat's own unit there, or,
+  where none of its own stands, the gone one its view still shows there. It is kept bound to it, fails where it arrives,
+  and drops when word of the end comes (`lostUnits`), as one given this season does. Test: `units-known.test.ts`
+  ("A scheduled or standing order for a far unit lost out of sight is kept ..."), failing before the fix.
+
+Questions for the owner: none new (#621, answered and closed).

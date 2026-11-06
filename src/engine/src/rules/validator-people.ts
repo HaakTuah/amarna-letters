@@ -8,7 +8,7 @@ import { isBlank } from "../core/text.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { coverOf, falseNameAt, hiddenAt } from "../model/people.ts";
 import { AllPowers, claimedName, nameKnown } from "../model/power.ts";
-import { grantLive } from "../model/authority.ts";
+import { grantLiveFor } from "../model/authority.ts";
 import { findCharacter } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
 
@@ -82,11 +82,13 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       // A new job is offered at your court, where the man stands; a servant abroad whose fate this court has not heard
       // of counts as away.
       const home = cover === null && c.status === "Employed" && c.duty === "None" && c.at === power;
-      if (!home) return `${c.name} is not at your court: a new job is offered where the man stands`;
+      if (!home) return `${c.name} is not at your court; a new job is offered where the man stands`;
       if (rn.fee <= 0 || rn.term <= 0) return "fee and term must be positive";
       if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
       const ee = errandRefusal(rn);
       if (ee !== null) return ee;
+      if (rn.what === "ride" && rn.term !== 1) return "a ride is there and back within the season: its term is 1";
+      if (rn.what === "ride" && rn.offerAgain === true) return "a ride is offered for one season's report: offer each ride anew (no offer_again)";
       if (renewed.has(c.id)) return `${c.name} was already renewed by an earlier order`;
       return spend(rn.advance);
     }
@@ -101,18 +103,18 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       const ps = order;
       // In the rulebook's words: a spy must be one of your own people at your court, sent to watch a court or a province.
       const e = ownCharacter(ps.character);
-      if (e !== null) return `a spy must be one of your own people at your court: ${e}`;
+      if (e !== null) return `a spy must be one of your own people at your court; ${e}`;
       const court = ps.court ?? null;
       const province = ps.province ?? null;
-      if (court === null && province === null) return "a spy must be sent to watch a court or a province: you named neither";
-      if (court !== null && province !== null) return "a spy must be sent to watch a court or a province: name only one";
+      if (court === null && province === null) return "a spy must be sent to watch a court or a province; you named neither";
+      if (court !== null && province !== null) return "a spy must be sent to watch a court or a province; name only one";
       const sfit = errandFits(ps.character, "spy", court ?? province!);
       if (sfit !== null) return sfit;
       if (court !== null && (court === power || heardFallen(court))) return `you cannot spy on ${court}`;
       if (province !== null && (!Map.exists(province) || Map.get(province).isSea)) return `there is no province called '${province}'`;
       const stir = ps.stir ?? 0;
       if (stir < 0) return "the gold to stir a province cannot be negative";
-      if (stir > 0 && province === null) return "a spy stirs the people of a province he watches: name a province, not a court";
+      if (stir > 0 && province === null) return "a spy stirs the people of a province he watches; name a province, not a court";
       return stir > 0 ? spend(stir) : null;
     }
 
@@ -148,14 +150,17 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       // Passage and basing granted on sealed tablets (item 9).
       if (!AllPowers.includes(order.grantee) || order.grantee === power) return `you granted nothing to '${order.grantee}'`;
       if (order.province !== null && !Map.exists(order.province)) return `there is no province called '${order.province}'`;
-      // Only what it knows it granted: the tablet's copy is in its archive.
+      // Only what it knows it granted: the tablet's copy is in its archive; and as it knows it, a grant its grantee ended by
+      // repudiation standing until word of it comes (bug #609).
       const stands = S.grants.some(
         (g) =>
           g.grantor === power &&
           g.grantee === order.grantee &&
-          grantLive(g, S.turn) &&
+          grantLiveFor(g, power, S.turn) &&
           (g.tabletId === "" || S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId)) &&
-          (order.province === null || g.province === order.province || (g.province === null && g.lands.includes(order.province))),
+          // A passage through all his land, in a province he knows as his and has not revoked it in: never by its true land,
+          // which would tell him of a province lost out of his sight (bug #611).
+          (order.province === null || g.province === order.province || (g.province === null && !g.cut.includes(order.province) && v.knownOwner(order.province) === power)),
       );
       return stands ? null : `you have granted ${order.grantee} no passage or basing${order.province !== null ? ` in ${order.province}` : ""} that still stands`;
     }

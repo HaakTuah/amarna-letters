@@ -18,7 +18,9 @@ import type { Power } from "../model/power.ts";
 import { findCharacter, logEvent, newId, newUnit, notify, type Unit, loseUnit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing } from "../rules/court.ts";
+import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
+import { placesNamed } from "../model/order-reading.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -96,7 +98,7 @@ P.relieveCommand = function (p, o) {
   if (u === null || u.power !== p || u.commander === null) return;
   const seasons = wordFromKing(S, this.map, p, u.province);
   u.relieveAt = S.turn + (Number.isFinite(seasons) ? Math.max(1, seasons) : 1);
-  notify(S, p, "Resolution", "Command taken back", `Word that you take back the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on its way; it reaches him in turn ${u.relieveAt}.`);
+  notify(S, p, "Resolution", "Command taken back", `Your word recalling the commander of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on its way; it reaches him in turn ${u.relieveAt}.`);
   this.goneWord(p, o, u);
 };
 
@@ -114,7 +116,7 @@ P.setMandate = function (p, o) {
     "Mandate sent",
     o.mandate === null
       ? `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has no mandate now.`
-      : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${mandateText(o.mandate)}.`,
+      : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${placesNamed(mandateText(o.mandate))}.`,
   );
   this.goneWord(p, o, u);
 };
@@ -192,7 +194,7 @@ P.commandSeason = function () {
     const lord = c.grantedBy ?? c.employer;
     // The word of its end, from where and when it ended (the gone army's own copy), or from where he stood.
     const army = lord === null ? undefined : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
-    const heard = lord === null || c.watchProvince === null ? 0 : army !== undefined ? army.goneTurn + 1 + this.wordTo(lord, army.province) : this.heardAt(lord, c.watchProvince);
+    const heard = lord === null || c.watchProvince === null ? 0 : army !== undefined ? army.goneTurn + 1 + this.wordFrom(lord, army.province) : this.heardAt(lord, c.watchProvince);
     if (lord !== null && c.watchProvince !== null && heard > S.turn) {
       this.coverFor(c, lord, "Commanding");
       S.journeys.push(
@@ -267,7 +269,7 @@ P.enlistBand = function (p, o) {
   const want = Math.max(bandCost(b.men), b.take) * o.term + Math.floor((bandCost(b.men) * o.term * chief.traits.greed) / 100);
   const name = this.map.get(o.province).name;
   if (o.fee < want) {
-    this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${o.fee} shekels over ${o.term} seasons. No gold was paid.`);
+    this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${formatMoney(o.fee)} over ${o.term === 1 ? "a season" : `${o.term} seasons`}. No gold was paid.`);
     return;
   }
   if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it did not join you")) return;
@@ -286,6 +288,6 @@ P.enlistBand = function (p, o) {
     u.commandFrom = S.turn + 1;
   }
   remember(chief, S.turn, `I took ${o.fee} shekels from the king of ${p} for my band to serve in his army in ${name} for ${o.term} seasons.`);
-  this.tell(p, o.province, "Resolution", "A band enlisted", `${chief.name} took your ${o.fee} shekels: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`);
+  this.tell(p, o.province, "Resolution", "A band enlisted", `${chief.name} took your ${formatMoney(o.fee)}: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`);
   logEvent(S, "enlisted", `${chief.name}'s band took service with ${p} in ${name}.`, [p], "band-enlisted");
 };

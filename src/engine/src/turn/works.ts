@@ -14,7 +14,7 @@ import { cmpStr } from "../core/text.ts";
 import { LandData, menAvailable, unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { BuildOrder, RazeOrder } from "../model/orders.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, type Power, whose } from "../model/power.ts";
 import { alive, logEvent, notify, ownedBy, siegeOf, unitAt, type Unit, loseUnit } from "../model/state.ts";
 import {
   buildGold,
@@ -34,9 +34,11 @@ import {
   WorksEffect,
   workLevelText,
   workName,
+  type WorkKind,
   type WorkPlan,
 } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { listed, pick, upper } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -87,7 +89,7 @@ P.raze = function (p, o) {
   const S = this.s;
   const u = unitAt(S, o.unit);
   if (u === null || u.power !== p || u.kind !== "Army") {
-    this.failed(p, o, "Nothing razed", `No army of yours stood in ${this.map.get(o.unit).name} after movement, so nothing was razed.`, "the army is gone", false);
+    this.failed(p, o, "Nothing razed", `No army of yours stood in ${this.map.get(o.unit).name} when the moves were done, so nothing was razed.`, "the army is gone", false);
     return;
   }
   const level = levelOf(S, o.kind, u.province);
@@ -98,14 +100,29 @@ P.raze = function (p, o) {
     return;
   }
   setLevel(S, o.kind, u.province, level - 1);
-  notify(S, p, "Resolution", "Razed", `Your army razed a level of the ${workName(o.kind)} of ${name}: ${workLevelText(o.kind, level - 1)} stands now.`);
-  this.tell(holder, u.province, "Notice", "Razed", `${p}'s army razed a level of the ${workName(o.kind)} of ${name}: ${workLevelText(o.kind, level - 1)} stands now.`);
+  notify(S, p, "Resolution", "Razed", `Your army razed a level of ${named(o.kind, name)}, leaving ${workLevelText(o.kind, level - 1)}.`);
+  this.tell(holder, u.province, "Notice", "Razed", `${upper(whose(p))} army razed a level of ${named(o.kind, name)}, leaving ${workLevelText(o.kind, level - 1)}.`);
   logEvent(S, "raze", `${p}'s army razed a level of the ${workName(o.kind)} of ${name}.`, [p, holder], "raze");
 };
 
 P.worksChangeHands = function (province) {
   this.s.works = this.s.works.filter((w) => w.province !== province);
 };
+
+/** A work as the court's notice names it: "the walls of Gubla", "the watch of Gubla" (policing is paid watchmen). */
+const named = (kind: WorkKind, place: string): string => `the ${workName(kind)} of ${place}`;
+
+/** Its verb: the walls were, the harbour was. */
+const was = (kind: WorkKind): string => (kind === "Harbour" || kind === "Policing" ? "was" : "were");
+
+/** "the roads, harbour and watch of Shushan": several works of one place in one phrase. */
+const namedAll = (kinds: WorkKind[], place: string): string => {
+  const nouns = kinds.map((k) => named(k, place).slice(4, -` of ${place}`.length));
+  return `the ${listed(nouns)} of ${place}`;
+};
+
+/** A notice's clauses as sentences. */
+const sentences = (clauses: string[]): string => clauses.map((x) => `${x[0].toUpperCase()}${x.slice(1)}.`).join(" ");
 
 P.worksSeason = function () {
   const S = this.s;
@@ -120,11 +137,27 @@ P.worksSeason = function () {
     const say = (id: string, line: string): void => {
       said.set(id, [...said.getOrDefault(id, []), line]);
     };
+    // #587: near, the treasury pays; far, the province's coffer, and what it lacks on a bill carried home.
+    const payGold = (id: string, cost: number): boolean => {
+      if (!this.isFar(p, id)) {
+        if (t.gold < cost) return false;
+        t.gold -= cost;
+        this.spendAt(id, cost);
+        return true;
+      }
+      const r = this.payFar(p, id, cost);
+      if (r === null) return false;
+      this.spendAt(id, r.coffer);
+      return true;
+    };
     // Nearest the court first: what the treasury cannot keep goes unpaid far away first, as walls did since item 5.
     for (const id of sortBy(ownedBy(S, p), [(x: string) => Map.hops(court, x), cmpNum], [(x: string) => x, cmpStr])) {
       const prov = Map.get(id);
       const hostile = hostileAt(S, id, p);
       const siege = siegeOf(S, id);
+      // The works that went unpaid here, and those war halted, each told in one clause.
+      const unpaid: WorkKind[] = [];
+      const halted: WorkKind[] = [];
       const [gold0, men0] = [gold, men];
       for (const kind of WorkKindValues) {
         let level = levelOf(S, kind, id);
@@ -155,9 +188,7 @@ P.worksSeason = function () {
             }
           } else {
             const cost = upkeepGold(kind, kept);
-            if (t.gold >= cost) {
-              t.gold -= cost;
-              this.spendAt(id, cost);
+            if (payGold(id, cost)) {
               gold += cost;
               paid = true;
             }
@@ -167,18 +198,18 @@ P.worksSeason = function () {
         const standing = paid ? kept : 0;
         const work = plan ?? newWorkPlan({ province: id, kind, keep: 0 });
         if (level > standing) {
-          if (kept > 0 && !paid) say(id, `the ${workName(kind)} of ${prov.name} went unpaid`);
+          if (kept > 0 && !paid) unpaid.push(kind);
           const data = WorksData[kind];
           work.neglect++;
           if (data.decay <= 0) {
-            say(id, `the ${workName(kind)} of ${prov.name}, unkept, fell from ${workLevelText(kind, level)} to ${workLevelText(kind, standing)}`);
+            say(id, `${named(kind, prov.name)}, unkept, fell from ${workLevelText(kind, level)} to ${standing > 0 ? workLevelText(kind, standing) : "nothing"}`);
             level = standing;
             setLevel(S, kind, id, level);
             work.neglect = 0;
           } else if (work.neglect >= data.decay) {
             level--;
             setLevel(S, kind, id, level);
-            say(id, `the ${workName(kind)} of ${prov.name}, unkept, fell to ${workLevelText(kind, level)}`);
+            say(id, `${named(kind, prov.name)}, unkept, fell to ${workLevelText(kind, level)}`);
             work.neglect = 0;
           }
         } else work.neglect = 0;
@@ -189,13 +220,13 @@ P.worksSeason = function () {
             this.takeFromStores(id, RepairData.food);
             siege.progress--;
             men += RepairData.men;
-            say(id, `the walls of ${prov.name} were repaired a step under siege (worn ${siege.progress} now)`);
+            say(id, `the walls of ${prov.name} were mended a step under siege`);
             logEvent(S, "repair", `${p} repaired the walls of ${prov.name} under siege.`, [...this.nearOf(id, p), siege.power], "wall-repair");
           } else say(id, `the walls of ${prov.name} could not be repaired: too few men or too little food inside`);
         }
         // A project: a level at a time, a season's work each season it can be paid and worked.
         if (keep > level && level < WorksData[kind].most && landRefusal(kind, prov) === null) {
-          if (siege !== null || hostile) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: war stops the work`);
+          if (siege !== null || hostile) halted.push(kind);
           else {
             const next = kind === "Policing" ? keep : level + 1;
             const hire = kind === "Policing" ? next - level : next;
@@ -217,20 +248,18 @@ P.worksSeason = function () {
                     done = true;
                   } else {
                     part = true;
-                    say(id, `the ${workName(kind)} of ${prov.name}: the share you asked brought ${come} of the ${need} men the work needs, and it went at that pace`);
+                    say(id, `your share brought ${come} of the ${need} men ${named(kind, prov.name)} needed, and the work went slower`);
                   }
                 }
               }
             } else {
               const cost = buildGold(kind, id, hire);
-              if (t.gold >= cost) {
-                t.gold -= cost;
-                this.spendAt(id, cost);
+              if (payGold(id, cost)) {
                 gold += cost;
                 done = true;
               }
             }
-            if (!done && !part) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : "too little gold"}`);
+            if (!done && !part) say(id, `no work was done on ${named(kind, prov.name)}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : this.isFar(p, id) ? this.noCredit(p, id) : "too little gold"}`);
             else if (done) {
               work.progress++;
               const seasons = WorksData[kind].seasons;
@@ -238,12 +267,12 @@ P.worksSeason = function () {
                 level = next;
                 setLevel(S, kind, id, level);
                 work.progress = 0;
-                say(id, `the ${workName(kind)} of ${prov.name} were raised to ${workLevelText(kind, level)}`);
+                say(id, `${named(kind, prov.name)} ${was(kind)} raised to ${workLevelText(kind, level)}`);
                 // Item 17++: works paid in gold are a giving its people remember of the king who built them; their own corvée
                 // they built themselves.
                 if (!labour) this.give(id, p, UnrestData.work);
                 logEvent(S, "built", `${p} raised the ${workName(kind)} of ${prov.name} to ${workLevelText(kind, level)}.`, [...this.nearOf(id, p), ...AllPowers.filter((x) => x !== p && kind === "Walls" && Views.sight(S, Map, x).has(id))], "built");
-              } else say(id, `the ${workName(kind)} of ${prov.name}: ${work.progress} of ${seasons} seasons done towards ${workLevelText(kind, level + 1)}`);
+              } else say(id, `${named(kind, prov.name)}: ${work.progress} of ${seasons} seasons' work done towards ${workLevelText(kind, level + 1)}`);
             }
           }
         }
@@ -252,20 +281,24 @@ P.worksSeason = function () {
         if (plan === null && needed) S.works.push(work);
         else if (plan !== null && !needed) S.works.splice(S.works.indexOf(plan), 1);
       }
+      if (unpaid.length > 0) said.set(id, [`${namedAll(unpaid, prov.name)} went unpaid`, ...said.getOrDefault(id, [])]);
+      if (halted.length > 0) say(id, `war halted the work on ${namedAll(halted, prov.name)}`);
       // Bug #540: what a far province's works cost comes home with its report, not in the season's total.
-      if (this.wordTo(p, id) > 0 && (gold > gold0 || men > men0)) {
-        say(id, `what its works keep and build cost ${formatMoney(gold - gold0)}${men > men0 ? ` and the corvée of ${men - men0} men, away from the fields` : ""} this season`);
+      if (this.wordFrom(p, id) > 0 && (gold > gold0 || men > men0)) {
+        say(id, `its works cost ${formatMoney(gold - gold0)}${men > men0 ? ` and took ${men - men0} men from the fields by corvée` : ""} this season`);
         [gold, men] = [gold0, men0];
       }
     }
     // One notice for what the court's couriers bring this season; word of farther provinces comes when it arrives.
     const near: string[] = [];
     for (const [id, l] of said.entries()) {
-      if (this.wordTo(p, id) === 0) near.push(...l);
+      if (this.wordFrom(p, id) === 0) near.push(...l);
       else this.tell(p, id, "Resolution", "Works", `From ${Map.get(id).name}: ${l.join("; ")}.`);
     }
-    const cost = gold > 0 || men > 0 ? `What you keep and build cost ${formatMoney(gold)}${men > 0 ? ` and the corvée of ${men} men, away from the fields` : ""} this season.` : "";
-    if (cost !== "" || near.length > 0) notify(S, p, "Resolution", "Works", [cost, near.length > 0 ? `${near.join("; ")}.` : ""].filter((x) => x !== "").join(" "));
+    const spent = [gold > 0 ? formatMoney(gold) : "", men > 0 ? `${men} men from the fields by corvée` : ""].filter((x) => x !== "").join(" and ");
+    const forms = [`Your works took ${spent} this season.`, `Upkeep and building cost ${spent} this season.`, `This season the works cost ${spent}.`];
+    const cost = spent !== "" ? pick(forms, `${S.turn}|${p}|works`) : "";
+    if (cost !== "" || near.length > 0) notify(S, p, "Resolution", "Works", [cost, sentences(near)].filter((x) => x !== "").join(" "));
   }
   if (seasonOfTurn(S.turn) === WinterSeason) this.harboursWinter();
 };
@@ -309,7 +342,7 @@ P.harboursWinter = function () {
       left -= share;
     }
     for (const u of fleets.filter((x) => x.men < LandData.levyLeast)) loseUnit(S, u);
-    notify(S, power, "Resolution", "Winter at sea", `Your fleets in ${Map.get(waters).name} had harbour room for ${room} men of their ${men}; wintering on open beaches, the storms took ${lost} of them.`);
+    notify(S, power, "Resolution", "Winter at sea", `Your fleets in ${Map.get(waters).name} found ${room > 0 ? `harbour room for ${room} of their ${men} men; winter storms on the open beaches took ${lost} of the rest` : `no harbour room for their ${men} men; winter storms on the open beaches took ${lost} of them`}.`);
     logEvent(S, "winter", `${power}'s fleets in ${Map.get(waters).name} lost ${lost} men to winter storms on open beaches.`, [power], "harbour-short");
   }
 };

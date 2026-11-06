@@ -14,8 +14,9 @@ Built in passes, each its own pull request, most valuable first:
 
 ## Pass 1: the seasons and the land
 
-`src/web/src/map/seasons.ts`, drawn as its own layer of the lower drawing (`svg-renderer.ts`, layer `season`), over the
-holders' colours and under the relief, so the shading still models the hills through it. It is drawn again only when the
+`src/web/src/map/seasons.ts`, drawn as its own drawing (`svg-renderer.ts`, layer `season`), under the holders' colours and
+the relief since item 17+++'s part D (`52-the-season-plays-out.md`, "The land's season under the realms"), so the shading
+still models the hills through it. It is drawn again only when the
 season of the year, the viewer or what the viewer knows of the land changes: each step of the timeline changes the season
 and repaints it, while the same season a year apart over unchanged land does not.
 
@@ -28,14 +29,14 @@ from the environment dossier as the engine keeps it (`climateOf`, `reapSeasonOf`
 | Season | On the map |
 | --- | --- |
 | Akhet (the flood) | The Nile's black land under water, rippled; rain-fed land dry and brown at summer's end; the Anatolian plateau, which reaps in Akhet, harvest gold |
-| Peret (the winter rains) | Rain-fed land green; the river fields sown green; snow where the land stands above the winter snow line (`snow.png`); frost over hard-winter provinces; storms along the open-sea crossings, the only sea the engine makes dangerous in winter |
+| Peret (the winter rains) | Rain-fed land green; the river fields sown green; snow where the land stands above the winter snow line (`snow-*.png`); frost over hard-winter provinces; storms along the open-sea crossings, the only sea the engine makes dangerous in winter |
 | Shemu (the harvest) | Harvest gold, with sheaves, over every province that reaps now; the river fields gold; every river whose flood season in the engine is Shemu (`floodSeasonOf`: the Euphrates, the Tigris, the Marassantiya, the Orontes and the Jordan) in spate |
 
 The season's name, in the viewer's own calendar (`seasonName`), and its look are written under the map's cartouche.
 
-**Snow from real elevation.** `scripts/map-snow.mjs` writes `src/web/src/map/snow.png` from the same public-domain terrain
+**Snow from real elevation.** `scripts/map-snow.mjs` writes `src/web/src/map/snow-high.png`, `snow-mid.png` and `snow-low.png` (three bands by depth, part D) from the same public-domain terrain
 tiles as the relief (`map-dem.mjs`): white where the land stands above a winter snow line that falls with latitude (about
-1,300 metres at 40 degrees north, 2,000 at 33), softened and quantised to eight steps (65 KB). It is fetched only when
+1,300 metres at 40 degrees north, 2,000 at 33), softened and quantised to eight steps (52 KB in all). It is fetched only when
 winter is shown.
 
 **This game's land.** The droughts and rivers' bad years under way (`GameState.climate`, copied into each season frame as

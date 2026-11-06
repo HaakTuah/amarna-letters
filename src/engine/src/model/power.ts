@@ -176,7 +176,7 @@ const Data: Record<FixedPower, PowerData> = {
   Assyria: d("Assyria", "Ashur-uballit", "Assyrian", "Middle"),
   Arzawa: d("Arzawa", "Tarhundaradu", "Arzawan", "Weak"),
   Alashiya: d("Alashiya", "the King of Alashiya", "Alashiyan", "Weak"),
-  Kaska: d("the Kaska lands", "the chief of the Kaska", "Kaskan"),
+  Kaska: d("Kaska", "the chief of the Kaska", "Kaskan"),
   Lukka: d("Lukka", "the chief of the Lukka men", "Lukkan"),
   // Item 11d: Arzawa's lands with their own rulers, and Hana under Mitanni (the politics dossier names no ruler of 1346)
   Seha: d("the Seha River Land", "the king of the Seha River Land", "Sehan"),
@@ -192,8 +192,8 @@ const Data: Record<FixedPower, PowerData> = {
   Beirut: d("Biruta", "Ammunira", "Beirutite"),
   Pella: d("Pihil", "Mut-Bahlu", "Pellan"),
   Ashtaroth: d("Ashtartu", "Ayyab", "Ashtarothite"),
-  Shasu: d("the land of the Shasu", "the chief of the Shasu", "Shasu"),
-  Libya: d("the land of the Tjehenu", "the chief of the Tjehenu", "Libyan"),
+  Shasu: d("Seir", "the chief of the Shasu", "Shasu"),
+  Libya: d("Tjehenu", "the chief of the Tjehenu", "Libyan"),
   Carchemish: d("Karkamish", "the king of Karkamish", "Carchemishite"),
   Alalakh: d("Mukish", "Itur-Addu", "Mukishite"),
   Aleppo: d("Halab", "the king of Halab", "Halabite"),
@@ -221,7 +221,7 @@ const Data: Record<FixedPower, PowerData> = {
   // which the dossiers do not show as a polity in 1346, is Babylonia's land.
   Gath: d("Gimti", "Shuwardata", "Gittite"),
   Aijalon: d("Ayyaluna", "Baʿlat-nese", "Ayyalunite"),
-  Suteans: d("the Sutean steppe", "the chief of the Suteans", "Sutean"),
+  Suteans: d("Sutu", "the chief of the Suteans", "Sutean"),
   Arrapha: d("Arrapha", "the king of Arrapha", "Arraphan"),
   Elam: d("Elam", "the king of Elam", "Elamite"),
 };
@@ -418,6 +418,41 @@ export function land(p: Power): string {
   return viewerNow === null ? ownLand(p) : landFor(viewerNow, p);
 }
 
+/**
+ * A power as a player reads it named, in every notice and on every screen: its land's name as the court gives it
+ * ({@link land}: Gubla, Sutu, the Seha River Land), Babylonia by that name rather than its land's Karduniash, which the
+ * letters keep. One form for every power, so one name means one power wherever it is read.
+ */
+export function powerName(p: Power): string {
+  const l = land(p);
+  return p === "Babylonia" && l === ownLand(p) ? "Babylonia" : l;
+}
+
+/** {@link powerName} as `viewer`'s court gives it: how a notice written to that court names the power. */
+export function powerNameFor(viewer: Power, p: Power): string {
+  return asSeenBy(viewer, () => powerName(p));
+}
+
+/** ", Hatti's land" after a province's name, or nothing where the province bears its power's name (Lakisha, Lakisha's land). */
+export function whoseLand(place: string, p: Power | null): string {
+  return p === null || powerName(p).replace(/^the /, "") === place.replace(/^the /, "") ? "" : `, ${whose(p)} land`;
+}
+
+/**
+ * A court's name at the head of a carrier's line about it ("Gubla keeps one army…", "Gubla holds …"): the words a reader
+ * tests to find what a court's own people showed its visitor (a bribed envoy drops them).
+ */
+export function courtHead(p: Power): string {
+  const n = powerName(p);
+  return n.length === 0 ? n : n[0].toUpperCase() + n.slice(1);
+}
+
+/** {@link powerName} with its possessive: "Hatti's", "the Seha River Land's". */
+export function whose(p: Power): string {
+  const n = powerName(p);
+  return n.endsWith("s") ? `${n}'` : `${n}'s`;
+}
+
 /** Someone's own words the engine quotes in a notice, marked where they are written (`quoteWords`) so no renaming touches them. */
 const Marked = /"\uE000([^\uE000\uE001]*)\uE001"/gu;
 /** Words between double quotes the engine wrote without marking them: closed before a space, a stop or the end. */
@@ -448,6 +483,9 @@ function renamingOf(viewer: Power): { swaps: Map<string, string>; name: RegExp }
       swaps.set(own, seen);
       // A name that begins with "the" begins a sentence with "The".
       if (own.startsWith("the ")) swaps.set("T" + own.slice(1), seen);
+      // The name the engine gives it where that is not its land's (Babylonia).
+      const shown = asSeenBy(null, () => powerName(p));
+      if (shown !== own) swaps.set(shown, seen);
     }
     const names = [...swaps.keys()].sort((x, y) => y.length - x.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
     r = swaps.size === 0 ? null : { swaps, name: new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu") };

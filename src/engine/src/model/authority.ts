@@ -60,6 +60,8 @@ export interface Grant {
   province: string | null;
   /** For passage through all his land: the provinces he held when it was sealed, less any he has since revoked it in. */
   lands: string[];
+  /** Bug #611: the provinces of a passage through all his land he has revoked it in, as both courts hear of it. */
+  cut: string[];
   sinceTurn: number;
   /** The last season it stands, or null for as long as it is not revoked. */
   untilTurn: number | null;
@@ -69,8 +71,10 @@ export interface Grant {
   heardTurn: number;
   /** The season it was revoked or repudiated, or null while it stands (until untilTurn). */
   endedTurn: number | null;
-  /** Bug #565: the season word of its end reaches the grantee's court; until then he counts on it. Its grantor knows at once. */
+  /** Bug #565: the season word of its end reaches the other side's court; until then it counts on it. Who ended it knows at once. */
   endHeard: number;
+  /** Bug #609: the king who ended it (a repudiation may be the grantee's); null for its grantor, who revokes. */
+  endedBy: Power | null;
 }
 
 export function newGrant(init: Partial<Grant> = {}): Grant {
@@ -81,12 +85,14 @@ export function newGrant(init: Partial<Grant> = {}): Grant {
     grantee: "Egypt",
     province: null,
     lands: [],
+    cut: [],
     sinceTurn: 0,
     untilTurn: null,
     tabletId: "",
     heardTurn: 0,
     endedTurn: null,
     endHeard: 0,
+    endedBy: null,
     ...init,
   };
 }
@@ -98,22 +104,43 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   grantee: S,
   province: opt(S),
   lands: list(S),
+  cut: list(S),
   sinceTurn: I,
   untilTurn: opt(I),
   tabletId: S,
   heardTurn: I,
   endedTurn: opt(I),
   endHeard: I,
+  endedBy: opt(S),
 });
+
+/** Does a court's view of a grant open `province`: its one province, or any of the grantor's but those it was revoked in? */
+export const grantOpens = (g: { province: string | null; cut: readonly string[] }, province: string): boolean => (g.province === null ? !g.cut.includes(province) : g.province === province);
+
+/**
+ * Where a grant's leave runs, in words (bug #611): its one province, or all the grantor's land but the provinces it was
+ * revoked in. `whose` is "your" or "his".
+ */
+export function grantPlace(g: { province: string | null; cut: readonly string[] }, whose: string, name: (id: string) => string): string {
+  if (g.province !== null) return name(g.province);
+  const xs = g.cut.map(name);
+  return xs.length === 0 ? `all ${whose} land` : `all ${whose} land but ${xs.length === 1 ? xs[0] : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`}`;
+}
 
 /** Does the grant stand in this season? */
 export const grantStands = (g: Grant, turn: number): boolean => g.endedTurn === null && g.sinceTurn <= turn && (g.untilTurn === null || turn <= g.untilTurn);
 
 /**
- * Does the grant stand in this season as `p`, its grantor or grantee, knows it (bug #565)? The grantee learns of its end
- * only when word of it comes; until then he counts on it.
+ * Does the grant stand in this season as `p`, its grantor or grantee, knows it (bugs #565, #609)? The side that did not
+ * end it learns of its end only when word of it comes; until then it counts on it.
  */
-export const grantStandsFor = (g: Grant, p: Power, turn: number): boolean => grantStands(g.grantee === p && g.endHeard > turn ? { ...g, endedTurn: null } : g, turn);
+export const grantStandsFor = (g: Grant, p: Power, turn: number): boolean => grantStands(asKnownBy(g, p, turn), turn);
+
+/** Is the grant live (not ended, not run out; standing or still to begin) as `p` knows it? As {@link grantStandsFor}. */
+export const grantLiveFor = (g: Grant, p: Power, turn: number): boolean => grantLive(asKnownBy(g, p, turn), turn);
+
+/** The grant as `p` knows it: not yet ended while the word of its end has not reached him. */
+const asKnownBy = (g: Grant, p: Power, turn: number): Grant => (p !== (g.endedBy ?? g.grantor) && g.endHeard > turn ? { ...g, endedTurn: null } : g);
 
 /**
  * The rights a sealed tablet grants, by its clauses, as `writer` wrote them to `reader`: a passage or basing clause opens
@@ -164,13 +191,15 @@ export interface GrantView {
   grantor: Power;
   grantee: Power;
   province: string | null;
+  /** Bug #611: for passage through all the grantor's land, the provinces it was revoked in, as this court has heard. */
+  cut: string[];
   sinceTurn: number;
   untilTurn: number | null;
   tablet: string;
 }
 
 export function newGrantView(init: Partial<GrantView> = {}): GrantView {
-  return { kind: "passage", grantor: "Egypt", grantee: "Egypt", province: null, sinceTurn: 0, untilTurn: null, tablet: "", ...init };
+  return { kind: "passage", grantor: "Egypt", grantee: "Egypt", province: null, cut: [], sinceTurn: 0, untilTurn: null, tablet: "", ...init };
 }
 
 export const GrantViewSchema: ObjSchema<GrantView> = obj("GrantView", newGrantView, {
@@ -178,6 +207,7 @@ export const GrantViewSchema: ObjSchema<GrantView> = obj("GrantView", newGrantVi
   grantor: S,
   grantee: S,
   province: opt(S),
+  cut: list(S),
   sinceTurn: I,
   untilTurn: opt(I),
   tablet: S,

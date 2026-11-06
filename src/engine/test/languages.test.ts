@@ -239,6 +239,7 @@ describe("LanguagesTests", () => {
       Views.tablet(
         first(s.tablets, (t) => t.id === "t-test"),
         k,
+        s.turn,
       ).text.includes("Peace"),
     );
     person(

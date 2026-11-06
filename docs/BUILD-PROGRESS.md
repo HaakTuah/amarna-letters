@@ -1,7 +1,11 @@
 # Build progress
 
+> **Paused for usage** (3 November 2026, at 83% of the week): the orchestrator's hourly check is deleted and restarts when the
+> owner says "resume", from this file. On resume, each lane's entry below names its queue and its PR; the item lane picks up
+> at 17+++ part E.
+
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+`docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
 how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
@@ -44,6 +48,38 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
+- **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
+  common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
+  and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
+  by hand, as this repository treats `docs/intent/`. What moves: the security baseline, the four pillars, the one inbox,
+  keeping the owner's words, the roles and reviews, helpers, models and effort, the Git flow, usage, updates and "No
+  description left untrue". What stays here: what the game is, its build order and builder rules, its commands and
+  whatever only it has, each rule file cut to that, with pointers into `core/`. The steps: (1) the owner creates the
+  repository and adds it to Claude's and Codex's GitHub access, which only he can do; (2) a fresh session the owner
+  starts in the core repository at high effort writes the core from both games' rule files (it reads them, as they are
+  public, and writes only to the core), from this brief: (a) read both games' rule files whole on `main` (`AGENTS.md`,
+  `CLAUDE.md`, `SECURITY.md`, `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`,
+  `docs/review-guidelines.md`, `docs/developing.md`, and Amarna Letters' builder rules); (b) a rule goes into the core
+  if it holds in both games and would hold in any project, and one that differs only in names, paths or examples goes in
+  once, with the difference left as a slot each project fills; a rule only one game has stays in that game; (c) every
+  rule keeps its reason, and the owner's words behind the common rules move word for word into the core's own archive,
+  never rewritten; (d) the four pillars hold for the core itself, so it comes out shorter than the two games' copies
+  together; (e) nothing personal, as both games' `SECURITY.md` say; (f) done when a table lists every rule of both games
+  and where it went (the core, one game, or dropped with its reason), and a fresh reviewer given only the two games'
+  files and the core finds nothing lost. The design session then checks the result against both games before any game
+  takes a copy; (3) each project, in a PR of its own, adds the copy, cuts its rule files to what is its own, and adds a
+  check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
+  on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
+  one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
+  Barkstreet Snakes. Step 1 is the owner's.
+- **A content security policy for the built app** (archive item 220), first among the side lanes, as security hardening:
+  a policy in the built page (GitHub Pages sends no headers) by which it loads code only from itself and contacts only
+  its own files, the AI providers on one list, and the player's own machine (`localhost`, for local models and the
+  bridge), so no code in it, a package's included, can send a key or a save anywhere else. The list is one place in
+  code: the settings screen offers it in place of today's free-text endpoint, and the build writes the policy from it,
+  so a new provider is one line and the policy follows (Anthropic, OpenAI, Google, Mistral, Groq, DeepSeek, xAI and
+  OpenRouter, which alone reaches most models). Done when a test shows the policy matches the list, model seats and the
+  bridge still work on the PR's preview, and `SECURITY.md` and `docs/developing.md` point to it.
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
@@ -54,6 +90,13 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
+- **A pointer check and a reading-size check on every PR** (archive item 217), beside the copies check and protected
+  like it (`SECURITY.md`, rule 3): (1) every pointer in the rule files to a file, a section or a numbered point must
+  lead to one that exists, or the PR fails, saying which; forms it cannot read are listed, never guessed; (2) the files
+  every session reads, each against a mark of about 20 KB (one already past it, as this file is, starts at its size
+  today, a baseline that may only shrink), their total against today's, and every file past about 50 KB the PR
+  changes (Step 0); a PR that crosses a mark moves the mark in the same PR and says why. The workshop check's points 2
+  and 3 are then measured on every PR; its wording in the builder rules goes to the design session.
 - **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
   locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
@@ -65,27 +108,62 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
+  builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
+  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `docs/orchestrating.md`, moved by
+  the design session at the design document's next refresh; (2) `docs/claude-and-codex.md` (24 KB) is past the 20 KB
+  warning: the sections that wait until Codex can build, "What goes to Codex" to "When Codex is not there", into a file
+  of their own; (3) the slop bar a home of its own, since `docs/review-guidelines.md` points to the slop audit's entry
+  here, which moves to the archive when done; (4) the use-against-ignore rows of 17++ to the archive once its parts are
+  all measured, bringing this file under 20 KB.
+
+- **The old copies, removed** (archive item 207): `scripts/copies-baseline.json` lists 21, nearly all test helpers
+  written again in each test (`begin`, a `Board`), and one passage of the builder rules said twice (to be fixed in the
+  design document). A workshop lane removes them by pointing to one shared helper, and drops each entry as it goes.
+- **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
+  review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
+  file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
+- **#612, decided** (the owner, 3 November 2026; archive item 204): after the usage reset, a fresh session fixes the
+  one case left open (a scheduled or standing order for a far unit lost out of sight is refused at once, through
+  `TurnEngine.bind` and the standing-order target check), the PR is reviewed again, and it merges at a clean review.
+- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
+  rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
+  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
+  owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
+  only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
+  reviews"); report a PR that lacks it.
+
+- **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
+  "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
+  revision 112): two hidden, seeded traits, endurance (the pace of lone travellers and small parties) and robustness
+  (the odds wherever a character's life or health is already at risk). Both show roughly in a man's looks and sharpen
+  through his record, and fees follow demand. The two share one budget (archive item 188, revision 31): seeded
+  together on a line from lean and quick to broad and tough, never adding up past a ceiling (first guess 160 of 200,
+  for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
+  Built with the first item whose errands use them; a save version.
+
+- **The owner's answers of 3 November, morning** (archive item 185):
+  - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
+    honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
+    borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
+    kings' trust readings still behave well.
+  - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
+    the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
+    together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
+  - ~~**#601, a fast courier, hired:**~~ (done, #641) a job whose errand is a ride to a far province of the king's: its
+    report and notices come home within the season; the rider asks by what he heard a ride pays, how much sooner the
+    report comes and how many rides the court asks against the free people there, and takes less down to a least. For
+    item 18: the rider is never stopped on the road (a first guess). Save version 59. Report:
+    `docs/rounds/2026-11-03-hired-courier.md`.
+  - ~~**#618, after item 17++a:**~~ (done, #637) word of a change of hands a vassal's or ally's court saw goes by the
+    road to the king it is bound to: a notice, and his map. The Great Kings hear of a change of the map every 4.3 to
+    5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
+    `docs/rounds/2026-11-03-news-beyond-sight.md`.
+  - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
+    land's king, or keep it back.
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
-
-- **Far troops raised and gone (bug #600): blocked** (#612, draft; question #621): a far unit known once word of its
-  raising could come and kept, as last reported, until word of its end could; its battles, movement lines, losses and
-  this season's orders by the road. Blocked after three review rounds and the escalation: a scheduled or standing order
-  for a unit lost out of sight is still refused at once (`bind`). Save version 54 on the branch. Report:
-  `docs/rounds/2026-11-03-far-unit-known.md`.
-
-- ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
-  orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
-  unable to run. Save version 53. Report: `docs/rounds/2026-11-03-levy-drop-heard.md`.
-
-- ~~**A grant and its end by word (bug #565)**~~ (done, #606): a grant by order, a revocation and closed roads reach
-  the grantee's court by word, its view keeping the grant until then. Save version 52. Filed: #609 (repudiation, the
-  same leak), #611. Report: `docs/rounds/2026-11-03-grants-heard.md`.
-
-- ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
-  caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
-  version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
-  `docs/rounds/2026-11-03-far-as-reported.md`.
 
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
   - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
@@ -136,8 +214,10 @@ the workshop check): among them the history check's lines still unclear for a re
   **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
   the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
-  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
-  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
+  season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
+  `rules/wording.ts`; save version 60). **Next:** the owner's answer to #591 (the bribed envoy's words); then the rest in
+  the order above, from the rulebook and the seat view.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
@@ -184,6 +264,11 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
+| #587 | Sending gold ahead to far coffers that owe or run short (`--coffer-play-half`) | 0.81 growth to 0.72, 21 wins to 29, in 50 games; 32 sends in 15 games, 24 bills unpaid in 10 | Pays in growth, not in wins: credit covers most far costs, so sending ahead seldom matters; for item 18 |
+| #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
+| #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
+| 17++a | Waging the war chosen, breaking a plain peace for it (`--war-play-half`) | 0.78 growth to 0.87, 13 wins to 7, in 20 games | Pays in wins, not in growth: Assyria and Arzawa lose by their wars of choice; for item 18 |
+| 17++a | Judging whether land would obey, and occupying it until it does (`--occupy-play-half`) | 0.88 growth to 0.82, 9 wins to 3, in 12 games | Pays |
 | 17++ C | Taking up the provinces that look to them where it pays, refusing the rest (`--take-up-play-half`) | 0.94 growth to 0.86, 26 wins to 24, in 50 games; declarations in 47 games (884), 845 taken up, 79 refused, 490 passed | Pays |
 | 17++ C | Giving a trusted governor the threatened province beside his own (`--region-play-half`) | 0.96 growth to 0.89, 33 wins to 17, in 50 games; regions given in 49 games (463) | Pays |
 | 17++ C | Making governors vassal kings where the tribute nets more than keeping (`--grant-play-half`) | 0.94 growth to 0.86, 28 wins to 22, in 50 games; 24 kingships taken of 95 offered | Pays (the land's multiple against tribute stays a finding for item 18) |
@@ -201,9 +286,9 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) under way, `item/offer-carriers`; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
-| 17++a | Something happens every season | not started (next after 17++) | | |
-| 17+++ | The season plays out | not started | | |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) merged, #538; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
+| 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
+| 17+++ | The season plays out | in progress: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight) not started: pick up there, on a fresh branch from `develop` | `item/season-plays-out` | `docs/rounds/2026-11-03-season-plays-out.md` |
 | 17+++a | Keys for everything | not started | | |
 | 17+++b | History, search and names | not started | | |
 | 17++++ | A small state as a seat | not started | | |

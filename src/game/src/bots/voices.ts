@@ -10,17 +10,10 @@
  *
  * Only presentation and voice name a power ("Different data, same rules"): a king's closing line is his own.
  */
-import { fnv64, tier, type Power } from "@amarna/engine";
+import { pick, tier, type Power } from "@amarna/engine";
 
-/**
- * One of `forms`, chosen by `key` alone: "season|the rest". The rest picks where to start and each season moves on by one,
- * so a king writing the same letter to the same court season after season goes through every form in turn.
- */
-export function pick<T>(forms: readonly T[], key: string): T {
-  const bar = key.indexOf("|");
-  const start = Number.parseInt(fnv64(key.slice(bar + 1)).slice(8), 16);
-  return forms[(start + Number.parseInt(key.slice(0, bar), 10)) % forms.length];
-}
+/** The engine's `pick`: one of a few forms by "season|the rest", so a king goes through every form in turn. */
+export { pick };
 
 /** What a letter names, filled into its words. */
 export interface LetterParts {
@@ -246,6 +239,8 @@ const Closings: Partial<Record<Power, readonly string[]>> = {
     "As your father was a friend to my father, let my brother be ten times more to me.",
     "Let the friendship between my brother and me be greater than our fathers had.",
     "Ask your elders, my brother: no friend of your house was ever nearer than mine.",
+    "Between my brother's house and mine let the friendship never grow cold.",
+    "May the gods keep my brother and me friends of one heart.",
   ],
   Assyria: [
     "I am a Great King, as you are; my house stands level with yours.",

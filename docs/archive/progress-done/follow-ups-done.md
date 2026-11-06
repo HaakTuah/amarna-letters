@@ -86,3 +86,31 @@ there word for word on 3 November 2026 (the workshop check: the progress file ha
   fixture, so every engine test builds the whole starting world~~ (#441: `smallWorld` in `src/engine/test/support.ts`,
   the engine's rule tests on it, its suite 80 s to 44 s). Left for a later pass: the engine test files #378 changes
   (`counts`, `crowns`, `declarations`, `governors-region`, `mood-reads`, `seat-word`, `who-they-are`, `works`).
+
+- ~~**#586, the polish lane:** a province's card lists, for each glowing frontier, the armies the seat sees on the
+  other side.~~ (#640: `facedAcross` in `land-layers.ts`, the glow's own test, shared by the band and the card.)
+
+- ~~**Gold travels both ways**~~ (done, #635; `docs/design/53-gold-travels-both-ways.md`, report
+  `docs/rounds/2026-11-03-gold-travels-both-ways.md`): far provinces pay from their coffers, credit with bills carried
+  home, gold sent ahead, caravans carrying their pay; the twin canary's #587 leak is gone. Save version 61.
+
+- ~~**A narrowed passage read by where it was revoked (bug #611)**~~ (done, #623): a passage through all the land,
+  revoked in one province, reads "all your land but Nesa" (`GrantView.cut`, never the land itself); the grantee reads
+  it when the word comes. Save version 56. Report: `docs/rounds/2026-11-03-narrowed-passage.md`.
+
+- ~~**A repudiation by word (bug #609)**~~ (done, #619): the tablet's other king learns of a repudiation when word of
+  it comes, his tablet, grants, vassal bonds and cession keeping it till then; a third court never; a grantor revokes a
+  grant its grantee repudiated as he knows it. Save version 55. Report: `docs/rounds/2026-11-03-repudiation-heard.md`.
+
+- ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
+  orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
+  unable to run. Save version 53. Report: `docs/rounds/2026-11-03-levy-drop-heard.md`.
+
+- ~~**A grant and its end by word (bug #565)**~~ (done, #606): a grant by order, a revocation and closed roads reach
+  the grantee's court by word, its view keeping the grant until then. Save version 52. Filed: #609 (repudiation, the
+  same leak), #611. Report: `docs/rounds/2026-11-03-grants-heard.md`.
+
+- ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
+  caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
+  version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
+  `docs/rounds/2026-11-03-far-as-reported.md`.

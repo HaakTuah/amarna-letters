@@ -59,7 +59,7 @@ export function holdingLayer(s: MapScene, mode: MapMode): string {
 }
 
 /** The legend's line for the mood view. */
-/** The mood view's legend: its four steps, each with its colour's class in app.css (`.mood-legend .sw`). */
+/** The mood view's legend: its four steps, each with its colour's class in map.css (`.mood-legend .sw`). */
 export const MoodLegend = { title: "Mood of the land, as you last heard it; older reads fade:", steps: [["loyal", "loyal"], ["uneasy", "uneasy"], ["restless", "restless"], ["none", "no word"]] } as const;
 
 /** Where a province's governor sits, for the card: his name and seat. */

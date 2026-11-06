@@ -23,9 +23,12 @@
   - − 0.3 for a treaty with no broken oath, and − 0.2 more for a full alliance with no broken oath;
   - + 0.15 if we are the leader.
 
-  In troop planning, a friend's hostility counts only a quarter, unless we are betraying him.
+  In troop planning, a friend's hostility counts only a quarter, unless we are betraying him. A friend made the war target
+  whose bond we do not keep (`keptBond`) is betrayed in everything (item 17++a): troop planning, gifts, audiences, clauses
+  and relief.
 - **Willing** means willing to send troops into a king's land or at his troops. It is decided by the king's own temperament, never by a trial plan:
-  - never against a friend, unless betraying him;
+  - never against a friend, unless betraying him or he is the war target, chosen with the peace priced (item 17++a; off
+    with `--no-war-play`, measured with `--war-play-half`);
   - always against the betrayed friend, the war target, a hostile king and a sworn foe;
   - against the leader, if aggression is above 0.25;
   - against anyone else, if aggression is above 0.55, or above 0.8 while another king leads.

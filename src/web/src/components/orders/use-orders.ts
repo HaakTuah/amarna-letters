@@ -25,7 +25,9 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
   // Structured press (item 8): letters and tablets are clauses only.
   const structured = state.config.pressMode === "structured";
   // Item 11a: a job's whole fee, as typed, else what the person would take for the term with half handed over now.
-  const wage = (id: string, ask: number): number => f.wages[id] ?? feeFor(ask, clamp(f.term, 1, 30), 50, v.trust);
+  // A ride is one season (#601): its fee and term are a season's.
+  const jobTerm = f.errandWhat === "ride" ? 1 : clamp(f.term, 1, 30);
+  const wage = (id: string, ask: number): number => f.wages[id] ?? feeFor(ask, jobTerm, 50, v.trust);
 
   const visibleUnits = [...v.units].sort((a, b) => AllPowers.indexOf(a.power) - AllPowers.indexOf(b.power) || byName(a.province, b.province));
   const ready = v.court.filter((c) => c.ready);
@@ -39,7 +41,6 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
     draft.other.push(o);
     onChanged();
   };
-  const term = clamp(f.term, 1, 30);
   const price = (k: string): number => v.prices.getOrDefault(k, 0);
   const sallyMin = v.prices.getOrDefault("sallyMinWalls", 2);
   const sallying = [...v.owner]
@@ -95,7 +96,7 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
   const toggle = <T,>(list: T[], item: T, on: boolean): T[] => (on ? (list.includes(item) ? list : [...list, item]) : list.filter((x) => x !== item));
   const g = f.g;
   const greetingText = Greeting.render(me, f.sendTo as Power, g);
-  return { draft, state, onChanged, onSubmit, v, me, f, set, structured, wage, visibleUnits, ready, reserved, others, mine, add, term, price, sallyMin, sallying, addStandingOrder, addStanding, addDispatch, addSpy, toggle, g, greetingText };
+  return { draft, state, onChanged, onSubmit, v, me, f, set, structured, wage, jobTerm, visibleUnits, ready, reserved, others, mine, add, price, sallyMin, sallying, addStandingOrder, addStanding, addDispatch, addSpy, toggle, g, greetingText };
 }
 
 export type OrdersContext = ReturnType<typeof useOrders>;

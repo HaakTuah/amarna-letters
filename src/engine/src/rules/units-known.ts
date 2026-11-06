@@ -26,7 +26,7 @@ export function raisedKnown(engine: TurnEngine, p: Power, u: Unit, now: number =
  * season now, or cannot reach at all, at once, as a unit there is shown as it is (`reportOf`, on today's roads).
  */
 function heardFrom(engine: TurnEngine, p: Power, turn: number, at: string, now: number): boolean {
-  const d = engine.wordTo(p, at);
+  const d = engine.wordFrom(p, at);
   return d === 0 || !Number.isFinite(d) || wordCame(engine, p, turn, at, now);
 }
 
@@ -85,7 +85,7 @@ export function reportOf(engine: TurnEngine, u: Unit): { province: string; men: 
 
 /** Which of a far unit's reports its king has as newest (`reportOf`), or null for one within its couriers' season. */
 export function reportIndex(engine: TurnEngine, u: Unit): number | null {
-  const d = engine.wordTo(u.power, u.province);
+  const d = engine.wordFrom(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return null;
   const lag = u.goneTurn > 0 ? engine.s.turn - u.goneTurn : 0;
   return Math.min(u.trail.length - 1, Math.max(0, u.trail.length - 1 - d + lag));

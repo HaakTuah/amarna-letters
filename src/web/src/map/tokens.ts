@@ -96,7 +96,7 @@ export function peopleAtCourts(input: MapInput): string {
     g.push(p);
   }
   let sb = "";
-  // Each court's people stand in rows of three to the left of its city, clear of its outermost ring (--ring, app.css), and
+  // Each court's people stand in rows of three to the left of its city, clear of its outermost ring (--ring, map.css), and
   // its news to the right, so neither touches the badge or the counters above it (item 11c++); round a besieged city, clear
   // of the siege camp's tents too, which are part of its badge.
   const besieged = new Set(s.sieges.map((x) => x.province));
@@ -178,8 +178,11 @@ interface Item {
   inner: string;
 }
 
-/** Keeps one element per key, so a token that moves keeps its element and its CSS transition slides it. */
-export function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<string, SVGGElement>): void {
+/**
+ * Keeps one element per key, so a token that moves keeps its element and its CSS transition slides it. `leaveAfter`: how
+ * long a token gone stays where it was before it is taken away (item 17+++: until the season's results land).
+ */
+export function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<string, SVGGElement>, leaveAfter = 0): void {
   const keep = new Set<string>();
   for (const it of items) {
     keep.add(it.key);
@@ -199,7 +202,8 @@ export function reconcile(parent: SVGGElement, items: readonly Item[], known: Ma
   }
   for (const [k, el] of known)
     if (!keep.has(k)) {
-      el.remove();
       known.delete(k);
+      if (leaveAfter > 0) window.setTimeout(() => el.remove(), leaveAfter);
+      else el.remove();
     }
 }

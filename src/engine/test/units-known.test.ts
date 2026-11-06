@@ -14,6 +14,8 @@ import {
   newMandate,
   newOwnerChange,
   newPlannedOrder,
+  newScheduledOrders,
+  newStandingRequest,
   newSleepState,
   newTurnSubmission,
   newUnit,
@@ -102,6 +104,35 @@ describe("UnitsKnownTests", () => {
       told = failed().some((x) => x.title === "Order failed" && x.body.includes("no longer stood in Nippur"));
     }
     Assert.true(told);
+  });
+
+  test("A scheduled or standing order for a far unit lost out of sight is kept, as for one that stands, until word of its end (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    loseUnit(s, u);
+    const gone = s.turn;
+    const sub = newTurnSubmission({
+      scheduled: [newScheduledOrders({ turn: s.turn + 2 * d + 4, orders: [move("nippur", "ur")] })],
+      standing: [newStandingRequest({ when: "UnitAttacked", province: "nippur", orders: [hold("nippur")] })],
+    });
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", sub]]));
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    // Not refused at court: both are bound to the army its king still knows there.
+    Assert.false(inboxOf(s, "Egypt").some((i) => i.kind === "Rejected" && i.title.endsWith("orders not kept")));
+    Assert.equal("u990", s.sleep.get("Egypt").scheduled[0]?.unitId);
+    Assert.equal("u990", s.standing.get("Egypt").orders[0]?.unitId);
+    // Once word of its end comes, both drop, as for a unit lost in sight.
+    while (s.turn < gone + 1 + d) {
+      Assert.equal(1, s.sleep.get("Egypt").scheduled.length);
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    Assert.empty(s.sleep.get("Egypt").scheduled);
+    Assert.empty(s.standing.get("Egypt").orders);
   });
 
   test("A far levy's army lost before word of its raising keeps its orders, named by its levy, until word of its end (bug #600)", () => {

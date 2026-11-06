@@ -181,12 +181,12 @@ describe("NamesAsClaims", () => {
     s.fallsHeard.set("Egypt", ["Amurru"]);
     e.syncNames();
     Assert.equal("Amurru", asSeenBy("Egypt", () => land("Amurru")));
-    notify(s, "Egypt", "Rumor", "A kingdom falls", "Amurru has fallen; Gubla stands. The Kaska lands are quiet.");
-    Assert.equal("Amurru has fallen; Gubla stands. The Kaska lands are quiet.", said("Egypt"));
+    notify(s, "Egypt", "Rumor", "A kingdom falls", "Amurru has fallen; Gubla stands. Kaska is quiet.");
+    Assert.equal("Amurru has fallen; Gubla stands. Kaska is quiet.", said("Egypt"));
     // A name beginning with "the" is found at the head of a sentence too.
-    e.claimName("Hatti", claimName("the Kaska lands"));
-    notify(s, "Hatti", "Notice", "News", `The Kaska lands are quiet; Hatti waits. Hatti is patient. He said: ${quoteWords("wait.")} Hatti waits. (Hatti waits.)`);
-    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))} are quiet; the Kaska lands waits. The Kaska lands is patient. He said: "wait." The Kaska lands waits. (The Kaska lands waits.)`, said("Hatti"));
+    e.claimName("Hatti", claimName("the Seha River Land"));
+    notify(s, "Hatti", "Notice", "News", `The Seha River Land is quiet; Hatti waits. Hatti is patient. He said: ${quoteWords("wait.")} Hatti waits. (Hatti waits.)`);
+    Assert.equal(`${asSeenBy("Hatti", () => land("Seha"))} is quiet; the Seha River Land waits. The Seha River Land is patient. He said: "wait." The Seha River Land waits. (The Seha River Land waits.)`, said("Hatti"));
     // The god view keeps the engine's names.
     Assert.equal("Amurru", land("Amurru"));
   });

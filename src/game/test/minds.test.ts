@@ -1,0 +1,74 @@
+import { describe, test } from "vitest";
+import { newGame } from "@amarna/engine";
+import { GameLog, GameRunner, MindBook, ScriptMind, TemplateNarrator, exportJsonl, type ISeat } from "@amarna/game";
+import { scriptSeats, seasons } from "./small-world.ts";
+import { Assert } from "../../engine/test/support.ts";
+
+// Item 17+++: a mind's own words are kept season by season, each page only when it changed, and read back as they stood.
+describe("MindTests", () => {
+  test("A page is kept only when it changed, and a mind reads back as it stood at a season", () => {
+    const book = new MindBook();
+    book.keep(1, "Egypt", { notes: "Watch Hatti.", summary: "", plan: "Hold the Delta." });
+    book.keep(2, "Egypt", { notes: "Watch Hatti.", summary: "", plan: "Take Gaza." });
+    book.keep(3, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza." });
+    // The blank summary is never kept until it is written; unchanged pages are not kept again.
+    Assert.equal(["1 notes", "1 plan", "2 plan", "3 notes", "3 summary"], book.pages.map((p) => `${p.turn} ${p.page}`));
+    Assert.equal(["notes: Watch Hatti. (1)", "plan: Take Gaza. (2)"], book.at("Egypt", 2).map((p) => `${p.page}: ${p.text} (${p.turn})`));
+    Assert.equal(3, book.at("Egypt", 3).length);
+    Assert.equal([], book.at("Hatti", 3));
+    // A ledger line struck out no longer stands, though its history stays.
+    book.keep(4, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza.", "ledger:Hatti": "Owes 50." });
+    book.keep(5, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza." });
+    Assert.equal("Owes 50.", book.at("Egypt", 4).find((p) => p.page === "ledger:Hatti")?.text);
+    Assert.equal(undefined, book.at("Egypt", 5).find((p) => p.page === "ledger:Hatti"));
+    Assert.equal(1, book.pages.filter((p) => p.turn === 5).length);
+  });
+
+  test("The runner keeps a minded seat's pages each season, and the log carries them through a save", async () => {
+    const seats = scriptSeats(3);
+    const inner = seats.get("Mitanni");
+    let season = 0;
+    const minded: ISeat = {
+      label: "Minded",
+      decide: (v, sig) => {
+        season = v.turn;
+        return inner.decide(v, sig);
+      },
+      hostAudience: (a, c, sig) => inner.hostAudience(a, c, sig),
+      mindPages: () => ({ notes: `Season ${season}.`, plan: "Hold Washukanni." }),
+    };
+    seats.set("Mitanni", minded);
+    const r = Object.assign(new GameRunner(newGame(3, seasons(3)), seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    await r.prepare();
+    while (await r.playTurn());
+    // The plan once, the notes each season; no other seat has a mind.
+    Assert.equal(["Mitanni"], r.log.minds.minds);
+    Assert.equal(1, r.log.minds.pages.filter((p) => p.page === "plan").length);
+    Assert.equal(3, r.log.minds.pages.filter((p) => p.page === "notes").length);
+    const back = GameLog.fromJsonl(r.log.toJsonl());
+    Assert.equal(r.log.minds.pages, back.minds.pages);
+    Assert.equal("Season 2.", back.minds.at("Mitanni", 2).find((p) => p.page === "notes")?.text);
+    // A replay of the game, and the export, carry them too.
+    const replay = GameRunner.forReplay(back);
+    Assert.equal(r.log.minds.pages, replay.log.minds.pages);
+    Assert.equal(r.log.minds.pages, GameLog.fromJsonl(exportJsonl(r.log)).minds.pages);
+  });
+
+  test("A shared log whose own words are malformed fails to load, cleanly", () => {
+    const good = '{"turn":2,"who":"Egypt","page":"plan","text":"Take Gaza.","type":"mind"}';
+    Assert.equal("Take Gaza.", GameLog.fromJsonl(good).minds.at("Egypt", 2)[0].text);
+    for (const bad of [
+      '{"turn":2,"who":"Egypt","page":null,"text":"x","type":"mind"}',
+      '{"turn":-1,"who":"Egypt","page":"plan","text":"x","type":"mind"}',
+      '{"turn":2,"who":"","page":"plan","text":"x","type":"mind"}',
+      '{"turn":2,"who":"Egypt","page":"secrets","text":"x","type":"mind"}',
+      `{"turn":2,"who":"Egypt","page":"plan","text":"${"x".repeat(9000)}","type":"mind"}`,
+      // Of the wrong type, which a converting reader would have turned into something it is not.
+      '{"type":"mind","turn":null,"who":123,"page":["notes"],"text":{"x":"hello"}}',
+      '{"type":"mind","turn":"2","who":"Egypt","page":"plan","text":"x"}',
+      '{"type":"mind","turn":2.5,"who":"Egypt","page":"plan","text":"x"}',
+      '{"type":"mind","who":"Egypt","page":"plan","text":"x"}',
+    ])
+      Assert.throws(() => GameLog.fromJsonl(bad));
+  });
+});

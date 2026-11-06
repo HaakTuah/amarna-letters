@@ -33,7 +33,7 @@ export const SignalKinds: readonly string[] = [
   "deportees-freed", "harvest-reaped", "granted-by-order", "spy-watching",
   "band-crowd", "band-mutiny", "band-refugees", "band-successor", "band-split", "band-outlaw", "band-hunted", "band-melted", "band-ship", "way-back",
   "caravan-banded", "ship-pirated", "death", "carrier-own", "carrier-passing", "carrier-hired", "carrier-self", "letter-read", "letter-lost", "news-sold", "secrets-caught", "report-sold", "border-walk", "robbers-named", "stay-hired",
-  "job-done", "hire-abroad", "hoard-seized", "tablet-sold", "purse-taken",
+  "job-done", "hire-abroad", "ride-hired", "ride-back", "hoard-seized", "tablet-sold", "purse-taken",
   "unheard", "unheard-home", "unheard-lie", "go-between", "court-go-between", "bridged-servant", "mandate-slow", "envoy-mute", "tablet-unread", "tablet-read-late", "bent-words", "bent-noticed",
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
   "risen", "fall-held", "fall-lawless",
@@ -56,6 +56,8 @@ export const SignalKinds: readonly string[] = [
   "govern-region", "cession-unkept",
   // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.
   "census", "census-home", "demand-share", "demand-amount", "levy-share",
+  // #587: gold sent ahead to a far coffer, a bill from afar the treasury could not pay, a far coffer taken with its province.
+  "gold-sent", "bill-unpaid", "coffer-taken", "unfunded",
 ];
 
 const MessengerBlamed = rx(

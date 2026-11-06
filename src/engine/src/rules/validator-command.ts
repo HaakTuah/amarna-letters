@@ -19,7 +19,7 @@ function grantee(v: Checking, id: string, what: string): string | null {
   if (coverOf(c, v.power) !== null) return `${c.name} is not at your court`;
   if (c.status === "Captured" || c.status === "Dead") return `${c.name} is not at your court`;
   if (c.status === "Employed" && c.employer !== v.power) return `${c.name} serves another court`;
-  if (c.at !== v.power || c.duty !== "None") return `${c.name} is not at your court: ${what} is granted to a person who stands there`;
+  if (c.at !== v.power || c.duty !== "None") return `${c.name} is not at your court; ${what} is granted to a person who stands there`;
   return null;
 }
 
@@ -29,11 +29,11 @@ function mandateRefusal(v: Checking, m: Mandate): string | null {
   if (!EngageValues.includes(m.engage)) return `a mandate engages by one of ${EngageValues.join(", ")}, not '${m.engage}'`;
   if (!WithdrawValues.includes(m.withdraw)) return `a mandate withdraws by one of ${WithdrawValues.join(", ")}, not '${m.withdraw}'`;
   const needsPlace = m.task === "invade" || m.task === "besiege" || m.task === "raid";
-  if (needsPlace && (m.target === null || !v.Map.exists(m.target))) return `the task ${m.task} names a province: '${m.target ?? ""}' is not one`;
+  if (needsPlace && (m.target === null || !v.Map.exists(m.target))) return `the task ${m.task} names a province; '${m.target ?? ""}' is not one`;
   if (m.target !== null && !v.Map.exists(m.target)) return `there is no province called '${m.target}'`;
   const needsPower = m.task === "support" || m.task === "shadow";
   const isPower = (x: Power | null): boolean => x !== null && AllPowers.includes(x);
-  if (needsPower && !isPower(m.power)) return `the task ${m.task} names a power: '${m.power ?? ""}' is not one`;
+  if (needsPower && !isPower(m.power)) return `the task ${m.task} names a power; '${m.power ?? ""}' is not one`;
   if (m.avoidPower !== null && !isPower(m.avoidPower)) return `there is no power called '${m.avoidPower}'`;
   if (m.until !== null && m.until < v.S.turn) return `a mandate cannot end before this season (turn ${v.S.turn})`;
   return null;
@@ -56,7 +56,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       const u = unitOf(order)!;
       // A grant is never revoked at a distance at once: a new commander is named only once the old one has stepped down.
       if (u.commander !== null && u.relieveAt !== null) return `the unit in ${order.unit} has a commander until word taking back his command reaches him (turn ${u.relieveAt})`;
-      if (u.commander !== null) return `the unit in ${order.unit} already has a commander: take the command back first (relieve)`;
+      if (u.commander !== null) return `the unit in ${order.unit} already has a commander; take the command back first (relieve)`;
       if (v.orders.some((o) => o !== order && o.type === "command" && o.unit === order.unit && v.orders.indexOf(o) < v.orders.indexOf(order))) return `the unit in ${order.unit} was already given a commander by an earlier order`;
       return grantee(v, order.character, "command");
     }
@@ -73,7 +73,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (why !== null) return why;
       // "No commander, no mandate": a mandate is given to the man who leads the unit.
       const granted = v.orders.some((o) => o.type === "command" && o.unit === order.unit);
-      if (order.mandate !== null && unitOf(order)!.commander === null && !granted) return `nobody commands the unit in ${order.unit}: grant its command first, then give it a mandate`;
+      if (order.mandate !== null && unitOf(order)!.commander === null && !granted) return `nobody commands the unit in ${order.unit}; grant its command first, then give it a mandate`;
       return order.mandate === null ? null : mandateRefusal(v, order.mandate);
     }
     case "supply": {
@@ -91,7 +91,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       const known = governorsKnown(S, S.turn).filter((g) => g.power === v.power);
       // A governorship taken back by an order of this season is not one to grant beside: the recall goes first.
       const recalled = (g: { province: string }): boolean => v.orders.some((o) => o.type === "unseat" && o.province === g.province);
-      if (known.some((g) => g.province === order.province && g.relieved === null)) return `${order.province} already has a governor: take the governorship back first (unseat)`;
+      if (known.some((g) => g.province === order.province && g.relieved === null)) return `${order.province} already has a governor; take the governorship back first (unseat)`;
       if (v.orders.some((o) => o.type === "govern" && o.province === order.province && v.orders.indexOf(o) < v.orders.indexOf(order))) return `${order.province} was already given a governor by an earlier order`;
       if (order.levies < 0 || order.levies > MostGovernorLevies) return `a governor may be allowed from 0 to ${MostGovernorLevies} levies`;
       // Item 17++: a governor of ours may be given a province beside those he holds, governed from his seat.
@@ -100,7 +100,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
         const c = findCharacter(S, order.character);
         if (c === null) return v.nobody(order.character);
         if (v.busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
-        if (!held.some((g) => v.Map.neighbors(g.province).includes(order.province))) return `${c.name} governs no province beside ${order.province}: one governor holds only neighbouring provinces`;
+        if (!held.some((g) => v.Map.neighbors(g.province).includes(order.province))) return `${c.name} governs no province beside ${order.province}; one governor holds only neighbouring provinces`;
         return null;
       }
       return grantee(v, order.character, "a governorship");
@@ -113,7 +113,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
         if (!v.Map.exists(x) || v.Map.get(x).isSea) return `there is no land province called '${x}'`;
         // As the court knows it (hidden information): land lost out of its sight fails when the word arrives, and says so by the road.
         if (v.knownOwner(x) !== v.power) return `${x} is not yours`;
-        if (courtOf(S, v.Map, v.power) === x) return `your court is in ${x}: a king does not grant away the city he holds court in`;
+        if (courtOf(S, v.Map, v.power) === x) return `your court is in ${x}; a king does not grant away the city he holds court in`;
         if (S.crowns.some((k) => k.power === v.power && (k.heard === null || k.heard > S.turn) && k.provinces.includes(x))) return `${x} is already in a grant on its way`;
       }
       // The provinces hang together: each beside another named, so one man rules them from one seat.
@@ -158,7 +158,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       const u = S.units.find((x) => x.province === order.province && x.power === v.power && x.kind === "Army") ?? null;
       if (u === null) return `no army of yours stands in ${order.province} to carry the offer`;
       const carried = courtOf(S, v.Map, v.power) === order.province || (u.commander !== null && S.turn >= u.commandFrom);
-      if (!carried) return `nobody carries the offer: your army in ${order.province} has no commander with it, and you are not there`;
+      if (!carried) return `nobody carries the offer; your army in ${order.province} has no commander with it, and you are not there`;
       if (!S.bands.some((b) => b.province === order.province)) return `no band works in ${order.province} that you can see`;
       if (order.term < 1 || order.term > 12) return "a term of 1 to 12 seasons";
       if (order.fee <= 0) return "the fee must be positive";

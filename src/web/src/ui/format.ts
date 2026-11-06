@@ -1,5 +1,8 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, nameFrom, powerName, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+
+/** A power by the name every screen and notice gives it (the engine's `powerName`). */
+export { powerName };
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -7,8 +10,6 @@ export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLow
 export const shekels = (s: number): string => formatMoney(Math.round(s));
 
 export const provinceName = (id: string): string => (WorldMap.default.exists(id) ? WorldMap.default.get(id).name : id);
-
-export const powerName = (p: Power): string => (p === "Babylonia" ? "Babylonia" : land(p));
 
 /** The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's. */
 export const when = (turn: number, court: Power | null): string => dateLabel(turn, court);
@@ -79,8 +80,14 @@ export function heardIn(heard: SeatView["nameClaims"][number]["heard"], me: Powe
 
 /** A grant of passage or basing as its two kings read it (item 9). */
 export function grantLine(g: GrantView, me: Power): string {
-  const where = g.province !== null ? WorldMap.default.get(g.province).name : `all ${g.grantor === me ? "your" : `${powerName(g.grantor)}'s`} land`;
+  const where = grantPlace(g, g.grantor === me ? "your" : "his", (id) => WorldMap.default.get(id).name);
   const what = g.kind === "passage" ? `pass through ${where}` : `stand within the walls of ${where}`;
   const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;
 }
+
+/** "of Gubla" after a person's name, or nothing when the name already says it ("Abdi-Ashtarti of Ta-Mehu"). */
+export const fromWhere = (c: { name: string; origin: string }): string => (nameFrom(c) === c.name ? "" : `of ${c.origin}`);
+
+/** "of Gubla, scribe of the treasury", or only the calling when the name says the place. */
+export const fromAndCalling = (c: { name: string; origin: string; calling: string }): string => [fromWhere(c), c.calling].filter((x) => x !== "").join(", ");

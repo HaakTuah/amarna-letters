@@ -1,6 +1,6 @@
 import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
 import { highlights, temperament } from "@amarna/game";
-import { color, powerName, shekels, when } from "../ui/format.ts";
+import { color, fromWhere, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { useMemo } from "react";
 
@@ -147,7 +147,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   <tr key={w.character.id}>
                     <td>{i + 1}</td>
                     <td>
-                      {w.character.name} <span className="muted">of {w.character.origin}</span>
+                      {w.character.name} <span className="muted">{fromWhere(w.character)}</span>
                     </td>
                     <td>{Wealth.standing(w.character)}</td>
                     <td>{shekels(w.total)}</td>
