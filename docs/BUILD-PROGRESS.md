@@ -116,7 +116,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**Far troops raised and gone (bug #600)**~~ (done, #612, as the owner decided on 3 November 2026, archive item
   204): a far unit is known once word of its raising could come and kept, as last reported, until word of its end
   could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
-  standing) by the road. Save version 68. Left to #615: the rest of a far unit as it truly is. Report:
+  standing) by the road. Save version 69. Left to #615: the rest of a far unit as it truly is. Report:
   `docs/rounds/2026-11-03-far-unit-known.md`.
 - **A far unit of a king's own, the rest of it as reported (bug #615): next, for a fresh session.** Its brief: the
   issue's last comment (what #612 built to build on, what is left, files and lines, how to test).

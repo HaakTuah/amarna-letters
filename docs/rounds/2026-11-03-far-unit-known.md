@@ -37,7 +37,7 @@ out of `views.ts` (47 KB).
   (`wakeFrom`, as #537 did for other orders). `GameState.lastSeen` holds the king's own outcomes only where his
   couriers reach.
 - **Rulebook** (`llm/src/rules-command.ts`), **README** (the map paragraph), **design note**
-  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 68** (54 on the branch until it was merged with `develop`, which had reached 67 by then).
+  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 69** (54 on the branch until it was merged with `develop`, which had reached 68 by then).
 - **Tests:** a twin in the twin canary (a far army beaten out of sight), failing on `develop` (its view, upkeep, last
   season, two events and the movement notice), passing here; #569's twin (a far levy that raised nothing) no longer
   lists its army's view, upkeep and scheduled binding as known leaks (#600), which the ratchet's last test proves; `units-known.test.ts`: a far unit lost stays as reported
