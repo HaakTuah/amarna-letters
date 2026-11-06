@@ -20,8 +20,8 @@ Presentation only, built in parts, each its own pull request.
 | A | A mind's own words kept season by season and shown (the record) | merged, #627 |
 | B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | merged, #645 |
 | C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | merged, #634 |
-| D | The land's season under the realms, and its change moving | this PR |
-| E | Units drawn as what they are, with weight; the world acting on them | not started |
+| D | The land's season under the realms, and its change moving | merged, #676 |
+| E | Units drawn as what they are, with weight; the world acting on them | this PR (#728) |
 | F | Threads to watch and the director camera (spectator) | merged, #664 |
 | G | Smooth on a phone: frame times in the busiest season, with a recording | #667 (bar not met on the phone profile: #666) |
 
@@ -135,6 +135,63 @@ Fast never moves the land). What is left at Fast, about one point, is within the
 five; one drawing more to composite is the likeliest cause (season and tints in one drawing measured the same at Fast
 and worse at Normal, so the season keeps its own). At Normal the long frames are as many as before (622 against 617);
 fewer frames are drawn while the land moves, each painting the season's drawing, so their share rises.
+
+Questions for the owner: none.
+
+## Part E: units drawn as what they are, with weight
+
+The item: "units travel their roads at their real pace, each drawn as what it is after the period's relics, a column as
+long as its men are many, dust behind marching troops, ships heeling under sail through the waves, an envoy's small
+caravan, and nothing teleports; battles flare as a clash with their outcome, sieges tighten, and the world acts on them
+visibly: storms at sea, snow in the passes, rivers in flood, an avalanche taking a column". How it works:
+`docs/design/52-the-season-plays-out.md`, "The pieces travel their roads, drawn as what they are (part E)".
+
+### What was built
+
+- `map/marching.ts` (new): a unit's way this season along the roads its arrow draws (`unitRoad`; out and back for a march
+  thrown back), a traveller's on along his road (`travellerRoad`), the trail each draws while it moves (`trailMarkup`: a
+  column in its realm's colour with dust, a wake, a caravan), and the slide itself (`playRoad`, a Web Animation of the
+  token's transform, the trail turning with the road; the marching piece is raised over those standing still).
+- `svg-renderer.ts`: the season's march plan (`marchPlan`), played when the units and the travellers are drawn; stopped when
+  another season is shown. Routine siege beats now draw too (`momentMarkup` decides what each moment shows).
+- `map/moments.ts`: a battle's winner (`side`) and its flare; a figure for each hazard (storm, avalanche, flood, drought,
+  earthquake) with its weather at the place; a siege's tents closing in. `map/figures.ts`: those figures.
+- `map/ways.ts`: `BounceReach`, shared by the arrow and the piece; its private `upTo` gave way to `art.ts`'s `between`.
+- `map/tokens.ts`: `travellerShift`, shared by the token and its road.
+- `styles/playback.css`: the trails, the heel, the flare, the weather, the tents. README, `43-the-living-map.md` (its stale
+  medallion timings now a pointer), `52-the-season-plays-out.md`, `DESIGN-NOTES.md`.
+- Test: `src/web/test/marching.test.ts`.
+
+### Readings taken
+
+- **"At their real pace"**: each march fills the season's marching beat (part B's pace) at even speed along its road, slow
+  to start and to stop, so a longer road is covered faster, as the engine moves a unit its whole way in one season. Principle:
+  the engine's facts hold; pace by meaning (part B set the beat).
+- **"A column as long as its men are many"**: by the square root of the men, so a band of a hundred (one figure) and a host
+  of ten thousand (fourteen) both read; the starting armies run from 100 to 10,000 men, and a straight scale left most at one
+  or two figures. The men are those the seat sees (a seen unit's men are anyone's to count: `frames.ts`), so the column
+  tells nothing hidden. Principle: hidden information; make it readable.
+- **"Drawn as what it is after the period's relics"**: the figures themselves are item 19's (the tomb models, reliefs and
+  seals); part E draws what each does as it moves, and the caravan is item 19's Beni Hasan caravan. A spy goes alone.
+  Principle: build the least that meets the text (keep it lean).
+- **"Nothing teleports"** for what the seat knew: a piece it saw before goes along its road; one it sees for the first time
+  appears where it is seen ("a rival's army appears where it was seen"). Principle: hidden information.
+- **"An avalanche taking a column"**: men lost to winter on land play as an avalanche, at sea as a storm, as the sounds
+  already hear them (`audio/situation.ts`). Plague and a caravan robbed keep the fire they had. Principle: one fact, one
+  place (the same reading as the sounds').
+- **"Battles flare as a clash with their outcome"**: the medallion flares and carries the winner's seal, the side the moves
+  layer's clash already names; a unit destroyed where it stood has no seal, since the seat's scene does not say by whom.
+- **"Sieges tighten"**: in the sieges' beat each siege the seat knows of shows a ring of tents closing round its city; the
+  camp itself lands with the season's results as before.
+
+### First guesses (presentation only)
+
+A figure for each seventh of the men's square root, at most 14; the trail's sizes; each effect (flare, weather) half its
+beat, played twice; the tents closing from 1.6 times their ring over the sieges' beat.
+
+### Frame times
+
+FRAMES
 
 Questions for the owner: none.
 
