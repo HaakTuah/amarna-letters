@@ -70,14 +70,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
   Barkstreet Snakes. Step 1 is the owner's.
-- **A content security policy for the built app** (archive item 220), first among the side lanes, as security hardening:
-  a policy in the built page (GitHub Pages sends no headers) by which it loads code only from itself and contacts only
-  its own files, the AI providers on one list, and the player's own machine (`localhost`, for local models and the
-  bridge), so no code in it, a package's included, can send a key or a save anywhere else. The list is one place in
-  code: the settings screen offers it in place of today's free-text endpoint, and the build writes the policy from it,
-  so a new provider is one line and the policy follows (Anthropic, OpenAI, Google, Mistral, Groq, DeepSeek, xAI and
-  OpenRouter, which alone reaches most models). Done when a test shows the policy matches the list, model seats and the
-  bridge still work on the PR's preview, and `SECURITY.md` and `docs/developing.md` point to it.
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
