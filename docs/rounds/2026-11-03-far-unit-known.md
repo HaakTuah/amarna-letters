@@ -37,7 +37,7 @@ out of `views.ts` (47 KB).
   (`wakeFrom`, as #537 did for other orders). `GameState.lastSeen` holds the king's own outcomes only where his
   couriers reach.
 - **Rulebook** (`llm/src/rules-command.ts`), **README** (the map paragraph), **design note**
-  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 63** (54 on the branch until it was merged with `develop`, which had reached 61, then 62 with #727).
+  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 64** (54 on the branch until it was merged with `develop`, which reached 61, then 62 with #727 and 63 with #680).
 - **Tests:** a twin in the twin canary (a far army beaten out of sight), failing on `develop` (its view, upkeep, last
   season, two events and the movement notice), passing here; #569's twin (a far levy that raised nothing) no longer
   lists its army's view, upkeep and scheduled binding as known leaks (#600), which the ratchet's last test proves; `units-known.test.ts`: a far unit lost stays as reported
@@ -63,12 +63,13 @@ out of `views.ts` (47 KB).
 
 ## Benchmarks
 
-The regression check (`scripts/sim.sh --games 20 --seed 1 --verify-replay`), at the code after review round 2: 20 of
-20 games replay exactly. Winners: Babylonia 11, Egypt 7, Hatti 1, Seha 1. `develop` at the same seeds (64b23865, run in
-a worktree with its own packages): 20 of 20 replay; Babylonia 9, Egypt 4, Hatti 4, Lukka 1, Seha 1, Suteans 1. Eleven
-of the twenty winners differ, as the script kings now read their far troops as reported (raised, gone, and their
-orders kept), which changes their play; no power is shut out. A regression check, not tuning. The suite: 1635 tests
-pass.
+The regression check (`scripts/sim.sh --games 20 --seed 1 --verify-replay`), at the final code (ddea56f8, after the
+escalation): 20 of 20 games replay exactly. Winners: Babylonia 11, Egypt 7, Hatti 1, Seha 1. `develop` at the same
+seeds (64b23865, run in a worktree with its own packages): 20 of 20 replay; Babylonia 9, Egypt 4, Hatti 4, Lukka 1,
+Seha 1, Suteans 1. Eleven of the twenty winners differ, as the script kings now read their far troops as reported
+(raised, gone, and their orders kept), which changes their play; no power is shut out. A regression check, not
+tuning. The suite at the same commit: 1643 tests pass. (The merge of `develop` after it, with #680's envoy wording,
+is checked by CI.)
 
 ## Review, round 1
 

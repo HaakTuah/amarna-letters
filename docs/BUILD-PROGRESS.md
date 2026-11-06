@@ -112,11 +112,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
   review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
   file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
-- **#612, decided** (the owner, 3 November 2026; archive item 204): after the usage reset, a fresh session fixes the
-  one case left open (a scheduled or standing order for a far unit lost out of sight is refused at once, through
-  `TurnEngine.bind` and the standing-order target check), the PR is reviewed again, and it merges at a clean review.
-- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
-  rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
+- ~~**Far troops raised and gone (bug #600)**~~ (done, #612, as the owner decided on 3 November 2026, archive item
+  204): a far unit is known once word of its raising could come and kept, as last reported, until word of its end
+  could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
+  standing) by the road. Save version 64. Left to #615: the rest of a far unit as it truly is. Report:
+  `docs/rounds/2026-11-03-far-unit-known.md`.
+- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
   only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
