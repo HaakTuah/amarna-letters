@@ -158,6 +158,7 @@ describe("IdCounterTests", () => {
       { prefix: "g", ids: AllPowers.flatMap((p) => s.treasuries.get(p).lots).map((x) => x.id) },
       { prefix: "j", ids: s.journeys.map((x) => x.id) },
       { prefix: "k", ids: s.copies.map((x) => x.id) },
+      { prefix: "kg", ids: s.crowns.map((x) => x.id) },
       { prefix: "m", ids: s.trails.map((x) => x.id) },
       { prefix: "p", ids: s.grants.map((x) => x.id) },
       { prefix: "pf", ids: s.payFacts.map((x) => x.id) },

@@ -10,7 +10,7 @@ import { markGlyph, markKind } from "./crossings.ts";
 import { glyphId } from "./glyphs.ts";
 import { ringOf } from "./markup.ts";
 import type { MapInput } from "./renderer.ts";
-import { captureLine, traceOf, unitKindName, type MapScene } from "./scene.ts";
+import { captureLine, traceOf, unitKindName, type MapScene, type SceneBand } from "./scene.ts";
 import { title } from "./text.ts";
 
 const Map_ = WorldMap.default;
@@ -165,18 +165,42 @@ export function moves(s: MapScene): string {
  */
 export function outlaws(s: MapScene): string {
   let sb = "";
-  const nth = new Map<string, number>();
-  for (const b of s.bands) {
-    const k = nth.get(b.province) ?? 0;
-    nth.set(b.province, k + 1);
-    const at = city(b.province);
-    const ring = ringOf(Map_.get(b.province).capital, s.walls.get(b.province) ?? 0);
-    const what = b.ship ? "A pirate crew" : "A band";
+  const byProvince = new Map<string, SceneBand[]>();
+  for (const b of s.bands) byProvince.set(b.province, [...(byProvince.get(b.province) ?? []), b]);
+  for (const [province, found] of byProvince) {
+    // Fresh word first, so the marks drawn are the newest and old word goes into the count.
+    const bands = [...found].sort((a, b) => a.age - b.age);
+    const at = city(province);
+    const ring = ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0);
+    const ago = (age: number): string => `as your people last told of it, ${age} season${age === 1 ? "" : "s"} ago`;
+    const led = (b: SceneBand): string => (b.chief !== "" ? `, led by ${b.chief}` : "");
+    const mark = (k: number, cls: string, text: string, inner: string): void => {
+      sb += `<g class="band-mark${cls}" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">${title(text)}`;
+      sb += `<g class="sym"><g transform="translate(${k * 18},0)"><circle class="band-bg" r="8"/>${inner}</g></g></g>`;
+    };
     // Word from land lost without the court's knowing is old: drawn faded, like a unit last seen, with its age.
-    const old = b.age > 0 ? ` ghost age${Math.min(4, b.age)}` : "";
-    sb += `<g class="band-mark${b.ship ? " pirate" : ""}${old}" data-province="${b.province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">`;
-    sb += title(`${what} of ${b.men} men in ${provinceName(b.province)}${b.chief !== "" ? `, led by ${b.chief}` : ""}${b.age > 0 ? `: as your people last told of it, ${b.age} season${b.age === 1 ? "" : "s"} ago` : ""}`);
-    sb += `<g class="sym"><g transform="translate(${k * 18},0)"><circle class="band-bg" r="8"/><use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/></g></g></g>`;
+    const old = (age: number): string => (age > 0 ? ` ghost age${Math.min(4, age)}` : "");
+    // Three marks at most below a city, so a province full of outlaws keeps its row within its own land: past that, the
+    // third mark counts the rest, and its title tells each of them.
+    const shown = bands.length > 3 ? bands.slice(0, 2) : bands;
+    shown.forEach((b, k) =>
+      mark(
+        k,
+        `${b.ship ? " pirate" : ""}${old(b.age)}`,
+        `${b.ship ? "A pirate crew" : "A band"} of ${b.men} men in ${provinceName(province)}${led(b)}${b.age > 0 ? `: ${ago(b.age)}` : ""}`,
+        `<use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/>`,
+      ),
+    );
+    const rest = bands.slice(shown.length);
+    if (rest.length > 0) {
+      const ships = rest.filter((b) => b.ship).length;
+      const what = ships === 0 ? "bands" : ships === rest.length ? "pirate crews" : "bands and pirate crews";
+      // One age for them all is said once; mixed word gives each old line its own. The count fades by its newest word.
+      const ages = new Set(rest.map((b) => b.age));
+      const shared = ages.size === 1 ? rest[0].age : 0;
+      const lines = rest.map((b) => `${b.men} men${b.ship && ships < rest.length ? " with a ship" : ""}${led(b)}${b.age > 0 && shared === 0 ? `: ${ago(b.age)}` : ""}`);
+      mark(2, old(Math.min(...ages)), `${rest.length} more ${what} in ${provinceName(province)}${shared > 0 ? `, ${ago(shared)}` : ""}:\n${lines.join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
+    }
   }
   return sb;
 }

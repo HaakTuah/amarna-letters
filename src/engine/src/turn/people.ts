@@ -19,6 +19,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent, type Unit } from "../model/state.ts";
 import { fastestPoints, PointsPerDay } from "../model/travel.ts";
 import { Views } from "../rules/views.ts";
+import { listed, upper } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -88,7 +89,7 @@ P.peopleSeason = function (food) {
     this.spendAt(w.home, w.savings);
     const holder = owner(w.home);
     if (w.deported && holder !== null && holder !== w.by)
-      say(holder, `${people(w.men)} people sent on the road by ${w.by}, deported or sent back as runaways, reached ${Map.get(w.home).name} and settled there.`);
+      say(holder, `Those sent on the road by ${w.by}, deported or sent back as runaways, reached ${Map.get(w.home).name} and settled there: ${people(w.men)} people.`);
   }
   S.walking = S.walking.filter((w) => w.arrives > S.turn);
   S.corvee.clear();
@@ -143,7 +144,7 @@ P.peopleSeason = function (food) {
     if (o !== null && leave > 0) hungry.set(o, [...hungry.getOrDefault(o, []), `${prov.name} (${people(leave)} left the land, ${people(dead)} of them dead)`]);
   }
   for (const [p, l] of hungry.entries()) {
-    say(p, `Hunger: ${l.join("; ")}. Grain on sale at a province's market feeds its countryside; a lighter tax leaves the farmers more.`);
+    say(p, `Hunger: ${l.join("; ")}.`);
     logEvent(S, "famine", `Hunger in ${p}'s land: ${l.join("; ")}.`, [p], "famine");
   }
   // They weigh the land they would cross to by how it fed its people last season, as word of it reached them.
@@ -227,9 +228,9 @@ P.peopleSeason = function (food) {
   }
 
   // The loose men rob the purse and the stores (item 10+b).
-  for (const [p, l] of this.robbing().entries()) say(p, `Loose men robbed ${l.join("; ")}. Your troops standing in a province halve what they take.`);
+  for (const [p, l] of this.robbing().entries()) say(p, `Loose men robbed ${l.join("; ")}.`);
   // Item 11b: the bands, gathered from them by chiefs; an army of yours standing where one works falls on it.
-  for (const [p, l] of this.bandsSeason().entries()) say(p, `${l.join(" ")} An army of yours falls on a band where it stands only on your order: hunt_bands (a province, next season) or hunt_bands_always (standing).`);
+  for (const [p, l] of this.bandsSeason().entries()) say(p, l.join(" "));
 
   // The loose drift freely towards richer land, across borders too.
   const drift: [string, string, number][] = [];
@@ -254,7 +255,9 @@ P.peopleSeason = function (food) {
 
 /** A count of people as a king reads it. */
 export function people(n: number): string {
-  return n >= 10_000 ? `${Math.round(n / 1000)} thousand` : n >= 1000 ? `${(n / 1000).toFixed(1)} thousand` : `${n}`;
+  if (n < 1000) return `${n}`;
+  const k = n >= 10_000 ? `${Math.round(n / 1000)}` : (n / 1000).toFixed(1).replace(/\.0$/, "");
+  return k === "1" ? "a thousand" : `${k} thousand`;
 }
 
 /** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */
@@ -283,14 +286,14 @@ P.menHome = function (u, settle) {
   if (u.home === "") return "";
   const where = this.map.get(u.province);
   if (where.isSea) {
-    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "", route: [], departs: S.turn, from: "" });
+    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "", route: [], departs: S.turn, from: u.province });
     return "its crews sail home with their savings";
   }
   if (settle) {
     shift(this.peopleOf(u.province), men, men);
     this.spendAt(u.province, savings);
     logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
-    return `its ${people(men)} men were settled in ${where.name} as colonists, their savings into its purse`;
+    return `its men settled in ${where.name} as colonists, ${people(men)} of them`;
   }
   if (u.province === u.home) {
     shift(this.peopleOf(u.home), men, men);
@@ -304,7 +307,7 @@ P.menHome = function (u, settle) {
   const kept = men <= 0 ? savings : savings - idiv(savings * lost, men);
   this.peopleOf(u.province).loose += lost;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
-  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "", route: [], departs: S.turn, from: "" });
+  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "", route: [], departs: S.turn, from: u.province });
   return `its men walk home to ${this.map.get(u.home).name} with their savings, ${seasons === 1 ? "next season" : `in ${seasons} seasons`}` + (lost > 0 ? `; ${people(lost)} of them never set out and stay as loose men in ${where.name}` : "");
 };
 
@@ -391,12 +394,12 @@ P.climateSeason = function () {
       c.kind === "Drought"
         ? `The rains have failed over ${c.name}`
         : c.percent <= 30
-          ? `${c.name[0].toUpperCase()}${c.name.slice(1)} has risen in a ruinous flood, breaking dykes and drowning villages`
+          ? `${upper(c.name)} has risen in a ruinous flood, breaking dykes and drowning villages`
           : river(c.name);
     for (const p of AllPowers.filter((p) => isAlive(S, p))) {
       const mine = c.provinces.filter((x) => S.owner.getOrDefault(x, null) === p);
       if (mine.length > 0) {
-        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}: for three seasons ${mine.map((x) => Map.get(x).name).join(", ")} will reap only ${c.percent} in a hundred of their harvest.`);
+        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}. For three seasons ${listed(mine.map((x) => Map.get(x).name))} will reap only ${c.percent} in a hundred of a full harvest.`);
         continue;
       }
       if (c.provinces.some((x) => sight.get(p).has(x))) notify(S, p, "Notice", "News from nearby", `Travellers say ${c.kind === "Drought" ? `the rains have failed over ${c.name}` : `${c.name} has flooded badly`}.`);
@@ -407,5 +410,5 @@ P.climateSeason = function () {
 };
 
 function river(name: string): string {
-  return name === "the Nile" ? "The Nile has failed to rise in full: a low flood" : `${name[0].toUpperCase()}${name.slice(1)} has flooded at the harvest, breaking the levees`;
+  return name === "the Nile" ? "The Nile has failed to rise in full" : `${upper(name)} has flooded at the harvest, breaking the levees`;
 }

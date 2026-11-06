@@ -5,6 +5,7 @@
  * repudiate or revoke. `--no-authority-play` turns it off, and `--authority-play-half` on for half the kings.
  */
 import {
+  grantOpens,
   type Authority,
   type AudienceView,
   type Clause,
@@ -83,7 +84,7 @@ export function stagingFor(b: Board, brain: Brain): [Power, string, Power] | nul
       const holder = b.ownerOf(p.id);
       if (holder === null || holder === b.me || holder === foe || !brain.isFriend(holder) || brain.betraying === holder) continue;
       if (p.capital || b.walls(p.id) || !touchesFoe(p.id) || !Board.Map.neighbors(p.id).some((n) => ours.has(n))) continue;
-      if (b.v.grants.some((g) => g.grantee === b.me && g.grantor === holder && (g.province === p.id || g.province === null))) return null;
+      if (b.v.grants.some((g) => g.grantee === b.me && g.grantor === holder && grantOpens(g, p.id))) return null;
       if (b.v.turn - brain.basingAsked.getOrDefault(holder, -99) < 6) continue;
       return [holder, p.id, foe];
     }
@@ -212,7 +213,7 @@ export function heardRepudiations(b: Board, brain: Brain): void {
 /** Is a province one our troops may stand in this season by the leave its holder granted us? */
 export function grantedTo(b: Board, id: string, basingOnly = false): boolean {
   const holder = b.ownerOf(id);
-  return b.v.grants.some((g) => g.grantee === b.me && g.grantor === holder && (g.kind === "basing" ? g.province === id : !basingOnly && (g.province === null || g.province === id)));
+  return b.v.grants.some((g) => g.grantee === b.me && g.grantor === holder && (g.kind === "basing" ? g.province === id : !basingOnly && grantOpens(g, id)));
 }
 
 /**

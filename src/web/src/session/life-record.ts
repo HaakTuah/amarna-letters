@@ -5,7 +5,7 @@
  */
 import { Greeting, Views, WorldMap, characterLegend, findCharacter, type Character, type CharacterView, type GameState, type Power } from "@amarna/engine";
 import type { MapScene, ScenePerson } from "../map/scene.ts";
-import { cap, dated, powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { cap, dated, fromAndCalling, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { coverOf, type FramePerson, type SeasonFrame } from "./frames.ts";
 
 /** One dated line of a life: when it began, when it ended (if it did), and what it was. */
@@ -105,7 +105,7 @@ export function buildLifeRecord(
     const view = Views.for(state, viewer);
     seen = [...view.court, ...view.known].find((x) => x.id === id) ?? null;
     if (seen === null)
-      return { id, name: c.name, subtitle: `of ${c.origin}`, known: false, now: `${powerName(viewer)} knows nothing of ${c.name} at this season.`, employer: null, sections: [] };
+      return { id, name: c.name, subtitle: fromWhere(c), known: false, now: `${powerName(viewer)} knows nothing of ${c.name} at this season.`, employer: null, sections: [] };
   }
 
   const sections: LifeSection[] = [];
@@ -219,7 +219,7 @@ export function buildLifeRecord(
   return {
     id,
     name: c.name,
-    subtitle: viewer === null ? `of ${c.origin}, ${c.calling}` : `of ${c.origin}`,
+    subtitle: viewer === null ? fromAndCalling(c) : fromWhere(c),
     now,
     employer: viewer === null ? c.employer : seen!.employer,
     sections,

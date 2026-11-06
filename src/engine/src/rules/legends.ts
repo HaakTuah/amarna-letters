@@ -5,6 +5,7 @@
  * reads what the engine recorded (events, tablets and their copies, who held each province, the falls, the scores), and
  * nothing here is read by the engine, a seat's view or a request.
  */
+import { listed } from "./wording.ts";
 import { cmpNum, cmpStr, desc, sortBy } from "../core/seq.ts";
 import type { Character } from "../model/people.ts";
 import { AllPowers, type Power, type RisenPower } from "../model/power.ts";
@@ -36,7 +37,6 @@ export interface Revelation {
 
 const line = (turn: number, text: string, province: string | null = null): LegendLine => ({ turn, text, province });
 const provinceName = (id: string): string => WorldMap.default.get(id).name;
-const listed = (xs: readonly string[]): string => (xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 const byTurn = (ls: LegendLine[]): LegendLine[] => sortBy(ls, [(l: LegendLine) => l.turn, cmpNum]);
 
 interface Change {

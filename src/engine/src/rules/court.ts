@@ -50,11 +50,25 @@ export function courtMoveRefusal(v: Checking, order: CourtOrder): string | null 
  * else the whole seasons beyond the first it takes, at the pace of a lone traveller on the fastest road. Infinity where no
  * road leads.
  */
-export function courierSeasons(s: GameState, map: WorldMap, from: string, to: string): number {
+export function courierSeasons(s: GameState, map: WorldMap, from: string, to: string, turn: number = s.turn): number {
   if (from === to || s.config.realmDistance <= 0) return 0;
-  const cost = courierPoints(map, waysOf(s), from, seasonOfTurn(s.turn)).get(to);
+  const cost = courierPoints(map, waysOf(s), from, seasonOfTurn(turn)).get(to);
   if (cost === undefined) return Infinity;
   return Math.floor(cost / (s.config.travelDays * PointsPerDay));
+}
+
+/**
+ * The season word of `province`'s season `turn` reaches the court in `court` (bug #616, "one clock for one road"): what
+ * the court sees as current (`sight`), a province's report (who holds it, its sieges), the notices told from it
+ * (`TurnEngine.heardAt`), a census and what is known of caravans and units there come by this one clock, so the same
+ * season's report and notices arrive together. The couriers' road home from the place to the court in that season
+ * (roads differ by direction: rivers, winter at the destination): the same season where they make it within the season,
+ * else one season more than the whole seasons beyond the first they take ({@link courierSeasons}), plus any `extra`
+ * seasons; Infinity where no road leads. News lanes that bring word from a province to a court time it by this too.
+ */
+export function wordHomeAt(s: GameState, map: WorldMap, court: string, province: string, turn: number, extra: number = 0): number {
+  const d = courierSeasons(s, map, province, court, turn) + extra;
+  return d === 0 ? turn : Number.isFinite(d) ? turn + 1 + d : Infinity;
 }
 
 /**

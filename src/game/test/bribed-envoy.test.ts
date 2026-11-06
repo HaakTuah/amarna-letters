@@ -74,14 +74,14 @@ describe("BribedEnvoyTests", () => {
   test("A bribed envoy vouches for the hosts message in the hosts own words", async () => {
     let report = await reportOf("Carry my words faithfully, and tell Pharaoh that I send him my love and wish him long life.");
     Assert.contains(
-      'What I saw: At the court of Hatti the king told me "I send him my love and wish him long life", and I saw for myself that it is so.',
+      'At the court of Hatti the king told me "I send him my love and wish him long life", and I saw for myself that it is so.',
       report,
     );
   });
 
   test("A bribed envoy asked to speak well of another king calls him a friend", async () => {
     let report = await reportOf("Speak well of Mitanni to your lord.");
-    Assert.contains("What I saw: At the court of Hatti I saw for myself that Mitanni is a true friend to you.", report);
+    Assert.contains("At the court of Hatti I saw for myself that Mitanni is a true friend to you.", report);
 
     // Of the host itself it already says as much.
     let host = await reportOf("Speak well of Hatti to your lord.");

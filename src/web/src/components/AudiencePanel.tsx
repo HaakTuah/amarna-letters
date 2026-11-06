@@ -1,4 +1,4 @@
-import { NewsKinds, WorldMap, authorityText, newHostReply, newTabletProposal, renderClause, type AudienceView, type Clause, type HostReply, type SeatView } from "@amarna/engine";
+import { NewsKinds, WorldMap, authorityText, nameFrom, newHostReply, newTabletProposal, renderClause, type AudienceView, type Clause, type HostReply, type SeatView } from "@amarna/engine";
 import { useState } from "react";
 import { powerName, shekels, when } from "../ui/format.ts";
 import { ClauseEditor } from "./ClauseEditor.tsx";
@@ -44,7 +44,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
     <>
       <h3>An envoy of {powerName(a.from)} before your throne</h3>
       <p className="muted">
-        Round {a.round} of {a.maxRounds} · {a.envoy.name} of {a.envoy.origin} {a.envoy.knownFacts.length > 0 ? "· " + a.envoy.knownFacts.join(" ") : ""}
+        Round {a.round} of {a.maxRounds} · {nameFrom(a.envoy)} {a.envoy.knownFacts.length > 0 ? "· " + a.envoy.knownFacts.join(" ") : ""}
       </p>
       {a.heardThrough !== null && <p className="muted">Nobody else here speaks with {a.envoy.name}: {a.heardThrough} carries his words to you, and yours to him.</p>}
       {a.presented > 0 && <p className="muted">While nobody at your court understood him, he presented gifts weighing {a.presented} shekels, now in your treasury.</p>}

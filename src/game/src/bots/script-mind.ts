@@ -4,6 +4,7 @@
  */
 import {
   AllPowers,
+  WorldMap,
   Rng,
   SealedOutcome,
   calling,
@@ -30,6 +31,9 @@ import {
   checkClauses,
   withinAuthority,
   nameFrom,
+  powerName,
+  courtHead,
+  idNumber,
 } from "@amarna/engine";
 import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
@@ -305,9 +309,9 @@ function report(ctx: MindContext): MindReply {
       lines.push(say(Home, "assured", key));
   }
 
-  const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(host)));
+  const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(courtHead(host))));
   // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
-  // something it saw for itself. Asked to speak well of a king, it calls him a friend.
+  // something it saw for itself, first among what it saw. Asked to speak well of a king, it calls him a friend.
   if (ctx.structured && bribed && host !== null) {
     const news = answer.slice(answer.length - bribeNews.length);
     if (news.length > 0) observations.unshift(`At the court of ${land(host)} I saw for myself that it is so: ${renderClauses(news, host, lord)}`);
@@ -350,6 +354,119 @@ function questioned(ctx: MindContext): MindReply {
   return newMindReply({ text: lies ? "My lord has friends you do not know of. That is all I will say." : "Spare me, and I will tell you what I saw.", lies });
 }
 
+/**
+ * What a candidate says of his trade: a boast, a modest word and a plain one, each in four forms, the form the person's own
+ * (by his id) and the kind his temper's. No line names a span of years, a count or a deed of the age: many in the pool are
+ * real people, and their words must not read as facts of their lives ("History holds"); a boast is his own word, true or not.
+ */
+type Words = readonly [boast: readonly string[], modest: readonly string[], plain: readonly string[]];
+const TradeWords: readonly (readonly [RegExp, Words])[] = [
+  [
+    /scribe/i,
+    [
+      ["No tablet of mine was ever sent back for a fault.", "Kings have read my hand and never asked what I meant.", "My signs are clean, and my Akkadian is the courts' own.", "A letter I write says what the king said, and says it well."],
+      ["I am slow of speech, but my hand is quick and careful.", "My tongue is plain; my tablets speak better for me.", "I make no claims. Set me a tablet to copy and judge.", "I am no courtier. I write, and I write true."],
+      ["I keep tallies, and I read and write the tongue of the courts.", "Accounts, letters, inventories: I can keep them all.", "I write a king's letters and read him the answers.", "Give me clay and a stylus and I will keep your house in order."],
+    ],
+  ],
+  [
+    /interpreter|envoy/i,
+    [
+      ["No king I spoke for was ever shamed by my words.", "I have stood before great kings and come home with their gifts.", "A court hears me out, and its answer comes back whole.", "I know which words open a king's hand and which close it."],
+      ["I carry a message as it was given, no more and no less.", "I am a mouth for my lord's words, not for my own.", "I say what I am sent to say, and I listen well.", "Courts weary me, but I know how to stand in one."],
+      ["I know the greetings of the courts and the gifts that go with them.", "I can take your words to a king and bring his back.", "I speak the tongues the courts speak, and I travel light.", "Send me, and your tablet will be read where it should be."],
+    ],
+  ],
+  [
+    /caravan|herdsman|wanderer/i,
+    [
+      ["I have crossed the desert in the dry season and brought every donkey home.", "No robber has ever taken a load of mine.", "I know every well between the river and the sea.", "Toll-keepers know my face, and my loads pass quickly."],
+      ["I am a man of the road, not of courts.", "I walk beside the donkeys; I leave the talking to others.", "I can find water and a safe camp. That is all I claim.", "I know the roads. Of kings I know little."],
+      ["I can tell you how many days lie between any two markets.", "I know which roads are safe in which season.", "I know where the tolls are paid and how much.", "Give me donkeys and a road, and your goods will arrive."],
+    ],
+  ],
+  [
+    /merchant|trader/i,
+    [
+      ["I made my masters rich and never cheated a buyer.", "Copper, tin, oil and cloth: I have sold them all at a profit.", "My weights are true, and every market knows it.", "Where I trade, others follow."],
+      ["I made no fortune, but I made no enemies either.", "I deal fairly. That is the best I can say of myself.", "I am a small man in the markets, but an honest one.", "I count carefully and promise little."],
+      ["I know what grain fetches in a hungry year, and copper in a war.", "I know the merchants in the river towns and on the coast.", "I know the markets and what each of them will pay.", "I can buy cheap where others buy dear."],
+    ],
+  ],
+  [
+    /chariot|horse/i,
+    [
+      ["No horse of mine ever went lame on campaign.", "My team has carried a bowman through the press and out again.", "I drive faster than any man in your stables.", "Give me a chariot, and the enemy line will break before it."],
+      ["I am a driver; I know horses better than men.", "I keep my team fed and my wheels sound.", "I ask only for good horses and a straight road.", "I do not boast. Watch me drive."],
+      ["I can train a team and mend a wheel in the field.", "I know how to feed horses on a long march.", "I can drive in the line or carry word along it.", "I know chariots, and the men who ride them."],
+    ],
+  ],
+  [
+    /soldier|general|captain|bodyguard|medjay/i,
+    [
+      ["I have stood on a wall when the town was stormed, and I am still here.", "Men follow me into a fight and come out of it.", "I have carried my captain off the field.", "No line I stood in ever broke."],
+      ["I am a soldier, not a speaker.", "I go where I am sent and keep my place.", "I carry a spear and do what I am told.", "I will not tell you I am brave. I will show you."],
+      ["I can hold a gate and keep a watch.", "I know how to march men and feed them on the way.", "I have kept order in a camp and on a wall.", "Give me men, and I will keep them in hand."],
+    ],
+  ],
+  [
+    /sailor|ship/i,
+    [
+      ["I have brought a ship through a winter storm with her hold dry.", "I know every harbour from Alashiya to the river mouths.", "No cargo of mine was ever lost at sea.", "I can sail by night when other ships lie in harbour."],
+      ["I am a seaman. I am not at home in halls.", "I keep a ship and her crew together. That is my trade.", "I know the sea. I do not claim to know kings.", "I ask for a sound ship and a fair wind."],
+      ["I know the coasts and where to beach in bad weather.", "I can load a ship and bring her home.", "I know the harbours, and the tolls they take.", "I can take your goods by sea, or carry your word."],
+    ],
+  ],
+  [
+    /priest|physician|servitor|god's father/i,
+    [
+      ["The gods have heard my prayers when others' went unanswered.", "Kings have sought my counsel before a war.", "I can read what the omens say and what they hide.", "My remedies have raised men from their beds."],
+      ["I serve the gods, and I will serve you as faithfully.", "I am a servant of the temple. I ask little.", "I pray and I heal. I claim nothing more.", "I keep the rites and I keep my word."],
+      ["I know the rites, the offerings and the days for them.", "I can read omens and keep a temple's stores.", "I know the herbs and the prayers for a sickness.", "I can swear men by their gods and know when they lie."],
+    ],
+  ],
+  [
+    /steward|chamberlain|vizier|official|commissioner|governor/i,
+    [
+      ["No jar went missing from a store I kept.", "I have run a great house and fed it through a lean year.", "The accounts I keep could be read by a god.", "Under my hand a household runs as a river runs."],
+      ["I keep a house in order. It is plain work.", "I count, I store and I give out. That is all.", "I am a servant of the house, and I know my place in it.", "I do not speak in councils; I keep the stores."],
+      ["I can keep a palace's stores and its accounts.", "I know how to gather a tax and send it on.", "I can run a household and its servants.", "I can see that a province's grain reaches your stores."],
+    ],
+  ],
+  [
+    /son|brother|prince|heir/i,
+    [
+      ["My father's house is an old one, and its name still opens doors.", "Men in my land still look to my house.", "My blood is as good as any king's.", "A king who takes me in takes my house's friends with me."],
+      ["My house has fallen on hard days, and I seek a lord.", "I have a name and little else. I would put it at your service.", "I ask for a place, not a throne.", "I will serve, as a younger son must."],
+      ["I know my land's great men and what they want.", "I can speak for my house to those who still honour it.", "I was raised among courts and know their ways.", "I can tell you who in my land will stand with you."],
+    ],
+  ],
+  [
+    /chief|elder|ruler|lord|noble|king/i,
+    [
+      ["Men leave their villages to follow me.", "When raiders came to my land, my men stood and theirs ran.", "My people still call me lord.", "I can raise men where others raise only dust."],
+      ["I have lost my land, but not my people's trust.", "I was a lord, and I would be a loyal servant now.", "I ask for bread and a place at your court.", "I have little left but my word, and I keep it."],
+      ["I can lead men and settle their quarrels.", "I know the country and the men who hold it.", "I can speak to the elders of a land in their own way.", "I know how to hold a town and feed it."],
+    ],
+  ],
+];
+
+/** A servant's words, for any other calling. */
+const ServantWords: Words = [
+  ["Every master I served was sorry to see me go.", "No master of mine had cause to complain.", "I have served great men, and they would have me back.", "I am worth more than I ask."],
+  ["I am a plain servant and no great speaker.", "I do what I am bidden, and do it well.", "I bring no great deeds, only good service.", "I ask little and give what I promise."],
+  ["I know how a court works, and how to be useful in one.", "I can carry messages, keep secrets and count tallies.", "I know the ways of great houses.", "I can do most things a court needs done."],
+];
+
+function tradeWords(calling: string): Words {
+  return TradeWords.find(([pattern]) => pattern.test(calling))?.[1] ?? ServantWords;
+}
+
+/** One of a trade's forms for this person, by his id. */
+function personal(forms: readonly string[], c: { id: string }): string {
+  return forms[idNumber(c.id) % forms.length];
+}
+
 function pitch(ctx: MindContext): MindReply {
   const c = ctx.self;
   const t = c.traits;
@@ -363,14 +480,13 @@ function pitch(ctx: MindContext): MindReply {
   const envoyOf = ctx.request.envoyOf;
   if (envoyOf !== null && t.loyalty < 35 && t.greed > 65 && t.courage > 45) {
     const as = name ?? c.name;
-    return newMindReply({ text: `I am ${as}, envoy of the king of ${land(envoyOf)}, who sends greetings to his brother.`, number: 0, name, claimsToServe: envoyOf });
+    return newMindReply({ text: `I am ${as}, envoy of the king of ${powerName(envoyOf)}, who sends greetings to his brother.`, number: 0, name, claimsToServe: envoyOf });
   }
   const lines = [name === null ? `I am ${nameFrom(c)}, once ${calling(c)}.` : `I am ${name}.`];
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
-  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court; no master of mine had cause to complain.");
-  else if (believed < 45 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
-  else lines.push("I know the courts of the Great Kings and their ways, and I carry a message as it was given.");
+  const words = tradeWords(c.calling);
+  lines.push(personal(t.greed >= 60 || t.ambition >= 65 || believed >= 75 ? words[0] : believed < 45 && t.loyalty >= 55 ? words[1] : words[2], c));
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("I left my last master; I had cause.");
   // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one
@@ -400,12 +516,10 @@ function summary(ctx: MindContext): MindReply {
 
 function spyReport(ctx: MindContext): MindReply {
   const r = ctx.request.report ?? newSpyReport();
-  const c = ctx.self;
   const lines: string[] = [];
-  const where = r.court ?? r.province ?? "abroad";
+  const where = r.court !== null ? powerName(r.court) : r.province !== null && WorldMap.default.exists(r.province) ? WorldMap.default.get(r.province).name : "abroad";
   lines.push(`From ${where}, season of turn ${r.observedTurn}.`);
   if (!isBlank(r.poison)) lines.push(r.poison);
-  if (c.traits.ambition >= 70) lines.push("I have risked much to learn this.");
   lines.push(...r.observations);
   return newMindReply({ text: lines.join(" ") });
 }

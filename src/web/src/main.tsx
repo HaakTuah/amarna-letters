@@ -3,10 +3,13 @@ import { App } from "./App.tsx";
 import { ErrorBoundary, catchPageErrors } from "./ui/ErrorScreen.tsx";
 import { registerUpdates } from "./ui/update.ts";
 import "./styles/app.css";
+import "./styles/map.css";
+import "./styles/panels.css";
 import "./styles/city-states.css";
 import "./styles/map-glance.css";
 import "./styles/map-uncluttered.css";
 import "./styles/map-living.css";
+import "./styles/playback.css";
 
 // No error leaves a white page (item 17a): the boundary shows a plain screen with the error and a way back to the game.
 catchPageErrors();

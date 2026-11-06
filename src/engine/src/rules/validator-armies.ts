@@ -9,7 +9,7 @@ import { countOf } from "../model/counts.ts";
 import { isAlive, unitAt } from "../model/state.ts";
 import { buildGold, landRefusal, levelOf, WorkKindValues, WorksData, workLevelText, workName } from "../model/works.ts";
 import type { Checking } from "./validator-context.ts";
-import { courierSeasons, courtOf } from "./court.ts";
+import { courtOf, wordHomeAt } from "./court.ts";
 
 /** Why the order is refused, null if it stands, or undefined if it is not one of these. */
 export function checkArmyOrder(v: Checking, order: Order): string | null | undefined {
@@ -66,19 +66,19 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const f = order;
       if (isBlank(f.province)) return "name the province where to build";
       if (!Map.exists(f.province) || Map.get(f.province).isSea) return `there is no province called '${f.province}'`;
-      if (!(WorkKindValues as readonly string[]).includes(f.kind)) return `there is no kind of building called '${f.kind}': ${WorkKindValues.join(", ")}`;
+      if (!(WorkKindValues as readonly string[]).includes(f.kind)) return `there is no kind of building called '${f.kind}'; the kinds are ${WorkKindValues.join(", ")}`;
       const prov = Map.get(f.province);
       if (v.knownOwner(f.province) !== power) return `you do not hold ${prov.name}`;
       const data = WorksData[f.kind];
       if (!Number.isInteger(f.level) || f.level < 0 || f.level > data.most) return `the ${workName(f.kind)} go from 0 to ${workLevelText(f.kind, data.most)}`;
-      const level = levelOf(S, f.kind, f.province);
+      const level = v.knownWork(f.kind, f.province);
       const land = landRefusal(f.kind, prov);
       if (land !== null && f.level > level) return land;
       if (f.share != null && (!f.labour || !Number.isInteger(f.share) || f.share <= 0 || f.share > 100)) return "a corvée's share is a percent of the men of fighting age at home, from 1 to 100, and only by corvée";
       const key = `${f.kind}:${f.province}`;
       if (fortified.has(key)) return `you had already given an order for the ${workName(f.kind)} of ${prov.name} this season`;
       // The first season of a project paid in gold is reserved now.
-      return f.level > level && !f.labour ? spend(buildGold(f.kind, f.province, f.kind === "Policing" ? f.level - level : level + 1)) : null;
+      return f.level > level && !f.labour ? v.spendAt(f.province, buildGold(f.kind, f.province, f.kind === "Policing" ? f.level - level : level + 1)) : null;
     }
 
     case "raze": {
@@ -101,7 +101,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(so.city) !== power) return `you do not hold ${name}`;
       if (v.knownWalls(so.city) === 0) return `${name} has no walls to sally from`;
       if (v.knownWalls(so.city) < S.config.sallyMinWalls)
-        return `the walls of ${name} stand at ${v.knownWalls(so.city)}: only walls of ${S.config.sallyMinWalls} or more can sally`;
+        return `the walls of ${name} stand at ${v.knownWalls(so.city)}; only walls of ${S.config.sallyMinWalls} or more can sally`;
       // Troops within as the court sees them (bug #517): out of its sight it cannot know, and the order goes; walls with none
       // to sally against do nothing.
       const inside = unitAt(S, so.city);
@@ -133,14 +133,15 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(p.id) !== power) return `you do not hold ${p.name}`;
       if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
       if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
-      // The men at home as the court knows them (bug #517): within the season's reach, as they are; farther off, by its last
-      // count, or unchecked if it has none: the levy then fails there, and word of it comes by the road.
-      const men = courierSeasons(S, Map, courtOf(S, Map, power), p.id) === 0 ? menAvailable(S, p.id) : (countOf(S, power, p.id)?.men ?? null);
+      // The men at home as the court knows them (bug #517): where word comes home within the season (the road home, as
+      // `sight`: bug #616), as they are; farther off, by its last count, or unchecked if it has none: the levy then fails
+      // there, and word of it comes by the road.
+      const men = wordHomeAt(S, Map, courtOf(S, Map, power), p.id, S.turn) === S.turn ? menAvailable(S, p.id) : (countOf(S, power, p.id)?.men ?? null);
       if (men !== null && men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (a levy takes ${LandData.levyLeast} at least of those at home and not carrying or building)`;
       if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
       // Item 17++: the gold set aside is reckoned by the men the king knows of, his last count, never those really there.
       const known = countOf(S, power, p.id)?.men ?? men ?? menOf(r.kind);
-      return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(known, r.share != null ? Math.floor((known * r.share) / 100) : (r.men ?? menOf(r.kind)))));
+      return v.spendAt(p.id, forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(known, r.share != null ? Math.floor((known * r.share) / 100) : (r.men ?? menOf(r.kind)))));
     }
 
     case "disband": {
@@ -154,10 +155,10 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const [why, unit] = ownUnit(order.unit);
       if (why !== null || unit === null) return why;
       const [whyInto, into] = ownUnit(order.into);
-      if (whyInto !== null || into === null) return whyInto === null ? null : `no troops of yours to join in ${order.into}: ${whyInto}`;
+      if (whyInto !== null || into === null) return whyInto;
       if (into === unit) return "a unit cannot fold into itself";
-      if (unit.commander !== null) return "it has a commander: relieve him first, or fold the other troops into his";
-      if (unit.hiredMen > 0) return "the band hired into it serves on its own terms: it cannot be folded into other troops";
+      if (unit.commander !== null) return "it has a commander; relieve him first, or fold the other troops into his";
+      if (unit.hiredMen > 0) return "the band hired into it serves on its own terms; it cannot be folded into other troops";
       if (into.kind !== unit.kind) return `an ${unit.kind === "Army" ? "army" : "fleet"} folds only into another ${unit.kind === "Army" ? "army" : "fleet"}`;
       if (!Map.canMove(unit.kind, unit.province, into.province)) return `${Map.get(into.province).name} is not a march from ${Map.get(unit.province).name} for ${unit.kind === "Army" ? "an army" : "a fleet"}`;
       return null;
@@ -169,8 +170,8 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(cp.province) !== power) return "you can only cede what you hold";
       if (cp.to === power || !isAlive(S, cp.to)) return `you cannot cede land to ${cp.to}`;
       // Item 11d: a capital only by agreement on a sealed tablet, and the realm goes with it.
-      if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province))
-        return `you can cede your capital only as a sealed tablet between you and ${cp.to} says ("I give you the land of ${Map.get(cp.province).name}"): your whole realm passes with it, and you live on as a man without a throne`;
+      if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province, S.turn))
+        return `you can cede your capital only as a sealed tablet between you and ${cp.to} says ("I give you the land of ${Map.get(cp.province).name}"); your whole realm passes with it, and you live on as a man without a throne`;
       if (ceded.has(cp.province)) return `${Map.get(cp.province).name} was already ceded by an earlier order`;
       return null;
     }

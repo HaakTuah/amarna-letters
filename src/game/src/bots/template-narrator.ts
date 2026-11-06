@@ -1,6 +1,16 @@
-/** The offline narrator: template personas, plain check reports, and boastful annals. */
+/** The offline narrator: template personas, plain check reports, boastful annals, and the threads to watch in plain words. */
 import { groupBy, king, land, personaTemplate, risenOf, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
-import type { CheckContext, ChronicleContext, INarrator } from "../contracts.ts";
+import type { CheckContext, ChronicleContext, INarrator, ThreadContext } from "../contracts.ts";
+import { threadWords } from "./thread-words.ts";
+import { pick } from "./voices.ts";
+
+/** How a check's report is framed, chosen by the person asked after, so reports read differently from one person to the next. */
+const Inquiries: readonly ((name: string, facts: string) => string)[] = [
+  (name, facts) => `What the markets and temples say of ${name}: ${facts} No one would say more.`,
+  (name, facts) => `Of ${name}, the merchants and temple servants say: ${facts} They knew nothing more.`,
+  (name, facts) => `Your scribes asked after ${name} at the gate and in the market, and learned this: ${facts} That was all.`,
+  (name, facts) => `Those who know ${name} by repute say: ${facts} They had nothing to add.`,
+];
 
 export class TemplateNarrator implements INarrator {
   readonly label: string = "Template narrator";
@@ -12,7 +22,7 @@ export class TemplateNarrator implements INarrator {
   checkReport(ctx: CheckContext, _signal?: AbortSignal): Promise<string> {
     if (ctx.facts.length === 0)
       return Promise.resolve(`Your inquiries into ${ctx.subject.name} turned up nothing of note. The markets know the name and little more.`);
-    return Promise.resolve(`Inquiries in the markets and temples tell this of ${ctx.subject.name}: ${ctx.facts.join(" ")} More than this, no one would say.`);
+    return Promise.resolve(pick(Inquiries, `0|${ctx.subject.id}`)(ctx.subject.name, ctx.facts.join(" ")));
   }
 
   chronicle(ctx: ChronicleContext, _signal?: AbortSignal): Promise<string> {
@@ -40,6 +50,10 @@ export class TemplateNarrator implements INarrator {
         ? `Of all the kings of the world, none grew as His Majesty did. The gods of ${land(p)} are pleased.`
         : `Though lesser kings boasted, the land of ${land(p)} endured, beloved of its gods, and its king lacked nothing.`) + "\n";
     return Promise.resolve(sb);
+  }
+
+  threads(ctx: ThreadContext, _signal?: AbortSignal): Promise<string[]> {
+    return Promise.resolve(ctx.threads.map((t) => threadWords(t, ctx.names)));
   }
 }
 

@@ -52,7 +52,9 @@ function commonest(texts: string[]): [string, number] {
 describe("LetterShapeTests", () => {
   test("No script king repeats one sentence in most of his letters or audiences", async () => {
     const kept = new Map<Power, Kept>();
-    const seats = scriptSeats(5);
+    // Four script kings, so that three write enough to judge however a war turns: since item 17++a the kings fight the war
+    // they choose, and one at war may write too little in ten seasons to be judged.
+    const seats = scriptSeats(5, ["Babylonia", "Mitanni", "Assyria", "Egypt"]);
     for (const [p, s] of [...seats]) if (s.label !== "Idle") seats.set(p, kept.set(p, new Kept(s)).get(p)!);
     const runner = new GameRunner(newGame(5, seasons(10)), seats, new ScriptMind(), new TemplateNarrator());
     await runner.prepare();

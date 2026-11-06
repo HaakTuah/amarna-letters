@@ -26,9 +26,10 @@ import {
   type GameConfig,
   ownLand,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
+import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, threadsFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
+import { PageGate } from "./page-gate.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog, savedBatches } from "./storage.ts";
@@ -96,7 +97,8 @@ export class SessionCore {
   private readOnly = false;
   /** The turn the game stood at when its log was last saved (Live.savedTurn): a reload resumes from there. */
   private savedTurn = -1;
-  private delayMs = 400;
+  /** Item 17+++: auto-play runs one season ahead of what the page shows, and no further. */
+  private readonly page = new PageGate();
   private error: string | null = null;
   private notice: string | null = null;
   private gameId = "";
@@ -197,6 +199,7 @@ export class SessionCore {
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),
       snapshots: r?.snapshots.length ?? 0,
       chronicles: r === null ? {} : Object.fromEntries([...r.chronicles]),
+      chroniclesAnew: r === null ? {} : Object.fromEntries([...r.chroniclesAnew]),
       humans: [...this.humans.keys()],
       humansAsleep: r === null ? [] : [...this.humans.keys()].filter((p) => r.state.sleep.tryGet(p)?.asleep === true),
       pending,
@@ -297,6 +300,7 @@ export class SessionCore {
     this.framesTaken = 0;
     this.lastFrame = null;
     this.sentFrame = null;
+    this.page.reset();
     this.resetPending = true;
     this.generation++;
     this.fallTold = false;
@@ -489,7 +493,13 @@ export class SessionCore {
     if (this.auto === on) return;
     this.auto = on;
     this.notify();
+    this.page.wake();
     if (on) void this.loop();
+  }
+
+  private humanAwake(): boolean {
+    const r = this.runner;
+    return r !== null && [...this.humans.keys()].some((p) => r.state.sleep.tryGet(p)?.asleep !== true);
   }
 
   private async loop(): Promise<void> {
@@ -510,7 +520,10 @@ export class SessionCore {
         this.auto = false;
         break;
       }
-      await sleep(this.humans.size > 0 ? 50 : this.delayMs);
+      await this.page.wait(
+        () => this.auto,
+        () => this.page.ready(this.framesTaken, !this.humanAwake()),
+      );
     }
     this.auto = false;
     this.notify();
@@ -518,8 +531,30 @@ export class SessionCore {
 
   stop(): void {
     this.auto = false;
+    this.page.wake();
     this.abort.abort();
     this.abort = new AbortController();
+  }
+
+  /**
+   * Item 17+++: a season's threads for one pair of eyes, as first told and as told anew. Telling anew is the game's owner's:
+   * a replay of a loaded record is read only, so it only reads.
+   */
+  private async threads(id: number, turn: number, viewer: Power | null, anew: boolean): Promise<void> {
+    const r = this.runner;
+    if (r === null) return this.post({ type: "threads", id, tellings: [] });
+    const tellings = anew && !this.readOnly ? await r.tellThreadsAnew(turn, this.abort.signal) : r.tellings(turn);
+    this.post({ type: "threads", id, tellings: tellings.map((told) => threadsFor(told, viewer)) });
+    if (anew && !this.readOnly) await this.save();
+  }
+
+  /** Item 17+++: the annals told anew at the game's owner's asking, beside the first telling. */
+  private async chroniclesAnew(): Promise<void> {
+    const r = this.runner;
+    if (r === null || this.readOnly || r.chronicles.size === 0) return;
+    await r.tellChroniclesAnew(this.abort.signal);
+    this.notify();
+    await this.save();
   }
 
   async save(): Promise<void> {
@@ -549,8 +584,11 @@ export class SessionCore {
         return this.step();
       case "auto":
         return this.setAuto(m.on);
-      case "delay":
-        this.delayMs = m.ms;
+      case "simulate":
+        this.page.free = m.on;
+        return this.page.wake();
+      case "played":
+        if (m.generation === this.generation) this.page.told(m.index);
         return;
       case "budget":
         this.settings = { ...this.settings, budgetUsd: this.settings.budgetUsd + m.by };
@@ -587,6 +625,12 @@ export class SessionCore {
       }
       case "export":
         return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner !== null ? exportJsonl(this.runner.log, m.parts, realNames(this.runner.state)) : "" });
+      case "mind":
+        return this.post({ type: "mind", id: m.id, pages: this.runner?.log.minds.at(m.who, m.turn) ?? [] });
+      case "threads":
+        return this.threads(m.id, m.turn, m.viewer, m.anew);
+      case "chroniclesAnew":
+        return this.chroniclesAnew();
     }
   }
 }

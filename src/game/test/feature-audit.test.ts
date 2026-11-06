@@ -44,6 +44,8 @@ import {
   range,
   recall,
   roundEven,
+  describe as describeOrder,
+  hire,
 } from "@amarna/engine";
 import { type Personality, ScriptLeader, ScriptMind, newEnvoyContext, temperament } from "@amarna/game";
 import { removeAll, Assert, oldWorld, unruled } from "../../engine/test/support.ts";
@@ -173,7 +175,8 @@ describe("FeatureAuditTests", () => {
       "Hatti",
       "Rejected",
       "Orders that could not be carried out",
-      `- hire ${held.id} at 20 a season: ${held.name} is held at the court of Assyria and cannot come to yours`,
+      // The line as the engine writes a refused order (`resolve.ts`: "- " + describe(order) + ": " + reason; bug #656).
+      `- ${describeOrder(hire(held.id, 120, 6, 60))}: ${held.name} is held at the court of Assyria and cannot come to yours`,
     );
     let brain = brainFor(s, "Hatti");
     Assert.contains(forger.id, brain.noHand);

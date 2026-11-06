@@ -37,8 +37,10 @@ import {
   ModelCallSchema,
   PresentResultSchema,
   ScriptMind,
+  MindPageSchema,
   ShadowDecisionSchema,
   TemplateNarrator,
+  ThreadSchema,
   WordFields,
   exportJsonl,
   realNames,
@@ -135,6 +137,7 @@ describe("ExportTests", () => {
       [ShadowDecisionSchema, ExportFields.shadow],
       [CharacterChoiceSchema, ExportFields.choice],
       [AuditSchema, ExportFields.audit],
+      [MindPageSchema, ExportFields.mind],
     ] as [ObjSchema<unknown>, readonly string[]][])
       Assert.equal(names(schema).filter((n) => !LeftOut.includes(n)), [...listed]);
   });
@@ -145,12 +148,14 @@ describe("ExportTests", () => {
     log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice() }));
     log.addAudit(newAudit({ key: "t1/orders/Egypt", turn: 1, kind: "orders" }));
     log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "script", name: "Script" }));
+    log.minds.keep(1, "Egypt", { notes: "Watch Hatti." });
     const types = (text: string): string[] => [...new Set(text.split("\n").filter((l) => l.length > 0).map((l) => (JSON.parse(l) as { type: string }).type))].sort();
     Assert.equal(log.toJsonl().split("\n").length, exportJsonl(log).split("\n").length);
-    Assert.equal(["audit", "call", "decision", "header", "shadow"], types(exportJsonl(log)));
+    Assert.equal(["audit", "call", "decision", "header", "mind", "shadow"], types(exportJsonl(log)));
+    // A model king's own pages go with the calls.
     Assert.equal(["audit", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
-    Assert.equal(["audit", "call", "decision", "header"], types(exportJsonl(log, { ...Everything, shadows: false })));
-    Assert.equal(["call", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
+    Assert.equal(["audit", "call", "decision", "header", "mind"], types(exportJsonl(log, { ...Everything, shadows: false })));
+    Assert.equal(["call", "decision", "header", "mind", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
   });
 
   /** The string fields a human's orders and answers hold that are orders the engine reads: ids, names it knows, kinds. */
@@ -159,6 +164,8 @@ describe("ExportTests", () => {
     "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "how", "into", "kind", "lot",
     "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
     "vassal", "via", "what", "when", "where", "withdraw",
+    // Item 17+++: a thread to watch names a court, a person and a message trail by id.
+    "trail",
     // A character's answers: courts, debts, offers and people by id, an alias it was offered.
     "accept", "askDebts", "choice", "claimsToServe", "crownId", "giveDebts", "go", "goAs", "kill", "league", "outlaw", "repay",
   ]);
@@ -190,7 +197,7 @@ describe("ExportTests", () => {
       }
     };
     // Every schema the runner records a decision under (strings and flags are values of their own).
-    for (const schema of [TurnSubmissionSchema, HostReplySchema, MindReplySchema, PresentResultSchema, EnvoyReactionSchema]) walk(schema, "");
+    for (const schema of [TurnSubmissionSchema, HostReplySchema, MindReplySchema, PresentResultSchema, EnvoyReactionSchema, ThreadSchema]) walk(schema, "");
     // A new string field must be put on one side: in WordFields (export.ts) if a player types it, here if the engine reads it.
     Assert.equal([], [...unsorted]);
   });

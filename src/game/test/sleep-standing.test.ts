@@ -89,7 +89,7 @@ describe("SleepTests", () => {
     let notice = noticeOf(r.state, "Babylonia", standingFiredTitle("s1"));
     Assert.equal(["Resolution", 3], [notice.kind, notice.turn]);
     Assert.equal(
-      "Your standing order s1 (when Assyria's troops enter arbela) fired in turn 2: Assyria's army set out from ashur for arbela. It gave these orders: babylon -> nippur.",
+      "Your standing order s1 (when Assyria's troops enter Arbail) fired in turn 2: Assyria's army set out from Ashur for Arbail. It gave these orders: the troops in Babili march to Nippur.",
       notice.body,
     );
     // In brief, the firing is dated by the season it fired, as the movements are by the season they were made.
@@ -125,7 +125,7 @@ describe("SleepTests", () => {
     Assert.equal("Babylonia", unitAt(r.state, "durkurigalzu")?.power);
     Assert.empty(standingOf(r.state, "Babylonia"));
     Assert.equal(
-      "Your standing order s1 (when your army in durkurigalzu is attacked) fired in turn 2: Assyria's army set out from ekallate for durkurigalzu. It gave these orders: sippar supports durkurigalzu holding.",
+      "Your standing order s1 (when your army in Dur-Kurigalzu is attacked) fired in turn 2: Assyria's army set out from Ekallate for Dur-Kurigalzu. It gave these orders: the troops in Sippar support the hold at Dur-Kurigalzu.",
       noticeOf(r.state, "Babylonia", standingFiredTitle("s1")).body,
     );
     // The scheduled hold was replaced, not refused as a second order for the unit. The attack that did not get in wakes
@@ -159,7 +159,7 @@ describe("SleepTests", () => {
     Assert.equal("Babylonia", unitAt(r.state, "durkurigalzu")?.power);
     Assert.null(unitAt(r.state, "sippar"));
     Assert.equal("Assyria", unitAt(r.state, "ekallate")?.power);
-    Assert.endsWith("It gave these orders: durkurigalzu holds.", noticeOf(r.state, "Babylonia", standingFiredTitle("s1")).body);
+    Assert.endsWith("It gave these orders: the troops in Dur-Kurigalzu hold.", noticeOf(r.state, "Babylonia", standingFiredTitle("s1")).body);
     // The march gave way to the standing order: it is not held up, and nothing failed.
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
     Assert.empty(r.state.sleep.get("Babylonia").scheduled);
@@ -187,7 +187,7 @@ describe("SleepTests", () => {
     Assert.equal("Babylonia", unitAt(r.state, "nippur")?.power);
     Assert.empty(standingOf(r.state, "Babylonia"));
     Assert.equal(
-      "Your standing order s1 (when your army in durkurigalzu is attacked) fired in turn 2: Assyria's army set out from ekallate for durkurigalzu. It gave these orders: babylon -> nippur; sippar holds. They replaced these orders you gave for turn 2: babylon holds.",
+      "Your standing order s1 (when your army in Dur-Kurigalzu is attacked) fired in turn 2: Assyria's army set out from Ekallate for Dur-Kurigalzu. It gave these orders: the troops in Babili march to Nippur; the troops in Sippar hold. They replaced these orders you gave for turn 2: the troops in Babili hold.",
       noticeOf(r.state, "Babylonia", standingFiredTitle("s1")).body,
     );
     // The replaced hold is no second order for the army, and nothing was refused.
@@ -216,21 +216,21 @@ describe("SleepTests", () => {
 
     Assert.equal("Babylonia", unitAt(s, "nippur")?.power);
     Assert.empty(standingOf(s, "Babylonia"));
-    let fired = "fired in turn 3: Assyria's army set out from ekallate for arrapha.";
+    let fired = "fired in turn 3: Assyria's army set out from Ekallate for Arrapha.";
     Assert.equal(
-      `Your standing order s1 (when Assyria's troops enter arrapha) ${fired} It gave these orders: babylon -> nippur.`,
+      `Your standing order s1 (when Assyria's troops enter Arrapha) ${fired} It gave these orders: the troops in Babili march to Nippur.`,
       noticeOf(s, "Babylonia", standingFiredTitle("s1")).body,
     );
     Assert.equal(
-      `Your standing order s2 (when Assyria's troops enter arrapha) ${fired} It gave these orders: durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon holds.`,
+      `Your standing order s2 (when Assyria's troops enter Arrapha) ${fired} It gave these orders: the troops in Dur-Kurigalzu hold. Replaced by standing order s1, which fired in the same season: the troops in Babili hold.`,
       noticeOf(s, "Babylonia", standingFiredTitle("s2")).body,
     );
     Assert.equal(
-      `Your standing order s3 (when Assyria's troops enter arrapha) ${fired} Refused: suhu -> ur (an army in suhu cannot reach ur).`,
+      `Your standing order s3 (when Assyria's troops enter Arrapha) ${fired} Refused: the troops in Suhu march to Urim (an army in Suhu cannot reach Urim).`,
       noticeOf(s, "Babylonia", standingFiredTitle("s3")).body,
     );
     // Only the refused order fails; the one replaced by s1 is no second order for the unit. A refusal wakes nobody.
-    Assert.equal("- suhu -> ur: an army in suhu cannot reach ur", noticeOf(s, "Babylonia", "Orders that could not be carried out").body);
+    Assert.equal("- The troops in Suhu march to Urim: an army in Suhu cannot reach Urim.", noticeOf(s, "Babylonia", "Orders that could not be carried out").body);
     Assert.empty(sleep.pendingWake);
   });
 
@@ -331,7 +331,7 @@ describe("SleepTests", () => {
     Assert.equal("Babylonia", unitAt(s, "sippar")?.power);
     Assert.empty(standingOf(s, "Babylonia"));
     Assert.equal(
-      "Your standing order s1 (when Assyria's troops enter arrapha) fired in turn 3: Assyria's army set out from ekallate for arrapha. It gave these orders: babylon -> nippur.",
+      "Your standing order s1 (when Assyria's troops enter Arrapha) fired in turn 3: Assyria's army set out from Ekallate for Arrapha. It gave these orders: the troops in Babili march to Nippur.",
       noticeOf(s, "Babylonia", standingFiredTitle("s1")).body,
     );
     Assert.doesNotContain(inboxOf(s, "Babylonia"), (i) => i.kind === "Rejected");
@@ -412,12 +412,12 @@ describe("SleepTests", () => {
     let first = single(standing[0].orders);
     Assert.equal([unitAt(s, "sippar")!.id, unitAt(s, "babylon")!.id], [first.unitId!, first.otherUnitId!]);
     Assert.equal(
-      "- when your unit in nippur is attacked: you have no unit in nippur\n" +
-        "- when foreign troops enter suhu: nippur -> ur: you have no unit in nippur\n" +
-        "- when Assyria's troops enter suhu: it gives no orders\n" +
-        "- when foreign troops enter suhu: there is no power called 'Kush'\n" +
-        "- when foreign troops enter ur: it gives 25 orders; a standing order may give at most 24\n" +
-        "- when foreign troops enter suhu: you may keep at most 12 standing orders",
+      "- when your unit in Nippur is attacked: you have no unit in Nippur\n" +
+        "- when foreign troops enter Suhu: the troops in Nippur march to Urim: you have no unit in Nippur\n" +
+        "- when Assyria's troops enter Suhu: it gives no orders\n" +
+        "- when foreign troops enter Suhu: there is no power called 'Kush'\n" +
+        "- when foreign troops enter Urim: it gives 25 orders; a standing order may give at most 24\n" +
+        "- when foreign troops enter Suhu: you may keep at most 12 standing orders",
       noticeOf(s, "Babylonia", "Standing orders not kept").body,
     );
     // Refused like any order, it wakes nobody (since the review of the fix pass after item 4).
@@ -452,7 +452,7 @@ describe("SleepTests", () => {
       standingOf(r.state, "Babylonia").map((x) => x.id),
     );
     Assert.equal(unitAt(r.state, "sippar")!.id, standingOf(r.state, "Babylonia")[0].unitId);
-    Assert.equal("- when foreign troops enter suhu: there is no power called 'Kush'", noticeOf(r.state, "Babylonia", "Standing orders not kept").body);
+    Assert.equal("- when foreign troops enter Suhu: there is no power called 'Kush'", noticeOf(r.state, "Babylonia", "Standing orders not kept").body);
     // The schema it was given asks for both, and its rulebook explains them.
     let spec = single(king.specs, (x) => x.key === "t1/orders/Babylonia");
     Assert.contains('"standing_orders"', JSON.stringify(spec.schema));

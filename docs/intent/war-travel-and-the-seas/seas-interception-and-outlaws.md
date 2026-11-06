@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 111 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 112 (2026-11-03). Do not edit: see docs/intent/INDEX.md. -->
 ## Seas, interception and outlaws
 
 **Seas, interception and outlaws (interception on the road, pirates and bandits decided, build order items 7 and 11; deniable attacks decided, needing no rule; finer seas decided, build order item 7).**
@@ -38,7 +38,7 @@
 - **River crossings:** fords close in the flood season and ferries hold a column up; the map data already holds the crossings.
 - **Fodder:** in winter or desert the animals' fodder is carried, which eats into the load.
 - **Pace as a choice:** a forced march is faster, and men and animals drop along the way, a real decision for an army racing to relieve a siege.
-- **The leader:** a character who knows the road leads faster; men alone keep the average pace.
+- **The leader:** a character who knows the road leads faster; men alone keep the average pace. A lone traveller or a small party also goes at the endurance of its slowest man ("The body: endurance and robustness" under Characters).
 - **Sneaking:** travel off the road, to avoid tolls or policing, is slower, so smuggling buys secrecy with time.
 - **On water:** current, wind and the sailing season ("Finer seas", "Rivers").
 

@@ -323,7 +323,7 @@ describe("CourtAsleepTests", () => {
     let r = await play(host, t + 1);
     Assert.equal([1], host.calls);
     let notice = Assert.single(inboxOf(r.state, "Alashiya"), (i) => i.kind === "Rejected" && i.turn === t + 1);
-    Assert.contains("- send c999 to Egypt:", notice.body);
+    Assert.contains("- Send c999 to Egypt:", notice.body);
     // It waits in the digest for the king's next waking, like any order given for the season that failed.
     Assert.contains(r.state.sleep.get("Alashiya").digest, (d) => d === `turn ${t + 1}: an order was refused or failed (Orders that could not be carried out)`);
   });
@@ -366,7 +366,7 @@ describe("CourtAsleepTests", () => {
     Assert.equal("Babylonia", char(r.state, second!).missionTarget);
     Assert.equal(0, ledger(r.state.treasuries.get("Alashiya")));
     let refused = Assert.single(inboxOf(r.state, "Alashiya"), (i) => i.kind === "Rejected").body;
-    Assert.equal(`- spend 1 on watching for spies: not enough gold: it needs 1 shekels; orders listed before it had reserved ${gold}, and 0 was left`, refused);
+    Assert.equal("- Spend 1 on watching for spies: not enough gold, for it needs 1 shekel and the orders listed before it left only 0 shekels.", refused);
   });
 
   // ------------------------------------------------------------ what the king reads

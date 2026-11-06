@@ -2,6 +2,7 @@
  * One contract for every seat: humans, language-model leaders and script bots receive the same view and return the same
  * structured decisions. The engine never knows who sits in a seat.
  */
+import type { Thread } from "./threads.ts";
 import {
   B,
   I,
@@ -41,6 +42,11 @@ export interface ISeat {
    * never hear one.
    */
   readonly hearsCouncil?: boolean;
+  /**
+   * Item 17+++: a seat with a mind of its own (a model king) gives its own words as they stand after a season, page by page
+   * (its notes, summary, plan and ledger), for the record to keep; script, file and human seats have none.
+   */
+  mindPages?(): Record<string, string>;
   /** A sleeping seat that wants to act now (a human waking himself): read once a season, before the wake check. */
   wakeRequested?(): boolean;
   decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission>;
@@ -100,6 +106,8 @@ export interface INarrator {
   persona(c: Character, signal?: AbortSignal): Promise<string>;
   checkReport(ctx: CheckContext, signal?: AbortSignal): Promise<string>;
   chronicle(ctx: ChronicleContext, signal?: AbortSignal): Promise<string>;
+  /** Item 17+++: words for the season's threads to watch, one for each, in order ("" leaves one to the template's words). */
+  threads(ctx: ThreadContext, signal?: AbortSignal): Promise<string[]>;
 }
 
 export interface PresentResult {
@@ -198,10 +206,23 @@ export interface CheckContext {
   turn: number;
 }
 
+/**
+ * The season's threads to watch for the narrator to word (threads.ts): each found for one pair of eyes (`Thread.court`),
+ * to be worded from its own facts alone, with the names of the people they follow, each as its thread's court knows him
+ * (keyed by `nameKey`).
+ */
+export interface ThreadContext {
+  turn: number;
+  threads: Thread[];
+  names: Record<string, string>;
+}
+
 export interface ChronicleContext {
   power: Power;
   known: GameEvent[];
   scores: ScoreRow[];
   winners: string[];
   lastTurn: number;
+  /** The court's annals as told before, oldest first, when they are told anew at the game's owner's asking; empty the first time. */
+  earlier: string[];
 }

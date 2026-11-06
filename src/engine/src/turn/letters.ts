@@ -9,8 +9,8 @@
 import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { gain, remember, type Character } from "../model/people.ts";
-import { land, quoteWords, type Power } from "../model/power.ts";
-import { OfferCaught, offerWords, Waiting, type Journey } from "../model/records.ts";
+import { land, quoteWords, type Power, powerName } from "../model/power.ts";
+import { OfferCaught, offerWords, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
@@ -239,12 +239,12 @@ P.lettersGo = function () {
     if (c !== null && c.status === "Captured" && c.heldBy !== null && c.heldBy !== letter.to && letter.report !== null) {
       // Whoever caught the carrier reads what it carried ("The carrier can be intercepted").
       const spy = findCharacter(S, letter.characterId);
-      notify(S, c.heldBy, "Notice", "A letter taken on the road", `Among what ${c.name} carried was a sealed report to ${letter.to} from ${spy?.name ?? "an agent"}, written in season ${letter.departTurn}: ${letter.report.observations.join(" ")}`, spy?.id ?? null);
+      notify(S, c.heldBy, "Notice", "A letter taken on the road", `Among what ${c.name} carried was a sealed report to ${powerName(letter.to)} from ${spy === null ? "an agent" : spy.id === c.id ? "him" : spy.name}, written in turn ${letter.departTurn}: ${letter.report.observations.join(" ")}`, spy?.id ?? null);
       logEvent(S, "letter", `${c.heldBy} read a report to ${letter.to} taken from ${c.name}.`, [c.heldBy], "letter-read");
     } else if (c !== null && c.status === "Captured" && c.heldBy !== null && c.heldBy !== letter.to && letter.kind === "Offer" && isAlive(S, c.heldBy)) {
       // #553: so is a province's offer, in the people's own words; its king learns of it only from them.
       const from = this.map.get(letter.waitAt!).name;
-      notify(S, c.heldBy, "Notice", "A letter taken on the road", `${OfferCaught.opens}${c.name}${OfferCaught.people}${from} to ${letter.to}: ${quoteWords(offerWords(letter))}`, c.id);
+      notify(S, c.heldBy, "Notice", "A letter taken on the road", `${OfferCaught.opens}${c.name}${OfferCaught.people}${from} to ${powerName(letter.to)}: ${quoteWords(offerWords(letter))}`, c.id);
       logEvent(S, "letter", `${c.heldBy} read the offer of ${from}'s people to ${letter.to}, taken from ${c.name}.`, [c.heldBy], "offer-read");
     } else logEvent(S, "letter", `A letter to ${letter.to} was lost on the road with ${c?.name ?? "its carrier"}.`, [], "letter-lost");
   }

@@ -16,7 +16,7 @@ const DidNotFit = "did not fit: ";
 
 /** What an export holds: each part true to put it in. */
 export interface ExportParts {
-  /** Every model call: what was asked, what came back, its tokens, cost and errors. */
+  /** Every model call: what was asked, what came back, its tokens, cost and errors; and a model king's own pages by season. */
   calls: boolean;
   /** The shadow scripts' decisions beside the model characters'. */
   shadows: boolean;
@@ -39,6 +39,7 @@ export const ExportFields = {
   shadow: ["key", "turn", "kind", "character", "name", "traits", "goldCarried", "giftOffered", "serviceOffered", "known", "model", "script", "error"],
   choice: ["text", "kept", "swap", "acceptGift", "acceptService", "commitments", "price", "dropped", "flags"],
   audit: ["key", "turn", "kind", "rung", "model", "above", "differ", "mattered"],
+  mind: ["turn", "who", "page", "text"],
 } as const;
 
 /** The mark that stands for each letter of words left out. Spaces stay, so a blank keeps its shape. */
@@ -195,6 +196,13 @@ function given(node: Node, parts: ExportParts, blanker: Blanker | null): Node | 
     }
     case "audit":
       return parts.audits ? { ...pick(node, ExportFields.audit), type: "audit" } : null;
+    case "mind": {
+      // A model king's own pages go with the calls they were written in; a mind quotes what it read, so the filter blanks it.
+      if (!parts.calls) return null;
+      const mind = pick(node, ExportFields.mind);
+      mind.text = words(mind.text);
+      return { ...mind, type: "mind" };
+    }
     default:
       return null;
   }

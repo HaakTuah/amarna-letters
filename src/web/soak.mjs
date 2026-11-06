@@ -2,7 +2,7 @@
 // the page went white, and records as it goes the season reached, the page's and the worker's heap, the frame times and
 // the time each season took. Any page error, console error or blank page is reported with the season it came at.
 //   node src/web/soak.mjs [--phone] [--throttle 4] [--heap 512] [--seed 1] [--minutes 30] [--log <file>] [--site <dir>] [--profile]
-//                         [--speed fast|normal|slow] [--video <dir>] [--video-size 800x500]
+//                         [--speed simulate|fast|normal|slow] [--video <dir>] [--video-size 800x500] [--trace] [--trace-file <file>]
 // With --profile, the page and the worker are sampled for 30 s from about season 15, and the hottest functions of each listed.
 // Smoothness is measured, never judged by eye (item 17a): every frame drawn is timed; the count over 50 ms and the longest
 // frames, with the season each came in, are reported at the end. --video records the screen to a .webm in the directory.
@@ -28,8 +28,10 @@ const heapMb = Number(arg("--heap", "0"));
 const profile = process.argv.includes("--profile");
 // --trace: the browser's own timeline (devtools.timeline) for 20 s from about season 15, summed by event: the main thread's
 // time in script, style, layout, paint, parsing HTML and garbage collection, which no JavaScript mark can see.
-const trace = process.argv.includes("--trace");
-const speed = { fast: "50", normal: "400", slow: "1500" }[arg("--speed", "fast")] ?? "50";
+// --trace-file <file>: the same timeline kept whole as JSON (implies --trace), to look into one long frame's events at leisure.
+const traceFile = arg("--trace-file", null);
+const trace = process.argv.includes("--trace") || traceFile !== null;
+const speed = { simulate: "0", fast: "50", normal: "400", slow: "1500" }[arg("--speed", "fast")] ?? "50";
 const videoDir = arg("--video", null);
 // The recording's size (WxH), smaller than the viewport to keep the file small; the viewport is unchanged.
 const videoSize = (arg("--video-size", "") || "").match(/^(\d+)x(\d+)$/u);
@@ -155,6 +157,7 @@ async function stopTrace() {
   await done;
   const span = (Date.now() - tracing) / 1000;
   tracing = null;
+  if (traceFile !== null) await writeFile(traceFile, JSON.stringify(traced));
   // Complete events (ph X) by name, the main thread's: self time is not separated, so the sums overlap (a task holds its parts).
   const byName = new Map();
   let mainPid = null;
@@ -249,7 +252,8 @@ await p.addInitScript((hitch) => {
     if (dt > hitch) {
       f.long++;
       // The longest frames of the whole game, with the season shown when each came.
-      const season = Number(document.querySelector(".slider")?.max ?? -1);
+      // At Simulate no map is drawn: the season is the progress view's count.
+      const season = Number(document.querySelector(".slider")?.max ?? document.querySelector("[data-season]")?.dataset.season ?? -1);
       f.longest.push({ ms: dt, season });
       if (f.longest.length > 400) {
         f.longest.sort((a, b) => b.ms - a.ms);
@@ -323,7 +327,7 @@ for (;;) {
       f.worst = 0;
       f.total = 0;
       return {
-        season: slider ? Number(slider.max) : -1,
+        season: slider ? Number(slider.max) : Number(document.querySelector("[data-season]")?.dataset.season ?? -1),
         heap: performance.memory?.usedJSHeapSize ?? 0,
         nodes: document.getElementsByTagName("*").length,
         blank: (document.getElementById("app")?.children.length ?? 0) === 0,

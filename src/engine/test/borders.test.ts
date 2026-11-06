@@ -69,7 +69,7 @@ describe("BordersTests", () => {
     e.refuge(from, 1000, "hunger");
     Assert.equal(before + 1000, e.peopleOf(to).loose);
     Assert.equal(1000, s.runaways.get(to).get(a));
-    Assert.contains(inboxOf(s, b), (i) => i.title === "People" && i.body.includes("fled hunger"));
+    Assert.contains(inboxOf(s, b), (i) => i.title === "People" && i.body.includes("fleeing hunger"));
     // Land no better than home by a tenth draws nobody: they stay loose at home.
     s.fed.set(to, 520);
     const home = e.peopleOf(from).loose;
@@ -361,8 +361,10 @@ describe("BordersTests", () => {
       e.beginTurn();
     }
     if (s.events.some((x) => x.signal === "caravan-taken" || x.signal === "caravan-robbed")) return;
-    // Home again: the market as the caravan found it, newer than what the court knew.
-    Assert.true(c.word.markets.has("carchemish"));
+    // Home again: the market as the caravan found it, newer than what the court knew, now the court's (bug #540: the
+    // caravan's own word goes with it when its journey ends, once its court has heard it).
+    Assert.true(c.trail.length > 0 && !s.caravans.includes(c));
+    Assert.true(s.marketsSeen.get("Hatti").has("carchemish"));
     Assert.true((s.marketsSeen.get("Hatti").tryGet("carchemish")?.turn ?? -1) >= seen);
   });
 });

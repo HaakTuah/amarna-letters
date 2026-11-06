@@ -337,7 +337,7 @@ export function fastestPoints(map: WorldMap, from: string, to: string, season: n
 /**
  * Seasons for word to go from one province to another, setting out in a turn: by the fastest route in its season, at
  * least one. Reports, rumours and ransoms travel so by themselves until item 11b gives them carriers ("Messengers are
- * errands"), and news of distant land with them.
+ * errands"). News of distant land comes by the couriers' clock instead (`wordHomeAt` in rules/court.ts, bug #616).
  */
 export function wordSeasons(travelDays: number, map: WorldMap, from: string, to: string, turn: number): number {
   if (from === to) return 1;

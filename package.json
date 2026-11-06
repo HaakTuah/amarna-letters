@@ -15,11 +15,11 @@
     "lint": "eslint src/engine/src"
   },
   "devDependencies": {
-    "@types/node": "^26.6.6",
-    "eslint": "^10.13.0",
-    "playwright": "^1.63.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.1",
-    "vitest": "^5.0.5"
+    "@types/node": "26.6.6",
+    "eslint": "10.13.0",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.0.5"
   }
 }

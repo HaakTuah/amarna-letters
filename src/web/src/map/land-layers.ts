@@ -5,11 +5,12 @@
 
 import { WorldMap, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province } from "@amarna/engine";
 import { powerName } from "../ui/format.ts";
-import { F, Shapes, frontierPath, landClipOf, city } from "./art.ts";
+import { F, Shapes, arcNeighbours, frontierPath, landClipOf, city } from "./art.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { RuinMarks } from "./life.ts";
 import { ringOf, TentHalf, TentRing } from "./markup.ts";
 import { holdingLayer, tintClass, type MapMode } from "./holding.ts";
+import { patch } from "./morph.ts";
 import { type MapScene } from "./scene.ts";
 import { esc, title } from "./text.ts";
 
@@ -28,6 +29,20 @@ function provinceTitle(p: Province, owner: Power | null): string {
   );
 }
 
+/**
+ * What the tints show, as a key: each province's holder and colour, and the governors' blocs and moods over them. Most
+ * seasons it is the same, and the layer is then not drawn at all (part G: drawn every season, the layer cost a slow phone
+ * 40 ms before a write).
+ */
+export function tintsKey(s: MapScene, mode: MapMode): string {
+  let key = `${s.viewer}|${mode}|`;
+  for (const p of Land) {
+    const owner = s.owner.get(p.id) ?? null;
+    key += `${owner}:${tintClass(s, p.id, owner)};`;
+  }
+  return key + holdingLayer(s, mode);
+}
+
 export function tints(s: MapScene, mode: MapMode): string {
   let sb = `<g class="politics" clip-path="url(#seaclip)">`;
   for (const p of Seas) sb += `<path class="hit sea-hit" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(`${p.name}, a sea zone`)}</path>`;
@@ -44,31 +59,91 @@ export function tints(s: MapScene, mode: MapMode): string {
   return sb + `<g class="holding">${holdingLayer(s, mode)}</g>`;
 }
 
-export function bands(s: MapScene): string {
-  // The armies the seat sees now, by province (a unit remembered from an old report is not seen).
+/**
+ * The tints written in place (part G): each province's colour and tooltip set where they changed, and the governors' blocs
+ * and moods patched; the shapes are not parsed again. Gives whether anything was written. The layer stands as `tints` draws it.
+ */
+export function retint(g: Element, s: MapScene, mode: MapMode): boolean {
+  let wrote = false;
+  for (const el of g.querySelectorAll<SVGPathElement>(":scope > .politics > path.tint")) {
+    const p = Map_.get(el.dataset.province ?? "");
+    const owner = s.owner.get(p.id) ?? null;
+    const cls = tintClass(s, p.id, owner);
+    if (el.getAttribute("class") !== cls) {
+      el.setAttribute("class", cls);
+      wrote = true;
+    }
+    const tip = el.firstElementChild;
+    const text = provinceTitle(p, owner);
+    if (tip !== null && tip.textContent !== text) {
+      tip.textContent = text;
+      wrote = true;
+    }
+  }
+  const holding = g.querySelector(":scope > .holding");
+  const markup = holdingLayer(s, mode);
+  if (holding !== null && HoldingWritten.get(holding) !== markup) {
+    patch(holding, markup);
+    HoldingWritten.set(holding, markup);
+    wrote = true;
+  }
+  return wrote;
+}
+/** The blocs' and moods' markup each tints layer was last written with. */
+const HoldingWritten = new WeakMap<Element, string>();
+
+/** The armies the seat sees now, by province (a unit remembered from an old report is not seen). */
+function seenArmies(s: MapScene): Map<string, Set<Power>> {
   const armies = new Map<string, Set<Power>>();
   for (const u of s.units) if (u.kind === "Army" && !u.ghost) armies.set(u.province, (armies.get(u.province) ?? new Set()).add(u.power));
+  return armies;
+}
+
+/**
+ * The provinces across a held province's frontier (another holder's, or no one's) where the seat sees, now, armies of two
+ * powers face to face, one on each side: where its border glows (#583), and what its card lists (#586).
+ */
+export function facedAcross(s: MapScene, id: string, armies: Map<string, Set<Power>> = seenArmies(s)): string[] {
+  const o = s.owner.get(id) ?? null;
+  const here = armies.get(id);
+  if (o === null || here === undefined) return [];
+  return arcNeighbours(id).filter((q) => (s.owner.get(q) ?? null) !== o && [...(armies.get(q) ?? [])].some((b) => [...here].some((a) => a !== b)));
+}
+
+export function bands(s: MapScene): string {
+  const armies = seenArmies(s);
   let sb = "";
   for (const [clip, group] of LandByClip) {
     sb += `<g class="bands" clip-path="${clip}">`;
     for (const p of group) {
       const o = s.owner.get(p.id) ?? null;
       if (o === null) continue;
+      const faced = facedAcross(s, p.id, armies);
+      // A province's band is traced again only when its holder, its neighbours' or the armies facing it change (part G).
+      const key = `${o}|${arcNeighbours(p.id).map((q) => s.owner.get(q) ?? "").join(",")}|${faced.join(",")}`;
+      const kept = BandsDrawn.get(p.id);
+      if (kept !== undefined && kept.key === key) {
+        sb += kept.markup;
+        continue;
+      }
+      let markup = "";
       const other = (q: string): boolean => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o;
       // A frontier where armies of two powers stand face to face, one on each side: a wider, fainter stroke under the band.
-      const here = armies.get(p.id);
-      if (here !== undefined) {
-        const faced = (q: string): boolean => [...(armies.get(q) ?? [])].some((b) => [...here].some((a) => a !== b));
-        const c = frontierPath(p.id, (across) => across.some((q) => q !== "~" && other(q) && faced(q)));
-        if (c !== "") sb += `<path class="band contested b-${glyphId(o)}" d="${c}" clip-path="url(#cl-${p.id})"/>`;
+      if (faced.length > 0) {
+        const c = frontierPath(p.id, (across) => across.some((q) => faced.includes(q)));
+        if (c !== "") markup += `<path class="band contested b-${glyphId(o)}" d="${c}" clip-path="url(#cl-${p.id})"/>`;
       }
       const d = frontierPath(p.id, (across) => across.length === 0 || across.some(other));
-      if (d !== "") sb += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+      if (d !== "") markup += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+      BandsDrawn.set(p.id, { key, markup });
+      sb += markup;
     }
     sb += "</g>";
   }
   return sb;
 }
+/** Each province's band as last traced, with what it was traced from. */
+const BandsDrawn = new Map<string, { key: string; markup: string }>();
 
 export function cities(s: MapScene): string {
   const sieges = new Set(s.sieges.map((x) => x.province));

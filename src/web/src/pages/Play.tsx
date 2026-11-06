@@ -9,10 +9,14 @@ import { ExportLog } from "../components/ExportLog.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
+import { SimulateProgress } from "../components/SimulateProgress.tsx";
 import { AudioSwitches } from "../audio/AudioSwitches.tsx";
 import { player } from "../audio/player.ts";
 import { useGameAudio } from "../audio/use-game-audio.ts";
 import { InboxPanel } from "../components/InboxPanel.tsx";
+import { MindPanel } from "../components/MindPanel.tsx";
+import { ThreadsPanel } from "../components/ThreadsPanel.tsx";
+import { directorShot } from "../map/director.ts";
 import { MapLegend } from "../components/MapLegend.tsx";
 import { MarkInfo } from "../components/MarkInfo.tsx";
 import { OrdersPanel } from "../components/OrdersPanel.tsx";
@@ -34,6 +38,7 @@ import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
+import { authorKind, type Thread } from "@amarna/game";
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
 const PhaseWords: Record<string, string> = {
@@ -81,7 +86,7 @@ export function Play() {
   useLayoutEffect(() => {
     performance.measure("page:play", { start: renderStart });
   });
-  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 3 set the pace, + and − step it.
+  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 4 set the pace, + and − step it.
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
@@ -95,7 +100,11 @@ export function Play() {
     pace1: () => setSpeed(0),
     pace2: () => setSpeed(1),
     pace3: () => setSpeed(2),
-    faster: () => setSpeed(speedIndex(s.delayMs) + 1),
+    pace4: () => setSpeed(3),
+    // + and − step between Slow, Normal and Fast; Simulate is chosen only by its own key ("Pace of play").
+    faster: () => {
+      if (speedIndex(s.delayMs) < 2) setSpeed(speedIndex(s.delayMs) + 1);
+    },
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
   });
   const [mark, setMark] = useState<string | null>(null);
@@ -123,7 +132,7 @@ export function Play() {
   });
 
   function viewerOf(): Power | null {
-    return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
+    return s.viewer;
   }
 
   // The music and the sounds follow the season shown, as this view knows it (item 19+++).
@@ -136,6 +145,43 @@ export function Play() {
   useEffect(() => {
     if (followAt !== null) map.current?.focus(followAt, 1, true);
   }, [followAt?.x, followAt?.y]);
+
+  // Item 17+++, part F: the season's threads to watch for the eyes the page sees through, read while their tab is open or
+  // the director camera is on, and only while the record is open to the page; the camera, off by default, takes the map
+  // to the season's highest-stakes scene as it plays out, unless a follow holds it.
+  const [director, setDirector] = useState(false);
+  const [threads, setThreads] = useState<{ key: string; tellings: Thread[][] } | null>(null);
+  const [trailOnly, setTrailOnly] = useState<string | null>(null);
+  const threadsAt = `${live.gameId}:${live.generation}:${s.shownIndex}:${viewerOf() ?? ""}`;
+  const wantThreads = live.hasRunner && s.canSeeAll && (tabRaw === "threads" || director);
+  const readThreads = (anew: boolean): (() => void) => {
+    let on = true;
+    void s.threads(s.shownIndex, viewerOf(), anew).then((tellings) => on && setThreads({ key: threadsAt, tellings }));
+    return () => {
+      on = false;
+    };
+  };
+  useEffect(() => (wantThreads ? readThreads(false) : undefined), [wantThreads, threadsAt]);
+  const tellings = wantThreads && threads?.key === threadsAt ? threads.tellings : null;
+  const playout = s.playoutAt(s.shownIndex, viewerOf());
+  useEffect(() => {
+    if (!director || playout === null || tellings === null || tracking) return;
+    const shot = directorShot(playout.play.timeline, tellings[0] ?? []);
+    if (shot === null) return;
+    const timer = window.setTimeout(() => map.current?.focus(shot.at, 2.2, true), Math.max(0, shot.time - (performance.now() - playout.began)));
+    return () => window.clearTimeout(timer);
+  }, [director, playout?.began, tellings, tracking]);
+
+  // Simulate draws nothing while it runs (item 17+++): a progress bar and the count of seasons, and the way back to watching.
+  if (live.hasRunner && s.simulating)
+    return (
+      <SimulateProgress
+        seasons={Math.max(0, s.frames.length - 1)}
+        when={whenCap(live.turn, viewerOf())}
+        onPause={() => s.setAuto(false)}
+        onWatch={() => s.setDelay(Speeds[2].ms)}
+      />
+    );
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     // No game on screen yet: the pages' own bar stays, so the other pages are a tap away.
@@ -202,6 +248,10 @@ export function Play() {
   if (tab === "inbox" && viewer === null) tab = "";
   if (tab === "trail" && !s.godView) tab = "";
   if (tab === "legends" && !s.godView) tab = "";
+  if (tab === "threads" && !s.canSeeAll) tab = "";
+  // Item 17+++: a model king's own words, where the record is open to the page and a seat is watched.
+  const minded = viewer !== null && s.canSeeAll && authorKind(live.seats[viewer] ?? "Human") === "model";
+  if (tab === "mind" && !minded) tab = "";
   if (tab === "follow" && followId === null) tab = "";
   if (tab === "") tab = pendingAudience !== null ? "audience" : pendingOrders !== null ? "orders" : "season";
   if (tab !== tabRaw) queueMicrotask(() => setTab(tab));
@@ -404,7 +454,7 @@ export function Play() {
                     // Let go of the menu, so Space and the pace keys work again at once.
                     e.target.blur();
                   }}
-                  title="Keys 1 to 3 set the pace; + and − make it faster or slower"
+                  title="Keys 1 to 4 set the pace; + and − make it faster or slower"
                 >
                   {Speeds.map((x, i) => (
                     <option key={x.ms} value={x.ms}>
@@ -449,6 +499,7 @@ export function Play() {
             arrows: useDraft ? draft!.arrows() : null,
             followId,
             followPath,
+            playout: s.playoutAt(index, viewer),
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}
@@ -492,6 +543,16 @@ export function Play() {
           {viewer !== null && (
             <button className={tabClass("inbox")} onClick={() => pick("inbox")}>
               Inbox
+            </button>
+          )}
+          {minded && (
+            <button className={tabClass("mind")} onClick={() => pick("mind")}>
+              Own words
+            </button>
+          )}
+          {s.canSeeAll && (
+            <button className={tabClass("threads")} onClick={() => pick("threads")}>
+              Threads
             </button>
           )}
           {s.godView && (
@@ -663,8 +724,33 @@ export function Play() {
         );
       case "inbox":
         return <InboxPanel state={displayed} power={viewer!} />;
+      case "mind":
+        return <MindPanel power={viewer!} turn={s.shownIndex} session={s} />;
       case "trail":
-        return <TrailPanel state={displayed} authors={live.trailAuthors} onPerson={follow} />;
+        return <TrailPanel state={displayed} authors={live.trailAuthors} onPerson={follow} only={trailOnly} onAll={() => setTrailOnly(null)} />;
+      case "threads":
+        return (
+          <ThreadsPanel
+            tellings={tellings}
+            trails={s.godView}
+            director={director}
+            canTellAnew={!live.readOnly}
+            onPerson={follow}
+            onTrail={(id) => {
+              setTrailOnly(id);
+              setTab("trail");
+            }}
+            onPlace={(province) => {
+              setTracking(false);
+              setSheet(false);
+              setMark(null);
+              setSelectedProvince(province);
+              map.current?.focus(city(province), 2.2);
+            }}
+            onDirector={setDirector}
+            onTellAnew={() => void readThreads(true)}
+          />
+        );
       case "people":
         return <PeoplePanel state={displayed} viewer={viewer} onPerson={follow} />;
       case "follow":
@@ -698,7 +784,7 @@ export function Play() {
           </>
         );
       case "chronicle":
-        return <ChroniclePanel state={state} chronicles={live.chronicles} />;
+        return <ChroniclePanel state={state} chronicles={live.chronicles} anew={live.chroniclesAnew} onTellAnew={live.readOnly ? null : () => s.chroniclesAnew()} />;
       case "legends":
         return <LegendsPanel state={displayed} onProvince={clicked} />;
       case "events":

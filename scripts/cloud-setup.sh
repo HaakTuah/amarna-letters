@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Prepare a cloud machine (Ubuntu 24.04, run as root): the npm packages and Playwright's Chromium for the smoke test
-# and the phone measurements, and Node 26 where the machine has an older one: the same Node as CI's `node-version` in
-# .github/workflows/pages.yml, the two moved together ("Git and GitHub" in AGENTS.md). Safe to run twice; always exits
-# 0 and says what it could not install. The same script can be pasted into a cloud environment's "Setup script" field,
-# so that new sessions start with it done.
+# Prepare a cloud machine (Ubuntu 24.04, run as root): the npm packages and Playwright's Chromium for the smoke test and
+# the phone measurements, and Node 26 where the machine has an older one: the same Node as CI's `node-version` in
+# .github/workflows/pages.yml, the two moved together ("Node's version" in docs/developing.md). Safe to run twice;
+# always exits 0 and says what it could not install. The same script can be pasted into a cloud environment's "Setup
+# script" field, so that new sessions start with it done.
 NODE_VERSION=26.13.0
 have() { command -v "$1" >/dev/null 2>&1; }
 cd "$(dirname "$0")/.." || exit 0

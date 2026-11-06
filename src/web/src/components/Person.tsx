@@ -1,14 +1,15 @@
 import { type CharacterView, type Power } from "@amarna/engine";
-import { dated, shekels } from "../ui/format.ts";
+import { dated, fromWhere, shekels } from "../ui/format.ts";
 import { powerName } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
 /** One person as a court sees them: its own servant, or someone who has come to its notice. Dates carry their label. */
 export function Person({ c, court, onFollow }: { c: CharacterView; court: Power | null; onFollow?: (id: string) => void }) {
+  const from = fromWhere(c);
   return (
     <div className="item">
       <h4>
-        <Emblem power={c.employer} /> {c.name} <small className="muted">of {c.origin}</small> <span className="pill">{c.status}</span>{" "}
+        <Emblem power={c.employer} /> {c.name} {from !== "" && <small className="muted">{from}</small>} <span className="pill">{c.status}</span>{" "}
         {c.heldByYou && <span className="pill">held by you</span>}
         {onFollow && (
           <button className="small link" onClick={() => onFollow(c.id)}>

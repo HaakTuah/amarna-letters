@@ -13,8 +13,8 @@ import { Dict } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { newCaravan, newMarket, type Market } from "../model/caravans.ts";
-import { buyAlongCurve, capacityOf, economyOf, EconomyData, grainWorth, needOf, sellAlongCurve } from "../model/economy.ts";
+import { newCaravan, newMarket, setOut, type Market } from "../model/caravans.ts";
+import { buyAlongCurve, capacityOf, economyOf, EconomyData, needOf, sellAlongCurve } from "../model/economy.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
 import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
@@ -25,11 +25,14 @@ import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from ".
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
 import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit } from "../model/state.ts";
-import { formatMoney } from "../rules/calendar.ts";
+import { formatMoney, measures } from "../rules/calendar.ts";
+import { listed } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
 import { obeyedIn, TurnEngine } from "./core.ts";
 import { CommandData } from "../model/command.ts";
 import { TakenBook } from "./supply.ts";
+import { goldSent } from "./coffers.ts";
+import { carriedWorth, provinceHolding, provinceWorth } from "../rules/province-reports.ts";
 
 /** The notice of a king's economy each season: harvest, mines, pay and food. */
 export const EconomyTitle = "The treasury";
@@ -129,13 +132,17 @@ P.harvestSeason = function () {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
   const lines = new Dict<Power, string[]>();
-  const taxed = new Dict<Power, number>();
-  const lost = new Dict<Power, number>();
-  const reaped = new Dict<Power, string[]>();
+  // Bug #540: by the court a province reports to, its couriers' season (the holder) or farther ("holder@province"), whose
+  // report comes home by the road.
+  const taxed = new Dict<string, number>();
+  const lost = new Dict<string, number>();
+  const reaped = new Dict<string, [string, number][]>();
   this._foodNow.clear();
+  // What the mines yielded into the treasury at once (gold from farther mines travels as a load, reported as one).
   const mined = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
     const owner = S.owner.getOrDefault(prov.id, null);
+    const book = owner === null || this.wordTo(owner, prov.id) === 0 ? owner : `${owner}@${prov.id}`;
     // The fields grow by this season's hands and weather; in its season the crop is reaped into the granaries.
     const crop = S.crop.getOrDefault(prov.id, 0) + this.harvestNow(prov.id);
     let granary = S.granary.getOrDefault(prov.id, 0);
@@ -145,7 +152,7 @@ P.harvestSeason = function () {
       S.reaped.set(prov.id, harvest);
       granary += harvest;
       S.crop.set(prov.id, 0);
-      if (owner !== null) reaped.set(owner, [...reaped.getOrDefault(owner, []), `${prov.name} ${harvest}`]);
+      if (book !== null) reaped.set(book, [...reaped.getOrDefault(book, []), [prov.name, harvest]]);
     } else S.crop.set(prov.id, crop);
     // Land nobody holds collects no tax: its people keep their whole harvest ("Land without a ruler", item 11+; until then
     // a free city's tax filled its own stores). Under a leader the Kaska lands, Lukka and the steppe are taxed like any land.
@@ -159,8 +166,8 @@ P.harvestSeason = function () {
       const tax = Math.min(Math.max(0, granary - this.shareReserve(prov.id)), due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
-      taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
-      lost.set(owner, lost.getOrDefault(owner, 0) + over);
+      taxed.set(book!, taxed.getOrDefault(book!, 0) + tax - over);
+      lost.set(book!, lost.getOrDefault(book!, 0) + over);
       // Item 13: the yield passes through a governor's hands, and he may keep some of it.
       const metal = this.throughGovernor(prov.id, toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id))));
       if (metal > 0) {
@@ -173,13 +180,15 @@ P.harvestSeason = function () {
         if (to === null || !isAlive(S, to)) this.spendAt(prov.id, metal);
         else {
           const at = fall === null ? this.courtAt(to) : fall.capital;
-          if (courierSeasons(S, this.map, at, prov.id) >= 1) this.lootHome(to, prov.id, metal, [], "", at);
+          // #587: a far province's gold goes into its coffer, which pays what is done there and sends the rest home.
+          if (fall === null && this.isFar(to, prov.id)) this.receiveAt(to, prov.id, metal);
+          else if (courierSeasons(S, this.map, prov.id, at) >= 1) this.lootHome(to, prov.id, metal, [], "", at);
           else {
             const t = S.treasuries.get(to);
             t.gold += metal;
             t.income += metal;
+            mined.set(to, mined.getOrDefault(to, 0) + metal);
           }
-          mined.set(to, mined.getOrDefault(to, 0) + metal);
         }
       }
     }
@@ -201,13 +210,29 @@ P.harvestSeason = function () {
   for (const p of alive(S)) {
     const l: string[] = [];
     if (reaped.has(p)) {
-      l.push(`Harvest reaped this season, into the farmers' granaries: ${reaped.get(p).join(", ")} measures.`);
-      logEvent(S, "harvest", `${p}'s land reaped its harvest: ${reaped.get(p).join(", ")} measures.`, [p], "harvest-reaped");
+      const brought = reaped.get(p).filter(([, n]) => n > 0);
+      l.push(brought.length > 0 ? `The harvest is in the farmers' granaries: ${listed(brought.map(([name, n]) => `${measures(n)} at ${name}`))}.` : "The harvest brought nothing into the farmers' granaries.");
+      logEvent(S, "harvest", `${p}'s land reaped its harvest: ${reaped.get(p).map(([name, n]) => `${name} ${n}`).join(", ")} measures.`, [p], "harvest-reaped");
     }
+    // Only what came in: no line for a tax, a mine or a sale that brought nothing.
     const t = taxed.getOrDefault(p, 0);
-    l.push(`The tax in grain, taken from the farmers' granaries, brought ${t} measures into your provinces' stores` + (lost.getOrDefault(p, 0) > 0 ? `; ${lost.get(p)} more were lost for want of room` : "") + ".");
-    if (mined.getOrDefault(p, 0) > 0) l.push(`Your mines yielded ${formatMoney(mined.get(p))}, now in the treasury.`);
+    const over = lost.getOrDefault(p, 0);
+    if (t + over > 0) l.push(`The grain tax brought ${measures(t)} into your stores` + (over > 0 ? `; they had no room for ${measures(over)} more, and it was lost` : "") + ".");
+    const got = S.treasuries.get(p).income;
+    const fromMines = mined.getOrDefault(p, 0);
+    if (got > fromMines) l.push(`Since your last orders, ${formatMoney(got)} came into the treasury${fromMines > 0 ? `, ${formatMoney(fromMines)} of it from your mines` : ""}.`);
+    else if (fromMines > 0) l.push(`Your mines yielded ${formatMoney(fromMines)} for the treasury.`);
     lines.set(p, l);
+  }
+  // Farther off, a province's harvest, or grain lost for want of room, comes home by the road as its report (its stores
+  // show the tax; its mines' gold goes as a load).
+  for (const book of new Set([...reaped.keys(), ...lost.keys()].filter((k) => k.includes("@")))) {
+    const [p, id] = book.split("@") as [Power, string];
+    if (!isAlive(S, p) || (!reaped.has(book) && lost.getOrDefault(book, 0) <= 0)) continue;
+    const harvest = reaped.tryGet(book)?.[0]?.[1];
+    const over = lost.getOrDefault(book, 0);
+    const tax = `the grain tax brought ${measures(taxed.getOrDefault(book, 0))} into its stores` + (over > 0 ? `, which had no room for ${measures(over)} more` : "");
+    this.tell(p, id, "Notice", EconomyTitle, `From ${this.map.get(id).name}: ${harvest !== undefined ? `its harvest of ${measures(harvest)} is in the farmers' granaries; ` : ""}${tax}.`);
   }
   return lines;
 };
@@ -245,6 +270,7 @@ P.townsEat = function () {
  * nearest his capital first, as far as his treasury goes: each army or fleet its men's pay and a besieger the cost of its
  * siege works. The men spend part of it where they stand by leave, in their king's own land or land its holder opened to
  * them (item 9+b), and keep the rest. A unit not paid in full, or held back by its king's order, counts a season of missing pay.
+ * Beyond the season's reach, the gold that is there pays, and a bill carried home the rest (#587, `TurnEngine.payFar`).
  */
 P.payTroops = function (p) {
   const S = this.s;
@@ -268,21 +294,30 @@ P.payTroops = function (p) {
       continue;
     }
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
-    if (t.gold < pay) {
+    // #587: beyond the season's reach, paid from the coffer of the province it stands in, if its king's, and the rest on a
+    // bill carried home: its men serve on their king's word until the bill reaches him. What the coffer pays is told
+    // with the province's report, the bill when it comes.
+    const far = this.isFar(p, u.province) ? this.payFar(p, u.province, pay, u) : null;
+    if (far === null && (this.isFar(p, u.province) || t.gold < pay)) {
       u.unpaid++;
       this.armyEntry(u, u.power, -UnrestData.unpaid);
-      unpaid.push(unitLabel(u));
+      // A far unit's missing pay is its own report's, not the treasury's to tell.
+      if (!this.isFar(p, u.province)) unpaid.push(unitLabel(u));
       continue;
     }
-    t.gold -= pay;
-    paid += pay;
-    u.unpaid = 0;
+    const cash = far === null ? pay : far.coffer;
+    if (far === null) {
+      t.gold -= pay;
+      paid += pay;
+    }
+    // On credit its missing pay stands until the bill is paid (`goldArrives`), so a bill unpaid is never forgotten.
+    if (far === null || far.credit === 0) u.unpaid = 0;
     // Pay is a giving, credited to the hand they see: their commander, else their king.
     this.armyEntry(u, this.armyHand(u), UnrestData.pay);
     const where = spendingPlace(this, u);
-    const spent = where === null ? 0 : idiv(pay * EconomyData.spentPercent, 100);
+    const spent = where === null ? 0 : idiv(cash * EconomyData.spentPercent, 100);
     if (where !== null) this.spendAt(where, spent);
-    u.savings += pay - spent;
+    u.savings += cash - spent;
   }
   return { paid, unpaid, held };
 };
@@ -416,13 +451,13 @@ P.feedTroops = function () {
     } else u.hungry = 0;
   }
   for (const [p, h] of hungry.entries()) {
-    tell(p, `Hungry this season, with nothing left in their depots, baggage or the land around them: ${h.join(", ")}. Hunger acts fast: a unit hungry ${EconomyData.hungryMutiny} seasons running mutinies.`);
+    tell(p, `Hungry this season, with nothing left in depot, baggage or field: your ${h.join(", your ")}. A unit hungry ${EconomyData.hungryMutiny} seasons running mutinies.`);
     logEvent(S, "hunger", `${p}'s troops went hungry: ${h.join(", ")}.`, [p], "hunger");
   }
   for (const [p, n] of foraged.entries()) if (n > 0) logEvent(S, "forage", `${p}'s troops took ${n} measures from the land.`, [p], "forage");
   taken.settle(this);
   for (const [p, g] of bought.entries()) {
-    tell(p, `Your troops bought their food at the markets where they stand by leave, for ${formatMoney(g)} of the gold they carry for it.`);
+    tell(p, `Your troops abroad bought their food in the markets there, for ${formatMoney(g)} of the gold they carry.`);
     logEvent(S, "food-bought", `${p} bought food for its troops abroad.`, [p], "food-bought");
   }
   // Mutiny: a few seasons of hunger, or of missing pay.
@@ -441,13 +476,13 @@ P.feedTroops = function () {
       const b = this.headRises(u.province, men, "mutiny", rng);
       gain(S.characters.find((c) => c.id === b.leaderId)!, u.savings, "Loot");
       logEvent(S, "mutiny", `${u.power}'s ${unitLabel(u)} mutinied (${why}) and follows one of its own as a band.`, [...AllPowers.filter((x) => Views.sight(S, this.map, x).has(u.province)), u.power], "mutiny");
-      tell(u.power, `${unitLabel(u)} mutinied, ${why}: its ${men} men follow one of their own, ${S.characters.find((c) => c.id === b.leaderId)!.name}, as a band in ${this.map.get(u.province).name}, with their savings.`);
+      tell(u.power, `Your ${unitLabel(u)} mutinied, ${why}: its ${men} men took their savings and follow one of their own, ${S.characters.find((c) => c.id === b.leaderId)!.name}, as a band.`);
       continue;
     }
     const savings = u.savings;
     logEvent(S, "mutiny", `${u.power}'s ${unitLabel(u)} mutinied (${why}) and disbanded.`, [...AllPowers.filter((x) => Views.sight(S, this.map, x).has(u.province)), u.power], "mutiny");
     const home = this.disbandUnit(u);
-    tell(u.power, `${unitLabel(u)} mutinied, ${why}, and disbanded${savings > 0 ? `, its men taking their savings, ${formatMoney(savings)}` : ""}${home !== "" ? `: ${home}` : ""}.`);
+    tell(u.power, `Your ${unitLabel(u)} mutinied, ${why}, and disbanded${savings > 0 ? `, its men taking their savings, ${formatMoney(savings)}` : ""}${home !== "" ? `: ${home}` : ""}.`);
   }
   return lines;
 };
@@ -479,7 +514,7 @@ P.settleMarkets = function (orders) {
   const lines = new Dict<Power, string[]>();
   // A court's lines of markets near it in one notice; of one farther off, by the road from there (bug #517).
   const tell = (p: Power, at: string, line: string): void => {
-    const d = this.wordTo(p, at);
+    const d = this.wordFrom(p, at);
     if (d > 0 && Number.isFinite(d)) {
       this.tell(p, at, "Resolution", MarketsTitle, line);
       return;
@@ -487,6 +522,18 @@ P.settleMarkets = function (orders) {
     let l = lines.tryGet(p);
     if (!l) lines.set(p, (l = []));
     l.push(line);
+  };
+  // Sales and purchases at the markets near a court, one sentence for each; a farther market's by the road, alone.
+  const deals = new Dict<Power, { Sold: string[]; Bought: string[] }>();
+  const deal = (p: Power, at: string, verb: "Sold" | "Bought", item: string): void => {
+    const d = this.wordTo(p, at);
+    if (d > 0 && Number.isFinite(d)) {
+      tell(p, at, `${verb} grain: ${item}.`);
+      return;
+    }
+    let e = deals.tryGet(p);
+    if (!e) deals.set(p, (e = { Sold: [], Bought: [] }));
+    e[verb].push(item);
   };
   const held = (p: Power, prov: string, what: string, o: Order): boolean => {
     if (S.owner.getOrDefault(prov, null) === p && siegeOf(S, prov) === null) return true;
@@ -497,7 +544,7 @@ P.settleMarkets = function (orders) {
     }
     // A siege: near, told among the markets' lines as ever; one it may not have heard of, by the road (bug #517).
     const line = `${what} in ${Map.get(prov).name} did not happen: it is besieged.`;
-    const d = this.wordTo(p, prov);
+    const d = this.wordFrom(p, prov);
     if (d > 0 && Number.isFinite(d)) this.lostOrder(p, o, prov, "Order failed", line, "it is besieged");
     else {
       tell(p, prov, line);
@@ -511,7 +558,7 @@ P.settleMarkets = function (orders) {
     if (!held(p, o.province, "Grain for the town", o)) continue;
     const given = this.takeFromStores(o.province, o.amount);
     this.market(o.province).stock += given;
-    tell(p, o.province, `You handed ${given} measures of grain from the stores of ${Map.get(o.province).name} to its town.`);
+    tell(p, o.province, `You handed ${measures(given)} of grain from the stores of ${Map.get(o.province).name} to its town.`);
     if (given > 0) logEvent(S, "feed", `${p} handed grain to the town of ${Map.get(o.province).name}.`, this.nearOf(o.province, p), "feed");
     // Item 17++: grain handed out is a giving its people remember, most in a famine, of the hand they see: the governor
     // there, unless it comes in the king's own name.
@@ -545,22 +592,23 @@ P.settleMarkets = function (orders) {
         this.takeFromStores(prov, r.taken);
         m.stock += r.taken;
         m.purse -= r.paid;
-        // Item 13: from beyond the season's reach the gold travels to the court as a load.
-        if (this.wordTo(p, prov) >= 1) this.lootHome(p, prov, r.paid, [], "");
-        else {
-          t.gold += r.paid;
-          t.income += r.paid;
-        }
-        tell(p, prov, `Sold ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < net ? `; its people's purse could pay for no more (${net - r.taken} unsold)` : "") + ".");
+        // #587: from beyond the season's reach the gold goes into the province's coffer, the rest home as a load.
+        this.receiveAt(p, prov, r.paid);
+        if (r.taken > 0) deal(p, prov, "Sold", `${measures(r.taken)} at ${name} for ${r.paid > 0 ? formatMoney(r.paid) : "next to nothing"}` + (r.taken < net ? ` (its people's purse ran dry, ${net - r.taken} unsold)` : ""));
+        else tell(p, prov, `Nobody at ${name} could buy your grain: its people's purse is empty.`);
         if (r.taken > 0) logEvent(S, "sale", `${p} sold grain at ${name}.`, this.nearOf(prov, p), "sale");
         if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.wakeFrom(p, o, prov, "the people's purse ran dry");
       } else if (net < 0) {
-        const r = buyAlongCurve(m.stock, normal, t.gold, -net);
+        // #587: paid with the gold that is there: the treasury's near, the province's coffer far.
+        // What it can pay with; left with less than a measure's dearest price (4 shekels), it was the gold that ran out.
+        const purse = this.goldAt(p, prov);
+        const r = buyAlongCurve(m.stock, normal, purse, -net);
         m.stock -= r.taken;
         m.purse += r.paid;
-        t.gold -= r.paid;
+        this.takeAt(p, prov, r.paid);
         const over = this.putInStores(prov, r.taken);
-        tell(p, prov, `Bought ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < -net ? ` (${-net - r.taken} more were not to be had)` : "") + (over > 0 ? `; ${over} did not fit in the stores and were lost` : "") + ".");
+        if (r.taken > 0) deal(p, prov, "Bought", `${measures(r.taken)} at ${name} for ${r.paid > 0 ? formatMoney(r.paid) : "next to nothing"}` + (r.taken < -net ? (m.stock > 0 && purse - r.paid < 5 ? ` (${-net - r.taken} short: ${this.isFar(p, prov) ? "the gold in its coffer" : "your treasury"} ran out)` : ` (${-net - r.taken} short)`) : "") + (over > 0 ? `, ${over} of it lost for want of room in the stores` : ""));
+        else tell(p, prov, `No grain could be bought at ${name}.`);
         if (r.taken > 0) logEvent(S, "purchase-grain", `${p} bought grain at ${name}.`, this.nearOf(prov, p), "grain-bought");
       } else if (offered > 0) tell(p, prov, `At ${name} your sales and purchases cancelled out: no grain changed hands.`);
     }
@@ -580,12 +628,26 @@ P.settleMarkets = function (orders) {
       this.wakeFrom(p, o, o.from, "the stores were empty");
       continue;
     }
-    S.caravans.push(newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn }));
-    tell(p, o.from, `A caravan of ${grain} measures of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
+    // #587: its porters' pay for the road goes with it, from the gold that is there.
+    const c = newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn });
+    c.pay = this.payLoad(c);
+    if (!this.takeAt(p, o.from, c.pay)) {
+      this.putInStores(o.from, grain);
+      tell(p, o.from, `No caravan left ${Map.get(o.from).name}: there was too little gold ${this.isFar(p, o.from) ? "in its coffer" : "in the treasury"} for its porters' pay on the road (${formatMoney(c.pay)}).`);
+      this.wakeFrom(p, o, o.from, "too little gold for its porters' pay");
+      logEvent(S, "unfunded", `${p}'s caravan from ${Map.get(o.from).name} had too little gold there for its porters.`, this.nearOf(o.from, p), "unfunded");
+      continue;
+    }
+    setOut(S, c);
+    tell(p, o.from, `A caravan of ${measures(grain)} of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${listed(route.slice(1, -1).map((x) => Map.get(x).name)) || "the direct road"}.`);
     logEvent(S, "caravan-out", `${p} sent a caravan from ${Map.get(o.from).name}.`, this.nearOf(o.from, p), "caravan-out");
   }
   // Trading caravans and ships (item 9+b).
   this.sendTraders(orders, tell);
+  for (const [p, e] of deals.entries()) {
+    const said = (["Sold", "Bought"] as const).filter((v) => e[v].length > 0).map((v) => `${v} grain: ${e[v].join("; ")}.`);
+    lines.set(p, [...said, ...(lines.tryGet(p) ?? [])]);
+  }
   for (const [p, l] of lines.entries()) notify(S, p, "Resolution", MarketsTitle, l.join(" "));
 };
 
@@ -596,10 +658,7 @@ P.settleMarkets = function (orders) {
  * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it obeys its holder.
  */
 P.landWorth = function (p) {
-  return sum(ownedBy(this.s, p), (id) => {
-    const prov = this.map.get(id);
-    return toInt(roundEven((grainWorth(this.harvestNow(id, false)) + economyOf(prov).mine) * obeyedIn(this.s, id)));
-  });
+  return sum(ownedBy(this.s, p), (id) => provinceWorth(this, id));
 };
 
 /**
@@ -608,14 +667,12 @@ P.landWorth = function (p) {
  */
 P.holdings = function (p) {
   const S = this.s;
-  let w = 0;
-  for (const id of ownedBy(S, p)) {
-    const m = this.market(id);
-    w += m.purse + grainWorth(this.stores(id) + m.stock);
-  }
-  for (const u of S.units) if (u.power === p) w += grainWorth(u.food) + u.savings;
+  let w = sum(ownedBy(S, p), (id) => provinceHolding(this, id));
+  for (const u of S.units) if (u.power === p) w += carriedWorth(u.food, u.savings);
   // Discharged men walking home carry their savings to a province of this realm (item 10+a).
   for (const x of S.walking) if (S.owner.getOrDefault(x.home, null) === p) w += x.savings;
-  for (const c of S.caravans) if (c.power === p) w += grainWorth(c.grain) + c.gold + (c.ship !== null ? grainWorth(c.ship.food) + c.ship.savings : 0);
+  // #587: and the gold on the road with its couriers to a far coffer or back.
+  w += goldSent(this, p);
+  for (const c of S.caravans) if (c.power === p) w += carriedWorth(c.grain, c.gold + c.pay) + (c.ship !== null ? carriedWorth(c.ship.food, c.ship.savings) : 0);
   return w;
 };

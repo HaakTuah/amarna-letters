@@ -6,7 +6,7 @@
       "where": ".github/workflows/",
       "pattern": "node-version: (\\d+)",
       "source": "node",
-      "move": "An even-numbered Node that is long-term support moves CI and scripts/cloud-setup.sh together, with @types/node and the full suites (\"Git and GitHub\" in AGENTS.md)."
+      "move": "An even-numbered Node that is long-term support moves CI and scripts/cloud-setup.sh together, with @types/node and the full suites (\"Node's version\" in docs/developing.md)."
     },
     {
       "what": "The cloud's Node (NODE_VERSION in scripts/cloud-setup.sh)",

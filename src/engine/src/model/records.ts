@@ -41,9 +41,10 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
  * What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. For word ("Word"), what it
- * tells a court of the world: a king closed or opened his roads to it, or a kingdom fell.
+ * tells a court of the world: a king closed or opened his roads to it, a kingdom fell, or (#618) a vassal or ally
+ * reports a change of hands its court saw.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -547,6 +548,8 @@ export interface Tablet {
   credentialsShown: boolean;
   /** The season the king whose envoy sealed it repudiated it, as beyond his authority; null if he has not. */
   repudiatedTurn: number | null;
+  /** Bug #609: the season word of the repudiation reaches the tablet's other king; null for none (or a save from before). */
+  repudiatedHeard: number | null;
   /** Item 12, "Composing": the language it is written in; "" for its proposer's court's own written language. */
   tongue: string;
 }
@@ -573,6 +576,7 @@ export function newTablet(init: Partial<Tablet> = {}): Tablet {
     within: null,
     credentialsShown: false,
     repudiatedTurn: null,
+    repudiatedHeard: null,
     tongue: "",
     ...init,
   };
@@ -599,6 +603,7 @@ export const TabletSchema: ObjSchema<Tablet> = obj("Tablet", newTablet, {
   within: opt(B),
   credentialsShown: B,
   repudiatedTurn: opt(I),
+  repudiatedHeard: opt(I),
   tongue: S,
   isSealedAgreement: computed(B, (o: Tablet) => isSealedAgreement(o)),
 });
@@ -986,6 +991,17 @@ export const ScoreRowSchema: ObjSchema<ScoreRow> = obj("ScoreRow", newScoreRow, 
 
 /** The outcome the engine records when the host seals the tablet the envoy carried: the only sealing on a mission. */
 export const SealedOutcome = "the tablet was sealed by both kings";
+
+/**
+ * Does `p` know by `turn` that the tablet was repudiated (bug #609)? Its repudiating king at once; its other king when
+ * word of it reaches his court; a third court holding a copy is never told.
+ */
+export function repudiationKnown(t: Tablet, p: Power, turn: number): boolean {
+  if (t.repudiatedTurn === null) return false;
+  if (p === t.byHandOf) return true;
+  const other = t.proposedBy === t.byHandOf ? t.partner : t.proposedBy;
+  return p === other && (t.repudiatedHeard === null || t.repudiatedHeard <= turn);
+}
 
 export function isSealedAgreement(t: Tablet): boolean {
   return !t.forged && t.sealedTurn !== null && t.partner !== null && t.seals.length >= 2;

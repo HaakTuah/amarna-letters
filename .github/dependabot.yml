@@ -1,7 +1,8 @@
-# Dependabot version updates (the owner, 2 November 2026; "Git and GitHub" in AGENTS.md). They aim at develop and
-# are ordinary small PRs. Security updates need no file here: GitHub aims those at main, under the five conditions.
-# A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first. What it
-# cannot see (Node, in CI and the cloud setup) is listed in .github/versions.json and checked monthly instead.
+# Dependabot version updates (the owner, 2 November 2026; "The newest version, unless there is a reason" in
+# docs/developing.md). They aim at develop and are ordinary small PRs. Security updates need no file here: GitHub aims
+# those at main, under the five conditions. A release is proposed only a week after it came out (cooldown), so a bad
+# release is usually pulled first. What it cannot see (Node, in CI and the cloud setup) is listed in
+# .github/versions.json and checked monthly instead.
 version: 2
 updates:
   - package-ecosystem: "npm"

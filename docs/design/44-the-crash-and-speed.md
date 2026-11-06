@@ -109,7 +109,7 @@ then style, layout and paint. What changed, step by step, each measured:
   new render drops the steps still waiting, since every layer whose key changed is written by it anyway; the names are
   placed after the last step.
 
-- **The map in five composited layers** (`SvgMapRenderer.mount`; `app.css`). With the page's work spread, the browser's
+- **The map in five composited layers** (`SvgMapRenderer.mount`; `map.css`). With the page's work spread, the browser's
   own timeline (`--trace` with the `cc` category) showed what was left: nearly every long frame was the main thread
   waiting for the compositor (`LayerTreeHost::WaitForCommitCompletion`, 85 to 146 ms), stuck behind rasterizing the whole
   lower map, since its holders' tints and the season's washes change every turn and the land, the rivers, the relief and
@@ -134,7 +134,8 @@ then style, layout and paint. What changed, step by step, each measured:
 The numbers, before and after each step, are in the item's report. On desktop the bar is met but for a few frames a game;
 on the throttled phone profile the remaining long frames are the rendering of the season's layer writes (the season's
 washes change every turn by design) and the names placed, which item 17+++ takes up when it redraws the season textures and
-plays the season out.
+plays the season out (`52-the-season-plays-out.md`; part G, "Smooth on a phone", patches the layers in place and places
+the names once a season).
 
 ## No error leaves a white page (`src/web/src/ui/ErrorScreen.tsx`)
 

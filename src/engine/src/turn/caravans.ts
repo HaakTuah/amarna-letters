@@ -3,22 +3,23 @@
  * they pay their porters, eat, travel, meet the borders and the road's dangers, and hand over or trade their goods where
  * they arrive.
  */
+import { listed } from "../rules/wording.ts";
 import { waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { caravanAt, type Caravan } from "../model/caravans.ts";
+import { caravanAt, caravanGone, type Caravan } from "../model/caravans.ts";
 import { EconomyData, grainWorth } from "../model/economy.ts";
 import { unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
-import { land, type Power } from "../model/power.ts";
+import { type Power, whose } from "../model/power.ts";
 import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
-import { formatMoney } from "../rules/calendar.ts";
+import { measures } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { TurnEngine } from "./core.ts";
-import { openToSea, type Sneak, type TollBook } from "./trade.ts";
+import { goods, openToSea, type Sneak, type TollBook } from "./trade.ts";
 import { MarketsTitle } from "./economy.ts";
 
 declare module "./core.ts" {
@@ -27,6 +28,10 @@ declare module "./core.ts" {
     caravanCompany(c: Caravan): Company;
     caravanRoute(p: Power, from: string, to: string): string[] | null;
     caravanArrives(c: Caravan, traded?: string[] | null): void;
+    /** A season's pay for its porters (a ship's crew). */
+    caravanPay(c: Caravan): number;
+    /** The pay it carries for its road (#587): a season's for each season of the road there, and back for a trader or a ship. */
+    payLoad(c: Caravan): number;
   }
 }
 
@@ -54,43 +59,67 @@ P.caravanRoute = function (p, from, to) {
 };
 
 /**
- * The caravans on the road go on: each pays its porters, or a ship its crew (spent where it stands, if that is its king's
- * land), or they desert with the cargo; eats from its grain for the time on the road (little by boat or ship); advances a
+ * The caravans on the road go on: each pays its porters, or a ship its crew, out of the pay it carries and then its load
+ * (spent where it stands, if that is its king's land), or they desert with the cargo; eats from its grain for the time on the road (little by boat or ship); advances a
  * season's travel at its pace, meeting each border it crosses (item 9+b: turned back where the roads are closed to it,
  * paying the toll, or smuggling past it); meets the road's check once (the troops or fleets of a king who closed his roads
  * to its king, standing where it passed, take it with the road check's odds; outlaws on land, more readily for a big
  * caravan; storms at sea), and hands over or trades its goods where it arrives.
  */
+P.caravanPay = function (c) {
+  return c.ship !== null ? this.s.config.fleetUpkeep : Math.max(1, Math.ceil((c.grain + idiv(c.gold, 10)) / EconomyData.caravanPayPer));
+};
+
+P.payLoad = function (c) {
+  const perSeason = this.s.config.travelDays * PointsPerDay;
+  const company: Company = c.ship !== null ? { sneaking: false } : this.caravanCompany(c);
+  const season = seasonOfTurn(this.s.turn);
+  let points = 0;
+  // Reckoned on the roads as the map has them, without what was built on them: the court may not know of far works, and
+  // what roads save comes home with the caravan (Codex, #635).
+  for (let i = 0; i + 1 < c.route.length; i++) points += legPoints(this.map, c.route[i], c.route[i + 1], season, company);
+  const seasons = Math.max(1, Math.ceil(points / perSeason));
+  return this.caravanPay(c) * seasons * (c.trade || c.ship !== null ? 2 : 1);
+};
+
 P.caravansTravel = function () {
   const S = this.s;
   const perSeason = S.config.travelDays * PointsPerDay;
   const season = seasonOfTurn(S.turn);
   const book: TollBook = new Dict();
-  const what = (c: Caravan): string => [c.grain > 0 || c.gold <= 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ");
+  // The gold it carries, its porters' pay with it (#587).
+  const what = (c: Caravan): string => goods(c.grain, c.gold + c.pay);
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
   const arrivals: Caravan[] = [];
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
     if (!isAlive(S, c.power)) {
-      S.caravans.splice(S.caravans.indexOf(c), 1);
+      caravanGone(S, c);
       continue;
     }
-    const t = S.treasuries.get(c.power);
-    const pay = c.ship !== null ? S.config.fleetUpkeep : Math.max(1, Math.ceil((c.grain + idiv(c.gold, 10)) / EconomyData.caravanPayPer));
+    const pay = this.caravanPay(c);
     const here = caravanAt(c);
-    if (t.gold < pay) {
-      S.caravans.splice(S.caravans.indexOf(c), 1);
+    if (c.bill === null && c.pay + c.gold < pay) {
+      caravanGone(S, c);
       if (c.ship !== null && c.ship.home !== "") this.spendAt(c.ship.home, c.ship.savings);
-      notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} from ${this.map.get(c.from).name} to ${this.map.get(c.to).name} went unpaid: its ${c.ship !== null ? "crew" : "porters"} deserted at ${this.map.get(here).name} with its ${what(c)}${c.ship !== null ? ", and the fleet is lost to you" : ""}.`);
-      logEvent(S, "caravan-lost", `${c.power}'s unpaid ${noun(c)} deserted with its goods.`, [c.power], "caravan-lost");
+      this.caravanTell(c, here, "Notice", MarketsTitle, `Your ${noun(c)} from ${this.map.get(c.from).name} to ${this.map.get(c.to).name} went unpaid: its ${c.ship !== null ? "crew" : "porters"} deserted at ${this.map.get(here).name} with its ${what(c)}${c.ship !== null ? ", and the fleet is lost to you" : ""}.`);
+      logEvent(S, "caravan-lost", `${c.power}'s unpaid ${noun(c)} deserted with its goods.`, [...this.caravanNear(c, here)], "caravan-lost");
       continue;
     }
-    t.gold -= pay;
+    // #587: out of the pay it carries, then out of its load; a load going home owes it, paid when it arrives.
+    if (c.bill !== null) c.bill += pay;
+    else {
+      const fromPay = Math.min(c.pay, pay);
+      c.pay -= fromPay;
+      c.gold -= pay - fromPay;
+    }
     // The porters spend their pay where they stand openly (at home or in land open to them); smugglers off the road and
     // a crew at sea keep it, the smugglers' going to their homes at once and the crew's into its savings.
-    if (this.map.get(here).isSea) {
-      if (c.ship !== null) c.ship.savings += pay;
-    } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
-    else this.spendAt(here, pay);
+    if (c.bill === null) {
+      if (this.map.get(here).isSea) {
+        if (c.ship !== null) c.ship.savings += pay;
+      } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
+      else this.spendAt(here, pay);
+    }
     // Advance along the route at its pace, counting how much of the season went by boat, meeting each border it crosses.
     const start = perSeason + c.points;
     let budget = start;
@@ -115,7 +144,7 @@ P.caravansTravel = function () {
       crossed.push(b);
     }
     if (stopped === "seized") {
-      S.caravans.splice(S.caravans.indexOf(c), 1);
+      caravanGone(S, c);
       if (c.ship !== null) this.rejoinFleet(c);
       continue;
     }
@@ -132,9 +161,9 @@ P.caravansTravel = function () {
       // A new way home, round the land it now knows is closed to it.
       const back = c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, sneakOf(c));
       if (back === null && at !== c.from) {
-        S.caravans.splice(S.caravans.indexOf(c), 1);
+        caravanGone(S, c);
         if (c.ship !== null) this.rejoinFleet(c);
-        notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} found no way home from ${this.map.get(at).name}: its ${what(c)} were lost.`);
+        this.caravanTell(c, at, "Notice", MarketsTitle, `Your ${noun(c)} found no way home from ${this.map.get(at).name} and was lost, with ${what(c)}.`);
         continue;
       }
       if (back !== null) {
@@ -162,22 +191,24 @@ P.caravansTravel = function () {
     const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x) && !shut(u)) ?? null).find((u) => u !== null) ?? null;
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
-      S.caravans.splice(S.caravans.indexOf(c), 1);
+      caravanGone(S, c);
       const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
-      this.credit(taker.power, c.gold, taker.province, false);
+      // At sea, far off, no coffer or road holds it: the fleet's men keep it with their savings (Codex, #635).
+      if (this.map.get(taker.province).isSea && this.isFar(taker.power, taker.province)) taker.savings += c.gold + c.pay;
+      else this.credit(taker.power, c.gold + c.pay, taker.province, false);
       const where = this.map.get(taker.province).name;
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
-      notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; a loaded ship fights badly, and the fleet is lost" : ""}.`);
-      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
-      logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [c.power, taker.power], "caravan-taken");
+      this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${whose(taker.power)} ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
+      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${whose(c.power)} ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold + c.pay > 0 ? (!this.isFar(taker.power, taker.province) ? ", the gold for your treasury" : this.map.get(taker.province).isSea ? ", the gold kept by its men" : ", the gold to go home to your treasury") : ""}.`);
+      logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [...this.caravanNear(c, taker.province), taker.power], "caravan-taken");
       continue;
     }
     // Item 11b: a band working where it passed (at sea, pirates off those coasts) falls on it, and keeps what it takes.
     const raider = sortBy(seen, [(x: string) => -this.bandOdds(x), cmpNum], [(x: string) => x, cmpStr])[0];
     if (c.grain + c.gold > 0 && c.archive.length === 0 && this.bandOdds(raider) > 0 && this.r("caravan-band", c.id).nextDouble() * 100 < this.bandOdds(raider)) {
-      S.caravans.splice(S.caravans.indexOf(c), 1);
+      caravanGone(S, c);
       const coast = this.map.get(raider).isSea ? (this.map.coastsOf(raider).find((p) => S.bands.some((b) => b.ship && b.province === p.id))?.id ?? raider) : raider;
       // The grain is sold where they stand; the gold and what the grain fetched are the chief's.
       const m = this.map.get(coast).isSea ? null : this.market(coast);
@@ -186,34 +217,34 @@ P.caravansTravel = function () {
         m.stock += c.grain;
         m.purse -= fetched;
       }
-      const band = this.robbedBy(raider, c.gold + fetched);
+      const band = this.robbedBy(raider, c.gold + c.pay + fetched);
       // A ship taken is lost with its fleet; its crew put ashore among the loose men of the pirates' coast.
       if (c.ship !== null && !this.map.get(coast).isSea) this.peopleOf(coast).loose += c.ship.men;
-      notify(S, c.power, "Notice", MarketsTitle, `${band !== null && c.ship !== null ? "Pirates" : "A band of outlaws"} fell on your ${noun(c)} to ${this.map.get(c.to).name} near ${this.map.get(raider).name} and carried off its ${what(c)}${c.ship !== null ? "; the ship is theirs, and the fleet is lost" : ""}.`);
-      logEvent(S, "caravan-robbed", `A band robbed ${c.power}'s ${noun(c)} near ${this.map.get(raider).name}.`, [c.power], c.ship !== null ? "ship-pirated" : "caravan-banded");
+      this.caravanTell(c, raider, "Notice", MarketsTitle, `${band !== null && c.ship !== null ? "Pirates" : "A band of outlaws"} fell on your ${noun(c)} to ${this.map.get(c.to).name} near ${this.map.get(raider).name} and carried off its ${what(c)}${c.ship !== null ? "; the ship is theirs, and the fleet is lost" : ""}.`);
+      logEvent(S, "caravan-robbed", `A band robbed ${c.power}'s ${noun(c)} near ${this.map.get(raider).name}.`, [...this.caravanNear(c, raider)], c.ship !== null ? "ship-pirated" : "caravan-banded");
       continue;
     }
     if (c.ship !== null) {
       const storm = seen.some((x) => this.map.get(x).isSea) ? (season === WinterSeason ? RoadOdds.winterStorm : RoadOdds.storm) : 0;
       if (storm > 0 && this.r("ship-storm", c.id).nextDouble() * 100 < storm) {
-        S.caravans.splice(S.caravans.indexOf(c), 1);
-        notify(S, c.power, "Notice", MarketsTitle, `A storm sank your ship near ${this.map.get(caravanAt(c)).name}, with its ${what(c)}: the fleet is lost.`);
-        logEvent(S, "ship-lost", `A storm sank ${c.power}'s ship.`, [c.power], "ship-lost");
+        caravanGone(S, c);
+        this.caravanTell(c, caravanAt(c), "Notice", MarketsTitle, `A storm sank your ship near ${this.map.get(caravanAt(c)).name}, with its ${what(c)}: the fleet is lost.`);
+        logEvent(S, "ship-lost", `A storm sank ${c.power}'s ship.`, [...this.caravanNear(c, caravanAt(c))], "ship-lost");
         continue;
       }
     } else {
       const odds = (EconomyData.caravanOutlawPercent * (100 + c.grain + idiv(c.gold, 10))) / 100;
       if (c.grain + c.gold + c.archive.length > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
-        S.caravans.splice(S.caravans.indexOf(c), 1);
+        caravanGone(S, c);
         // Item 11b: nothing vanishes ("Nothing appears or vanishes without a cause"): the loose men there carry the gold
         // and sell the grain at its market.
         const at = caravanAt(c);
         if (!this.map.get(at).isSea) {
           this.market(at).stock += c.grain;
-          S.loot.set(at, S.loot.getOrDefault(at, 0) + c.gold);
+          S.loot.set(at, S.loot.getOrDefault(at, 0) + c.gold + c.pay);
         }
-        notify(S, c.power, "Notice", MarketsTitle, `Outlaws fell on your caravan to ${this.map.get(c.to).name} near ${this.map.get(caravanAt(c)).name} and carried off its ${what(c)}.`);
-        logEvent(S, "caravan-robbed", `Outlaws robbed ${c.power}'s caravan.`, [c.power], "caravan-robbed");
+        this.caravanTell(c, caravanAt(c), "Notice", MarketsTitle, `Outlaws fell on your caravan to ${this.map.get(c.to).name} near ${this.map.get(caravanAt(c)).name} and carried off its ${what(c)}.`);
+        logEvent(S, "caravan-robbed", `Outlaws robbed ${c.power}'s caravan.`, [...this.caravanNear(c, caravanAt(c))], "caravan-robbed");
         continue;
       }
     }
@@ -257,12 +288,12 @@ P.caravanArrives = function (c, traded = null) {
         if (give <= 0) continue;
         u.food += give;
         c.grain -= give;
-        parts.push(`handed ${give} to ${unitLabel(u)}`);
+        parts.push(`handed ${measures(give)} to your ${unitLabel(u)}`);
       }
     if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power && open) {
       const before = c.grain;
       c.grain = this.putInStores(at, c.grain);
-      if (before > c.grain) parts.push(`put ${before - c.grain} into the stores${besieged ? " of the besieged city" : ""}`);
+      if (before > c.grain) parts.push(`put ${measures(before - c.grain)} into the stores${besieged ? " of the besieged city" : ""}`);
     }
     if (!open) parts.push(c.ship !== null ? "found the harbour blockaded" : "found the city besieged and could not get in");
   }
@@ -273,14 +304,19 @@ P.caravanArrives = function (c, traded = null) {
       c.at = 0;
       c.points = 0;
       c.returning = true;
-      notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}; it goes home to ${this.map.get(c.from).name}${c.grain + c.gold > 0 ? ` with ${[c.grain > 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ")}` : ""}.`);
-      logEvent(S, c.trade ? "traded" : "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} reached ${name}.`, [c.power], c.trade ? "traded" : "caravan");
+      this.caravanTell(c, at, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} reached ${name}${parts.length > 0 ? `, ${listed(parts)}` : ""}; it goes home to ${this.map.get(c.from).name}${c.grain + c.gold > 0 ? ` with ${goods(c.grain, c.gold)}` : ""}.`);
+      logEvent(S, c.trade ? "traded" : "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} reached ${name}.`, [...this.caravanNear(c, at)], c.trade ? "traded" : "caravan");
       return;
     }
   }
-  S.caravans.splice(S.caravans.indexOf(c), 1);
+  caravanGone(S, c);
   if (c.ship !== null) this.rejoinFleet(c);
-  const lostLine = c.grain + c.gold > 0 ? ` The other ${c.grain} measures${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""} had no way home and were lost.` : "";
-  notify(S, c.power, "Notice", MarketsTitle, `Your caravan reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}.${lostLine}`);
-  logEvent(S, "caravan", `${c.power}'s caravan reached ${name}.`, [c.power], "caravan");
+  // The pay it did not need stays where its road ended: in the coffer or treasury there if it is its king's, else with
+  // its porters, who spend it there.
+  if (c.pay > 0 && !this.map.get(at).isSea && S.owner.getOrDefault(at, null) === c.power) this.receiveAt(c.power, at, c.pay, false);
+  else if (c.pay > 0) this.spendAt(this.map.get(at).isSea ? c.from : at, c.pay);
+  c.pay = 0;
+  const lostLine = c.grain + c.gold > 0 ? ` It found no way home, and the rest was lost: ${goods(c.grain, c.gold)}.` : "";
+  this.caravanTell(c, at, "Notice", MarketsTitle, `Your caravan reached ${name}${parts.length > 0 ? `, ${listed(parts)}` : ""}.${lostLine}`);
+  logEvent(S, "caravan", `${c.power}'s caravan reached ${name}.`, [...this.caravanNear(c, at)], "caravan");
 };

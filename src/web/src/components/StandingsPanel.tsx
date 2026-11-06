@@ -1,6 +1,6 @@
 import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
 import { highlights, temperament } from "@amarna/game";
-import { color, powerName, shekels, when } from "../ui/format.ts";
+import { color, fromWhere, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { useMemo } from "react";
 
@@ -20,11 +20,12 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
   const land = new Map(
     (seatView === null ? Views.landStandings(state.owner, state.eliminated) : Views.landStandings(seatView.owner, seatView.fallen)).map((x) => [x.power, x]),
   );
-  // A seat sees its own strength and gold by its ledger (unassayed gold at its weight), never the true figures.
+  // A seat sees its own strength as its view reckons it (gold by its ledger; its far land as last reported), never the true
+  // figures.
   const growth = (p: Power): number => {
-    if (known) return engine.growth(p);
+    if (known || seatView === null) return engine.growth(p);
     const start = state.startStrength.getOrDefault(p, 0);
-    return start > 0 && isAlive(state, p) ? engine.ledgerStrength(p) / start : 0;
+    return start > 0 && isAlive(state, p) ? seatView.strength / start : 0;
   };
   const order = [...AllPowers].sort((a, b) => {
     const k = (p: Power): number => (known ? engine.growth(p) : land.get(p)!.fallen ? -1 : landGrowth(land.get(p)!));
@@ -146,7 +147,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   <tr key={w.character.id}>
                     <td>{i + 1}</td>
                     <td>
-                      {w.character.name} <span className="muted">of {w.character.origin}</span>
+                      {w.character.name} <span className="muted">{fromWhere(w.character)}</span>
                     </td>
                     <td>{Wealth.standing(w.character)}</td>
                     <td>{shekels(w.total)}</td>

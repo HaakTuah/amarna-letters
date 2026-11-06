@@ -10,23 +10,29 @@
 import { hostileAt, levelOf, waysOf } from "../model/works.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
-import { describe, unitOf } from "../model/order-reading.ts";
+import { describe, told, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type Order } from "../model/orders.ts";
-import { quoteWords, type Power } from "../model/power.ts";
+import { land, quoteWords, type Power, powerName } from "../model/power.ts";
+import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
-import { logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
-import { courierSeasons, courtOf } from "../rules/court.ts";
+import { isAlive, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
+import { courierSeasons, courtOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
 import { asItStands } from "./plans.ts";
 import { TurnEngine } from "./core.ts";
+import { readCaravanReport, reportCaravan, type Caravan } from "../model/caravans.ts";
+import { newWord } from "../model/word.ts";
+import { wordCame } from "../rules/caravans-known.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
     /** The seasons the king's couriers take to a province: 0 within the season. */
     wordTo(p: Power, province: string): number;
+    /** Bug #616: the whole seasons beyond the first word takes home from a province to a king's court (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders and loads. */
+    wordFrom(p: Power, province: string): number;
     /** Where an own unit stands as its king last heard (item 13): where it stood as many seasons ago as the road is long. */
     shownAt(u: Unit): string;
     /** The own unit the king names by a province, as he sees his units. */
@@ -44,6 +50,13 @@ declare module "./core.ts" {
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
     tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
     /**
+     * A report told its king in season `at` (now, if that is now or past), as `tell` does once it has reckoned the season;
+     * `from`, the place it was told from, which a rider hired there may bring it from sooner (#601, `ridersBack`).
+     */
+    tellAt(p: Power, at: number, kind: InboxKind, title: string, text: string, from?: string): void;
+    /** Bug #540: the word a caravan home to a far province brought, heard once word of its homecoming could come. */
+    caravanWordsHome(): void;
+    /**
      * An order that failed for what befell its province out of the king's sight, its loss (bug #467) or a siege (bug #517):
      * word of it comes home by the road, as word of that does, never at once; a scheduled one wakes its seat when it comes.
      */
@@ -55,6 +68,10 @@ declare module "./core.ts" {
      * event there, a farther court reading of it only in the word that comes by the road (bug #517).
      */
     nearOf(province: string, ...ps: (Power | null)[]): Power[];
+    /** Bug #540: what befell a caravan at a place, told its king by the road, never before word of its setting out. */
+    caravanTell(c: Caravan, province: string, kind: InboxKind, title: string, text: string): void;
+    /** Its king, where he reads at once what befell his caravan there (`nearOf`, and word of its setting out has come). */
+    caravanNear(c: Caravan, province: string): Power[];
     /** At the end of each season, each unit's place joins its trail, the reports its king's couriers bring. */
     keepTrails(): void;
   }
@@ -69,8 +86,12 @@ P.wordTo = function (p, province) {
   return courierSeasons(this.s, this.map, courtOf(this.s, this.map, p), province);
 };
 
+P.wordFrom = function (p, province) {
+  return courierSeasons(this.s, this.map, province, courtOf(this.s, this.map, p));
+};
+
 P.shownAt = function (u) {
-  const d = this.wordTo(u.power, u.province);
+  const d = this.wordFrom(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return u.province;
   const at = u.trail[Math.max(0, u.trail.length - 1 - d)];
   return at.split("|")[0];
@@ -86,7 +107,7 @@ P.unitShownAt = function (p, province) {
 
 P.orderedUnit = function (p, province) {
   const here = unitAt(this.s, province);
-  if (here !== null && here.power === p && this.wordTo(p, province) === 0) return here;
+  if (here !== null && here.power === p && this.wordFrom(p, province) === 0) return here;
   return this.unitShownAt(p, province) ?? (here !== null && here.power === p ? here : null);
 };
 
@@ -141,7 +162,6 @@ P.sendOrders = function (p, sub) {
   S.couriers = S.couriers.filter((x) => !(x.power === p && x.arrives <= S.turn));
   const keep: Order[] = [];
   const sent: string[] = [];
-  const lost: string[] = [];
   const rng = this.r("couriers", p);
   for (const o of sub.orders) {
     // Command, recall and mandates carry their own delay (the man or the word travels): they name the unit where it truly
@@ -171,18 +191,16 @@ P.sendOrders = function (p, sub) {
     // A courier crossing land whose king closed his roads to this court, where that king's troops stand, may be stopped.
     const stopper = this.courierStopped(p, at.province, rng);
     if (stopper !== null) {
-      lost.push(describe(o));
       logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
-      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${p} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(describe(o))}.`);
+      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${powerName(p)} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(upper(told(o)))}.`);
       continue;
     }
     S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
     this.courierRead(p, at.province, o);
     logEvent(S, "courier", `${p} sent an order by courier: ${describe(o)}.`, [p], "courier-sent");
-    sent.push(`${describe(o)} (arrives in turn ${S.turn + d})`);
+    sent.push(`${told(o)} (arrives in turn ${S.turn + d})`);
   }
-  if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `These orders went with your couriers to places they cannot reach this season, and are carried out when they arrive: ${sent.join("; ")}.`);
-  void lost;
+  if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `Your couriers carry these orders to places beyond reach this season: ${sent.join("; ")}.`);
   if (arrived.length === 0 && sent.length === 0) return sub;
   return newTurnSubmission({ ...sub, orders: [...arrived, ...keep] });
 };
@@ -237,20 +255,26 @@ P.courierRead = function (p, to, o) {
     if (holder === null || holder === p || read.has(holder) || levelOf(S, "Stations", x) <= 0) continue;
     if (hostileAt(S, x, holder)) continue;
     read.add(holder);
-    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${p}'s carried to ${this.map.get(to).name}: ${quoteWords(describe(o))}.`);
+    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${powerName(p)} carried to ${this.map.get(to).name}: ${quoteWords(upper(told(o)))}.`);
+
     logEvent(S, "station", `${holder}'s station men read an order of ${p}'s on its way to ${this.map.get(to).name}.`, [holder], "station-read");
   }
 };
 
 P.tell = function (p, province, kind, title, text, extra = 0) {
+  // Tagged with its place only if it is word of that place itself (no `extra`): word that came there from farther off
+  // (a governor's letter) a rider there could not bring before it came (#601).
+  this.tellAt(p, this.heardAt(p, province, extra), kind, title, text, extra === 0 ? province : undefined);
+};
+
+P.tellAt = function (p, at, kind, title, text, from) {
   const S = this.s;
-  const at = this.heardAt(p, province, extra);
-  if (at === S.turn + S.deliveryOffset) {
+  if (at <= S.turn + S.deliveryOffset) {
     notify(S, p, kind, title, text);
     return;
   }
   // A report from afar: a courier brings it, a season or more later than a near one's.
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}` }));
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}`, seen: from === undefined ? [] : [from], reached: from === undefined ? [] : [S.turn] }));
 };
 
 P.lostOrder = function (p, order, province, title, text, why) {
@@ -275,9 +299,39 @@ P.nearOf = function (province, ...ps) {
   return ps.filter((p): p is Power => p !== null && this.heardAt(p, province) === this.s.turn + this.s.deliveryOffset);
 };
 
+/** When a caravan's king hears of its setting out: its first report's place and season (Caravan.trail). */
+function setOutHeard(e: TurnEngine, c: Caravan): number {
+  const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
+  // The road home as it was in that season, by the one clock (wordHomeAt, as `wordCame`).
+  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
+  return at === first.turn || !Number.isFinite(at) ? first.turn + e.s.deliveryOffset : at;
+}
+
+P.caravanTell = function (c, province, kind, title, text) {
+  this.tellAt(c.power, Math.max(this.heardAt(c.power, province), setOutHeard(this, c)), kind, title, text);
+};
+
+P.caravanWordsHome = function () {
+  const S = this.s;
+  for (const c of S.caravansGone) {
+    const w = c.word;
+    if ((w.markets.size === 0 && w.tolls.length === 0 && w.holders.length === 0) || c.trail.length === 0 || !isAlive(S, c.power)) continue;
+    const end = readCaravanReport(c.trail[c.trail.length - 1]);
+    if (!wordCame(this, c.power, end.turn, end.at)) continue;
+    this.hearWord(c.power, w);
+    c.word = newWord();
+  }
+};
+
+P.caravanNear = function (c, province) {
+  return setOutHeard(this, c) <= this.s.turn + this.s.deliveryOffset ? this.nearOf(province, c.power) : [];
+};
+
 P.keepTrails = function () {
   for (const u of this.s.units) {
-    u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}`);
+    u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}|${u.savings}`);
     if (u.trail.length > TrailKept) u.trail.splice(0, u.trail.length - TrailKept);
   }
+  // Bug #540: the caravans' reports too, which come home as word does.
+  for (const c of this.s.caravans) reportCaravan(c, this.s.turn);
 };

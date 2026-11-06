@@ -84,6 +84,8 @@ rumours, and those can be late, shaded or false.
 **Tablets.**
 - Write a treaty on a tablet (20 shekels) for your envoy to offer for sealing.
 - Send a copy of a sealed tablet to a third court as evidence.
+- Repudiate a tablet your envoy sealed in your name as beyond his authority: what it granted ends, and word of it rides
+  to the other king, who counts on the tablet until it comes.
 - Have a tablet examined for forgery, or forge one yourself (40 shekels, with a servant skilled
   enough).
 - Tablets are evidence only: nothing in the engine enforces them.
@@ -101,6 +103,10 @@ rumours, and those can be late, shaded or false.
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
   against what your court knows: one for land lost or besieged out of your sight goes out, and you hear how it went when
   word comes, as you hear of a siege of a far city of yours.
+- Gold travels both ways. A far province pays its own way: its mines and sales fill its coffer, which pays its works,
+  levies, purchases, caravans and the troops standing there, and sends the rest home as a load. What the coffer lacks
+  is done on credit, with a bill that comes home with the word, and an unpaid bill stops credit there until the debt is
+  paid. Send gold ahead with your couriers to fund a far province up front; caravans carry their porters' pay with them.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
   his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,
@@ -225,7 +231,7 @@ for the Aijalon valley, Pihil for Pella, Ashtartu, Hazzatu for Gaza, Biruta, Arw
 Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shushan for Susa), otherwise the period's
 Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
 the north Sinai, Hayasa, Tjehenu for Libya, Seir for the Shasu's land, Kaska and Sutu for the Kaska's hills and the
-Suteans' steppe; their realms still go by "the land of the Tjehenu" and the like); every province has a proper name, never a description: where the period gives none, the oldest name the
+Suteans' steppe, and their realms by the same names); every province has a proper name, never a description: where the period gives none, the oldest name the
 sources do give (Tamassos for the copper hills of Cyprus), and a modern one only where no ancient name survives (Enkomi).
 What a place is ("the copper hills of Alashiya") and its modern name are on the province card, under its name. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
 in Egypt's own seat; his other names are on his card.
@@ -373,7 +379,8 @@ answered in a Claude Code session on your Claude subscription, through a small b
 Long games become affordable when model calls scale with events, not with time. **Sleeping
 seats** are on by default: after giving its orders, a model king sleeps, and it never chooses when
 it wakes. The world goes on, its units hold and its scheduled orders run, each following its unit
-(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead), and
+(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead; if a
+levy far off raises none, its orders stay listed, unable to run, until word of it comes home), and
 its standing orders answer, in the same season, a unit it sees setting out to enter a province or
 to attack one of its own. It is woken only when something concerns it: an envoy at the door,
 foreign troops in its land or arriving next to its homeland or a walled city it holds, land or
@@ -390,17 +397,27 @@ kings give them, and a human gives them in the orders panel. The details are in 
 In games without a human, the god view shows everything the engine knows: true map, every
 treasury, every character's hidden traits and facts and who knows them, and the **message
 trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
-reported home. Switch to any power to see exactly what it saw. The side panel's tabs show the
+reported home. Switch to any power to see exactly what it saw; a king played by a model has an **Own words**
+tab with his notes, summary, plan and ledger as they stood at the season shown. The side panel's tabs show the
 season's events, the trail, the people, the provinces, the standings and the rules; with a mouse,
 the tabs and the courts along the map scroll with the wheel or by dragging. The timeline
 steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
+The **Threads** tab, open wherever the whole record is (a game without a human, or once the age ends), lists the few
+live stories with the most at stake this season, as the narrator picks them: a city a season from falling, an envoy
+on his road with gold or a tablet (and, in god view, whose pay he is really in), a people ready to rise behind a man.
+Each is a click away: follow the person, open his message trail (god view), or show the place on the map. Through a
+power's eyes it lists only what that court knows. Tick **Director camera** and the map goes, as each season plays out,
+to the scene with the most at stake; it is off by default. The narrator's words are kept in the saved game the first
+time, so watching it again reads them back; **Tell anew** has the narrator tell them again, keeping the first telling
+beside the new, as the Chronicles tab does for the annals. A king played by a human sees no threads during play.
+
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
-colour), a border that glows faintly where you see two powers' armies face to face across it, armies as chariots and
-fleets as ships. On the whole map every city is a seal, and a tap on
-it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
+colour), a border that glows faintly where you see two powers' armies face to face across it (the province's card
+lists the armies on the other side), armies as chariots and fleets as ships. On the whole map every city is a seal,
+and a tap on it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Each realm shows in three steps of its colour:
@@ -411,18 +428,30 @@ province, the city of a court your envoy visited, a province your scribes counte
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
 path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
 the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
-back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+back). Zoomed out, the realms' colours are full; zoomed in, they thin to a wash and then almost to their borders and
+the emblems on their cities, so the ground and the figures show through (the mood view keeps its colours). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
 centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
-gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
+gold in Shemu, rivers in spate and storms on the open sea. The season lies on the ground under the realms' colours, and
+its change moves as the season plays: the snow creeps down from the heights and melts from below, the Nile rises from
+the south up its valley, the green spreads inland from the coast with the rains, and the land browns from its inland
+edges. Droughts and floods show where your court last saw them, a
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
-Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
-holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
+Your vassals and allies send you word of land they see change hands, so news of a far conquest or revolt reaches you
+as a notice, sometimes before your own word from there: it comes by the road from their court, and your map then shows
+the land's new holder.
+Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
+harvest as its officials last reported them, your caravans there as their last word has them, and your strength
+reckoned from what you know. To know sooner, hire a rider at your court to fetch one far province's report this
+season: he names his price by what he has heard a ride pays and how badly you want him, and takes less if you haggle,
+up to a point. Click such a city and its card gives only what your stewards last reported and how many
+seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
 earlier season, a card gives the figures recorded in that season, never today's.
-Figures on the roads in the fog are your own: your caravans, wherever they are, and your envoys and spies where you
+Figures on the roads in the fog are your own: your caravans, near as they are and farther off where their last word
+has them, and your envoys and spies where you
 believe them; foreign troops show only in your land and where your troops stand, within a season's courier ride of your court, and
 one step beyond.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
@@ -430,9 +459,14 @@ Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
 of courts. When the age ends, every seat may open the whole record in god view.
 
-On a computer, Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast: seasons are turns, so the pace only
-sets how long each is watched), and + and − step between them; no key acts while you type. Each button's tooltip names
-its key.
+Each season plays out on the map: the envoys arrive, the columns march, then the battles, the sieges and the cities that
+fall, each in its turn, and a short line closes the season with what changed. Only what your court knows plays: an army
+appears where it was seen, and a disaster far away is news in that line, not a scene. On a computer, Space pauses and
+unpauses, 1 to 4 set the pace (seasons are turns, so the pace only sets how long each is watched: Slow, about 15
+seconds a season; Normal, about 6; Fast, about a second of highlights, though a capital falling still takes a moment;
+Simulate draws nothing and computes the game as fast as it can, showing only the count of seasons, then opens it at its
+last season to watch any part from the timeline), and + and − step between them; your own season always waits for your
+orders, and no key acts while you type. Each button's tooltip names its key.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)

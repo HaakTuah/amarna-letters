@@ -50,12 +50,12 @@ describe("BattleReasonTests", () => {
     Assert.equal("Hatti", unitAt(s, "suhu")?.power);
     Assert.equal("Mitanni", unitAt(s, "ekallate")?.power);
     let assyria = report(s, "Assyria");
-    Assert.contains("- army in Ekallate -> Suhu: fails: it met the unit from Suhu (Mitanni's army) coming the other way; your strength 2 against 2.3", assyria);
+    Assert.contains("Your army in Ekallate did not reach Suhu: it met the unit from Suhu (Mitanni's army) coming the other way; your strength 2 against 2.3", assyria);
     // With nowhere to fall back (item 13), it is destroyed.
-    Assert.contains("- army in Ekallate is destroyed", assyria);
+    Assert.contains("Your army in Ekallate was destroyed", assyria);
     Assert.doesNotContain(
       "from Terqa",
-      single(assyria.split("\n"), (l) => l.startsWith("- army in Ekallate -> Suhu")),
+      single(assyria.split("\n"), (l) => l.startsWith("Your army in Ekallate did not reach Suhu")),
     );
   });
 
@@ -86,7 +86,7 @@ describe("BattleReasonTests", () => {
     let egypt = report(s, "Egypt");
     // Lukka is rough ground (Build order item 5, terrain): the unit holding it has 1 more, and the report gives its share.
     Assert.contains(
-      "- army in Ta-Mehu -> Lukka (by sea): fails: the unit holding Lukka kept its place; your strength 1 against 2, 1 of it for the rough ground of lukka",
+      "Your army in Ta-Mehu did not reach Lukka by sea: the unit holding Lukka kept its place; your strength 1 against 2, 1 of it for the rough ground of Lukka",
       egypt,
     );
     Assert.doesNotContain("Arzawa", egypt);
@@ -100,9 +100,9 @@ describe("BattleReasonTests", () => {
         Alashiya: { orders: ["deltawaters", "westsea", "lukkawaters"].map((f) => convoy(f, "delta", "kalavasos")) },
       }),
     );
-    Assert.contains("- army in Ta-Mehu -> Lukka (by sea): fails: no convoy carried it across the sea", report(t, "Egypt"));
-    Assert.contains("- fleet in Ta-Mehu waters convoys Ta-Mehu -> Tamassos: void: no army moved from Ta-Mehu to Tamassos by sea", report(t, "Alashiya"));
-    Assert.contains("- Alashiya: fleet in Ta-Mehu waters convoys Ta-Mehu -> Tamassos: void", report(t, "Egypt"));
+    Assert.contains("Your army in Ta-Mehu did not reach Lukka by sea: no convoy carried it across the sea", report(t, "Egypt"));
+    Assert.contains("Your fleet in Ta-Mehu waters was to carry the army from Ta-Mehu to Tamassos, in vain: no army moved from Ta-Mehu to Tamassos by sea", report(t, "Alashiya"));
+    Assert.contains("Alashiya's fleet in Ta-Mehu waters was to carry the army from Ta-Mehu to Tamassos, in vain", report(t, "Egypt"));
   });
 
   test("A unit that could not leave kept its place", () => {
@@ -118,10 +118,10 @@ describe("BattleReasonTests", () => {
       }),
     );
     Assert.contains(
-      "- army in Harran -> Terqa: fails: the unit in Terqa (Mitanni's army) could not leave, so it kept its place; your strength 1 against 1",
+      "Your army in Harran did not reach Terqa: the unit in Terqa (Mitanni's army) could not leave, so it kept its place; your strength 1 against 1",
       report(s, "Hatti"),
     );
-    Assert.contains("- army in Terqa -> Suhu: fails: it met a move into Suhu from Sippar by Karduniash's army; your strength 1 against 1", report(s, "Mitanni"));
+    Assert.contains("Your army in Terqa did not reach Suhu: it met a move into Suhu from Sippar by Babylonia's army; your strength 1 against 1", report(s, "Mitanni"));
   });
 
   test("A support that matches nothing is void and only its own king is told why", () => {
@@ -136,14 +136,14 @@ describe("BattleReasonTests", () => {
       }),
     );
     let babylonia = report(s, "Babylonia");
-    Assert.contains("- army in Babili supports Sippar -> Nippur: void: no unit moved from Sippar to Nippur", babylonia);
-    Assert.contains("- army in Dur-Kurigalzu supports Sippar holding: void: the unit in Sippar was ordered to move, not to hold", babylonia);
-    let own = babylonia.split("\nSeen nearby:")[0];
+    Assert.contains("Your army in Babili was to support the move from Sippar to Nippur, in vain: no unit moved from Sippar to Nippur", babylonia);
+    Assert.contains("Your army in Dur-Kurigalzu was to support the hold at Sippar, in vain: the unit in Sippar was ordered to move, not to hold", babylonia);
+    let own = babylonia.split("\n").filter((l) => l.startsWith("Your ")).join("\n");
     Assert.doesNotContain("holds", own);
 
     // Assyria, next door, sees the void support but not the reason.
     let assyria = report(s, "Assyria");
-    Assert.contains("- Babylonia: army in Dur-Kurigalzu supports Sippar holding: void", assyria);
+    Assert.contains("Babylonia's army in Dur-Kurigalzu was to support the hold at Sippar, in vain", assyria);
     Assert.doesNotContain("ordered to move", assyria);
   });
 });

@@ -12,29 +12,28 @@
  * archives, covers, events, inventories), each adding its methods to this class; import the class from "./turn-engine.ts",
  * which loads them all.
  */
+import { listed } from "../rules/wording.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
-import { cmpNum, count, desc, distinct, groupBy, sortBy, sum } from "../core/seq.ts";
-import { cmpStr } from "../core/text.ts";
+import { cmpNum, count, distinct, sortBy, sum } from "../core/seq.ts";
 import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
-import { terrainOf } from "../model/geography.ts";
-import { StartWalls, WorldMap } from "../model/map.ts";
-import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
+import { WorldMap } from "../model/map.ts";
+import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
-import { setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { Views } from "../rules/views.ts";
-import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { powerName, setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
 import type { PlannedOrder } from "../model/sleep.ts";
 import { wordSeasons } from "../model/travel.ts";
 import type { Firing } from "./plans.ts";
+import { recordReports } from "../rules/province-reports.ts";
 
 export class TurnEngine {
   readonly s: GameState;
@@ -99,6 +98,11 @@ export class TurnEngine {
     S.audiences.length = 0;
     S.counterIntel.clear();
     this._missedPayNow.clear();
+    // Bug #540: each held province's report of the season just ended, which goes to its holder as word does.
+    recordReports(this);
+    // #601: riders hired last season are back with their provinces' reports.
+    this.ridersBack();
+    this.caravanWordsHome();
     // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
     this.liftLostSieges();
     this.incomeAndUpkeep();
@@ -161,21 +165,20 @@ export class TurnEngine {
    */
   incomeAndUpkeep(): void {
     const S = this.s;
-    const Map = this.map;
     const notes = this.harvestSeason();
+    // Gold sent to far coffers arrives, and bills from afar are paid (#587), before the troops are.
+    for (const [p, l] of this.goldArrives().entries()) notes.set(p, [...notes.getOrDefault(p, []), ...l]);
     this.townsEat();
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);
       const troops = this.payTroops(p);
       // Written before the season's audiences and envoys' returns: their gold comes after this figure.
       const lines = notes.getOrDefault(p, []);
-      lines.push(
-        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}.` +
-          ` The treasury now holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
-      );
+      if (troops.paid > 0) lines.push(`Your troops were paid ${formatMoney(troops.paid)}.`);
+      lines.push(ledger(t) >= 0.5 ? `The treasury now holds ${formatMoney(ledger(t))}.` : "The treasury is empty.");
       if (troops.unpaid.length > 0)
-        lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
-      if (troops.held.length > 0) lines.push(`Held back from pay by your standing order: ${troops.held.join(", ")}; they count it as a season of missing pay.`);
+        lines.push(`Not paid this season: ${listed(troops.unpaid)}. A unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
+      if (troops.held.length > 0) lines.push(`Held back from pay by your standing order: ${listed(troops.held)}; they count it as a season of missing pay.`);
       notes.set(p, lines);
       if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
@@ -268,9 +271,6 @@ export class TurnEngine {
     const S = this.s;
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
-    // Item 17++: the old holder's last report of it, as his officials sent it before the loss, if his couriers cannot
-    // bring him word of the loss within the season.
-    const report = old !== null && this.wordTo(old, province) > 0 && isAlive(S, old) && !this.map.get(province).isSea ? Views.provinceEconomy(S, this, this.map, province) : null;
     S.owner.set(province, owner);
     // Item 17: when it changed hands. What its people remember of each actor stays with them (item 17++).
     S.takenAt.set(province, S.turn);
@@ -281,16 +281,12 @@ export class TurnEngine {
     S.shares.delete(province);
     S.amounts.delete(province);
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where
-    // his couriers bring word within the season (farther off, word of it comes as word does).
-    if (old !== null && this.wordTo(old, province) === 0) {
+    // his couriers bring word within the season (farther off, word of it comes as word does, and his officials' last
+    // reports stand in his view until then: bug #540, GameState.reports).
+    if (old !== null && this.wordFrom(old, province) === 0) {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
-    } else if (old !== null && report !== null) {
-      // Out of his couriers' reach: that report stands in his view until word arrives.
-      let last = S.ownLast.tryGet(old);
-      if (last === undefined) S.ownLast.set(old, (last = new Dict()));
-      last.set(province, report);
     }
     S.ownerLog.push(newOwnerChange({ province, turn: S.turn, owner }));
     // Item 17++: how firmly it obeys its new holder, reckoned now, not inherited from the old.
@@ -329,16 +325,16 @@ export class TurnEngine {
     const t = S.treasuries.get(p);
     if (!t.lots.some((l) => l.face > l.true)) return;
     const missing = sum(t.lots, (l) => l.face - l.true);
-    const sources = distinct(t.lots.filter((l) => l.face > l.true).map((l) => l.from)).join(", ");
+    const from = distinct(t.lots.filter((l) => l.face > l.true).map((l) => l.from));
     t.lots.length = 0;
     notify(
       S,
       p,
       "Assay",
       "The treasury is short",
-      `Paying for ${what}, your treasurers found the treasury lighter than the ledger: ${formatMoney(missing)} of gold received from ${sources} was never fine gold.`,
+      `Paying for ${what}, your treasurers found the treasury lighter than the ledger: ${formatMoney(missing)} of gold received from ${listed(from.map(powerName))} was never fine gold.`,
     );
-    logEvent(S, "debasement", `${p} discovers ${formatMoney(missing)} of debased gold from ${sources}.`, [p], "debasement-found");
+    logEvent(S, "debasement", `${p} discovers ${formatMoney(missing)} of debased gold from ${from.join(", ")}.`, [p], "debasement-found");
   }
 
   /**
