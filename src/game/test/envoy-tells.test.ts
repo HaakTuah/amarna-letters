@@ -26,8 +26,10 @@ async function reportOf(traits: Partial<Traits>, bribed: boolean, turn: number, 
   return (await new ScriptMind().write(ctx)).text;
 }
 
-/** The fixed words of every form of every line an envoy says at home: what stands before its first blank. */
-const stems = Object.entries(Home).flatMap(([line, forms]) => forms.map((f) => [line, f.split("{")[0].trim()] as const)).filter(([, s]) => s.length >= 12);
+/** The fixed words of every form of every line an envoy says at home: its longest piece between blanks. */
+const stems = Object.entries(Home).flatMap(([line, forms]) =>
+  forms.map((f) => [line, f.split(/\{\w\}/u).map((p) => p.trim()).sort((a, b) => b.length - a.length)[0]] as const),
+);
 
 /** The forms these reports use. */
 const used = (reports: readonly string[]): Set<string> => new Set(stems.filter(([, s]) => reports.some((r) => r.includes(s))).map(([l, s]) => `${l}: ${s}`));
@@ -45,6 +47,10 @@ function shape(report: string): string[] {
 // #591 (the owner, 3 November 2026: script characters only): no phrasing gives an envoy's hidden state away. Every form a
 // bought or frightened envoy uses at home, an honest envoy back from a warm court uses too, in some season.
 describe("EnvoyTellsTests", () => {
+  test("Every form an envoy says at home has fixed words to be found by", () => {
+    for (const [line, stem] of stems) Assert.true(stem.length >= 12, `a form of "${line}" has too few fixed words: "${stem}"`);
+  });
+
   test("Every form a bribed or frightened envoy says at home, an honest one at a warm court says too", async () => {
     const seasons = Array.from({ length: 60 }, (_, i) => i + 1);
     const honest = await Promise.all(seasons.map((t) => reportOf({ loyalty: 70, courage: 60, ambition: 30 }, false, t)));

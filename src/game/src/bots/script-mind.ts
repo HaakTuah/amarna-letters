@@ -246,7 +246,7 @@ export function swaps(t: Traits, keptGold: number, forgeSkill: number, belief: n
  * Whether the host spoke no threat to the envoy's lord and refused nothing: a court an honest envoy may speak of warmly,
  * in the words a bought or frightened one uses (#591).
  */
-function warmCourt(trail: { exchanges: readonly unknown[] } | null, heard: readonly Clause[], hostWords: readonly string[], lord: Power, host: Power): boolean {
+function warmCourt(trail: { exchanges: readonly unknown[] } | null, heard: readonly Clause[], hostWords: readonly string[]): boolean {
   if (trail === null || (heard.length === 0 && hostWords.length === 0)) return false;
   if (heard.some((x) => x.kind === "threat" || x.kind === "refuse")) return false;
   return !hostWords.some((w) => TextKit.sentences(w).some((s) => TextKit.isThreat(s)));
@@ -313,7 +313,7 @@ function report(ctx: MindContext): MindReply {
     if (fearful && !bribed) lines.push(say(Home, "soothe", key, { L }));
     // An honest envoy back from a court that spoke no threat sometimes says so in the words a bought or frightened one
     // uses, so none of them marks one (#591).
-    else if (!bribed && warmCourt(trail, heard, hostWords, lord, host)) {
+    else if (!bribed && warmCourt(trail, heard, hostWords)) {
       // By the half-year, not the season, so the line and its form (chosen by the season) run through every pairing.
       const warm = pick([null, "friendship", "bought", "soothe"] as const, `${Math.floor(ctx.turn / 2)}|${c.id}|${host}|warm`);
       if (warm !== null) lines.push(say(Home, warm, key, { L }));
