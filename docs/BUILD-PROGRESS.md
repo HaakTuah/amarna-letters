@@ -226,7 +226,9 @@ the workshop check): among them the history check's lines still unclear for a re
   `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge. **In a character's own words** (the script
   kings' letters, the envoys' speech, and the models' voice guidance for letters and audiences), a share is said as
   the period said it, "a fifth", "a tenth", "the half", never "%" or "in a hundred", and the letter-shapes guard flags
-  both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%".
+  both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%". Done: the line
+  `PeriodShares` (`src/llm/src/text.ts`) in the kings' and characters' voice guidance, the guards in `letter-shapes`
+  and `envoy-words` tests.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:

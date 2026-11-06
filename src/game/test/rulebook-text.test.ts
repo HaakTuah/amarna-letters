@@ -26,7 +26,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, Schemas, leaderRules, situation, standings } from "@amarna/llm";
+import { type CallSpec, CharacterSystem, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, PeriodShares, Schemas, leaderRules, situation, standings } from "@amarna/llm";
 import { removeAll, Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
@@ -47,6 +47,11 @@ describe("RulebookTextTests", () => {
       "- Word of captives and executions travels with people: an envoy received at a court, or a spy posted there, may hear which servants of other courts it holds captive and whom it has put to death within the last 3 seasons, and brings that home in its report. Other courts' envoys and spies hear the same at yours.",
       Rules,
     );
+  });
+
+  test("The kings' and the characters' voice guidance says shares as the age said them (archive item 232)", () => {
+    Assert.contains(PeriodShares, Rules);
+    Assert.contains(PeriodShares, CharacterSystem);
   });
 
   test("The rulebook says that a spy at a court is hidden from it until caught", () => {
