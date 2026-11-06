@@ -18,23 +18,18 @@ import {
   newGame,
   newGameConfig,
   newHostReply,
-  newMindReply,
   newTurnSubmission,
   placeSpy,
   single,
 } from "@amarna/engine";
+import { begin as turnBegin } from "./turn-begin.ts";
 import { Assert, last, skilled, smallWorld } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // Losses abroad travel with people: a spy caught at a court, or put to death there, is the talk of that court, and other
 // courts hear of it only from their envoys received there and their spies posted there.
 describe("LossNewsTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]`, number: 15 }));
-    return e;
-  }
+  const begin = (s: GameState): TurnEngine => turnBegin(s, 15);
 
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();

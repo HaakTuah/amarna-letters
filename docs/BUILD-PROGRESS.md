@@ -117,9 +117,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   here, which moves to the archive when done; (4) the use-against-ignore rows of 17++ to the archive once its parts are
   all measured, bringing this file under 20 KB.
 
-- **The old copies, removed** (archive item 207): `scripts/copies-baseline.json` lists 21, nearly all test helpers
-  written again in each test (`begin`, a `Board`), and one passage of the builder rules said twice (to be fixed in the
-  design document). A workshop lane removes them by pointing to one shared helper, and drops each entry as it goes.
+- **The old copies, removed** (archive item 207): 18 of the 21 in #PR. Left in `scripts/copies-baseline.json`: the
+  passage of the builder rules said twice (the design document's to fix), the generated `geo-fine-data.ts` (its
+  script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
+  dodge).
 - **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
   review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
   file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.

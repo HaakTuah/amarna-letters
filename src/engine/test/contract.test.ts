@@ -25,7 +25,6 @@ import {
   newGameConfig,
   newHoard,
   newJobErrand,
-  newMindReply,
   newTurnSubmission,
   payCarriers,
   payFee,
@@ -36,6 +35,7 @@ import {
   sellDebt,
   single,
 } from "@amarna/engine";
+import { begin } from "./turn-begin.ts";
 import { Assert, speaksAll, smallWorld } from "./support.ts";
 
 // <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by the owner's answers to items 11a and 11a+): a job is one
@@ -43,13 +43,6 @@ import { Assert, speaksAll, smallWorld } from "./support.ts";
 // with envoys; a court's record of paying is news; and the hard acts: seizing a hoard, selling a tablet, taking a captive's
 // purse, a levy of the king's size.</summary>
 describe("ContractTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]` }));
-    return e;
-  }
-
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();
   }

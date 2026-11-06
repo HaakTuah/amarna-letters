@@ -2,14 +2,9 @@ import { describe, test } from "vitest";
 import { TextKit } from "../src/bots/textkit.ts";
 import {
   AllPowers,
-  type AudienceView,
   type Character,
   GameStateSchema,
-  type HostReply,
-  type SeatView,
   type SpyReport,
-  type TurnSubmission,
-  dispatch,
   first,
   hash,
   newCharacter,
@@ -25,15 +20,15 @@ import {
   newSpyReport,
   newSkills,
   newTraits,
-  newTurnSubmission,
   single,
 } from "@amarna/engine";
-import { GameLog, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext } from "@amarna/game";
+import { GameLog, GameRunner, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext } from "@amarna/game";
 import { AnthropicProvider, ModelClient, LlmCharacterMind, Parse, Schemas, SimulatedApi } from "@amarna/llm";
 import { Home } from "../src/bots/envoy-words.ts";
 import { saysOneOf } from "./readings.ts";
 import { str, Assert, toDict } from "../../engine/test/support.ts";
 import { kept as keptOf } from "@amarna/game";
+import { Host, Idle, Sender } from "./audience-support.ts";
 
 // <summary>Who swaps an inventory: script envoys by formula from their traits, model envoys for themselves.</summary>
 describe("InventorySwapTests", () => {
@@ -163,63 +158,17 @@ describe("InventorySwapTests", () => {
     Assert.false(TextKit.speaksOfWeighing("I thank you for the gold you sent."));
   });
 
-  // <summary>Sends one envoy with 100 shekels to Hatti in the first season.</summary>
-  class Sender implements ISeat {
-    readonly #envoyId: string;
-    constructor(envoyId: string) {
-      this.#envoyId = envoyId;
-    }
-    get label(): string {
-      return "Sender";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(
-        view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.#envoyId, "Hatti", "Greetings, brother.", { gold: 100 })] }) : newTurnSubmission(),
-      );
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      return Promise.resolve(newHostReply({ end: true }));
-    }
-  }
-
-  // <summary>Keeps every audience view it is shown.</summary>
-  class Host implements ISeat {
-    views: AudienceView[] = [];
-    get label(): string {
-      return "Host";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(newTurnSubmission());
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      this.views.push(view);
-      return Promise.resolve(newHostReply({ speech: "Welcome.", end: true }));
-    }
-  }
-
-  class Idle implements ISeat {
-    get label(): string {
-      return "Idle";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(newTurnSubmission());
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      return Promise.resolve(newHostReply({ end: true }));
-    }
-  }
-
   test("A swap decided at the audience is logged shown to the host as the forgery and replays exactly", async () => {
     let state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     let envoy = first(state.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     [envoy.traits.greed, envoy.traits.loyalty, envoy.traits.competence, envoy.traits.courage] = [80, 40, 70, 60];
     envoy.belief.forge = envoy.skills.forge = 70;
-    let host = new Host();
+    let host = new Host(() => newHostReply({ speech: "Welcome.", end: true }));
     let seats = toDict(
       AllPowers,
       (p) => p,
-      (p) => (p === "Egypt" ? new Sender(envoy.id) : p === "Hatti" ? host : new Idle()),
+      (p) => (p === "Egypt" ? new Sender(envoy.id, "Hatti", 100) : p === "Hatti" ? host : new Idle()),
     );
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     await runner.prepare();
