@@ -37,7 +37,14 @@ import { sideScroll } from "../ui/side-scroll.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
-import { Speeds, speedIndex, useKeys, withKey, type KeyAction } from "../ui/keys.ts";
+import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
+
+/** The keys handled with the page's tabs and cards (`windowKeys`), set after the page's early returns. */
+const WindowActions = [
+  "endSeason", "escape", "stepBack", "stepOn", "toNow",
+  "winSeat", "winProvinces", "winStandings", "winPeople", "winInbox", "winThreads", "winEvents", "winRules", "winChronicles",
+  "winMind", "winTrail", "winFollow", "winLegends",
+] as const;
 import { authorKind, type Thread } from "@amarna/game";
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
@@ -87,7 +94,7 @@ export function Play() {
     performance.measure("page:play", { start: renderStart });
   });
   // The keys (ui/keys.ts). Space does what the play button shows, 1 to 4 set the pace, + and − step it; the rest are below.
-  const windowKeys = useRef<Partial<Record<KeyAction, () => void>>>({});
+  const windowKeys = useRef<Partial<Record<(typeof WindowActions)[number], () => void>>>({});
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
@@ -107,8 +114,9 @@ export function Play() {
       if (speedIndex(s.delayMs) < 2) setSpeed(speedIndex(s.delayMs) + 1);
     },
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
-    // The keys whose handlers need the page's tabs and cards, set where those are (below, `windowKeys`), as of the last render.
-    ...windowKeys.current,
+    // The keys whose handlers need the page's tabs and cards, set where those are (below, `windowKeys`): each read at the
+    // moment of the key press, so it sees the page as it is.
+    ...Object.fromEntries(WindowActions.map((a) => [a, () => windowKeys.current[a]?.()])),
   });
   const [mark, setMark] = useState<string | null>(null);
   const [theme, setThemeState] = useState(getTheme);

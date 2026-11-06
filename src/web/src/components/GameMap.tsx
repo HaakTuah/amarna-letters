@@ -79,16 +79,22 @@ export function GameMap({
   // Item 17++, part C: the realms view (who holds what) or the mood of the land, one tap away.
   const [mode, setMode] = useState<MapMode>("realms");
   // The map's keys (ui/keys.ts): its views by letter, and W, A, S, D with the arrows moving it a fifth of the view a step.
+  // Moving or zooming the camera by key takes it, as a drag does: a follow no longer keeps it on its person.
   const Step = 0.2;
+  const camera = (move: (r: MapRenderer) => void) => (): void => {
+    if (renderer.current === null) return;
+    handlers.current.onCamera?.();
+    move(renderer.current);
+  };
   useKeys({
     viewRealms: () => setMode("realms"),
     viewMood: () => setMode("mood"),
-    panUp: () => renderer.current?.panBy(0, -Step),
-    panDown: () => renderer.current?.panBy(0, Step),
-    panLeft: () => renderer.current?.panBy(-Step, 0),
-    panRight: () => renderer.current?.panBy(Step, 0),
-    zoomIn: () => renderer.current?.zoomBy(1.6),
-    zoomOut: () => renderer.current?.zoomBy(1 / 1.6),
+    panUp: camera((r) => r.panBy(0, -Step)),
+    panDown: camera((r) => r.panBy(0, Step)),
+    panLeft: camera((r) => r.panBy(-Step, 0)),
+    panRight: camera((r) => r.panBy(Step, 0)),
+    zoomIn: camera((r) => r.zoomBy(1.6)),
+    zoomOut: camera((r) => r.zoomBy(1 / 1.6)),
     wholeMap: () => whole(),
   });
   const key = useRef(viewKey);

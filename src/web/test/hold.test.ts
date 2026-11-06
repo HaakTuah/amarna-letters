@@ -4,18 +4,28 @@ import { Assert } from "../../engine/test/support.ts";
 // Item 17+++a: "Space pauses and unpauses, even while a season plays out". The page's clock holds the season playing out
 // and lets it go on from where it stood; the worker's gate stays shut while it is held.
 describe("A season held still", () => {
-  test("Pausing holds the season, playing again goes on from where it stood, and its end is told only then", async () => {
+  type Sent = { type: string; on?: boolean; index?: number };
+  type Session = InstanceType<(typeof import("../src/session/client.ts"))["Session"]>;
+  /** A page's session whose worker hears every message and answers none (one is started as the module loads). */
+  const withSession = async (run: (s: Session, sent: Sent[]) => Promise<void>): Promise<void> => {
     const had = { Worker: globalThis.Worker, window: (globalThis as { window?: unknown }).window };
-    const sent: { type: string; on?: boolean; index?: number }[] = [];
+    const sent: Sent[] = [];
     globalThis.Worker = class {
-      postMessage(m: { type: string }): void {
+      postMessage(m: Sent): void {
         sent.push(m);
       }
     } as unknown as typeof Worker;
     (globalThis as { window?: unknown }).window ??= globalThis;
     try {
       const { Session } = await import("../src/session/client.ts");
-      const s = new Session();
+      await run(new Session(), sent);
+    } finally {
+      globalThis.Worker = had.Worker;
+      (globalThis as { window?: unknown }).window = had.window;
+    }
+  };
+  test("Pausing holds the season, playing again goes on from where it stood, and its end is told only then", async () => {
+    await withSession(async (s, sent) => {
       // Auto-play on, the worker busy computing ahead, and a season of half a second playing out.
       s.live = { ...s.live, hasRunner: true, auto: true, busy: true };
       const began = performance.now();
@@ -41,24 +51,11 @@ describe("A season held still", () => {
       await new Promise((r) => setTimeout(r, 600));
       Assert.equal(null, s.playout);
       Assert.true(sent.some((m) => m.type === "played" && m.index === 3));
-    } finally {
-      globalThis.Worker = had.Worker;
-      (globalThis as { window?: unknown }).window = had.window;
-    }
+    });
   });
 
   test("A season held still plays on by itself at 'one season on', auto-play staying off", async () => {
-    const had = { Worker: globalThis.Worker, window: (globalThis as { window?: unknown }).window };
-    const sent: { type: string; on?: boolean }[] = [];
-    globalThis.Worker = class {
-      postMessage(m: { type: string }): void {
-        sent.push(m);
-      }
-    } as unknown as typeof Worker;
-    (globalThis as { window?: unknown }).window ??= globalThis;
-    try {
-      const { Session } = await import("../src/session/client.ts");
-      const s = new Session();
+    await withSession(async (s, sent) => {
       s.live = { ...s.live, hasRunner: true, auto: true, busy: true };
       s.playout = { index: 1, viewer: null, play: { timeline: { total: 5000 } } as never, began: performance.now(), live: true };
       s.setAuto(false);
@@ -66,9 +63,6 @@ describe("A season held still", () => {
       s.stepForward();
       Assert.false(s.playoutHeld);
       Assert.false(sent.some((m) => m.type === "auto" && m.on === true));
-    } finally {
-      globalThis.Worker = had.Worker;
-      (globalThis as { window?: unknown }).window = had.window;
-    }
+    });
   });
 });
