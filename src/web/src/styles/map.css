@@ -181,6 +181,7 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .trace { fill: none; stroke: var(--accent); stroke-width: calc(2.6px * var(--k)); stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: calc(7px * var(--k)) calc(4px * var(--k)); }
 .map .trace-dot { fill: var(--accent); }
 .map .trace-now { fill: var(--paper); stroke: var(--accent); stroke-width: 2.4; }
+.map .trace-age { pointer-events: none; }
 .map .traveller, .map .person, .map .news { cursor: pointer; }
 /* A court's people stand to the left of its city and its news to the right, clear of its outermost ring (item 11c++). */
 .map .cring { transform: translate(calc(-1px * (var(--ring) * var(--cs) + 3 * var(--sym))), 0); transform-box: view-box; transform-origin: 0 0; }
