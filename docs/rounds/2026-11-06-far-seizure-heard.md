@@ -12,9 +12,18 @@ distance.
 - Test: `map-crossings.test.ts`, "A king hears of his far troops' seizure of a caravan as word comes from where it
   happened (#675)", failing on `develop`, passing here.
 
+- Save version 62: the notice's word is a journey, so a seed plays on differently from that season.
+
+## Review
+
+The fallback reviewer (Opus, high; Codex counts as unavailable for code reviews in this lane, "Codex reviews"): round
+1, 9 of 10, one P3 (the test read the road in the season before the seizure), fixed; round 2, 10. Codex's security
+review on the ready mark: completed, no findings.
+
 ## Left to its issue
 
 - #726 (filed here): a captured archive becomes the far taker's copies at once (`archiveArrives`).
+- #736 (filed here, the reviewer's idea): a toll or a smuggler found at a far border is told to its king at once.
 
 ## Readings taken
 
