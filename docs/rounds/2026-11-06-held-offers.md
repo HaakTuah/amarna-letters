@@ -27,7 +27,7 @@ Every file changed is under the 50 KB mark; the new code is in files of its own 
 - **A file seat's request** (`llm/src/exchange.ts`, `readable`): the list of order actions had grown to about 1,195
   characters on one line, so any new action passed the 1,200 a file reader's line is kept under; a list of plain values
   that long now wraps, as many to a line as fit, as a long field already did.
-- Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 66.**
+- Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 67.**
 
 ## Measured (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`)
 
@@ -56,8 +56,9 @@ wrote it in the view, the orders, the page and the script kings, and nothing is 
 
 ## Readings taken
 
-- **Keyed by its province**, not by a new id: a court holds at most one offer of a province's people at a time, and the
-  orders name the province, as `take_up_province` does. Principle: Requests are rules too (no internal ids).
+- **Named by its province and the turn its people wrote it**, not by a new id: the orders name the province, as
+  `take_up_province` does, and the turn where a court holds more than one of that people's letters. Principle: Requests
+  are rules too (no internal ids a king could repeat; a turn is the game's own date).
 - **Only to its claimant or the land's king**, as the idea says; another king could be told by talk or by envoy.
 - **The buyer reads the words only once bought**; the asking names whose people wrote to whom. Principle: hidden
   information (what is for sale is said, not what it says).

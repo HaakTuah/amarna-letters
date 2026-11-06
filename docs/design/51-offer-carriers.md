@@ -56,7 +56,7 @@ caravans as carriers (#543), 64.
   the newest when none is named; `letterHeld`, `letterOffered`): a fresh one stands beside an older, which the court
   keeps knowing until word of the fresh one comes. The seat sees `SeatView.lettersHeld` and
   `lettersOffered` (OFFERS YOU HOLD, OFFERS FOR SALE TO YOU; on the page, "Offers taken on the road"), and a sleeping
-  seat wakes for either. Save version 66.
+  seat wakes for either. Save version 67.
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names
   who brought it (`offer-arrived`).
 - **Never carried**: when the declaration ends (its people no longer lean his way), its letter is dropped, waiting or on

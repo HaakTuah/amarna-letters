@@ -152,7 +152,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
     `docs/rounds/2026-11-03-news-beyond-sight.md`.
   - ~~**#592:**~~ (done, #733) a caught offer is held by its captor, who sends it on (to its claimant or the land's
-    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 66. Report:
+    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 67. Report:
     `docs/rounds/2026-11-06-held-offers.md`.
   - **Held letters never lapse** (the fallback security review of #733, P2): a letter kept, never bought, or held by a
     court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
