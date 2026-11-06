@@ -515,7 +515,7 @@ const farUnitBeaten: Twin = {
 };
 
 /**
- * Egypt's king holds court at Nippur, two seasons of couriers from Nubia, where his army stands under one of his own. In the
+ * Egypt's king holds court at Nippur, two seasons of couriers out to Nubia and one home, where his army stands under one of his own. In the
  * twin where the fact is true, it is lost out of his sight (to mutiny or plague) in the second season; in the third, his
  * only order takes back its command, as for one that stands (bug #600).
  */
@@ -537,8 +537,8 @@ const farUnitRelieved: Twin = {
   },
   later: { at: 2, happen: (s) => loseUnit(s, s.units.find((u) => u.id === "u990")!) },
   orders: (turn) => (turn === 3 ? [relieve("nubia")] : []),
-  // Once word of its end could come: a season, and the couriers' two from Nubia, after it.
-  heard: (s) => s.turn >= 5,
+  // Once word of its end could come: a season, and the road home from Nubia (#616's `wordFrom`), after it.
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
 };
 
 /** As `farUnitRelieved`, but the king's only order in the third season gives the army a mandate. */
