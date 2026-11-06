@@ -142,7 +142,8 @@ P.caravanOffersTaken = function (c, taker, where) {
     // By word from where it was taken, as any news from there (`tell`); he holds it from then (#592).
     this.tell(taker, where, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))} ${LetterHeldTerms}`);
     this.holdLetter(taker, j, this.heardAt(taker, where));
-    logEvent(S, "letter", `${taker} read the offer of ${from}'s people to ${j.to}, taken with ${noun(c)}.`, [taker], "offer-read");
+    // God's view only: the captor's court learns it by the notice above, when word from there comes.
+    logEvent(S, "letter", `${taker} read the offer of ${from}'s people to ${j.to}, taken with ${noun(c)}.`, [], "offer-read");
   }
 };
 

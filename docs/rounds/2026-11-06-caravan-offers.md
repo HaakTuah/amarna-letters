@@ -72,6 +72,9 @@ Round 3: two findings, fixed: talk the traders carry keeps the season they heard
 the land's mood is dated by (not the season they tell it); and the offers waiting where caravans stand are shared out
 among all of them before any sets out (`caravansPickUp`), so the claimant's own takes it whatever the order of their ids.
 
+Round 4: one finding, fixed: the record of a captor reading a caravan's offer was shown to his court in the season of
+the taking; it is god's view only now, and his court learns it by its notice when word comes.
+
 ## Checks
 
 `scripts/test.sh`: 1616 passed, 1 skipped (seven new tests in `src/engine/test/offer-caravans.test.ts`).

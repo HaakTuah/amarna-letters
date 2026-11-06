@@ -214,7 +214,8 @@ P.carryOffer = function (letter) {
 P.offerArrives = function (j) {
   const S = this.s;
   const province = provinceOf(j);
-  const d = S.declarations.find((x) => x.province === province && x.power === j.to && x.gone === null && x.from === null) ?? null;
+  // The declaration it was written for: one made since it set out (#592: a held letter sent on late) is another's.
+  const d = S.declarations.find((x) => x.province === province && x.power === j.to && x.gone === null && x.from === null && x.since <= j.departTurn) ?? null;
   if (d === null || !isAlive(S, j.to)) return;
   d.known = S.turn;
   const c = findCharacter(S, j.carrier);

@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, LetterHeldTerms, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
+import { Dict, LetterHeldTerms, OfferUnheard, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
 import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // #592 (the owner: "Agreed to all, expertly!"): a caught offer is a thing held. Babylon, Babylonia's capital, leans to
@@ -100,6 +100,24 @@ describe("HeldLetterTests", () => {
     Assert.equal(1, orders(s, "Hatti", [letter("babylon", "Send", "Egypt")]).rejected.length);
     e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
     Assert.equal("Babylonia", s.lettersHeld.find((h) => h.province === "babylon")!.askedOf);
+  });
+
+  test("Sent on late, an old letter stands for no later declaration of the same people", () => {
+    const [s, e, d] = caught();
+    e.dropOffer(d);
+    d.gone = s.turn;
+    s.turn += 2;
+    const again = newDeclaration({ province: "babylon", power: "Egypt", since: s.turn, known: OfferUnheard });
+    s.declarations.push(again);
+    e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
+    arrive(s, e);
+    Assert.equal(OfferUnheard, again.known);
+  });
+
+  test("A court not yet told its claimant has fallen may still send him the letter", () => {
+    const [s] = caught();
+    s.eliminated.push("Egypt");
+    Assert.equal(0, orders(s, "Hatti", [letter("babylon", "Send", "Egypt")]).rejected.length);
   });
 
   test("Kept past the end of the leaning, it is still held, and sent on then it finds no offer standing", () => {

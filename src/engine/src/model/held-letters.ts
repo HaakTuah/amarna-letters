@@ -18,6 +18,8 @@ export interface HeldLetter {
   /** The court that holds it, and since when. */
   heldBy: Power;
   since: number;
+  /** The season its people wrote it (its offer's `departTurn`): sent on, it stands only for the declaration of then. */
+  written: number;
   /** The season word of the taking reaches the holder's court: from then he knows he holds it. */
   known: number;
   /** Offered for sale: to whom, for how much, and the season word of the asking reaches him. Null while kept. */
@@ -29,10 +31,10 @@ export interface HeldLetter {
 }
 
 export function newHeldLetter(init: Partial<HeldLetter> = {}): HeldLetter {
-  return { province: "", claimant: "Egypt", words: "", heldBy: "Egypt", since: 0, known: 0, askedOf: null, price: 0, askKnown: null, bought: null, ...init };
+  return { province: "", claimant: "Egypt", words: "", heldBy: "Egypt", since: 0, written: 0, known: 0, askedOf: null, price: 0, askKnown: null, bought: null, ...init };
 }
 
-export const HeldLetterSchema: ObjSchema<HeldLetter> = obj("HeldLetter", newHeldLetter, { province: S, claimant: S, words: S, heldBy: S, since: I, known: I, askedOf: opt(S), price: I, askKnown: opt(I), bought: opt(I) });
+export const HeldLetterSchema: ObjSchema<HeldLetter> = obj("HeldLetter", newHeldLetter, { province: S, claimant: S, words: S, heldBy: S, since: I, written: I, known: I, askedOf: opt(S), price: I, askKnown: opt(I), bought: opt(I) });
 
 /** What its holder may do with it: send it on (to the claimant or the land's king), or ask one of them a price. */
 export const LetterFateValues = ["Send", "Sell"] as const;

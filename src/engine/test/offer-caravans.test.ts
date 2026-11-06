@@ -119,6 +119,8 @@ describe("OfferCaravanTests", () => {
     e.caravanOffersTaken(c, "Hatti", "babylon");
     Assert.doesNotContain(inboxOf(s, "Hatti"), (i) => i.title === "A letter taken on the road");
     Assert.contains(s.journeys, (j) => j.kind === "Word" && j.to === "Hatti" && j.arriveTurn > s.turn && (j.text ?? "").includes("A letter taken on the road"));
+    // Nor does the season's record show it to Hatti before then.
+    Assert.false(s.events.some((x) => x.signal === "offer-read" && x.visibleTo.includes("Hatti")));
   });
 
   test("Seized at a border, its offers go to the border's king, who reads them", () => {

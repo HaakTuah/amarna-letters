@@ -44,6 +44,11 @@ end): an asking now binds, and a letter is no longer dropped when the leaning en
 his gold could reach the seller: it is now sent when the gold comes (`HeldLetter.bought`, `letterPriceArrives`). And
 the order in which caravans were visited chose who carried an offer: fixed in #725 (its code), merged in.
 
+Round 2: three findings, fixed. A held letter sent on after its leaning ended could make a later declaration of the
+same people known: it is dated as written and stands only for a declaration as old (`Declaration.since`). The record of a
+caravan's offer read is god's view only (from #725). And sending a letter to a claimant who has fallen is refused only
+once the holder has heard of the fall.
+
 ## Readings taken
 
 - **Keyed by its province**, not by a new id: a court holds at most one offer of a province's people at a time, and the

@@ -19,7 +19,8 @@ export function checkLetterOrder(v: Checking, order: Order): string | null | und
       // To its claimant, or to the land's king as the court knows him.
       if (order.to !== h.claimant && order.to !== v.knownOwner(order.province)) return `the offer of ${name}'s people can go only to ${powerName(h.claimant)}, to whom they wrote, or to the king of their land`;
       if (order.to === power) return `you hold the offer already`;
-      if (!isAlive(S, order.to) || v.heardFallen(order.to)) return `${powerName(order.to)} has fallen`;
+      // As the court has heard (word of a fall travels); resolution finds out the truth.
+      if (v.heardFallen(order.to)) return `${powerName(order.to)} has fallen`;
       if (order.fate === "Sell" && order.price < 1) return `a price for the offer must be at least 1 shekel`;
       v.taxesSet.add(`letter:${order.province}`);
       return null;

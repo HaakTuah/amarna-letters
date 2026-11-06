@@ -47,7 +47,8 @@ function sendOn(e: TurnEngine, h: HeldLetter, from: Power, to: Power): void {
   S.lettersHeld.splice(S.lettersHeld.indexOf(h), 1);
   const arrive = S.turn + e.travelTurns(from, to);
   if (to === h.claimant) {
-    S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Offer", departTurn: S.turn, arriveTurn: arrive, from, to, text: `${h.province}|${h.words}`, sentOnBy: from }));
+    // Dated as written: it stands only for the declaration it was written for (`offerArrives`).
+    S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Offer", departTurn: h.written, arriveTurn: arrive, from, to, text: `${h.province}|${h.words}`, sentOnBy: from }));
     return;
   }
   e.word(from, to, "Realm", `Notice|A letter taken on the road|${upper(powerName(from))}${LetterSent.toHolder}${named(e, h)} to ${powerName(h.claimant)}${LetterSent.taken}${quoteWords(h.words)}`);
@@ -57,7 +58,7 @@ P.holdLetter = function (captor, j, known) {
   const S = this.s;
   const province = (j.text ?? "").split("|")[0];
   if (S.lettersHeld.some((h) => h.heldBy === captor && h.province === province && h.claimant === j.to)) return;
-  S.lettersHeld.push(newHeldLetter({ province, claimant: j.to, words: (j.text ?? "").split("|").slice(1).join("|"), heldBy: captor, since: S.turn, known: known ?? S.turn }));
+  S.lettersHeld.push(newHeldLetter({ province, claimant: j.to, words: (j.text ?? "").split("|").slice(1).join("|"), heldBy: captor, since: S.turn, written: j.departTurn, known: known ?? S.turn }));
 };
 
 P.letterOrder = function (p, o) {
