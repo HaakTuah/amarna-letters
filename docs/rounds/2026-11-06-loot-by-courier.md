@@ -16,7 +16,7 @@ sent a far force's seized archive by courier in that case; this does the same fo
 - Test: `map-crossings.test.ts`, "Loot with no road home reaches its king by courier with the word, not at once
   (#740)", with #726's test now naming the `Loot` journey.
 - The rulebook (`rules-economy.ts`, Loot) and the design note `docs/design/20-people-across-borders.md` say so.
-- Save version 67 (64 is #742's, 65 #745's, 66 #747's): loot from far with no road home is now a journey, so a seed plays on
+- Save version 68 (64 is #742's, 65 #745's, 66 #747's, 67 #733's): loot from far with no road home is now a journey, so a seed plays on
   differently from that season.
 
 ## Readings taken
