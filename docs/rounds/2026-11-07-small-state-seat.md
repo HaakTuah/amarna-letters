@@ -45,7 +45,9 @@ and a game begun as Gubla opens on its orders, its council and its map, with no 
 ## Script kings and the benchmarks
 
 No rule, request field or script changed but the identity line's words, which script kings do not read. The batch of script
-games is the regression check: below.
+games (`scripts/sim.sh --games 50 --seed 1 --verify-replay`) is the regression check: all 50 games ran and replayed
+exactly (winners: Babylonia 24, Hatti 7, Egypt 7, Lukka 4, Assyria 2, and one each for the Suteans, Seha, Niya, Gath,
+Azzi and Amurru: small states win where they hold out). No use-against-ignore row: the item adds no feature a seat plays.
 
 ## Questions for the owner
 
