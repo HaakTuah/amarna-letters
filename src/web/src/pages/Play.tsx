@@ -7,6 +7,8 @@ import { CourtStrip } from "../components/CourtStrip.tsx";
 import { EventsPanel } from "../components/EventsPanel.tsx";
 import { ExportLog } from "../components/ExportLog.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
+import { HistoryPanel, type HistoryOf } from "../components/HistoryPanel.tsx";
+import { SearchPanel } from "../components/SearchPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
 import { SimulateProgress } from "../components/SimulateProgress.tsx";
@@ -36,6 +38,7 @@ import { OrderDraft } from "../ui/order-draft.ts";
 import { sideScroll } from "../ui/side-scroll.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
+import { setNames, useNames } from "../ui/names.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
 import { authorKind, type Thread } from "@amarna/game";
@@ -44,7 +47,7 @@ import { authorKind, type Thread } from "@amarna/game";
 const WindowActions = [
   "endSeason", "escape", "stepBack", "stepOn", "toNow",
   "winSeat", "winProvinces", "winStandings", "winPeople", "winInbox", "winThreads", "winEvents", "winRules", "winChronicles",
-  "winMind", "winTrail", "winFollow", "winLegends",
+  "winMind", "winTrail", "winFollow", "winLegends", "winSearch", "winHistory",
 ] as const;
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
@@ -88,6 +91,10 @@ export function Play() {
   const [tracking, setTracking] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
+  // The history window's subject (item 17+++b): a province, realm, title or person, from its card or the search.
+  const [ledger, setLedger] = useState<HistoryOf | null>(null);
+  // Every name on the page follows the player's name settings (ui/names.ts).
+  const names = useNames();
   // Timed, as every step of a season on the page is (item 17a): from the start of this render to the DOM written.
   const renderStart = performance.now();
   useLayoutEffect(() => {
@@ -264,6 +271,7 @@ export function Play() {
   const minded = viewer !== null && s.canSeeAll && authorKind(live.seats[viewer] ?? "Human") === "model";
   if (tab === "mind" && !minded) tab = "";
   if (tab === "follow" && followId === null) tab = "";
+  if (tab === "history" && ledger === null) tab = "";
   if (tab === "") tab = pendingAudience !== null ? "audience" : pendingOrders !== null ? "orders" : "season";
   if (tab !== tabRaw) queueMicrotask(() => setTab(tab));
 
@@ -326,6 +334,12 @@ export function Play() {
     const path = pathOf(s.frames, s.shownIndex, viewer, id);
     if (path.length > 0) map.current?.focus(path[path.length - 1].at, 1.6, true);
   };
+  /** A thing's history button: its window, in front. */
+  const showHistory = (h: HistoryOf): void => {
+    setLedger(h);
+    setTab("history");
+    setSheet(false);
+  };
   const stopFollowing = (): void => {
     setFollowId(null);
     setTracking(false);
@@ -374,6 +388,8 @@ export function Play() {
     winTrail: open("trail", s.godView),
     winFollow: open("follow", followId !== null),
     winLegends: open("legends", s.godView),
+    winSearch: open("search", true),
+    winHistory: open("history", ledger !== null),
   };
 
   // The last season's frame still shows the age's end until the next season is played, after the table played on.
@@ -527,6 +543,21 @@ export function Play() {
                   ))}
                 </select>
               </label>
+              {/* "History, search and names" (item 17+++b): the names this player sees, never a request to a model. */}
+              <label title="Places by their names of 1346 (Gubla), or by the names a reader knows today (Byblos)">
+                Places{" "}
+                <select value={names.places} onChange={(e) => setNames({ places: e.target.value as "period" | "modern" })}>
+                  <option value="period">Names of 1346</option>
+                  <option value="modern">Modern names</option>
+                </select>
+              </label>
+              <label title="The Great Kings' realms by the names people know (Egypt), or by their own letters' names (Miṣri)">
+                Realms{" "}
+                <select value={names.realms} onChange={(e) => setNames({ realms: e.target.value as "known" | "period" })}>
+                  <option value="known">Names people know</option>
+                  <option value="period">Names of 1346</option>
+                </select>
+              </label>
               <label>
                 Theme{" "}
                 <select
@@ -580,7 +611,7 @@ export function Play() {
           {legend && <MapLegend config={state.config} onClose={() => setLegend(false)} />}
           {mark !== null && <MarkInfo id={mark} config={state.config} onClose={() => setMark(null)} />}
           {selectedProvince !== null && !useDraft && (
-            <ProvinceInfo state={state} id={selectedProvince} scene={scene} onClose={() => setSelectedProvince(null)} onPerson={follow} />
+            <ProvinceInfo state={state} id={selectedProvince} scene={scene} onClose={() => setSelectedProvince(null)} onPerson={follow} onHistory={showHistory} />
           )}
           {(index < last || frame.index > 0) && <div className="map-ui season-tag">{index === 0 ? "Opening positions" : `Moves of ${shortDate(index, viewer)}`}</div>}
         </GameMap>
@@ -631,6 +662,14 @@ export function Play() {
           {followId !== null && (
             <button className={tabClass("follow")} onClick={() => pick("follow")} title={withKey("Follow", "winFollow")}>
               Follow
+            </button>
+          )}
+          <button className={tabClass("search")} onClick={() => pick("search")} title={withKey("Search", "winSearch")}>
+            Search
+          </button>
+          {ledger !== null && (
+            <button className={tabClass("history")} onClick={() => pick("history")} title={withKey("History", "winHistory")}>
+              History
             </button>
           )}
           <button className={tabClass("provinces")} onClick={() => pick("provinces")} title={withKey("Provinces", "winProvinces")}>
@@ -813,13 +852,13 @@ export function Play() {
           />
         );
       case "people":
-        return <PeoplePanel state={displayed} viewer={viewer} onPerson={follow} />;
+        return <PeoplePanel state={displayed} viewer={viewer} onPerson={follow} onHistory={showHistory} />;
       case "follow":
         return <FollowPanel record={lifeRecord()} viewer={viewer} onProvince={clicked} onClose={stopFollowing} onTrack={tracking ? null : () => setTracking(true)} />;
       case "provinces":
         return <ProvinceList scene={scene} selected={useDraft ? draft!.selected : selectedProvince} onProvince={fromList} />;
       case "standings":
-        return <StandingsPanel state={displayed} viewer={viewer} seats={live.seats} />;
+        return <StandingsPanel state={displayed} viewer={viewer} seats={live.seats} onHistory={showHistory} />;
       case "rules":
         // The rulebook a model king reads, so a human seat reads the same rules.
         return (
@@ -848,6 +887,10 @@ export function Play() {
         return <ChroniclePanel state={state} chronicles={live.chronicles} anew={live.chroniclesAnew} onTellAnew={live.readOnly ? null : () => s.chroniclesAnew()} />;
       case "legends":
         return <LegendsPanel state={displayed} onProvince={clicked} />;
+      case "search":
+        return <SearchPanel state={displayed} viewer={viewer} record={viewer === null || state.ended} scene={scene} onHistory={showHistory} onProvince={fromList} onPerson={follow} />;
+      case "history":
+        return <HistoryPanel state={displayed} of={ledger!} viewer={viewer} record={viewer === null || state.ended} onProvince={fromList} onClose={() => setLedger(null)} />;
       case "events":
         return <EventsPanel state={state} upTo={s.historyTurn} viewer={viewer} />;
       default:

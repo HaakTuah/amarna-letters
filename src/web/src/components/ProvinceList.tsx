@@ -1,7 +1,8 @@
-import { WorldMap, dateLabel, shortDate, type Province } from "@amarna/engine";
+import { FamiliarPlaceNames, WorldMap, dateLabel, modernOf, shortDate, type Province } from "@amarna/engine";
 import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
-import { powerName } from "../ui/format.ts";
+import { powerName, provinceName } from "../ui/format.ts";
+import { matchScore } from "../ui/search.ts";
 import { Emblem } from "./Emblem.tsx";
 
 /**
@@ -12,7 +13,7 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
   const [filter, setFilter] = useState("");
   const groups = new Map<string, Province[]>();
   for (const p of WorldMap.default.provinces) {
-    if (filter.length > 0 && !p.name.toLowerCase().includes(filter.toLowerCase())) continue;
+    if (filter.length > 0 && ![p.name, FamiliarPlaceNames.get(p.id) ?? "", modernOf(p.id) ?? ""].some((n) => n !== "" && matchScore(filter, n) !== null)) continue;
     const o = scene.owner.get(p.id) ?? null;
     const key = p.isSea ? "Sea zones" : o !== null ? powerName(o) : "Held by no one";
     if (!groups.has(key)) groups.set(key, []);
@@ -23,7 +24,9 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
   return (
     <>
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h3 style={{ margin: 0 }}>Provinces</h3>
+        <h3 style={{ margin: 0 }}>
+          Provinces <small className="muted">{[...groups.values()].reduce((n, l) => n + l.length, 0)}</small>
+        </h3>
         <input className="search" type="search" placeholder="Find a province" value={filter} onChange={(e) => setFilter(e.target.value)} enterKeyHint="search" />
       </div>
       {ordered.map(([key, list]) => (
@@ -31,7 +34,7 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
           <h4>{key}</h4>
           <ul className="plist">
             {[...list]
-              .sort((a, b) => a.name.localeCompare(b.name, "en"))
+              .sort((a, b) => provinceName(a.id).localeCompare(provinceName(b.id), "en"))
               .map((p) => {
                 const units = scene.units.filter((u) => u.province === p.id);
                 return (
@@ -39,7 +42,7 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
                     <button className="prow" onClick={() => onProvince(p.id)}>
                       <Emblem power={p.isSea ? null : (scene.owner.get(p.id) ?? null)} />
                       <span className="pname">
-                        {p.name}
+                        {provinceName(p.id)}
                         {p.capital ? " ♛" : ""}
                       </span>
                       <span className="pmeta">

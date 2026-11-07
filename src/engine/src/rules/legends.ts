@@ -39,7 +39,7 @@ const line = (turn: number, text: string, province: string | null = null): Legen
 const provinceName = (id: string): string => WorldMap.default.get(id).name;
 const byTurn = (ls: LegendLine[]): LegendLine[] => sortBy(ls, [(l: LegendLine) => l.turn, cmpNum]);
 
-interface Change {
+export interface Change {
   province: string;
   turn: number;
   from: Power | null;
@@ -49,7 +49,7 @@ interface Change {
 }
 
 /** Each change of a province's holder, oldest first, with the holder it passed from and whether it was ceded. */
-function changes(s: GameState): Change[] {
+export function changes(s: GameState): Change[] {
   const cessions = s.events.filter((e) => e.kind === "cession");
   const ceded = (province: string, turn: number, from: Power | null, to: Power | null): boolean =>
     from !== null &&
@@ -100,7 +100,7 @@ export function characterLegend(s: GameState, id: string, viewer: Power | null):
 const namesIn = (e: GameEvent, c: Character): boolean => wordIn(e.text, c.name);
 
 /** Whether a text holds a name as a whole word, anywhere in it. */
-function wordIn(text: string, name: string): boolean {
+export function wordIn(text: string, name: string): boolean {
   for (let i = text.indexOf(name); i >= 0; i = text.indexOf(name, i + 1)) {
     const before = i === 0 ? " " : text[i - 1];
     const after = text[i + name.length] ?? " ";

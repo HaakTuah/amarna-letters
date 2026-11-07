@@ -4,7 +4,7 @@ import {
   type Power,
 } from "@amarna/engine";
 import { player } from "../../audio/player.ts";
-import { powerName, shekels } from "../../ui/format.ts";
+import { powerName, provinceName, shekels } from "../../ui/format.ts";
 import { ClauseEditor } from "../ClauseEditor.tsx";
 import { num } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -125,7 +125,7 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
                   <div className="row" style={{ flexWrap: "wrap" }}>
                     {mine.map((id) => (
                       <span key={id} className="muted" style={{ fontSize: ".85rem" }}>
-                        {WorldMap.default.get(id).name}:{" "}
+                        {provinceName(id)}:{" "}
                         <label>
                           <input type="checkbox" checked={f.sealCede.includes(id)} onChange={(e) => set({ sealCede: toggle(f.sealCede, id, e.target.checked) })} /> cede
                         </label>{" "}

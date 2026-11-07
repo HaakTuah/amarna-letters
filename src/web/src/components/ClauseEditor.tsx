@@ -1,6 +1,6 @@
 import { AllPowers, WorldMap, clause, renderClause, type Clause, type ClauseKind, type Power } from "@amarna/engine";
 import { useState } from "react";
-import { powerName } from "../ui/format.ts";
+import { powerName, provinceName } from "../ui/format.ts";
 import { num } from "./orders/form.ts";
 
 /** The fields each kind of clause uses (item 8: the templates of structured press). */
@@ -158,7 +158,7 @@ export function ClauseEditor({
             <option value="">{uses.includes("into") ? "(from)" : kind === "passage" || kind === "askPassage" ? "(all the land)" : "(land)"}</option>
             {land.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {provinceName(p.id)}
               </option>
             ))}
           </select>
@@ -170,7 +170,7 @@ export function ClauseEditor({
               .filter((p) => province === "" || WorldMap.default.areAdjacent(province, p.id))
               .map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
+                  {provinceName(p.id)}
                 </option>
               ))}
           </select>

@@ -1,10 +1,13 @@
 import { type CharacterView, type Power } from "@amarna/engine";
+import type { ReactNode } from "react";
+import type { HistoryOf } from "./HistoryPanel.tsx";
 import { dated, fromWhere, shekels } from "../ui/format.ts";
+import { shown } from "../ui/names.ts";
 import { powerName } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
 /** One person as a court sees them: its own servant, or someone who has come to its notice. Dates carry their label. */
-export function Person({ c, court, onFollow }: { c: CharacterView; court: Power | null; onFollow?: (id: string) => void }) {
+export function Person({ c, court, onFollow, onHistory, learn }: { c: CharacterView; court: Power | null; onFollow?: (id: string) => void; onHistory?: (h: HistoryOf) => void; learn?: ReactNode }) {
   const from = fromWhere(c);
   return (
     <div className="item">
@@ -16,14 +19,20 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
             Follow
           </button>
         )}
+        {onHistory && (
+          <button className="small link" onClick={() => onHistory({ kind: "person", id: c.id })}>
+            History
+          </button>
+        )}
       </h4>
+      {learn}
       {(c.duty.length > 0 || c.where.length > 0) && (
         <div>
           <small>
             {/* Duty, where and term, each only when there is one: a free person has no duty, so no line opens with "·". */}
             {[
               (dated(c.duty, court) + (c.timing.length > 0 ? ` (${dated(c.timing, court)})` : "")).trim(),
-              c.where,
+              shown(c.where),
               c.term.length > 0 ? dated(c.term, court) : "",
             ]
               .filter((s) => s.length > 0)

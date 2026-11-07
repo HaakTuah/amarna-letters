@@ -1,5 +1,7 @@
 export * from "./power.ts";
 export * from "./map.ts";
+export * from "./familiar-names.ts";
+export * from "./learn-more.ts";
 export * from "./geography.ts";
 export * from "./distance.ts";
 export * from "./config.ts";

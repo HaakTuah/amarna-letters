@@ -1,6 +1,8 @@
 import { Personas, Views, shortDate, type Character, type GameState, type Power } from "@amarna/engine";
 import { dated, fromAndCalling, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import type { HistoryOf } from "./HistoryPanel.tsx";
+import { LearnMore } from "./LearnMore.tsx";
 import { Person } from "./Person.tsx";
 
 const traitsOf = (c: Character): [string, number][] => [
@@ -12,20 +14,24 @@ const traitsOf = (c: Character): [string, number][] => [
 ];
 
 /** A court's own people and those it knows of; in god view, every character as the engine records it. */
-export function PeoplePanel({ state, viewer, onPerson }: { state: GameState; viewer: Power | null; onPerson: (id: string) => void }) {
+export function PeoplePanel({ state, viewer, onPerson, onHistory }: { state: GameState; viewer: Power | null; onPerson: (id: string) => void; onHistory: (h: HistoryOf) => void }) {
   if (viewer !== null) {
     const view = Views.for(state, viewer);
     return (
       <>
-        <h3>Your people</h3>
+        <h3>
+          Your people <small className="muted">{view.court.length}</small>
+        </h3>
         {view.court.length === 0 && <p className="muted">Nobody serves you.</p>}
         {view.court.map((c) => (
-          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} />
+          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} onHistory={onHistory} learn={<LearnMore state={state} kind="person" id={c.id} />} />
         ))}
-        <h3 style={{ marginTop: "1rem" }}>Others you know of</h3>
+        <h3 style={{ marginTop: "1rem" }}>
+          Others you know of <small className="muted">{view.known.length}</small>
+        </h3>
         {view.known.length === 0 && <p className="muted">Nobody else has come to your notice.</p>}
         {view.known.map((c) => (
-          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} />
+          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} onHistory={onHistory} learn={<LearnMore state={state} kind="person" id={c.id} />} />
         ))}
       </>
     );
@@ -33,7 +39,9 @@ export function PeoplePanel({ state, viewer, onPerson }: { state: GameState; vie
   const people = [...state.characters].sort((a, b) => (a.employer ?? "~").localeCompare(b.employer ?? "~", "en") || a.name.localeCompare(b.name, "en"));
   return (
     <>
-      <h3>Every character (god view)</h3>
+      <h3>
+        Every character (god view) <small className="muted">{people.length}</small>
+      </h3>
       <p className="muted">Traits and facts are hidden from the players; here you see the engine's record.</p>
       {people.map((c) => (
         <div className="item" key={c.id}>
@@ -51,7 +59,11 @@ export function PeoplePanel({ state, viewer, onPerson }: { state: GameState; vie
             <button className="small link" onClick={() => onPerson(c.id)}>
               Follow
             </button>
+            <button className="small link" onClick={() => onHistory({ kind: "person", id: c.id })}>
+              History
+            </button>
           </h4>
+          <LearnMore state={state} kind="person" id={c.id} />
           <div>
             <small>
               {Views.dutyText(c)}

@@ -82,7 +82,8 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   take their coasts' names. The ids stay (`damascus`, `byblos`), and so do the orders that name them.
 - **The modern name** (`ModernNames`, `modernOf`) is on the second line of the web's province card ("today Damascus") and in
   the models' list of provinces in the rulebook, each place once ("today Damascus"), so a model can place it; never in a
-  letter, report or request. The README names the renamed places once.
+  letter, report or request. The README names the renamed places once. The player's setting for modern names, and the
+  other name on the card's second line: `55-history-search-names.md`.
 - **The powers' land names** (`land(p)`) follow: Gubla, Ṣurru, Karkamish, Hayasa; and since item 17++a (#403) Tjehenu,
   Kaska, Seir and Sutu, by their provinces' proper names (`LandAnchors`);
   the Great Kings' realms keep the names the design document gives them (Egypt, Hatti, Karduniash, Mitanni, Assyria,
