@@ -23,7 +23,7 @@ describe("The cast's biographies", () => {
     const s = newGame(3);
     const facts = (name: string): string[] => s.characters.find((c) => c.name === name)!.facts.filter((f) => f.tag === "calling" || f.tag === "source").map((f) => f.text);
     // "A general." beside "A general of Akhenaten's, …"; "Governor of Nippur." beside "Governor of Nippur, …".
-    for (const name of ["Paatenemheb", "Enlil-kidinni", "Eshuwara", "Ay", "Huya"]) Assert.equal(1, facts(name).length, `${name}: ${facts(name).join(" | ")}`);
+    for (const name of ["Paatenemheb", "Enlil-kidinni", "Eshuwara", "Ay", "Huya"]) Assert.true(facts(name).length === 1, `${name}: ${facts(name).join(" | ")}`);
     // A calling the sources' line does not open with keeps its own line.
     Assert.equal(["The ruler's son.", "Son of Surata of Akka, who killed Babylon's merchants with Shum-Adda; Akka's ruler after his father."], facts("Shutatna"));
   });
