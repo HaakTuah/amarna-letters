@@ -12,7 +12,7 @@ const broken = [];
 for (const { url, title } of links) {
   try {
     const r = await fetch(url, { headers: { "user-agent": "amarna-letters link check (github.com/HaakTuah/amarna-letters)" } });
-    const page = r.status === 200 && url.includes("wikipedia.org") ? await r.text() : "";
+    const page = r.status === 200 && new URL(url).hostname === "en.wikipedia.org" ? await r.text() : "";
     if (r.status !== 200) broken.push(`${r.status} ${url}`);
     else if (page.includes('id="disambigbox"')) broken.push(`disambiguation page: ${title} (${url})`);
     else if (page.includes("mw-redirectedfrom")) broken.push(`redirected to another page: ${title} (${url})`);
