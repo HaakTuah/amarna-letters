@@ -50,6 +50,8 @@ export function useNames(): NameSettings {
       return () => listeners.delete(l);
     },
     () => settings,
+    // The same on a server render (the canary renders the panels to static markup).
+    () => settings,
   );
 }
 
