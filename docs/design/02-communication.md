@@ -7,7 +7,10 @@
   slight withheld; the title Great King given or denied; oneself named Great King, or only king of
   one's land, which the recipient reads as not claiming the rank; one's
   own name first, presumptuous; no greeting at all, a slight), since the sealed greeting is built
-  from those flags alone. (Until the simulation-fixes round the flags had no description, and 54 of
+  from those flags alone. The host's audience lists the departures from the formula (`deviations` in
+  `rules/greeting.ts`); a sender who is not a Great King keeps his own custom without "brother" and without the title,
+  so neither is listed for him, and the script kings do not read it as a slight or as modesty (#772, save version 74).
+  (Until the simulation-fixes round the flags had no description, and 54 of
   the simulation's 135 letters left out their sender's own title.)
 - **Tablets are verbatim** but cost a scribe fee (20), so the envoy channel stays the cheap default
   and a written agreement is a deliberate choice. Tablets are evidence only; nothing enforces them.

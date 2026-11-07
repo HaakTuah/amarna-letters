@@ -13,6 +13,8 @@ import type { OrdersContext } from "./use-orders.ts";
 /** The orders panel's Troops, standing answers and standing orders. */
 export function TroopsSection({ c }: { c: OrdersContext }) {
   const { draft, onChanged, v, me, f, set, structured, visibleUnits, others, addStandingOrder, addStanding, add } = c;
+  // The owner's answers to item 11b+: a job's order to pay the rest when it is done is a standing order of yours, to cancel like any.
+  const payOnDone = [...new Map([...v.court, ...v.known].filter((s) => s.ours && s.payOnDone).map((s) => [s.id, s])).values()];
   return (
     <>
     <div className="section">
@@ -133,9 +135,9 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
       <h3>Standing orders</h3>
       <p className="muted">
         <small>
-          A standing order waits for a move you can see and answers it in the same season through your commanders on the spot: its orders then replace
-          yours for the same troops, each unit's only where its commander, or you, stand with it, once word of it has reached it, on a move its army
-          sees. It first fires next season, fires once, and costs nothing to give. At most {MaxStanding}.
+          A standing order waits for a move you can see, and your commanders on the spot answer it in the same season, in place of your orders for
+          those troops. A unit follows it only once word of it has reached the unit, where its commander or you stand with it, and only on a move its
+          own army sees. It first fires next season, fires once and costs nothing. At most {MaxStanding}.
         </small>
       </p>
       {v.standing.map((st) => {
@@ -143,7 +145,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
         return (
           <div className="row" key={st.id}>
             <small style={cancelled ? { textDecoration: "line-through" } : undefined}>
-              {st.id}: {OrderDraft.when(st.when, st.power, st.province, me)}, then {st.orders.map((o) => describeOrder(o, v)).join("; ")}
+              {OrderDraft.when(st.when, st.power, st.province, me)}, then {st.orders.map((o) => describeOrder(o, v)).join("; ")}
             </small>
             <button
               className="small"
@@ -157,15 +159,21 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
           </div>
         );
       })}
-      {/* the owner's answers to item 11b+: a job's order to pay the rest when it is done is a standing order of yours, to cancel like any. */}
-      {[...new Map([...v.court, ...v.known].filter((s) => s.ours && s.payOnDone).map((s) => [s.id, s])).values()].map((s) => (
-        <div className="row" key={`paydone-${s.id}`}>
-          <small>Pay {s.name} the rest of the fee when the job is done</small>
-          <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === s.id)} onClick={() => add(payFee(s.id, false))}>
-            Cancel
-          </button>
-        </div>
-      ))}
+      {payOnDone.length > 0 && (
+        <details>
+          <summary>
+            <small>The rest of the fee, paid when the errand is done ({payOnDone.length})</small>
+          </summary>
+          {payOnDone.map((s) => (
+            <div className="row" key={`paydone-${s.id}`}>
+              <small>{s.name}</small>
+              <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === s.id)} onClick={() => add(payFee(s.id, false))}>
+                Cancel
+              </button>
+            </div>
+          ))}
+        </details>
+      )}
       {draft.standing.map((r, i) => (
         <div className="row" key={`new${i}`}>
           <small>

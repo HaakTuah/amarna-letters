@@ -125,7 +125,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   (`docs/rounds/2026-11-07-far-orders-refused.md`). Report:
   `docs/rounds/2026-11-06-far-unit-reported.md`.
 - ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
-  holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 74.
+  holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 75.
   Report: `docs/rounds/2026-11-07-own-governors.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
@@ -229,8 +229,10 @@ the workshop check): among them the history check's lines still unclear for a re
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
   `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
   below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
-  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766). **Next:** the rest in the order above,
-  from the interface, the council and the help. **Still open, one game-wide decision:** one
+  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766); the interface, the council and the help,
+  #772 (report `docs/rounds/2026-11-07-slop-audit-interface.md`; save version 74; season against turn and minas
+  against shekels: #775; realm names beside place names: #768). **Next:** the README's player text, then the requests
+  that make models write. **Still open, one game-wide decision:** one
   place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
   "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
   and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
@@ -306,8 +308,8 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 | 17+++ | The season plays out | done: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight; the world acting on them) merged, #728 | `item/season-plays-out`, `item/season-plays-out-e` | `docs/rounds/2026-11-03-season-plays-out.md` |
 | 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
 | 17+++b | History, search and names | done, #767 (bug #769 fixed with it) | `item/history-search-names` | `docs/rounds/2026-11-07-history-search-names.md` |
-| 17++++ | A small state as a seat | not started | | |
-| 17++++a | Raiders from beyond the map | not started | | |
+| 17++++ | A small state as a seat | done, #774 (bug #777 filed: a small state's claim to the rank is never recorded in play) | `item/small-state-seat` | `docs/rounds/2026-11-07-small-state-seat.md` |
+| 17++++a | Raiders from beyond the map | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17++++a"), its section "Pirates are bands at sea" (War); the 17++++ session ended at its context mark after merging #774 | | |
 | 17b | Every person on one scoreboard | not started | | |
 | 18 | The balance pass | not started | | |
 | 18a | The world in graphs | not started | | |

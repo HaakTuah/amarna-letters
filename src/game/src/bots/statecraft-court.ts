@@ -39,7 +39,7 @@ import {
   type Power,
   type Rng,
   type TabletView,
-  feeFor,
+  feeFor, rulerStyle
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { SeasonPlay } from "./land.ts";
@@ -470,7 +470,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     let since = brain.heldSince.tryGet(c.id);
     if (since === undefined) brain.heldSince.set(c.id, (since = v.turn));
     if (v.turn - since >= toInt(roundEven(1 + 3 * p.vengeance))) {
-      orders.push(release(c.id, "Go, and tell your lord to mind his manners with a Great King."));
+      orders.push(release(c.id, `Go, and tell your lord to mind his manners with a ${rulerStyle(v.power)}.`));
       brain.heldSince.delete(c.id);
     }
   }

@@ -8,11 +8,11 @@
  * character checks look for a gift, a detention, a skim, an offer, a seal and a threat. So every form of a line reads as
  * its first form does (the test "Every form of a line reads to the script kings as its first form does").
  */
-import { tier, type Power } from "@amarna/engine";
+import { tier, type Power, rulerStyle } from "@amarna/engine";
 import { pick } from "./voices.ts";
 
 /** How an envoy addresses the king before it: a Great King as one, a city's ruler as the king of his city. */
-export const address = (host: Power, land: string): string => (tier(host) === "City" ? `King of ${land}` : "Great King");
+export const address = (host: Power, land: string): string => (tier(host) === "City" ? `${rulerStyle(host) === "chief" ? "Chief" : "King"} of ${land}` : "Great King");
 
 /** An envoy's words abroad, by line; `{T}` is how it addresses the host, `{K}` its lord. */
 export const Abroad = {

@@ -15,7 +15,7 @@ Found by the slop audit's reader of the cast's biographies (#764). `scripts/usag
 - **Tests:** `src/engine/test/who-they-are.test.ts`, "Every governor of 1346 whose name the sources lost is a man of his
   own court's people" (twelve seeds; it failed before); the fingerprints of the opening's people
   (`starting-term.test.ts`), which this moves.
-- **Docs:** design note `47-whom-a-province-obeys.md`. **Save version 74** (the opening changes).
+- **Docs:** design note `47-whom-a-province-obeys.md`. **Save version 75** (the opening changes; 74 on the branch until `develop` took it).
 
 ## Readings taken
 

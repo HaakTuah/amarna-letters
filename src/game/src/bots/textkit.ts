@@ -86,9 +86,9 @@ const Determiners = new Set(["the", "a", "an", "your", "his", "my", "our", "thy"
 const Help = new Set(["aid", "side", "help", "defence", "defense", "support", "rescue", "assistance"]);
 // "your enemies", "your call", "your leave": what is the target's, not the target.
 const Shield = new Set(["enemy", "enemies", "foe", "foes", "rival", "rivals", "call", "cause", "banner", "leave", "behalf", "command", "request", "word", "wish", "wishes", "march"]);
-// Capitalised words that are no third party: "the King of Alashiya", "the Great King".
+// Capitalised words that are no third party: "the King of Alashiya", "the Great King", "the Chief of the Kaska".
 const Filler = new Set([
-  "king", "kings", "great", "lord", "land", "lands", "people", "house", "city", "cities", "army", "armies", "troops", "men", "chariots",
+  "king", "kings", "chief", "chiefs", "great", "lord", "land", "lands", "people", "house", "city", "cities", "army", "armies", "troops", "men", "chariots",
   "fleet", "fleets", "ships", "capital", "border", "borders", "fields", "walls", "gates", "court", "realm", "kingdom", "homeland", "province", "provinces",
 ]);
 

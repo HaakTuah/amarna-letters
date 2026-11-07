@@ -143,7 +143,7 @@ export const SeasonPanel = memo(function SeasonPanel({
           <ul className="lines">
             {news.map((n, i) => (
               <li key={i} onClick={() => newsAt(n)}>
-                <span className="mv-tag">{n.kind === "SpyReport" ? "agent" : "rumour"}</span> <strong>{n.title}</strong>: {dated(n.body, v)}
+                <span className="mv-tag">{n.kind === "SpyReport" ? "spy" : "rumour"}</span> <strong>{n.title}</strong>: {dated(n.body, v)}
               </li>
             ))}
           </ul>

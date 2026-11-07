@@ -58,7 +58,7 @@ const courtKey = (v: AudienceView): string => `t${v.turn}/aud/${v.audienceId}/ho
 
 /** The fixed part of every phrasing call: what the job is, shared by every king (and cached). */
 const PhrasingSystem =
-  `You word the answers of a Great King of the Late Bronze Age to the envoys at his court, in the voice of the Amarna letters: courteous, formal, brief. Each answer was decided before: you only put it into his words. ${PeriodShares} Reply with the reply tool.`;
+  `You word the answers of a ruler of the Late Bronze Age, a Great King, a city's king or a land's chief, to the envoys at his court, in the voice of the Amarna letters: courteous, formal, brief. Each answer was decided before: you only put it into his words. ${PeriodShares} Reply with the reply tool.`;
 
 export class LlmLeaderSeat implements ISeat {
   private readonly journalOf = new LeaderJournal();
