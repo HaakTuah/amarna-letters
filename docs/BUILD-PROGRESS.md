@@ -120,7 +120,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `docs/rounds/2026-11-03-far-unit-known.md`.
 - ~~**A far unit of a king's own, the rest of it as reported (bug #615)**~~ (done, branch `fix/615-far-units`): where its
   king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
-  road. Save version 72. Left to #759: a far unit's other orders still checked or timed by its true place. Report:
+  road. Save version 72. #759 (done, branch `fix/759-far-orders`, save version 73): a far unit's refused orders come
+  by the road, and a scheduled order's road is reckoned to where its king's view shows it
+  (`docs/rounds/2026-11-07-far-orders-refused.md`). Report:
   `docs/rounds/2026-11-06-far-unit-reported.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
