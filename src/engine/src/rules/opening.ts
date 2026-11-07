@@ -19,15 +19,18 @@ export interface Opening {
   strength: number;
 }
 
-/** "armies in memphis (7500 men) and akhetaten (7500 men), a fleet of 1000 men in delta". */
-export function openingTroops(o: Opening): string {
+/**
+ * "armies in memphis (7500 men) and akhetaten (7500 men), a fleet of 1000 men in delta": by the ids a king orders with, or,
+ * for a person's screen, by the names `name` gives.
+ */
+export function openingTroops(o: Opening, name: (id: string) => string = (id) => id): string {
   const group = (kind: UnitKind): string => {
     const units = o.units.filter((u) => u.kind === kind);
-    const at = units.map((u) => u.province);
+    const at = units.map((u) => name(u.province));
     const noun = kind === "Army" ? "army" : "fleet";
     if (at.length === 0) return "";
     // Each unit by its men (since item 13 every unit starts at the size the sources give it).
-    const each = units.map((u) => `${u.province} (${u.men ?? menOf(kind)} men)`);
+    const each = units.map((u) => `${name(u.province)} (${u.men ?? menOf(kind)} men)`);
     if (at.length === 1) return `${noun === "army" ? "an" : "a"} ${noun} of ${units[0].men ?? menOf(kind)} men in ${at[0]}`;
     return `${kind === "Army" ? "armies" : "fleets"} in ${each.slice(0, each.length - 1).join(", ")} and ${each[each.length - 1]}`;
   };

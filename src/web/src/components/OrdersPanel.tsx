@@ -45,7 +45,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         <h3>Orders for {when(v.turn, me)}</h3>
         <p className="muted">
           Treasury {shekels(v.gold)} · gold in since your last orders {shekels(v.income)} · troops' pay {shekels(v.upkeep)}
-          {v.worksUpkeep > 0 ? ` · works ${shekels(v.worksUpkeep)}` : ""} · your people's jobs about {shekels(v.fees)} a season, {shekels(v.feesDue)} of fees still to fall due
+          {v.worksUpkeep > 0 ? ` · works ${shekels(v.worksUpkeep)}` : ""} · your servants' fees about {shekels(v.fees)} a season, {shekels(v.feesDue)} more to fall due as their errands are done
           {v.debts.length > 0 ? ` · debts ${shekels(v.debts.reduce((a, d) => a + d.left, 0))}` : ""}. Growth so far: {v.startStrength > 0 ? (v.strength / v.startStrength).toFixed(2) : "-"}.
         </p>
         <p className="muted">
@@ -79,7 +79,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             <div className="tablet">{t.text}</div>
             <small>
               Seals: {t.seals.map(powerName).join(", ")}
-              {t.sealedTurn !== null ? ` · sealed ${when(t.sealedTurn, me)}` : ""} · {t.source}
+              {t.sealedTurn !== null && t.sealedTurn > 0 ? ` · sealed ${when(t.sealedTurn, me)}` : ""} · {t.source}
               {t.authResult !== null ? ` · examined: ${t.authResult}` : ""}
               {t.byHand !== null ? ` · sealed for ${powerName(t.byHandOf!)} by the hand of ${t.byHand}${t.within === null ? "" : t.within ? ", within his authority" : ", beyond his authority"}` : ""}
               {t.repudiatedTurn !== null ? ` · repudiated ${when(t.repudiatedTurn, me)}` : ""}

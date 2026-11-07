@@ -6,7 +6,13 @@ const order = (k: InboxKind): number =>
   ({ Catastrophe: 0, EnvoyReport: 1, Audience: 2, SpyReport: 3, Rumor: 4, Battle: 5, Rejected: 6, Notice: 9 })[k as string] ?? 7;
 
 const kindName = (k: InboxKind): string =>
-  k === "EnvoyReport" ? "envoy report" : k === "SpyReport" ? "agent" : k === "CheckResult" ? "inquiry" : k === "Rejected" ? "rejected" : k.toLowerCase();
+  k === "EnvoyReport" ? "envoy report" : k === "SpyReport" ? "spy" : k === "CheckResult" ? "inquiry" : k === "Rejected" ? "rejected" : k === "Notice" ? "" : k.toLowerCase();
+
+/** An item's kind as a pill, unless its title already says it ("Battle", a plain notice). */
+const pill = (title: string, k: InboxKind): string => {
+  const n = kindName(k);
+  return n === "" || title.toLowerCase().startsWith(n) ? "" : n;
+};
 
 /** What has reached a court, the newest season first. */
 export function InboxPanel({ state, power }: { state: GameState; power: Power }) {
@@ -39,7 +45,7 @@ export function InboxPanel({ state, power }: { state: GameState; power: Power })
             .map((item, i) => (
               <div className="item" key={i}>
                 <h4>
-                  {item.title} <span className="pill">{kindName(item.kind)}</span>
+                  {item.title} {pill(item.title, item.kind) !== "" && <span className="pill">{pill(item.title, item.kind)}</span>}
                 </h4>
                 <div className="body">{dated(item.body, power)}</div>
                 {item.clauses.length > 0 && <small className="muted">The answer in clauses, as reported: {item.clauses.map(clauseTag).join("; ")}.</small>}
