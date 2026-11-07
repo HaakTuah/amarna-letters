@@ -306,7 +306,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 | 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
 | 17+++b | History, search and names | done, #767 (bug #769 fixed with it) | `item/history-search-names` | `docs/rounds/2026-11-07-history-search-names.md` |
 | 17++++ | A small state as a seat | done, #774 (bug #777 filed: a small state's claim to the rank is never recorded in play) | `item/small-state-seat` | `docs/rounds/2026-11-07-small-state-seat.md` |
-| 17++++a | Raiders from beyond the map | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17++++a"), its section "Pirates are bands at sea" (War); the 17++++ session ended at its context mark after merging #774 | | |
+| 17++++a | Raiders from beyond the map | in progress, #786 | `item/raiders` | `docs/rounds/2026-11-07-raiders-from-beyond-the-map.md` |
 | 17b | Every person on one scoreboard | not started | | |
 | 18 | The balance pass | not started | | |
 | 18a | The world in graphs | not started | | |
