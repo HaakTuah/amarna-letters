@@ -631,10 +631,10 @@ export function parResultsSource(games: readonly GameSummary[], seeds: string): 
     "};",
     "",
     "/**",
-    ` * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games, one`,
-    " * more than that for the living and 0 for the dead (`characterResult`), pooled and cut at every hundredth.",
+    ` * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games, measured`,
+    " * from what each brought into play (`characterResult`; 0 for the dead), pooled and cut at every hundredth.",
     " */",
-    `export const CharacterPar: readonly number[] = [${hundredths(games.flatMap((g) => g.characterResults ?? [])).join(", ")}];`,
+    `export const CharacterPar: readonly number[] = [${hundredths(games.flatMap((g) => g.characterResults ?? [])).map((x) => roundTo(x, 2)).join(", ")}];`,
     "",
   ].join("\n");
 }

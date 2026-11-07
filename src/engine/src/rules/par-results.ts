@@ -54,8 +54,8 @@ export const ParResults: Partial<Record<Power, readonly number[]>> = {
 };
 
 /**
- * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games, one
- * more than that for the living and 0 for the dead (`characterResult`), pooled and cut at every hundredth (seeds 101-150, item 17b, part D; the powers' results above were not
- * refreshed with it).
+ * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games,
+ * measured from what each brought into play (`characterResult`; 0 for the dead), pooled and cut at every hundredth
+ * (seeds 101-150; the powers' results above were not refreshed with it).
  */
-export const CharacterPar: readonly number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 6, 12, 21, 33, 40, 46, 53, 61, 69, 79, 91, 107, 130, 157, 198, 251, 363, 2742];
+export const CharacterPar: readonly number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.23, 0.95, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 10, 19, 30, 39, 46, 52, 60, 67, 76, 87, 103, 128, 154, 199, 259, 377, 3114];
