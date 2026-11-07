@@ -198,7 +198,10 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     c.met = [...new Set([...c.met, "Egypt", host])];
     // His post is his calling's line, said once: where he sits and that he writes home.
     const at = c.facts.find((f) => f.tag === "calling");
-    if (at !== undefined) at.text = `Pharaoh's commissioner in ${m.get(r.province).name}, known to all as his man, who sends word home to Pharaoh.`;
+    if (at !== undefined) {
+      at.text = `Pharaoh's commissioner in ${m.get(r.province).name}, known to all as his man, who sends word home to Pharaoh.`;
+      at.tag = "resident";
+    }
     book(r.province).set(c.id, UnrestData.stake);
   }
 }

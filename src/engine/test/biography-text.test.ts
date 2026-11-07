@@ -25,7 +25,7 @@ describe("The cast's biographies", () => {
   test("A post the opening gives is the calling's one line", () => {
     const s = newGame(3);
     for (const c of s.characters.filter((x) => x.calling.startsWith("governor of ") || x.openly)) {
-      const lines = c.facts.filter((f) => f.tag === "calling").map((f) => f.text);
+      const lines = c.facts.filter((f) => f.tag === "calling" || f.tag === "resident").map((f) => f.text);
       Assert.true(lines.length <= 1, c.name);
       // Pharaoh's residents say where they sit; a governor's line names his post.
       if (c.openly) Assert.true(lines[0]?.startsWith("Pharaoh's commissioner in ") ?? false, `${c.name}: ${lines[0]}`);
