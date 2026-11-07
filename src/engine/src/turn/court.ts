@@ -11,6 +11,7 @@ import { cmpPower, land, type Power, powerName } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { claimKnown } from "../rules/claims.ts";
 import { ownPlaces } from "../rules/units-known.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
@@ -517,6 +518,8 @@ P.tasksDue = function () {
         const cover = coverOf(c, task.requester);
         for (const f of c.facts) {
           if (f.knownBy.includes(task.requester)) continue;
+          // Item 17b, part C2: a fallen realm's claim is heard from the man himself, never dug up from afar (`claimKnown`).
+          if (f.tag === "claim" && claimKnown(S, task.requester, c) === null) continue;
           const p = f.secrecy === "Public" ? 1.0 : f.secrecy === "Hidden" ? Math.min(0.9, task.spend / 150.0) : Math.min(0.6, task.spend / 400.0);
           if (!rng.chance(p)) continue;
           if (f.secrecy !== "Public") f.knownBy.push(task.requester);

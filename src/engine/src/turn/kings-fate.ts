@@ -482,14 +482,19 @@ P.heirClaimHeard = function (j) {
   // where he is going; nowhere to be found (held, or away on some errand), it waits a season and tries again.
   const at = c.at ?? S.journeys.find((x) => x.kind === "Travel" && x.characterId === c.id)?.to ?? null;
   const from = j.toProvince ?? this.courtAt(j.to);
-  if (c.at !== null && isAlive(S, c.at) && this.courtAt(c.at) === from) {
+  // Among a fallen court's people the fall is no news; and word that has sought him a year of seasons reaches him at last.
+  const found = c.at !== null && (!isAlive(S, c.at) || this.courtAt(c.at) === from);
+  if (found || j.gold >= HeirWordTries) {
     claimHis(this, c, p, S.reigns.get(p).about, j.text ?? "", "Hidden");
     return;
   }
   const to = at !== null && isAlive(S, at) ? at : null;
   const arrive = S.turn + (to === null ? 1 : Math.max(1, this.travelTurnsBetween(from, this.courtAt(to))));
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: arrive, from: p, to: to ?? j.to, news: "HeirClaim", text: j.text, characterId: c.id, toProvince: to === null ? from : this.courtAt(to) }));
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: arrive, from: p, to: to ?? j.to, news: "HeirClaim", text: j.text, characterId: c.id, toProvince: to === null ? from : this.courtAt(to), gold: j.gold + 1 }));
 };
+
+/** Part C2: how many times word of a record heir's claim seeks him before it reaches him wherever he is (a first guess). */
+const HeirWordTries = 4;
 
 /** One already on the map comes to the throne: his service, errands and roads end, and he is at his court. */
 function crownPerson(e: TurnEngine, c: Character, p: Power, about: string): void {

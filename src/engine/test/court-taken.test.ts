@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, Views, inboxOf, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, Views, inboxOf, newGame, newGameConfig, newGoldLot, newFact } from "@amarna/engine";
 import { claimKnown } from "../src/rules/claims.ts";
 import { fallenRealmOf } from "../src/rules/court.ts";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
@@ -153,7 +153,12 @@ describe("CourtTakenTests", () => {
     Assert.false(heir.facts.some((f) => f.tag === "claim"));
     Assert.equal(null, Views.for(s, "Hatti").known.concat(Views.for(s, "Hatti").court).find((c) => c.id === heir.id)?.heirOf ?? null);
     const word = s.journeys.find((j) => j.news === "HeirClaim" && j.characterId === heir.id)!;
+    // Mitanni knew him before, by a hidden fact it holds.
+    heir.facts.push(newFact({ id: "f-known", text: "Once served at Washukanni.", secrecy: "Hidden", knownBy: ["Mitanni"] }));
     e.heirClaimHeard(word);
+    const seen = [...Views.for(s, "Mitanni").known, ...Views.for(s, "Mitanni").court].find((x) => x.id === heir.id);
+    Assert.notNull(seen);
+    Assert.false(seen!.knownFacts.some((f) => f.includes("claims its throne")));
     const claim = heir.facts.find((f) => f.tag === "claim")!;
     // His claim is his, told where he stands: not a public fact any court that knows him would read at once.
     Assert.equal("Hidden", claim.secrecy);
