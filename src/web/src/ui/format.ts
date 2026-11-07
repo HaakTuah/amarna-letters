@@ -1,10 +1,16 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, nameFrom, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, parsePower, grantPlace, dateLabel, describe, formatMoney, nameFrom, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 import { placeName, realmName, shown } from "./names.ts";
 
 /** A power by the name every screen gives it: the engine's `powerName`, as the player's name settings show it (ui/names.ts). */
 export const powerName: (p: Power) => string = realmName;
+
+/** A winner of the age by name: a realm, or since item 17b part D a character first on the scoreboard. */
+export const winnerName = (w: string): string => {
+  const p = parsePower(w);
+  return p === null ? w : powerName(p);
+};
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 

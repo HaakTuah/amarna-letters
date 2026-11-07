@@ -33,7 +33,7 @@ import { Height, Width, city, ll } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
 import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
-import { cap, powerName, when, whenCap } from "../ui/format.ts";
+import { cap, winnerName, powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { sideScroll } from "../ui/side-scroll.ts";
 import { navigate } from "../ui/router.ts";
@@ -396,7 +396,7 @@ export function Play() {
   const playedOn = !history && frame.ended && !live.ended;
   const endingLine =
     frame.ended && !playedOn
-      ? `${frame.endReason === null ? "The age has ended" : cap(frame.endReason)}. Winner: ${frame.winners.map(powerName).join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
+      ? `${frame.endReason === null ? "The age has ended" : cap(frame.endReason)}. Winner: ${frame.winners.map(winnerName).join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
       : playedOn
         ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
         : ending(frame.openAge, frame.ageEnded, viewer, frame.ageBand);

@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, boardLine, characterResult, gain, idNumber, newCharacter, newGame, newGameConfig, newEarnings, newHoard, standingOf } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, boardLine, characterResult, gain, idNumber, newCharacter, newGame, newGameConfig, newEarnings, newHoard, rankAmong, standingOf } from "@amarna/engine";
+import { CharacterPar } from "../src/rules/par-results.ts";
 import { Assert, orderBy, smallWorld } from "./support.ts";
 
 // Item 17b, part D: every person on one scoreboard, the dead below the living.
@@ -48,8 +49,32 @@ describe("ScoreboardTests", () => {
     Assert.equal(1, characterResult(c));
     gain(c, 100, "Fees");
     Assert.equal(101, characterResult(c));
+    // Below what he brought, in proportion to what he kept of it.
+    c.purse = 10;
+    Assert.equal(0.25, characterResult(c));
     c.status = "Dead";
     Assert.equal(0, characterResult(c));
+  });
+
+  test("A character at the middle of characters' par performs at the middle, as a king at his realm's par does", () => {
+    const mid = CharacterPar[Math.floor(CharacterPar.length / 2)];
+    Assert.true(Math.abs(rankAmong(CharacterPar, mid) - 0.5) < 0.1);
+    // A run of tied results ranks at its middle.
+    Assert.equal(0.5, rankAmong([1, 1, 1, 1], 1));
+  });
+
+  test("The winner is the first person on the board, a character by his own name", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    e.decideWinners();
+    const first = e.scoreboard()[0];
+    Assert.equal([first.power ?? first.character.name], s.winners);
+    // A merchant who gained far beyond every king stands first, and wins.
+    const c = s.characters.find((x) => x.duty !== "Ruling" && x.status !== "Dead")!;
+    [c.purse, c.earned.savings] = [100000, 0];
+    e.decideWinners();
+    Assert.equal(c, e.scoreboard()[0].character);
+    Assert.equal([c.name], s.winners);
   });
 
   test("A king who dies held his realm, and is ranked below the living by it", () => {

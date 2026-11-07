@@ -38,8 +38,8 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
       <h3>Standings</h3>
       <p className="muted">
         Every person, king or character, finishes as high as he can on one scoreboard, shown when the age ends: a king's score blends his realm's size
-        (its wealth against the largest holding's) and its performance (its growth since he came to the throne, ranked among the results of powers
-        that started where it did), the dead rank below the living, and the first of the kings wins. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
+        (its wealth against the largest holding's) and its performance (its strength over its strength when he came to the throne, ranked among the
+        results of powers that started where it did), the dead rank below the living, and the first on the board wins, king or character. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
         land-yield ratio is what any court can reckon from who holds what: the yield of the land a power holds now over its homeland's yield at the start.
         It is not growth, which counts treasuries and what people and men hold too, against a starting strength that includes them.
       </p>
@@ -98,7 +98,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
         <>
           <h4 style={{ marginTop: "1rem" }}>The scoreboard</h4>
           <p className="muted">
-            Kings and characters, every person of the age, ranked together; the winner is the first of the kings. {Wealth.WhatCounts}
+            Kings and characters, every person of the age, ranked together; the first is the winner. {Wealth.WhatCounts}
           </p>
           <div className="tablewrap">
             <table>

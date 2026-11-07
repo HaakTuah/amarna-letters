@@ -4,7 +4,8 @@
  * start (`GameConfig.sizeWeight` percent for size). A king holds his realm and is measured from his accession, against
  * what he inherited; a character holds his purse and hoard and is measured by what he gained since he came into play,
  * against what characters gained in the script games ({@link CharacterPar}). The dead rank below every living person, by
- * what they held when they died. The powers' scores, for the seats' contest, are their reigning kings' rows.
+ * what they held when they died. The realms' scores are their reigning kings' rows, and the winner is the first person on
+ * the board, king or character.
  */
 import { Dict } from "../core/collections.ts";
 import { fmt } from "../core/num.ts";
@@ -12,7 +13,7 @@ import { cmpBool, cmpNum, desc, max, sortBy } from "../core/seq.ts";
 import { nameFrom, type Character } from "../model/people.ts";
 import { powerName, rulerStyle, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
-import { alive, isAlive, logEvent } from "../model/state.ts";
+import { isAlive, logEvent } from "../model/state.ts";
 import { realmOfKing } from "../rules/court.ts";
 import { CharacterPar } from "../rules/par-results.ts";
 import { finalScore, rankAmong, standingOf, type FinalScore } from "../rules/scoring.ts";
@@ -45,10 +46,15 @@ declare module "./core.ts" {
   }
 }
 
-/** A character's result against par: what he gained since he came into play, one more than that while he lives, so every living result stands above a death's 0. */
+/**
+ * A character's result against par, measured from what he brought into play (`Earnings.savings`): 1 for as much as he
+ * brought, 1 more for every shekel gained since, and below 1 in proportion to what he lost of it; 0 for the dead.
+ */
 export function characterResult(c: Character): number {
   const w = wealthOf(c);
-  return w.dead ? 0 : 1 + Math.max(0, w.total - c.earned.savings);
+  if (w.dead) return 0;
+  const start = c.earned.savings;
+  return w.total < start ? w.total / start : 1 + (w.total - start);
 }
 
 const P = TurnEngine.prototype;
@@ -87,7 +93,7 @@ P.finalScores = function () {
     .map((x) => ({ power: x.power!, score: x.score, size: x.size, performance: x.performance }));
 };
 
-/** Who a person is on the scoreboard: a reigning king by his realm, anyone else as the richest characters were shown. */
+/** Who a person is on the scoreboard: a reigning king by his realm, anyone else by name, origin and standing. */
 function who(x: PersonScore): string {
   return x.power === null ? `${nameFrom(x.character)} (${wealthStanding(x.character)})` : `${x.character.name}, ${rulerStyle(x.power)} of ${powerName(x.power)}`;
 }
@@ -109,25 +115,26 @@ export function boardLine(x: PersonScore): string {
 
 P.decideWinners = function () {
   const S = this.s;
-  const living = alive(S);
-  const scores = this.finalScores();
-  const score = new Dict(scores.map((x) => [x.power, x.score] as const));
-  if (scores.length === 0) {
+  const board = this.scoreboard();
+  const living = board.filter((x) => !x.dead);
+  if (living.length === 0) {
     S.winners = [];
     return;
   }
-  const best = scores[0].power;
+  // One true winner, the highest score on the board: a king's realm, or a character by his own name.
+  const best = living[0];
 
   if (S.config.sharedVictory) {
+    const score = new Dict(living.filter((x) => x.power !== null).map((x) => [x.power!, x.score] as const));
     let bestPair: [Power, Power, number] | null = null;
     for (const t of S.tablets.filter((t) => t.allianceOath && isSealedAgreement(t))) {
       const a = t.proposedBy;
       const b = t.partner!;
       if (!score.has(a) || !score.has(b)) continue;
-      // The pair's score together: each partner's, weighed by its starting strength.
+      // The pair's score together: each partner's, weighed by its starting strength, against every other living person's.
       const start = S.startStrength.get(a) + S.startStrength.get(b);
       const combined = (score.get(a) * S.startStrength.get(a) + score.get(b) * S.startStrength.get(b)) / start;
-      const others = living.filter((p) => p !== a && p !== b && score.has(p)).map((p) => score.get(p));
+      const others = living.filter((x) => x.power !== a && x.power !== b).map((x) => x.score);
       const rivals = others.length === 0 ? 0 : max(others, (x) => x);
       if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
     }
@@ -137,5 +144,5 @@ P.decideWinners = function () {
       return;
     }
   }
-  S.winners = [best];
+  S.winners = [best.power ?? best.character.name];
 };

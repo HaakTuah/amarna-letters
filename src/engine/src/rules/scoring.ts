@@ -46,7 +46,7 @@ export function standingOf(p: Power, growth: number): number {
 
 /**
  * Where a result ranks among recorded results, from 0 to 1 (each recorded result standing at the middle of its share, so
- * the middle one at about a half): between two recorded results in proportion, below the lowest survivor in proportion to
+ * the middle one at about a half, a result tied with several at the middle of their run): between two recorded results in proportion, below the lowest survivor in proportion to
  * its growth, and above the highest towards 1 as the result grows. Falls are recorded as 0 and rank lowest; a living
  * power's result is above them.
  */
@@ -58,6 +58,9 @@ export function rankAmong(results: readonly number[], growth: number): number {
   const at = (i: number): number => (falls + i + 0.5) / n;
   if (growth <= 0) return falls / n / 2;
   if (lived.length === 0) return 1;
+  // A result equal to recorded ones stands at the middle of their run (item 17b, part D: most characters gain nothing).
+  const tied = lived.indexOf(growth);
+  if (tied >= 0) return (at(tied) + at(lived.lastIndexOf(growth))) / 2;
   if (growth <= lived[0]) return falls / n + (0.5 / n) * (growth / lived[0]);
   const top = lived[lived.length - 1];
   if (growth >= top) return at(lived.length - 1) + (0.5 / n) * (1 - top / growth);
