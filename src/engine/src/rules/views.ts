@@ -601,7 +601,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     status: held === null ? "employed" : "captured",
     employer: cover.for,
     duty: held !== null ? captiveText(s, c.id, held, cover.for) : cover.dutyText,
-    where: held !== null ? `at the court of ${held}` : cover.whereText,
+    where: held !== null ? `at the court of ${powerName(held)}` : cover.whereText,
     province: held !== null ? null : cover.province,
     timing: held === null ? cover.timingText : "",
     fee: cover.fee,
@@ -661,10 +661,10 @@ function timingText(s: GameState, c: Character, map: WorldMap | null = null): st
   switch (c.duty) {
     // On its way the reckoning is a reckoning ("due there"); only once it stands at that court is it "received there".
     case "EnvoyOutbound":
-      if (journey?.kind === "EnvoyOutbound") return `set out in turn ${journey.departTurn} for ${journey.to}; due there about turn ${journey.arriveTurn}; due back about turn ${journey.arriveTurn + back(journey.to)}`;
+      if (journey?.kind === "EnvoyOutbound") return `set out in turn ${journey.departTurn} for ${powerName(journey.to)}; due there about turn ${journey.arriveTurn}; due back about turn ${journey.arriveTurn + back(journey.to)}`;
       return "";
     case "EnvoyAtCourt":
-      if (trail !== null && c.at !== null) return `set out in turn ${trail.turn} for ${c.at}; received there in turn ${s.turn}; due back about turn ${s.turn + back(c.at)}`;
+      if (trail !== null && c.at !== null) return `set out in turn ${trail.turn} for ${powerName(c.at)}; received there in turn ${s.turn}; due back about turn ${s.turn + back(c.at)}`;
       return "";
     case "EnvoyHomebound":
       if (journey?.kind === "EnvoyHomebound" && trail !== null) return envoyHomeTiming(trail.turn, trail.to, journey.arriveTurn);
@@ -680,7 +680,7 @@ function timingText(s: GameState, c: Character, map: WorldMap | null = null): st
 
 /** An envoy on the road home: what its master reads, and what a cover keeps when the envoy is held or goes over. */
 function envoyHomeTiming(setOut: number, to: Power, due: number): string {
-  return `set out in turn ${setOut} for ${to}; ${homeTiming(due)}`;
+  return `set out in turn ${setOut} for ${powerName(to)}; ${homeTiming(due)}`;
 }
 
 /** A servant on the road home with no mission of its own to name (a spy recalled). */
@@ -692,8 +692,8 @@ function homeTiming(due: number): string {
 function captiveText(s: GameState, id: string, heldAt: Power, viewer: Power): string {
   const demand = knownDemand(s, id, heldAt, viewer);
   return demand !== null
-    ? `held captive at the court of ${heldAt}; ${heldAt} demands ${formatMoney(demand.spend)} for their return (order pay_ransom)`
-    : `held captive at the court of ${heldAt}`;
+    ? `held captive at the court of ${powerName(heldAt)}; ${powerName(heldAt)} demands ${formatMoney(demand.spend)} for their return (order pay_ransom)`
+    : `held captive at the court of ${powerName(heldAt)}`;
 }
 
 /** What the cheapest free person at the captor's court would ask to carry its ransom demand to the captive's king, or null. */
@@ -729,21 +729,21 @@ function landPlace(c: Character): string | null {
 
 function dutyText(c: Character): string {
   if (c.duty === "UnderGuard") return "a captive on the road under guard";
-  if (c.status === "Captured" && c.heldBy !== null) return `held captive at the court of ${c.heldBy}`;
+  if (c.status === "Captured" && c.heldBy !== null) return `held captive at the court of ${powerName(c.heldBy)}`;
   switch (c.duty) {
     case "None":
       return "at court, ready for a mission";
     case "EnvoyOutbound":
-      return `travelling as envoy to ${c.missionTarget ?? ""}`;
+      return `travelling as envoy to ${c.missionTarget !== null ? powerName(c.missionTarget) : ""}`;
     // Where he is, the line's other half says (`whereText`): each place once (bug #734).
     case "EnvoyAtCourt":
       return "as envoy";
     case "EnvoyHomebound":
       return "on the road home";
     case "Detained":
-      return `has not returned from ${c.missionTarget ?? ""}`;
+      return `has not returned from ${c.missionTarget !== null ? powerName(c.missionTarget) : ""}`;
     case "SpyOutbound":
-      return `travelling on a quiet errand to ${c.missionTarget ?? placeName(c.watchProvince)}`;
+      return `travelling on a quiet errand to ${c.missionTarget !== null ? powerName(c.missionTarget) : placeName(c.watchProvince)}`;
     case "SpyPosted":
       return `watching ${c.missionTarget !== null ? land(c.missionTarget) : placeName(c.watchProvince)}`;
     case "Travelling":
@@ -761,10 +761,11 @@ function dutyText(c: Character): string {
   }
 }
 
+/** Where one of a court's people is, every court by the name the game shows it (bug #797), never its id. */
 function whereText(c: Character, viewer: Power): string {
-  if (c.status === "Captured") return c.heldBy === viewer ? "in your prison" : c.heldBy !== null && c.employer === viewer ? `at the court of ${c.heldBy}` : "unknown";
+  if (c.status === "Captured") return c.heldBy === viewer ? "in your prison" : c.heldBy !== null && c.employer === viewer ? `at the court of ${powerName(c.heldBy)}` : "unknown";
   if (c.duty === "Detained" && c.employer === viewer) return "unknown";
-  if (c.at !== null) return c.at === viewer ? "at your court" : `at the court of ${c.at}`;
+  if (c.at !== null) return c.at === viewer ? "at your court" : `at the court of ${powerName(c.at)}`;
   // Out in the land: the province by its name, unless the duty already names it (bug #734).
   if (c.watchProvince === null) return "travelling";
   if (c.duty === "Leading" || c.duty === "Commanding" || c.duty === "Governing" || (c.duty === "SpyPosted" && c.missionTarget === null)) return "";
@@ -851,7 +852,8 @@ export const Views = {
   seenAtCourt,
   knows,
   confessedMaster,
-  character: characterView,
+  // Bug #797: as the court it is for names every power.
+  character: (s: GameState, c: Character, viewer: Power): CharacterView => asSeenBy(viewer, () => characterView(s, c, viewer)),
   termText,
   timingText,
   envoyHomeTiming,

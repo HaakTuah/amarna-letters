@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, WorldMap, newGame, newGameConfig, type Character } from "@amarna/engine";
+import { TurnEngine, Views, WorldMap, newGame, newGameConfig, type Character } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Bug #734: a court's own people are described with each place named as the map names it, and said once; the view keeps
@@ -47,5 +47,25 @@ describe("PeopleLineTests", () => {
     Assert.equal("as envoy", v.duty);
     Assert.equal("at the court of Hatti", v.where);
     Assert.null(v.province);
+  });
+  test("A court is named as the game shows it, never by its id (bug #797)", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Byblos", "Seha");
+    const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed")!;
+    const line = () => Views.for(s, "Egypt").court.find((x) => x.id === c.id)!;
+    c.at = "Byblos";
+    c.duty = "EnvoyAtCourt";
+    Assert.equal("at the court of Gubla", line().where);
+    Assert.equal("at the court of Gubla", Views.character(s, c, "Egypt").where);
+    c.at = null;
+    c.duty = "Detained";
+    c.missionTarget = "Seha";
+    Assert.equal("has not returned from the Seha River Land", line().duty);
+    c.duty = "EnvoyOutbound";
+    Assert.equal("travelling as envoy to the Seha River Land", line().duty);
+    // A cover keeps the court by its id beside the words, for the map to place it (never read back from a name).
+    c.at = "Byblos";
+    c.duty = "EnvoyAtCourt";
+    new TurnEngine(s).coverFor(c, "Egypt", "EnvoyAtCourt");
+    Assert.equal(["at the court of Gubla", "Byblos"], [c.covers[0].whereText, c.covers[0].court]);
   });
 });
