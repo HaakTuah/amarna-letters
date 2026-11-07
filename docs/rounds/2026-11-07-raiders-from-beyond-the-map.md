@@ -65,11 +65,11 @@ tenth over their reckoning, with three times the fee in the treasury; a chief's 
 
 ## Script players and the measure
 
-- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games ran and replayed exactly. Winners:
-  Babylonia 21, Egypt 8, Hatti 6, Ugarit, the Suteans and Lukka 2 each, and one each for Shasu, Qatna, Qadesh, Kaska,
-  Gath, Azzi, Assyria, Ashkelon and Amurru (17++++'s check: Babylonia 24, Hatti 7, Egypt 7). Raiders came 744 times in
-  50 games (about 15 a game), 700 went home, the rest melted, were broken or are still out at the end; bands were
-  enlisted 1,594 times; 15 bands were paid off in 12 games.
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the code after the design check): all 50
+  games ran and replayed exactly. Winners: Babylonia 16, Egypt 14, Hatti 8, Assyria 4, the Suteans 2, the rest one each
+  (17++++'s check: Babylonia 24, Hatti 7, Egypt 7). Raiders came 609 times in 50 games (about 12 a game), 577 went
+  home, the rest melted, were broken or are still out at the end; bands were enlisted 1,573 times; 11 bands were paid
+  off in 8 games, and 1 offer was refused. (The first cut, with Sherden and Nile raiders, had 744 raids.)
 - **Use against ignore** (`--raider-play-half`, 50 games, the same seeds). First: kings that heeded raiders, policing
   their doors (up to 120 men) and marching on them as on any band, lost: growth 0.77 to 0.80, 21 wins to 29. The scripts
   played it badly, not the feature mattering nothing: police at a door cost every season and hold a raid's chance down
