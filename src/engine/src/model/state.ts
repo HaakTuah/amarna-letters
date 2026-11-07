@@ -117,7 +117,7 @@ export const FoodWordSchema: ObjSchema<FoodWord> = obj(
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
-  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", how: "governor", ...init }),
+  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", how: "revolt", ...init }),
   { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, how: S },
 );
 

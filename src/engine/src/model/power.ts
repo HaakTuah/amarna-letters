@@ -87,9 +87,9 @@ export interface RisenPower {
   /** The kingdom it was part of. */
   from: string;
   /**
-   * How he came to rule (item 17): `governor` (his kingdom fell), `turned` (a governor who refused his recall), `revolt`
-   * (he led his province's revolt), `chief` (a chief or a commander who held land without a ruler) or `elder` (lawless land's
-   * own people raised him).
+   * How he came to rule (item 17): `turned` (a governor who refused his recall), `revolt` (he led his province's revolt),
+   * `chief` (a chief or a commander who held land without a ruler), `elder` (lawless land's own people raised him) or
+   * `granted` (item 17++, a king by grant). (Until item 17b a fallen kingdom's governor rose too, `governor`.)
    */
   how: string;
 }

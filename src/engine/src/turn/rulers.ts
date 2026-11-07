@@ -28,7 +28,7 @@ import { TurnEngine } from "./core.ts";
 const WallsWords = ["low", "stout", "high"];
 
 /** How a character came to rule: see `RisenPower.how`. */
-export type RiseHow = "governor" | "turned" | "revolt" | "chief" | "elder" | "granted";
+export type RiseHow = "turned" | "revolt" | "chief" | "elder" | "granted";
 
 export interface Rising {
   how: RiseHow;
@@ -158,7 +158,7 @@ P.ruleOwn = function (id, c, r) {
     c.id,
   );
   notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));
-  const tag = r.how === "governor" ? "risen" : `risen-${r.how}`;
+  const tag = `risen-${r.how}`;
   logEvent(S, "rise", `${r.line}${men > 0 ? `, with ${men} men` : ""}.`, [p, ...AllPowers.filter((x) => x !== p && isAlive(S, x) && Views.sight(S, this.map, x).has(id))], tag);
   // Others hear of it as word travels from his city.
   for (const other of AllPowers.filter((x) => x !== p && isAlive(S, x) && !Views.sight(S, this.map, x).has(id))) this.word(p, other, "Realm", `Rumor|A new ruler|Word comes that ${r.line}.`);

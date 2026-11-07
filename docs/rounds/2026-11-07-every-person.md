@@ -68,3 +68,58 @@ part A, `state.ts` (at the 50 KB mark) was split by meaning (#800, the unit to `
 - **Each nature's sources:** the Great Kings' natures name the dossier lines their deeds rest on and a grade (B from
   deeds; Ashur-uballit C, his honesty unknown; Arzawa's G, a first guess), checked by the history-anchor test; the
   Kurustama treaty Suppiluliuma broke is a new graded line in the politics dossier (`01-kurustama`).
+
+## Part B: a king is a person, his fate his captor's, his heir from the record
+
+Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md), "Part B".
+
+### What was built
+
+- Every king is a character with the duty Ruling, his own power his employer, as a ruler risen in play already was
+  (`turn/kings-fate.ts`); his reign names him and the strength of his realm as he came to it, for part D's scores.
+- A king taken where he stands, or on the road, is his taker's captive, brought to the taker's court under guard; his
+  captor decides his fate by the orders for any captive (never turning him), and each season he is held he may get away
+  by his skill at going unseen. His court flees to the nearest city his realm still holds and rules in his name. Only a
+  realm that holds nothing falls; the old rule's land coming apart, the chain of falls and the governor rising with a fall
+  are gone (`fallsSpread` keeps only the armies hearing the word).
+- A king dies only by a cause where he is: put to death, or on the road. His heir is the next name on his realm's line
+  in the record (`model/heirs.ts`, from dossier 16), a man of it already on the map (Ay, Akit-Teshup, Yapahu) taking the
+  throne himself; past the record, a son or brother drawn, named in his land's style. The heir reigns by his own name
+  from that season, inheriting a third of his father's standing in every ledger.
+- A human whose king dies is out: the heir's seat is played by a script, and the player watches as a fallen one does.
+- The rulebook (HOW YOU WIN, step 10 of the season, EVIDENCE AND INTELLIGENCE), the About page, the Play page's help,
+  the README and the design notes say so.
+
+### First guesses (item 18 tunes them)
+
+- A king's competence as a person 60 (`KingData.competence`), from which his skills are drawn; the chance he gets away
+  each season he is held, a thousandth for each point of his skill at going unseen (`KingData.escape`).
+- An heir's traits the record does not show, up to 25 points either side of the middle; a drawn heir a son three times
+  in four (`HeirData`).
+- The heir's inheritance a third, as the design's first guess.
+- The script captor's king's ransom 300 shekels and 300 more by greed; it puts a foe's king to death when its vengeance
+  is above 0.7 (`KingRansom`).
+
+### Readings taken
+
+- **His court rules in his name while he is held** (pillar: every seat replaceable; "A realm holds by its ledger"): a
+  held king's seat goes on giving orders from the city his court fled to, as officials ruled for a king abroad, rather
+  than a seat frozen for seasons. Part C makes the court a place of its own, apart from the king.
+- **Plague and famine never kill a king** ("never by dice"): they are rolls, not a cause where he is; the road's outlaws
+  are.
+- **His realm learns of his death at once**, since his heir reigns from that season and must give its orders; other
+  courts hear by word. The heir's name is known to every court's page at once (the name registry is the game's, not each
+  court's): a simplification, as the names of risen rulers already are.
+- **The record's heirs by one name each** ("Ramesses the Second" where a name repeats), and the line linear: the record's
+  rival claimants (Shuttarna III, Shapili) are not heirs, since part C brings claims and exiles.
+- **A man of the record already on the map takes the throne**, from wherever he is, his service ended; one dead or held
+  is passed by for the next name.
+- **A king is told nothing of his own escape odds in numbers he could repeat**: the rulebook says "about one season in
+  twenty for a king of middling skill".
+- **The kings' persons keep the template's persona** while they reign: no narrator call is made for them at setup, since
+  they speak through their seats.
+- **The seat's script captors value a king's city as before** (half the rest of his land), since taking it takes the king.
+
+### Questions for the owner
+
+None.

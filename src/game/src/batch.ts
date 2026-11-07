@@ -155,7 +155,7 @@ export function risenReport(games: readonly GameSummary[]): string[] {
   ];
   if (all.length === 0) return ["Seats risen in play (items 13+ and 17): none rose.", ...free];
   const used = all.filter((r) => r.envoys > 0).length;
-  const how = ["governor", "turned", "revolt", "chief", "elder"].map((h) => `${h} ${all.filter((r) => (r.how ?? "governor") === h).length}`).join(", ");
+  const how = ["turned", "revolt", "chief", "elder", "granted"].map((h) => `${h} ${all.filter((r) => r.how === h).length}`).join(", ");
   return [
     ...free,
     `Seats risen in play (items 13+ and 17; by how: ${how}): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
