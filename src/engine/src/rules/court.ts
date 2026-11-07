@@ -167,9 +167,12 @@ export function wordFromKing(s: GameState, map: WorldMap, p: Power, to: string):
   return courierSeasons(s, map, seatOf(s, map, p), to);
 }
 
-/** Item 17b, part C2: the fallen realm whose last king, or heir in exile, the character is, or null. */
+/**
+ * Item 17b, part C2: the fallen realm whose last king, or heir in exile, the character is, or null; never a realm its king
+ * gave away by sealed tablet (a cession passes its land, and leaves no claim).
+ */
 export function fallenRealmOf(s: GameState, id: string): Power | null {
-  for (const [p, r] of s.reigns) if (r.character === id && s.eliminated.includes(p)) return p;
+  for (const [p, r] of s.reigns) if (r.character === id && s.eliminated.includes(p) && !s.falls.some((f) => f.power === p && f.land.length > 0)) return p;
   return null;
 }
 

@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import { type GameState, type Power, TurnEngine, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
+import { fallenRealmOf } from "../src/rules/court.ts";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
 
 // Item 17b, part C2: the court as a place that can be taken, its treasury lost with it, its flight a real journey, and
@@ -92,5 +93,14 @@ describe("CourtTakenTests", () => {
     Assert.contains(s.journeys, (j) => j.kind === "Travel" && j.characterId === heir.id);
     Assert.contains(heir.facts, (f) => f.text.includes("claims its throne"));
     Assert.contains(s.events, (x) => x.kind === "king-exile");
+  });
+
+  test("A king who gave his realm away by sealed tablet claims nothing", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const c = kingOf(s, "Mitanni");
+    e.fall("Mitanni", "Hatti", true);
+    Assert.false(c.facts.some((f) => f.text.includes("claims its throne")));
+    Assert.equal(null, fallenRealmOf(s, c.id));
   });
 });
