@@ -82,6 +82,18 @@ tenth over their reckoning, with three times the fee in the treasury; a chief's 
   home or turned home). The pay-off is rare because it needs an army standing with the raiders and an army that
   cannot break them.
 
+## Reviews
+
+- **Codex's code review:** seven rounds, 13 P1 findings, all fixed: captives freed wherever a band ends; a pay-off's
+  carrier rechecked after the moves; raid news by courier; a paid chief's word on the chief, sparing the payer's roads
+  too, binding him to the best offer, and never binding a model chief; captives and pay-offs in the seat view only in
+  sight; a fee field for human players. The last round: no major issues.
+- **Codex's security review** (at 86c802a): no findings. **The fallback reviewer's check of the changes since**: pass,
+  one Low note (whole shekels in the new fee field), fixed.
+- **The design check:** 6, then 8, then 9 with nothing blocking; every point of every round fixed (the Sherden, Medjay
+  and Kush raids taken out for want of a source; anchors and grades on the data; the payer told only what the chief
+  says; the note and tests caught up).
+
 ## Questions for the owner
 
 None.

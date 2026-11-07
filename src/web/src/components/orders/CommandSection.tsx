@@ -203,7 +203,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
             <small>
               {x.chief}'s {x.raiders !== "" ? `${x.raiders}, ${x.men} from beyond the map,` : `band of ${x.men}`} in {provinceName(x.province)}, where your army stands
             </small>
-            <input type="number" min={1} style={{ width: "5rem" }} aria-label="Fee in shekels" value={bandFee[x.province] ?? bandCost(x.men) * 4 * 3} onChange={(e) => setBandFee({ ...bandFee, [x.province]: Math.max(1, Number(e.target.value) || 1) })} />
+            <input type="number" min={1} style={{ width: "5rem" }} aria-label="Fee in shekels" value={bandFee[x.province] ?? bandCost(x.men) * 4 * 3} onChange={(e) => setBandFee({ ...bandFee, [x.province]: Math.max(1, Math.floor(Number(e.target.value)) || 1) })} />
             <button className="small" onClick={() => add(enlist(x.province, bandFee[x.province] ?? bandCost(x.men) * 4 * 3, 4))}>
               Offer it for four seasons' service
             </button>
