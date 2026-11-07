@@ -1,4 +1,4 @@
-import { type CharacterView, type Power } from "@amarna/engine";
+import { TongueLinks, type CharacterView, type Power } from "@amarna/engine";
 import type { ReactNode } from "react";
 import type { HistoryOf } from "./HistoryPanel.tsx";
 import { dated, fromWhere, shekels } from "../ui/format.ts";
@@ -64,7 +64,25 @@ export function Person({ c, court, onFollow, onHistory, learn }: { c: CharacterV
       )}
       {c.speaks.length > 0 && (
         <div>
-          <small>Says they speak {c.speaks.join(", ")}</small>
+          <small>
+            Says they speak{" "}
+            {c.speaks.map((l, i) => {
+              // Item 17+++b: each real language links to its page to learn more.
+              const link = TongueLinks.get(l);
+              return (
+                <span key={l}>
+                  {i > 0 ? ", " : ""}
+                  {link !== undefined ? (
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" title={`Learn more: ${link.title} (opens outside the game)`}>
+                      {l}
+                    </a>
+                  ) : (
+                    l
+                  )}
+                </span>
+              );
+            })}
+          </small>
         </div>
       )}
       {c.pitch !== null && (

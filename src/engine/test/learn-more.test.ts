@@ -21,7 +21,7 @@ describe("LearnMoreTests", () => {
     Assert.equal("", missing(FixedPowers.filter(rulerNamed).map(king), PersonLinks));
   });
 
-  test("Every real person carries a link, and no one invented does", () => {
+  test("Every real person carries a link, and one whose name the game gave says so", () => {
     const real = [
       ...AttestedCast.map((c) => c.name),
       ...PeopleOf1346.map((c) => c.name),
@@ -30,7 +30,8 @@ describe("LearnMoreTests", () => {
       ...[...NamedScribes.values()].filter((s) => s.attested).map((s) => s.name),
     ].filter((n) => PersonAnchors.get(n) !== Invented);
     Assert.equal("", missing(real, PersonLinks));
-    Assert.equal("", [...PersonAnchors].filter(([n, a]) => a === Invented && PersonLinks.has(n)).map(([n]) => n).join(", "));
+    // A real man whose name the letters lost keeps his link, and its note says the name is the game's.
+    Assert.equal("", [...PersonAnchors].filter(([n, a]) => a === Invented && PersonLinks.has(n) && !(PersonLinks.get(n)!.note ?? "").includes("invented")).map(([n]) => n).join(", "));
     // Every person a game presents as real is among them.
     Assert.equal("", missing(newGame(1).characters.filter((c) => c.attested).map((c) => c.name), PersonLinks));
   });

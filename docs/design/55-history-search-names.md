@@ -47,7 +47,9 @@ seat view and every request to a model keep the names as they are.
 **Learn more, and what is invented** (`model/learn-more.ts`, the web's `LearnMore`). Every real place, realm, person and
 language carries a link, mostly to its English Wikipedia page, opened outside the game under the title the card shows;
 where a person has no page of their own, the page that tells of them, named as such. Where the game takes a side its page
-does not, the card says so in a line (`note`). A realm's card links its ruler of 1346 too. Everything the game made up
+does not, the card says so in a line (`note`), as it does for the three real men whose names the letters lost and the
+game gave (the Assyrian envoys of EA 16, Alashiya's governor). A realm's card links its ruler of 1346 too, and each
+language a person says they speak links to its page. Everything the game made up
 (a person not of the period, a realm risen in play) is marked on its card as invented. `LearnMoreTests` fails the build
 when a real entity lacks its link; its dossier reference was checked already (`HistoryAnchorTests`). The links themselves
 are checked by `scripts/links.mjs`, run weekly outside the pull requests, so a moved page never blocks one.
