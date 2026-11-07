@@ -3,7 +3,7 @@
  * believe and remember. Built from the frames only (the court's own earlier sights, its own people as it believes them, the
  * news that reached it), never from anything it could not know.
  */
-import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
+import { WorldMap, newGameConfig, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
 import { coverOf, isMove, ownerFor, type FrameBand, type FrameCover, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, between, city, lengthOf, route, type Pt } from "./art.ts";
@@ -564,18 +564,17 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
   return [travellers, people];
 }
 
-// A court by the name the game shows it (bug #797): it may be several words, "the Seha River Land".
-const AtCourt = /at the court of (.+)$/u;
-const SetOut = /set out in turn (\d+) for ([^;]+);/u;
+const SetOut = /set out in turn (\d+)/u;
 const DueThere = /due there about turn (\d+)/u;
 const DueBack = /due back about turn (\d+)/u;
 
-/** Where a court believes a servant stands: the province it keeps for him (bug #734), else the court its words name. */
+/**
+ * Where a court believes a servant stands: the province it keeps for him (bug #734), else the court he stands at, by its
+ * id (bug #797), never read from words that name it as the court gives it.
+ */
 function placeOf(cover: FrameCover): string | null {
   if (cover.province !== null && Map_.exists(cover.province)) return cover.province;
-  const m = AtCourt.exec(cover.whereText);
-  const court = m !== null ? parsePower(m[1]) : null;
-  return court !== null ? capOf(court) : null;
+  return cover.whereText.startsWith("at the court of ") && cover.court !== null ? capOf(cover.court) : null;
 }
 
 /**
@@ -609,8 +608,7 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
           const due = DueBack.exec(cover.timingText);
           if (due === null) break;
           const arrive = Number.parseInt(due[1], 10);
-          const so = SetOut.exec(cover.timingText);
-          const abroad = so !== null ? parsePower(so[2]) : null;
+          const abroad = SetOut.test(cover.timingText) ? cover.court : null;
           const from = abroad !== null ? capOf(abroad) : c.mission !== null ? capOf(c.mission) : (c.watch ?? home);
           const depart = arrive - travelTurns(newGameConfig(), Map_, from, home, now);
           travellers.push({
@@ -633,7 +631,7 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
         case "EnvoyOutbound": {
           const so = SetOut.exec(cover.timingText);
           const dt = DueThere.exec(cover.timingText);
-          const dest = so !== null ? parsePower(so[2]) : null;
+          const dest = cover.court;
           if (so === null || dt === null || dest === null) break;
           const depart = Number.parseInt(so[1], 10);
           const arrive = Number.parseInt(dt[1], 10);

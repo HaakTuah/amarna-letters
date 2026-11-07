@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, WorldMap, newGame, newGameConfig, parsePower, type Character } from "@amarna/engine";
+import { TurnEngine, Views, WorldMap, newGame, newGameConfig, type Character } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Bug #734: a court's own people are described with each place named as the map names it, and said once; the view keeps
@@ -62,8 +62,10 @@ describe("PeopleLineTests", () => {
     Assert.equal("has not returned from the Seha River Land", line().duty);
     c.duty = "EnvoyOutbound";
     Assert.equal("travelling as envoy to the Seha River Land", line().duty);
-    // The map reads the name back (its regex takes the whole name, of several words).
-    Assert.equal("Seha", parsePower("the Seha River Land"));
-    Assert.equal("Byblos", parsePower("Gubla"));
+    // A cover keeps the court by its id beside the words, for the map to place it (never read back from a name).
+    c.at = "Byblos";
+    c.duty = "EnvoyAtCourt";
+    new TurnEngine(s).coverFor(c, "Egypt", "EnvoyAtCourt");
+    Assert.equal(["at the court of Gubla", "Byblos"], [c.covers[0].whereText, c.covers[0].court]);
   });
 });
