@@ -131,8 +131,13 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 - **The record** (`GameState.recognition`, `recordGreeting`): for each pair of kings, since when the one has called the
   other brother and granted him the title in the greetings he sent, reset by a greeting that withholds it; a greeting
   in the king's own words records nothing; no greeting withholds both.
+- **Claims made in play** (`recordGreeting`, bug #777): a king outside the seven whose greeting in the formula names
+  him Great King claims the rank; the claim enters `GameState.claims`, new, the first time, with no overlord. A court
+  knows of it (`Claim.heardBy`, its seat view's `claims`) once it has read such a greeting at an audience (`rankHeard`);
+  the claimant's own court at once. Once established, the claimant counts among the Great Kings for others' claims.
 - **Established** (`recognise`, each season): once more than half of the other living Great Kings have called the
-  claimant brother for `recognitionSeasons` (9, three years) without a greeting since that withheld it. Every court gets
+  claimant brother for `recognitionSeasons` (9, three years) without a greeting since that withheld it (the others of
+  the rank: the seven and any whose claim is established). Every court gets
   "A claim is established", and the event `claim-established`. Recognition changes no rule and no score.
 - **The view**: `SeatView.claims` and `SeatView.greetings` (what this court called others and they it); the model's view
   has a RANK line, and the rulebook says how a claim becomes established.

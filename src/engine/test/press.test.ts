@@ -28,6 +28,7 @@ import {
   renderClauses,
   single,
   support,
+  Views,
 } from "@amarna/engine";
 import { Assert, armiesBefore13, smallWorld } from "./support.ts";
 
@@ -151,6 +152,28 @@ describe("PressTests", () => {
     Assert.equal(s.turn, s.claims[0].established);
     Assert.contains(inboxOf(s, "Babylonia"), (i) => i.title === "A claim is established");
     Assert.contains(s.events, (x) => x.signal === "claim-established");
+  });
+
+  test("A king outside the seven who names himself Great King makes a claim, known where his greeting is read (bug #777)", () => {
+    let s = newGame(1, newGameConfig({ catastropheChance: 0, recognitionSeasons: 3 }));
+    let e = new TurnEngine(s);
+    let humble = { omit: false, senderFirst: false, callBrother: false, claimGreatKing: false, grantGreatKing: true, custom: null };
+    e.recordGreeting("Byblos", "Egypt", humble);
+    Assert.false(s.claims.some((c) => c.power === "Byblos"));
+    e.recordGreeting("Byblos", "Egypt", { ...humble, claimGreatKing: true });
+    e.recordGreeting("Egypt", "Assyria", null);
+    Assert.equal(["Assyria", "Byblos"], s.claims.map((c) => c.power));
+    Assert.equal(["Byblos"], s.claims[1].heardBy);
+    Assert.false(Views.for(s, "Egypt").claims.some((c) => c.power === "Byblos"));
+    e.rankHeard("Egypt", "Byblos", { ...humble, claimGreatKing: true });
+    Assert.equal(["Byblos", "Egypt"], s.claims[1].heardBy);
+    Assert.contains(Views.for(s, "Egypt").claims, (c) => c.power === "Byblos" && c.heardBy === null);
+    for (const p of ["Hatti", "Babylonia", "Mitanni", "Assyria"] as Power[]) e.recordGreeting(p, "Byblos", null);
+    s.turn += 3;
+    e.recognise();
+    Assert.equal(s.turn, s.claims[1].established);
+    Assert.null(s.claims[1].heardBy);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A claim is established" && i.body.includes("Gubla"));
   });
 
   test("A support that keeps a promise made in a letter is an event", () => {
