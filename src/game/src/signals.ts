@@ -36,6 +36,8 @@ export const SignalKinds: readonly string[] = [
   "job-done", "hire-abroad", "ride-hired", "ride-back", "hoard-seized", "tablet-sold", "purse-taken",
   "unheard", "unheard-home", "unheard-lie", "go-between", "court-go-between", "bridged-servant", "mandate-slow", "envoy-mute", "tablet-unread", "tablet-read-late", "bent-words", "bent-noticed",
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
+  // Item 17++++a: raiders from beyond the map come and go home, and bands paid off.
+  "raiders-came", "raiders-home", "band-paid-off",
   "risen", "fall-held", "fall-lawless",
   "revolt-crushed", "revolt-led", "revolt-lawless", "revolt-home", "risen-revolt", "risen-turned", "risen-chief", "risen-elder",
   "supply-buy", "supply-take", "supply-kept", "supply-word-buy", "supply-word-take", "stir",

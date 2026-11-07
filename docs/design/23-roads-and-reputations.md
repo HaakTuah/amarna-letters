@@ -47,6 +47,9 @@ item 18 tunes them.
   loses his band at once (`dies` calls `leaderLost`); a chief taken captive is nobody's servant lost abroad. What is robbed, from a traveller, a caravan or a ship, goes to the band's chief, or, with no band, to
   the loose men there (`S.loot`) and the grain to the market: nothing vanishes.
 
+- **Raiders from beyond the map** (item 17++++a): bands based beyond its edge, coming through the doors, carrying off
+  people and going home; and paying a band off: [56](56-raiders-from-beyond-the-map.md).
+
 ### Travellers on the road (`turn/travel.ts`, `turn/life.ts`, `turn/pool.ts`)
 
 - People travelling on their own way (`Travel` journeys: free people, collectors, newcomers from the doors, chiefs going

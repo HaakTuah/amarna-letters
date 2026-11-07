@@ -119,7 +119,9 @@ rumours, and those can be late, shaded or false.
   farther they lie, or an amount of one province, which you get but can judge only by your count: too much and they go
   hungry and flee. A levy too may be asked as a share of the men at home, which the province hides part of in the same way.
   The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
-  roads may raise bands of their own.
+  roads may raise bands of their own. Raiders from beyond the map come too, by sea in the sailing season and over the
+  edge lands, to rob your coasts and carry off your people, less often where you keep police, troops or a fleet; hunt
+  them, hire them or pay them to go home.
 - You know your provinces' people only as your scribes last counted them, dated: the province card shows the town and
   its land apart ("about 18,000 in the town; about 650,000 on its land"), two figures while the count is under a year
   old and one once older ("some 600,000"), and your stores as your stewards round them. Egypt starts with recent counts,

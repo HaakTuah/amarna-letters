@@ -170,7 +170,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 ## Hiring bands as soldiers (order `enlist`)
 
 - Where an army of the king's stands with a band, its commander or the king there carries the offer: a fee paid now for a
-  term. A script chief takes it if it covers his men's cost or their take, whichever is more, over the term, and his cut
+  term. A script chief takes it if it covers his men's cost or their take last season (`Band.took`, item 17++++a), whichever is more, over the term, and his cut
   by his greed. His men join the army (`Unit.hiredMen`, `hiredUntil`, `hiredChief`), and he commands it if it has no
   commander; when the term ends they leave as his band.
 

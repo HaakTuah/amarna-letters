@@ -148,7 +148,7 @@ describe("RaiderTests", () => {
     const e = new TurnEngine(s);
     Assert.true(e.chiefView(chief, b).canGoHome);
     chief.chiefPlan = newChiefChoice({ turn: s.turn - 1, home: true });
-    Assert.equal("gone", e.chiefDecides(b, chief));
+    Assert.true(e.chiefDecides(b, chief) === "gone");
     Assert.equal("Abroad", chief.duty);
   });
 });
