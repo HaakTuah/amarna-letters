@@ -304,21 +304,19 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
 
 ### Script players and the measure
 
-- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games ran and replayed exactly. Wins:
-  Egypt 21, Babylonia 18, Hatti 5, Assyria 4, Ashkelon 1, Akko 1 (C1: Egypt 19, Babylonia 18, Hatti 6, Assyria 4). Kings
-  taken 1,024 times (C1: 1,076), escaping 229, dying 572 (C1: 570); kings went alone 617 times in 44 games. Courts lost
-  their treasuries 1,141 times in 50 games, and courts were taken on the road 61 times in 28 games. Egypt, Hatti,
-  Babylonia and Alashiya never fell; Mitanni fell in 14 games and Assyria in 24 (C1: 19 and 32). **Games stay
-  playable**, and every game ran to its end or an early winner.
-- **Heirs in exile, and restorations**: no realm's last king died after his realm fell in these 50 games (`king-exile`
-  0). A king who dies in his city's fall dies while his realm still stands, so his heir reigns at once and then lives on
-  as its former ruler when the realm falls. He is the claimant the seat sees (`heirOf`, "Readings taken"), and the case
-  the script kings meet: they made a fallen realm's king or heir king again over its land 30 times in 21 games
-  (`crown-exile`), beside 44 other kingships taken. The exile of an heir after the fall is covered by its unit tests
-  (`court-taken.test.ts`, `exile-crown.test.ts`).
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, at 50a7594d, after every review round): all 50
+  games ran and replayed exactly. Wins: Egypt 21, Babylonia 17, Hatti 5, Assyria 4, the Suteans, Ashkelon and Akko one
+  each (C1: Egypt 19, Babylonia 18, Hatti 6, Assyria 4). Kings taken 1,032 times (C1: 1,076), escaping 232, dying 593
+  (C1: 570); kings went alone 657 times in 43 games. Courts lost their treasuries 1,181 times in 50 games, and courts
+  were taken on the road 66 times in 30 games. Egypt, Hatti, Babylonia and Alashiya never fell; Mitanni fell in 10
+  games and Assyria in 29 (C1: 19 and 32). **Games stay playable**, and every game ran to its end or an early winner.
+- **Heirs in exile, and restorations**: an heir went into exile 124 times in 39 games (`king-exile`); before Codex's
+  second round it was 0, since the deaths of a fallen realm's last kings never reached the succession. Script kings
+  made a fallen realm's king or heir king again 26 times in 20 games (`crown-exile`), beside 48 other kingships taken.
 - **Use against ignore** (`--grant-play-half`, 50 games, same seeds; grants now include restoring a fallen realm's king
-  or heir, so this measures granting as a whole, not restoring a claimant apart; no flag sets restoration apart): script kings that grant won 33 to 17 against those that never grant, mean growth 0.82 to 0.72 (17++ C, before
-  this part: 28 to 22, 0.94 to 0.86). Pays in wins and growth.
+  or heir, so this measures granting as a whole, not restoring a claimant apart; no flag sets restoration apart):
+  script kings that grant won 28 to 22 against those that never grant, mean growth 0.79 to 0.75 (17++ C, before this
+  part: 28 to 22, 0.94 to 0.86). Pays.
 - **Every feature is every seat's**: script kings take a treasury where they take a court (the engine's), and restore
   claimants at their courts. A weakness found and patched: nothing counted a court's treasury lost or a restoration, so
   this part's features could not be seen in a batch report; four signals now count them.
