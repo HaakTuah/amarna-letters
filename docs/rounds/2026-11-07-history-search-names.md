@@ -26,7 +26,7 @@ diff since the item began (8ba8016d), as `docs/intent/INDEX.md` says.
   anchored in the geography dossier's new section "The Great Kings' realms by their period names".
 - `src/engine/src/model/learn-more.ts`: 74 places, 8 realms whose page is not their capital's (the rest take their
   capital's), 89 people (31 kings and 58 others) and 25 languages, each with its link; every URL fetched (200, no
-  disambiguation page, no redirect to another page). 50 people have no page of their own and link to the page that tells
+  disambiguation page, no redirect to another page). 49 people have no page of their own and link to the page that tells
   of their court, city or letters (33 to "Amarna letters"), and their card says it may not name them.
   Notes where the game takes a side the page does not: seven uncertain sites (Samuha, Washukanni, Taidu, Niya, Ekallate,
   Aijalon, Gath), and the three men whose names the game gave.

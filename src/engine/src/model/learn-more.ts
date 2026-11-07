@@ -116,7 +116,7 @@ export const RealmLinks: ReadonlyMap<FixedPower, LearnMore> = new Map<FixedPower
 /** Each real person, by the name the game gives them (the kings by the letters' name: Naphurureya is Akhenaten's page). */
 export const PersonLinks: ReadonlyMap<string, LearnMore> = new Map<string, LearnMore>([
   ["Naphurureya", w("Akhenaten")],
-  ["Suppiluliuma", about("Šuppiluliuma I")],
+  ["Suppiluliuma", w("Šuppiluliuma I")],
   ["Burna-Buriash", w("Burna-Buriash II")],
   ["Tushratta", w("Tushratta")],
   ["Ashur-uballit", w("Ashur-uballit I")],
