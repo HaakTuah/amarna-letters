@@ -118,8 +118,9 @@ Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md)
   battle; in part B a king's city taken takes him alive.
 - **The record's heirs by one name each** ("Ramesses the Second" where a name repeats), and the line linear: the record's
   rival claimants (Shuttarna III, Shapili) are not heirs, since part C brings claims and exiles.
-- **A man of the record already on the map takes the throne**, from wherever he is, his service ended; one dead or held
-  is passed by for the next name.
+- **A man of the record already on the map takes the throne** if he stands at a court free to come, his service ended,
+  walking to his own court; one dead, held, detained or away on a mission is passed by for the next name, so nothing he
+  carries and no captor's hold is lost (Codex's second round).
 - **A king is told nothing of his own escape odds in numbers he could repeat**: the rulebook says "about one season in
   twenty for a king of middling skill".
 - **The kings' persons keep the template's persona** while they reign: no narrator call is made for them at setup, since

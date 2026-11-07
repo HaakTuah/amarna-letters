@@ -225,7 +225,9 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
     // The man of the record himself: one of the sources' people on the map by that name, never a namesake who reigns elsewhere.
     const c = h.name === null ? undefined : S.characters.find((x) => x.name === h.name && x.attested && realmOfKing(S, x.id) === null);
     if (c === undefined) return null;
-    return c.status === "Dead" || c.status === "Captured" ? undefined : c;
+    // He must be free to come: standing at a court with no errand, post or road of his own, and held by nobody. One dead,
+    // held, detained or away on a mission is passed by, so nothing he carries or keeps is lost.
+    return c.status !== "Dead" && c.status !== "Captured" && c.heldBy === null && c.duty === "None" && c.errand === null && c.at !== null ? c : undefined;
   };
   while (at < line.length && living(line[at]) === undefined) at++;
   const h: Heir | null = at < line.length ? line[at] : null;
@@ -249,21 +251,15 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
 function crownPerson(e: TurnEngine, c: Character, p: Power, about: string): void {
   const S = e.s;
   const seat = e.courtAt(p);
-  // Where he is: at a court, on a road (where his journey has brought him), or out in a province.
-  const road = S.journeys.find((j) => j.characterId === c.id && j.route.length > 0);
-  const where = c.at !== null ? e.courtAt(c.at) : road !== undefined ? road.route[road.leg] : (c.watchProvince ?? seat);
-  for (const g of S.governors.filter((x) => x.character === c.id)) e.dropGovernor(g);
-  S.journeys = S.journeys.filter((j) => j.characterId !== c.id);
+  const where = e.courtAt(c.at!);
   c.employer = p;
   c.status = "Employed";
   c.contract = null;
   c.duty = "Ruling";
-  c.watchProvince = null;
-  c.missionTarget = null;
   c.seeking = false;
   c.calling = `${rulerStyle(p)} of ${land(p)}`;
   for (const text of [`Rules ${land(p)} from ${e.map.get(seat).name}.`, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
-  // He reigns from where he is, and walks to his court like any traveller.
+  // He reigns from the court where he stands, and walks to his own like any traveller.
   if (where === seat) c.at = p;
   else e.kingGoesHome(c, p, where);
 }

@@ -55,8 +55,9 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   a captive's view tells that he is a king only to a court that knows he reigns). Death in battle and in a stormed city
   come with part C, when the king travels without his court.
 - **The heir** (`raiseHeir`) is the next name on his realm's line in the record (`Lines`, from dossier 16), skipping a man
-  of the record already dead or held; one already on the map (Ay, Akit-Teshup, Yapahu) takes the throne himself, his
-  service and errands ended, and reigns from where he is, walking to his court. Past the record, a son (three in four) or brother is drawn, named in his land's style. His
+  of the record already dead or held; one already on the map (Ay, Akit-Teshup, Yapahu) takes the throne himself if he
+  stands at a court free to come (one held, detained or away on a mission is passed by), his service ended, and reigns
+  from where he is, walking to his court. Past the record, a son (three in four) or brother is drawn, named in his land's style. His
   traits are what the record shows of him, each varied as every king's (`ReignData.vary`); the rest drawn up to 25 points
   either side of the middle (`HeirData`). He reigns from that season, by his own name (`Reign.name`, read by every name a
   power's king goes by) and with what the record shows of him (`Reign.about`, his card).
