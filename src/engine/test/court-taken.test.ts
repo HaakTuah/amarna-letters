@@ -164,6 +164,10 @@ describe("CourtTakenTests", () => {
     // Hatti keeps what it heard from him when he walks on.
     e.startTravel(heir, "Mitanni");
     Assert.equal("Egypt", claimKnown(s, "Hatti", heir));
+    // Both his claim and who he is reach each court he comes to.
+    heir.at = "Mitanni";
+    e.cameToCourts();
+    Assert.true(heir.facts.filter((f) => f.tag === "claim").every((f) => f.knownBy.includes("Mitanni")));
   });
 
   test("Word of a record heir's claim follows him on the road to where he is going", () => {

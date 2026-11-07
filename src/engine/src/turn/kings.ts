@@ -153,7 +153,8 @@ P.cameToCourts = function () {
     if (c.at === null || c.status === "Dead") continue;
     const key = `${c.id}@${c.at}`;
     S.cameToCourt.set(key, was.tryGet(key) ?? S.turn);
-    // Item 17b, part C2: a court a fallen realm's heir stands at hears his hidden claim from him, and keeps it (`claimKnown`).
+    // Item 17b, part C2: a court a fallen realm's heir stands at hears his hidden claim, and who he is, from him, and keeps
+    // them (`claimKnown`).
     for (const f of c.facts) if (f.tag === "claim" && f.secrecy !== "Public" && !f.knownBy.includes(c.at)) f.knownBy.push(c.at);
   }
 };

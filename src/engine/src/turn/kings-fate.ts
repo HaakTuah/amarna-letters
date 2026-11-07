@@ -468,7 +468,7 @@ function claimHis(e: TurnEngine, c: Character, p: Power, about: string, news: st
   const S = e.s;
   const knownBy = secrecy === "Public" || c.at === null ? [] : [c.at];
   c.facts.push(newFact({ id: newId(S, "f"), text: `Heir of the kings of ${land(p)}, in exile; claims its throne.`, secrecy, tag: "claim", knownBy }));
-  c.facts.push(newFact({ id: newId(S, "f"), text: about, secrecy, tag: "origin", knownBy: [...knownBy] }));
+  c.facts.push(newFact({ id: newId(S, "f"), text: about, secrecy, tag: "claim", knownBy: [...knownBy] }));
   remember(c, S.turn, news);
 }
 
