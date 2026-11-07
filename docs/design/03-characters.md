@@ -260,6 +260,9 @@
     Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)" (the demand once
     its word has arrived), never "at court, ready", with its wage and the back pay owed it, which
     keeps growing while it is held; the web app offers the ransom button only then.
+  - **Courts by their shown names** (bug #797): every court in these lines (where a servant is, whom it is held by,
+    where it set out for or has not returned from) is named as the game shows it to that court (`powerName`: Gubla,
+    the Seha River Land), never by its id; the web map reads the whole name back (`parsePower`).
   - **When it is due back.** Each of the king's people away reads when it set out and when it is
     due back, as the travel table lets its master reckon it (`Views.timingText`): an envoy on its
     way out "travelling as envoy to Hatti; set out in turn 4 for Hatti; due there about turn 6; due

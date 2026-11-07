@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, WorldMap, newGame, newGameConfig, type Character } from "@amarna/engine";
+import { Views, WorldMap, newGame, newGameConfig, parsePower, type Character } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Bug #734: a court's own people are described with each place named as the map names it, and said once; the view keeps
@@ -47,5 +47,23 @@ describe("PeopleLineTests", () => {
     Assert.equal("as envoy", v.duty);
     Assert.equal("at the court of Hatti", v.where);
     Assert.null(v.province);
+  });
+  test("A court is named as the game shows it, never by its id (bug #797)", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Byblos", "Seha");
+    const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed")!;
+    const line = () => Views.for(s, "Egypt").court.find((x) => x.id === c.id)!;
+    c.at = "Byblos";
+    c.duty = "EnvoyAtCourt";
+    Assert.equal("at the court of Gubla", line().where);
+    Assert.equal("at the court of Gubla", Views.character(s, c, "Egypt").where);
+    c.at = null;
+    c.duty = "Detained";
+    c.missionTarget = "Seha";
+    Assert.equal("has not returned from the Seha River Land", line().duty);
+    c.duty = "EnvoyOutbound";
+    Assert.equal("travelling as envoy to the Seha River Land", line().duty);
+    // The map reads the name back (its regex takes the whole name, of several words).
+    Assert.equal("Seha", parsePower("the Seha River Land"));
+    Assert.equal("Byblos", parsePower("Gubla"));
   });
 });

@@ -564,8 +564,9 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
   return [travellers, people];
 }
 
-const AtCourt = /at the court of (\w+)/u;
-const SetOut = /set out in turn (\d+) for (\w+)/u;
+// A court by the name the game shows it (bug #797): it may be several words, "the Seha River Land".
+const AtCourt = /at the court of (.+)$/u;
+const SetOut = /set out in turn (\d+) for ([^;]+);/u;
 const DueThere = /due there about turn (\d+)/u;
 const DueBack = /due back about turn (\d+)/u;
 
