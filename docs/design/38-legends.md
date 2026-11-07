@@ -11,7 +11,8 @@ from it. The code is `src/engine/src/rules/legends.ts` (pure functions over the 
   person, the tablets they sealed with their king's seal, and their capture or death abroad (`characterLegend`). An
   event names a person by their name as a whole word, and only while no one else in the world bears it, so nothing is
   pinned on the wrong man. A court's follow view lists only the events it saw (`GameEvent.visibleTo`): "What your court
-  saw of them".
+  saw of them"; and a court that knows the person by a false name it has not seen through reads them under that name
+  only, so an event naming the true man never ties the two (#769).
 - **Histories of tablets** (`tabletLegends`): every tablet sealed or forged, oldest first: who proposed it, who sealed it
   and by whose hand (beyond the envoy's authority, where it was), what it says, who forged it and for whom, who
   repudiated it, each copy that came to a court not among its sealers and how (shown, stolen, copied, taken with an

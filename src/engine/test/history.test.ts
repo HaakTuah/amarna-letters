@@ -60,4 +60,17 @@ describe("HistoryTests", () => {
     Assert.equal(texts(s, "person", c.id, "Hatti"), [`${c.name} was questioned at Hattusa.`]);
     Assert.equal(texts(s, "person", c.id, "Egypt"), []);
   });
+
+  test("A court that knows a person by a false name reads their history under it, never the true man's (#769)", () => {
+    const s = game();
+    const c = s.characters.find((x) => x.employer === "Egypt" && s.characters.filter((y) => y.name === x.name).length === 1)!;
+    c.declared.push({ court: "Hatti", name: "Shuta", as: null, employer: null, turn: 0, exposed: null, rep: 0 });
+    logEvent(s, "job", `Egypt hired ${c.name}.`, ["Hatti", "Egypt"]);
+    logEvent(s, "question", "Shuta was questioned at Hattusa.", ["Hatti"]);
+    Assert.equal(texts(s, "person", c.id, "Hatti"), ["Shuta was questioned at Hattusa."]);
+    Assert.equal(texts(s, "person", c.id, "Egypt"), [`Egypt hired ${c.name}.`]);
+    Assert.equal(texts(s, "person", c.id, null), [`Egypt hired ${c.name}.`]);
+    c.declared[0]!.exposed = 1;
+    Assert.equal(texts(s, "person", c.id, "Hatti"), [`Egypt hired ${c.name}.`]);
+  });
 });
