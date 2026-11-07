@@ -379,7 +379,7 @@ P.bandsSeason = function () {
     }
 
     // It robs its province: organised men take more than the same number loose, halved where the holder's troops stand,
-    // and only the countryside outside a besieged city's walls. A hired band would spare its master: no band is hired yet.
+    // and only the countryside outside a besieged city's walls.
     const here = Map.get(b.province);
     const m = this.market(b.province);
     const rate = (of: number): number => bandRobs(b.men, of, policedShare(S, b.province));

@@ -6,7 +6,7 @@
  * police hold them down little. `--no-raider-play` makes kings ignore raiders altogether (no hunt, hire or pay-off), and
  * `--raider-play-half` half of them, for the measure against kings that ignore them.
  */
-import { LandData, bandCost, bandRobs, cmpNum, cmpStr, grainWorth, payOff, sortBy, type BandSeen, type Order, type SeatView } from "@amarna/engine";
+import { LandData, RaiderData, WinterSeason, seasonOfTurn, bandCost, bandRobs, cmpNum, cmpStr, grainWorth, payOff, sortBy, type BandSeen, type Order, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 
 export const RaiderPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -52,7 +52,9 @@ export function payOffOrders(b: Board, orders: Order[], breaks: (x: BandSeen, ar
     if (breaks(x, army)) continue;
     const carried = v.courtAt === x.province || here.some((u) => u.commander !== null && u.commandFrom <= v.turn);
     if (!carried) continue;
-    const fee = Math.ceil((chiefAskSeen(v, x, PayOffTerm) * 11) / 10);
+    // A raider asks at least for the rest of his raid: a crew to the winter, a band over land for its longest stay.
+    const rest = x.ship ? 1 + ((WinterSeason - seasonOfTurn(v.turn + 1) + 3) % 3) : RaiderData.stay;
+    const fee = Math.ceil((chiefAskSeen(v, x, Math.max(PayOffTerm, rest)) * 11) / 10);
     if (v.gold < fee * 3) continue;
     orders.push(payOff(x.province, fee, PayOffTerm));
     return;

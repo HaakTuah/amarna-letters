@@ -56,10 +56,12 @@ Only raids the dossiers attest; the numbers are first guesses [G]. Not the Sherd
   (`chiefAsks`, shared with `enlist`: what his men cost or took last season, `Band.took`, whichever is more, for the
   term, and his cut by greed); a raider weighs at least the rest of his raid. A raider then goes home (or turns home); any
   other band moves to the richest land next door not the payer's (refusing if there is none). Taking it and leaving are
-  every chief's formula, model chiefs' too, as an enlistment's are; after that, a script chief keeps out of the payer's
-  land until the term ends (`paidBy`, `paidUntil`) if he is more loyal than greedy, and a model chief sees the deal and
-  moves as he chooses. Where kings offer for the same band, its chief hears the best offer first, the seed deciding
-  between equal ones.
+  every chief's formula, model chiefs' too, as an enlistment's are, but a raider band over land that cannot go home at
+  once only says it will turn home. After that, while the term holds, a script chief keeps his word if he is more loyal
+  than greedy (`keepsWord`): a raider turns home, any other band keeps out of the payer's land (`paidBy`, `paidUntil`),
+  and neither robs any of it; a model chief sees the deal and does as he chooses. Offers to a band, to serve or to go,
+  are heard together, best fee first, the seed deciding between equal ones; the payer hears a refusal, and the record
+  counts it (`band-pay-refused`).
 - `Band.took` (what a band took in all last season) fixes the enlistment's ask, which read only the roads' take.
 
 ## Script kings (`src/game/src/bots/raiders.ts`, `--no-raider-play`, `--raider-play-half`)

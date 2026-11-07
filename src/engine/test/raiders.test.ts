@@ -146,6 +146,30 @@ describe("RaiderTests", () => {
     Assert.false(e.bandMayGo(b, prov));
   });
 
+  test("A paid chief who keeps his word spares the payer's land; a greedy one need not keep out of it", () => {
+    const s = smallWorld(newGame(1), "Egypt");
+    const prov = first(Map.landProvinces, (p) => s.owner.getOrDefault(p.id, null) === "Egypt" && !s.units.some((u) => u.province === p.id)).id;
+    const e = new TurnEngine(s);
+    const loyal = newCharacter({ id: newId(s, "c"), name: "Loyal", traits: newTraits({ loyalty: 80, greed: 20 }), status: "Free" });
+    s.characters.push(loyal);
+    const b = newBand({ id: newId(s, "b"), leaderId: loyal.id, province: prov, men: 80, paidBy: "Egypt", paidUntil: s.turn + 5 });
+    e.lead(loyal, b);
+    s.bands.push(b);
+    e.market(prov).purse = 5000;
+    const purse = e.market(prov).purse;
+    Assert.true(e.keepsWord(b));
+    Assert.false(e.bandMayGo(b, prov));
+    s.turn++;
+    e.bandsSeason();
+    Assert.equal(0, loyal.earned.loot);
+    Assert.true(e.market(prov).purse >= purse);
+    const greedy = newCharacter({ id: newId(s, "c"), name: "Greedy", traits: newTraits({ loyalty: 10, greed: 90 }), status: "Free" });
+    s.characters.push(greedy);
+    const g = newBand({ id: newId(s, "b"), leaderId: greedy.id, province: prov, men: 80, paidBy: "Egypt", paidUntil: s.turn + 5 });
+    Assert.false(e.keepsWord(g));
+    Assert.true(e.bandMayGo(g, prov));
+  });
+
   test("A raider band enlisted lets its captives go: an army keeps none", () => {
     const s = delta(Summer);
     const b = crew(s, "delta", 60);

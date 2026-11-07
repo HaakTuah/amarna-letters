@@ -228,7 +228,10 @@ P.payOffBand = function (p, o) {
   const chief = findCharacter(S, b.leaderId);
   if (chief === null || chief.status !== "Free" || chief.duty !== "Leading") return;
   const name = this.map.get(o.province).name;
-  const refuse = (why: string): void => this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not leave your land for ${formatMoney(o.fee)}${why}. No gold was paid.`);
+  const refuse = (why: string): void => {
+    this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not leave your land for ${formatMoney(o.fee)}${why}. No gold was paid.`);
+    logEvent(S, "band", `${chief.name}'s band in ${name} refused ${p}'s offer to pay it off.`, [p], "band-pay-refused");
+  };
   // A raider's way out is home; any other band's, the land next door that is not the payer's, the richest it hears of.
   const raider = b.from !== "";
   const out = raider ? null : this.map.movesFrom("Army", b.province).filter((n) => !this.map.get(n).isSea && S.owner.getOrDefault(n, null) !== p).sort((a, c) => worth(this, c) - worth(this, a) || (a < c ? -1 : 1))[0];
@@ -253,5 +256,5 @@ P.payOffBand = function (p, o) {
     chief.watchProvince = out;
     if (!this.map.get(out).isCoastal) b.ship = false;
   }
-  this.tell(p, o.province, "Resolution", "A band paid off", `${chief.name} took your ${formatMoney(o.fee)}: his band ${raider ? "turns home" : `left ${name} for ${this.map.get(out!).name}`}, and he says he will keep out of your land until turn ${b.paidUntil}.`);
+  this.tell(p, o.province, "Resolution", "A band paid off", `${chief.name} took your ${formatMoney(o.fee)}: his band ${raider ? "says it will turn home" : `left ${name} for ${this.map.get(out!).name}`}, and he says he will keep out of your land until turn ${b.paidUntil}.`);
 };
