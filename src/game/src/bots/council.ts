@@ -262,7 +262,7 @@ function reason(b: Board, o: Order, role: string, danger: Dict<string, [number, 
   const of8 = (n: number): string => `${n} of ${pic.seasons} pictured seasons`;
   const threat = (p: string): string => {
     const d = danger.tryGet(p);
-    return d === undefined ? "" : `within reach of ${d[0] === 1 ? "one foreign army" : `up to ${d[0]} foreign armies`}`;
+    return d === undefined ? "" : `within reach of ${d[0] === 1 ? "one foreign army or fleet" : `up to ${d[0]} foreign armies and fleets`}`;
   };
   switch (o.type) {
     case "move": {

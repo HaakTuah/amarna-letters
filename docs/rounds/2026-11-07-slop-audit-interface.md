@@ -19,7 +19,7 @@ this branch, gives the "after" column below.
     not a character sheet ("high aggression: …").
   - It sits beside the title once: "The vizier (tjaty), after cheap gains: …", where the title and the archetype were
     each said twice in two pairs of brackets. The button names the advisor by title.
-  - "up to 1 foreign troop could strike it" now reads "within reach of one foreign army".
+  - "up to 1 foreign troop could strike it" now reads "within reach of one foreign army or fleet".
   - The council's introduction no longer contradicts itself ("confidently wrong", "almost certainly sound").
 - **Audiences:**
   - A letter from a king who is not a Great King is no longer said to depart from the custom for leaving out
@@ -57,7 +57,7 @@ this branch, gives the "after" column below.
 | --- | --- |
 | `The vizier (tjaty) (the Tjaty: cunning and cheap gains: land left unguarded, …)` | `The vizier (tjaty), after cheap gains: land left unguarded, …` |
 | `… so they can be confidently wrong … Where all four agree, the move is almost certainly sound.` | `… so they can be wrong and sure of it … Where all four agree, the move is usually sound.` |
-| `stands where up to 1 foreign troop could strike it` | `within reach of one foreign army` |
+| `stands where up to 1 foreign troop could strike it` | `within reach of one foreign army or fleet` |
 | `Departs from the custom: no "brother"; the sender does not claim to be a Great King.` (a city's king) | (not shown: that is his custom) |
 | `Envoys take, each way: Hatti: 1 season; Babylonia: 2 seasons; …` (46 courts) | `Envoys take two seasons each way to Babylonia, Assyria, Kaska, Isuwa, Hayasa, Arrapha and Elam; one season each way to every other court.` |
 | `a job whose first errand you name when you send them, for 156 shekels (78 handed over, 78 paid when it is done, as you ordered), by Akhet, 1342 BCE (turn 13); the job ends once it is done at your court` | `a job, its errand named when you send them: 156 shekels, 78 paid, 78 when it is done; term to Akhet, 1342 BCE (turn 13)` |
