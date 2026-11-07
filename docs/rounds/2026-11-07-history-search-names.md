@@ -86,7 +86,9 @@ window "History of Byblos, also Gubla"; no page error.
 
 Presentation only: no rule, request, seat view or save changes, so script kings and characters have nothing new to use
 and no save version is taken. The batch of script games (`scripts/sim.sh --games 50 --seed 1 --verify-replay`) is the
-regression check: below.
+regression check: all 50 games ran and replayed exactly (winners: Babylonia 21, Egypt 13, Hatti 6, the Suteans 2, and
+Sidon, Seha, Mitanni, Libya, Gath, Elam, Azzi and Assyria one each), 1,302 seconds. Nothing the item changed is read by a rule, a script
+king or a request, so there is no use-against-ignore row: no seat plays the history, the search or the names.
 
 ## Questions for the owner
 
