@@ -245,8 +245,8 @@ are the same either way.
 - <a id="02-misri"></a>**Egypt:** **Miṣri**, the land of Miṣri in the letters' Akkadian [B: Wikipedia, "Egypt": "The oldest
   attestation of this name for Egypt is the Akkadian mi-iṣ-ru (miṣru)"; Miṣri is its genitive, the form after "land of"].
 - <a id="02-karduniash"></a>**Babylonia:** **Karduniash**, the Kassite kingdom's own name, which the letters already use for its
-  land in the game [B: Wikipedia, "Kassites": "regions = Karduniash"; Brinkman's volume on Kassite Babylonia is titled
-  "Karduniaš"].
+  land in the game [B: Wikipedia, "Kassites": "regions = Karduniash", citing the volume edited by Bartelmus and Sternitzke
+  (De Gruyter, 2017), "Karduniaš. Babylonia under the Kassites"].
 - <a id="02-assur"></a>**Assyria:** **Aššur**, the land of Aššur [B: Wikipedia, "Assyria": "From the time of its rise as a
   territorial state in the 14th century BC and onward, Assyria was referred to in official documents as māt Aššur ("the
   land of Ashur")", first under Ashur-uballit I].

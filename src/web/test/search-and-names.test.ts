@@ -69,15 +69,17 @@ describe("Search and names", () => {
   const small = (): GameState => smallWorld(newGame(3, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Byblos", "Amurru");
   const sceneOf = (s: GameState, viewer: "Egypt" | null) => buildScene([frameFrom(s, 0, null)], 0, viewer);
 
-  test("A person a court knows by a false name keeps it in their history, and their true page stays hidden", () => {
+  test("A person a court knows by a false name keeps it in their history and on their card, never their true page", () => {
     const s = small();
     const c = Views.for(s, "Egypt").known.map((k) => s.characters.find((x) => x.id === k.id)!)[0]!;
     c.attested = true;
     c.declared.push({ court: "Egypt", name: "Shuta", as: null, employer: null, turn: 0, exposed: null, rep: 0 });
     Assert.equal(knownAs(s, c.id, "Egypt"), "Shuta");
     Assert.equal(knownAs(s, c.id, null), c.name);
-    Assert.equal(learnOf(s, "person", c.id, "Shuta"), null);
-    Assert.notEqual(learnOf(s, "person", c.id), null);
+    // Under an invented false name, the mark of an invented name; under a borrowed one, the borrowed man's page.
+    Assert.true("invented" in learnOf(s, "person", c.id, "Shuta")!);
+    Assert.true((learnOf(s, "person", c.id, "Rib-Hadda") as { link: { title: string } }).link.title.includes("Rib-Hadda"));
+    Assert.true("link" in learnOf(s, "person", c.id)! || "invented" in learnOf(s, "person", c.id)!);
   });
 
   test("A title's claimants are those who claim it now, not the realm whose land it was", () => {

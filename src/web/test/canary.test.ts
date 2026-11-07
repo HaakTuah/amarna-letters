@@ -408,7 +408,7 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
     },
     ...knownTo(s, p, scene).map((k) => ({
       what: `history of ${k.kind} ${k.id}`,
-      text: markup(createElement(HistoryPanel, { state: s, of: { kind: k.kind, id: k.id }, viewer: p, record: false, onProvince: none, onClose: none })),
+      text: markup(createElement(HistoryPanel, { state: s, of: { kind: k.kind, id: k.id }, viewer: p, record: false, onProvince: none, onHistory: none, onClose: none })),
     })),
     // Item 17+++: the threads to watch as told through the seat, every telling of the season.
     {

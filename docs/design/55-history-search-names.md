@@ -36,8 +36,10 @@ provinces now, and those it held and lost). Every list says its count of what th
 
 **Two name settings** (`ui/names.ts`, in the game's menu, kept in this browser as `amarna-names`). Places: their names
 of 1346 (the default) or the names a modern reader knows them by (`FamiliarPlaceNames` in
-`model/familiar-names.ts`: Byblos for Gubla, Thebes for Waset, Kirkuk for Arrapha; never a description; a place whose
-period name is the one readers know, Hattusa or Ugarit, keeps it). Realms: the names people know (the default) or their
+`model/familiar-names.ts`, read from the modern names the card gives, `ModernNames`, before any parenthesis: Byblos for
+Gubla, Thebes for Waset, Kirkuk for Arrapha; with a short list of exceptions: Kanesh, not Kültepe; a place whose period
+name is the one readers know, Hattusa or Ugarit, keeps it, as does one whose modern name is a description or a village
+chosen for its site, Tamassos). Realms: the names people know (the default) or their
 own letters' names (`PeriodRealmNames`: Miṣri, Karduniash, Aššur, each anchored in the geography dossier); only the
 Great Kings' realms differ, since every other realm is named by its land or city, a place, and so follows the places'
 setting (Gubla's realm is Byblos with modern places). The page rewrites the names where it shows them, in every panel,
@@ -48,10 +50,15 @@ seat view and every request to a model keep the names as they are.
 
 **Learn more, and what is invented** (`model/learn-more.ts`, the web's `LearnMore`). Every real place, realm, person and
 language carries a link, mostly to its English Wikipedia page, opened outside the game under the title the card shows;
-where a person has no page of their own, the page that tells of them, named as such. Where the game takes a side its page
+where a person has no page of their own, the page that tells of their court, city or letters, and the card says it may
+not name them. The link names the thing as the card shows it, its other name after ("Learn more: Gubla (Byblos)"), and
+the page's title where it is another's ("Learn more: Lupakki (on Šuppiluliuma I)"). A city-state's link is its city's
+(`realmLink`); only a realm whose page is not its capital's has its own. Under a false name a court sees what that name
+would show: the borrowed man's page, or the mark of an invented name, never the true man's. Where the game takes a side its page
 does not, the card says so in a line (`note`), as it does for the three real men whose names the letters lost and the
 game gave (the Assyrian envoys of EA 16, Alashiya's governor). A realm's card links its ruler of 1346 too, and each
-language a person says they speak links to its page. Everything the game made up
+language a person says they speak links to its page. A realm's history window opens its title's history too. Everything the game made up
 (a person not of the period, a realm risen in play) is marked on its card as invented. `LearnMoreTests` fails the build
 when a real entity lacks its link; its dossier reference was checked already (`HistoryAnchorTests`). The links themselves
-are checked by `scripts/links.mjs`, run weekly outside the pull requests, so a moved page never blocks one.
+are checked by `scripts/links.mjs` (each must answer 200 and be neither a disambiguation page nor a redirect to another
+page), to run weekly outside the pull requests once its workflow is approved, so a moved page never blocks one.

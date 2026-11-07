@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import {
   AttestedCast, FamiliarPlaceNames, FirstCores, FixedPowers, Invented, LanguageAnchors, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors,
-  PersonLinks, PlaceLinks, RealmLinks, TongueLinks, WorldMap, king, newGame, rulerNamed,
+  PersonLinks, PlaceLinks, RealmLinks, TongueLinks, WorldMap, king, newGame, realmLink, rulerNamed, type FixedPower,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -17,7 +17,9 @@ describe("LearnMoreTests", () => {
   });
 
   test("Every realm, and every ruler the sources name, carries its link", () => {
-    Assert.equal("", missing(FixedPowers, RealmLinks));
+    Assert.equal("", FixedPowers.filter((p) => realmLink(p as FixedPower) === undefined).join(", "));
+    // A realm's own page only where it is not its capital's: one fact, one place.
+    Assert.equal("", [...RealmLinks].filter(([p, l]) => l.url === PlaceLinks.get(WorldMap.default.provinces.find((x) => x.home === p && x.capital)?.id ?? "")?.url).map(([p]) => p).join(", "));
     Assert.equal("", missing(FixedPowers.filter(rulerNamed).map(king), PersonLinks));
   });
 

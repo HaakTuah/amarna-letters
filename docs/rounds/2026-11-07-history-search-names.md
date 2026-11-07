@@ -20,15 +20,16 @@ diff since the item began (8ba8016d), as `docs/intent/INDEX.md` says.
 - `src/engine/src/rules/history.ts` (`historyOf`): the history of a province, realm, title or person, oldest first, as a
   court learned it or the whole record; it reads the legends' record helpers (`changes`, `wordIn`, `courtLegend`,
   `characterLegend`, now exported from `legends.ts`).
-- `src/engine/src/model/familiar-names.ts`: places by the names a modern reader knows (`FamiliarPlaceNames`, 49 places)
+- `src/engine/src/model/familiar-names.ts`: places by the names a modern reader knows (`FamiliarPlaceNames`, read from
+  `ModernNames` with ten names and 25 kept period names as exceptions)
   and the three Great Kings' realms whose letters named them otherwise (`PeriodRealmNames`: Miṣri, Karduniash, Aššur),
   anchored in the geography dossier's new section "The Great Kings' realms by their period names".
-- `src/engine/src/model/learn-more.ts`: 74 places, 47 realms, 89 people (31 kings and 58 others) and 25 languages, each
-  with its link; every URL fetched (200, no disambiguation page, no redirect to another subject). 52 people have no page of
-  their own and link to the page that tells of them (33 to "Amarna letters"; kings without a page to their city's).
+- `src/engine/src/model/learn-more.ts`: 74 places, 8 realms whose page is not their capital's (the rest take their
+  capital's), 89 people (31 kings and 58 others) and 25 languages, each with its link; every URL fetched (200, no
+  disambiguation page, no redirect to another page). 50 people have no page of their own and link to the page that tells
+  of their court, city or letters (33 to "Amarna letters"), and their card says it may not name them.
   Notes where the game takes a side the page does not: seven uncertain sites (Samuha, Washukanni, Taidu, Niya, Ekallate,
-  Aijalon, Gath), the Ways of Horus (its page is the whole coast road's, under a later name), and the three men whose
-  names the game gave.
+  Aijalon, Gath), and the three men whose names the game gave.
 - The web: `ui/names.ts` (the two settings, in the game's menu; `shown` rewrites names on the page), `ui/search.ts`
   (`knownTo`, the forgiving match), `components/SearchPanel.tsx`, `HistoryPanel.tsx`, `LearnMore.tsx`; history buttons
   on the province card, the standings' realms and every person; the map's labels renamed in place (`renameLabels`); the
@@ -72,8 +73,13 @@ window "History of Byblos, also Gubla"; no page error.
 - **The weekly link check is a script, not yet a workflow**: a new workflow needs the owner's yes in its PR (`SECURITY.md`,
   rule 3), so the workflow that runs `scripts/links.mjs` weekly is proposed in a PR of its own, once this one merges, for
   his yes.
-- **No key for Search or History by default**: neither of Paradox's games gives one a sure like (`54-keys.md`); a player
-  gives them one on the Keys page.
+- **No key for Search or History by default**: Crusader Kings III, whose keys the game follows (`54-keys.md`), has no
+  key for either that I could check; a player gives them one on the Keys page.
+- **The real "concepts" linked are the languages**: they are the concepts the game's data holds as entries of their own
+  (with their dossier anchors); goods, offices and customs have no card or entry of their own to carry a link. Principle:
+  build the least that meets the text; a card for each would be a new feature.
+- **A title's history button** is in the search and in its realm's history window ("History of the throne of …"), not
+  on the orders' list of names claimed, so the orders stay about orders.
 
 ## Script kings and the benchmarks
 

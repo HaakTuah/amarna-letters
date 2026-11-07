@@ -5,65 +5,64 @@
  * names their own letters used. Every other realm is named by its land or city, a place, so its name follows the places'
  * setting. Presentation only: requests to models, seat views and the engine's logs keep the names as they are.
  */
+import { ModernNames, WorldMap } from "./map.ts";
 import type { FixedPower } from "./power.ts";
 
 /**
- * Each place by the name a modern reader knows it by, where that differs from its period name: the classical, biblical
- * or modern name (Byblos for Gubla, Thebes for Waset, Kirkuk for Arrapha), never a description. A place whose period name
- * is the one readers know (Hattusa, Ugarit, Qatna) is not listed. Its fuller modern name, with the site today, stays on the
- * province card's second line (`ModernNames`).
+ * Where the name a modern reader knows a place by is not its modern name's first words ({@link ModernNames}, before any
+ * parenthesis): a name readers know better than the site's (Kanesh, not Kültepe; Kadesh, not Tell Nebi Mend), or null
+ * where the period name is the one readers know (Hattusa, not Boğazkale; Ugarit, not Ras Shamra) or the modern one is a
+ * description (the Gediz valley) or a village chosen for a site (Kalavasos, for Tamassos).
  */
-export const FamiliarPlaceNames: ReadonlyMap<string, string> = new Map<string, string>([
-  ["apasa", "Ephesus"],
-  ["tuwanuwa", "Tyana"],
+const Familiar: ReadonlyMap<string, string | null> = new Map<string, string | null>([
+  ["seha", null],
+  ["mira", null],
+  ["hattusa", null],
+  ["sapinuwa", null],
+  ["samuha", null],
+  ["harran", null],
+  ["washukanni", null],
+  ["taidu", null],
+  ["terqa", null],
+  ["ashur", null],
+  ["sippar", null],
+  ["durkurigalzu", null],
+  ["nippur", null],
+  ["isuwa", null],
+  ["azzi", null],
+  ["alalakh", null],
+  ["ugarit", null],
+  ["nuhashshe", null],
+  ["niya", null],
+  ["tunip", null],
+  ["qatna", null],
+  ["amurru", null],
+  ["suhu", null],
+  ["kaska", null],
+  ["kalavasos", null],
   ["nesa", "Kanesh"],
-  ["kizzuwatna", "Cilicia"],
-  ["nineveh", "Nineveh"],
-  ["arbela", "Erbil"],
   ["ekallate", "Ekallatum"],
-  ["babylon", "Babylon"],
-  ["ur", "Ur"],
-  ["dilmun", "Bahrain"],
-  ["delta", "the Nile Delta"],
-  ["sinai", "the north Sinai"],
-  ["memphis", "Memphis"],
-  ["akhetaten", "Amarna"],
-  ["thebes", "Thebes"],
-  ["nubia", "Nubia"],
-  ["kalavasos", "Kalavasos"],
-  ["carchemish", "Carchemish"],
-  ["aleppo", "Aleppo"],
   ["qadesh", "Kadesh"],
   ["sumur", "Simyra"],
-  ["arwad", "Arwad"],
-  ["byblos", "Byblos"],
-  ["beirut", "Beirut"],
-  ["sidon", "Sidon"],
-  ["damascus", "Damascus"],
-  ["tyre", "Tyre"],
-  ["megiddo", "Megiddo"],
-  ["shechem", "Shechem"],
-  ["jerusalem", "Jerusalem"],
-  ["akko", "Acre"],
-  ["hazor", "Hazor"],
-  ["gezer", "Gezer"],
-  ["ashkelon", "Ashkelon"],
-  ["lachish", "Lachish"],
-  ["gath", "Gath"],
   ["aijalon", "Aijalon"],
-  ["pella", "Pella"],
   ["ashtaroth", "Ashtaroth"],
-  ["gaza", "Gaza"],
-  ["arrapha", "Kirkuk"],
-  ["susa", "Susa"],
-  ["lukka", "Lycia"],
-  ["steppe", "the Syrian desert"],
-  ["libya", "Libya"],
   ["shasu", "Edom"],
   ["westsea", "the Mediterranean"],
   ["gulf", "the Persian Gulf"],
   ["redsea", "the Red Sea"],
 ]);
+
+/**
+ * Each place by the name a modern reader knows it by, where that differs from its period name: the classical, biblical
+ * or modern name (Byblos for Gubla, Thebes for Waset, Kirkuk for Arrapha), never a description. Its fuller modern name,
+ * with the site today, stays on the province card's second line ({@link ModernNames}).
+ */
+export const FamiliarPlaceNames: ReadonlyMap<string, string> = new Map(
+  WorldMap.default.provinces.flatMap((p): [string, string][] => {
+    const name = Familiar.has(p.id) ? Familiar.get(p.id)! : (ModernNames.get(p.id)?.split(" (")[0] ?? null);
+    return name !== null && name !== p.name ? [[p.id, name]] : [];
+  }),
+);
 
 /**
  * The Great Kings' realms by the names their own letters used, where those differ from the names people know: each

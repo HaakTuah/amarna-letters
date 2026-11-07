@@ -1,4 +1,4 @@
-import { Views, WorldMap, historyOf, powerName, shortDate, type GameState, type HistoryKind, type Power } from "@amarna/engine";
+import { Views, WorldMap, claimedName, historyOf, knownName, powerName, shortDate, type GameState, type HistoryKind, type Power } from "@amarna/engine";
 import { dated, provinceName, when } from "../ui/format.ts";
 import { otherName, realmName } from "../ui/names.ts";
 import { titleName } from "../ui/search.ts";
@@ -47,12 +47,13 @@ function rawName(h: HistoryOf): string | null {
  * cause as the record words it, as this seat learned them, or the whole record (`record`: god view, and every seat once
  * the game ends and the record opens).
  */
-export function HistoryPanel({ state, of, viewer, record, onProvince, onClose }: {
+export function HistoryPanel({ state, of, viewer, record, onProvince, onHistory, onClose }: {
   state: GameState;
   of: HistoryOf;
   viewer: Power | null;
   record: boolean;
   onProvince: (id: string) => void;
+  onHistory: (h: HistoryOf) => void;
   onClose: () => void;
 }) {
   const lines = historyOf(state, of.kind, of.id, record ? null : viewer);
@@ -69,6 +70,16 @@ export function HistoryPanel({ state, of, viewer, record, onProvince, onClose }:
         </button>
       </div>
       {other !== null && <p className="muted small">also {other}</p>}
+      {of.kind === "realm" &&
+        (() => {
+          // The title it claims, as this court knows the claim: its own history button.
+          const title = seen === null ? claimedName(of.id) : knownName(seen, of.id);
+          return (
+            <button className="small link" onClick={() => onHistory({ kind: "title", id: title })}>
+              History of the throne of {titleName(title)}
+            </button>
+          );
+        })()}
       <LearnMore state={state} kind={of.kind} id={of.id} knownAs={of.kind === "person" ? (knownAs(state, of.id, seen) ?? "") : undefined} />
       <p className="muted small">
         {record ? "The whole record" : "As your court learned it"}: {lines.length} event{lines.length === 1 ? "" : "s"}

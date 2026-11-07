@@ -890,7 +890,7 @@ export function Play() {
       case "search":
         return <SearchPanel state={displayed} viewer={viewer} record={viewer === null || state.ended} scene={scene} onHistory={showHistory} onProvince={fromList} onPerson={follow} />;
       case "history":
-        return <HistoryPanel state={displayed} of={ledger!} viewer={viewer} record={viewer === null || state.ended} onProvince={fromList} onClose={() => setLedger(null)} />;
+        return <HistoryPanel state={displayed} of={ledger!} viewer={viewer} record={viewer === null || state.ended} onProvince={fromList} onHistory={showHistory} onClose={() => setLedger(null)} />;
       case "events":
         return <EventsPanel state={state} upTo={s.historyTurn} viewer={viewer} />;
       default:
