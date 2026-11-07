@@ -62,4 +62,5 @@ language a person says they speak links to its page. A realm's history window op
 (a person not of the period, a realm risen in play) is marked on its card as invented. `LearnMoreTests` fails the build
 when a real entity lacks its link; its dossier reference was checked already (`HistoryAnchorTests`). The links themselves
 are checked by `scripts/links.mjs` (each must answer 200 and be neither a disambiguation page nor a redirect to another
-page), to run weekly outside the pull requests once its workflow is approved, so a moved page never blocks one.
+page), run weekly outside the pull requests (`.github/workflows/links.yml`, Mondays, or by hand from the Actions tab), so
+a moved page never blocks one.
