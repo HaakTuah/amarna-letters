@@ -121,8 +121,10 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   of a king's death reaches his court after his realm fell, his heir (the record's next name, or drawn, as `nextHeir`
   picks him) lives on as a free man among its refugees, walking from where it fell to the court nearest it, with a public
   fact that he claims its throne, seeking service. He reigns over nothing (`realmOfKing` counts no fallen realm); the
-  realm's reign names him, so the record goes on through him. A last king who lives is its claimant the same way, with
-  the same public fact (`fall`), unless he gave it away by sealed tablet (a cession leaves no claim). Any king may make either king again by granting him land (order `crown`, item 17++), as
+  realm's reign names him, so the record goes on through him. A last king who lives is its claimant the same way, seen
+  by the same `heirOf` and never by a public fact (one would tell a far court of the fall before word of it came), unless
+  he gave it away by sealed tablet (a cession leaves no claim). His death, by any cause, raises the heir after him
+  (`kingDied`). Any king may make either king again by granting him land (order `crown`, item 17++), as
   Suppiluliuma put Shattiwaza on his father's throne (`docs/history/14-courts-and-free-cities.md`). A seat that has heard
   of the fall sees whose throne he claims (`CharacterView.heirOf`, `fallenRealmOf`).
 - **Word, not knowledge**: the taker of a treasury hears of it as word from where he took it comes (`tell`).

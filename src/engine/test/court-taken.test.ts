@@ -103,4 +103,13 @@ describe("CourtTakenTests", () => {
     Assert.false(c.facts.some((f) => f.text.includes("claims its throne")));
     Assert.equal(null, fallenRealmOf(s, c.id));
   });
+
+  test("A fallen realm's last king who dies a captive sends word for the heir after him", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const c = kingOf(s, "Mitanni");
+    e.fall("Mitanni", "Hatti");
+    e.dies(c, e.courtAt("Hatti"), "on the road");
+    Assert.contains(s.journeys, (j) => j.news === "KingDead" && j.to === "Mitanni");
+  });
 });

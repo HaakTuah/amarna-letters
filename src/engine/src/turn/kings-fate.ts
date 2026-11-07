@@ -199,8 +199,9 @@ P.courtFlees = function (p, by, road) {
   t.lots.length = 0;
   const taker = by !== null && isAlive(S, by) ? by : null;
   if (gold > 0 && taker !== null) {
-    this.receiveAt(taker, where, gold, false);
-    this.tell(taker, where, "Notice", "A treasury taken", `With the court of ${powerName(p)} in ${this.map.get(where).name} your men took its treasury: ${formatMoney(gold)}, ${this.isFar(taker, where) ? "kept there in your own coffer" : "into your treasury"}.`);
+    const went = this.receiveAt(taker, where, gold, false);
+    const to = { treasury: "into your treasury", coffer: "kept there in your own coffer", home: "on the road home to your treasury", people: "left among the people there, with no road home for it" }[went];
+    this.tell(taker, where, "Notice", "A treasury taken", `With the court of ${powerName(p)} in ${this.map.get(where).name} your men took its treasury: ${formatMoney(gold)}, ${to}.`);
   } else if (gold > 0) this.spendAt(where, gold);
   if (road && taker !== null) this.takeArchive(taker, where, p);
   if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");

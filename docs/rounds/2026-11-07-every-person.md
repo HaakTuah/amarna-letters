@@ -277,8 +277,8 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   claim"): he reigns over nothing and plays as any free character until a king grants him land, as Suppiluliuma put
   Shattiwaza on his father's throne of Mitanni (dossier 14, "Shattiwaza"). No new order: the grant (item 17++) is the lever.
 - **A fallen realm's last king who lives is its claimant** (one rule for both): he is "former ruler" by part B's rule,
-  with the same public fact that he claims its throne, and a seat that has heard of the fall sees whose throne he claims
-  by the same `heirOf` as an heir in exile, so a king may make him king again by the same grant. Only a dead last king's
+  and a seat that has heard of the fall sees whose throne he claims by the same `heirOf` as an heir in exile (not by a
+  public fact, which would tell a far court of the fall at once: Codex's second round), so a king may make him king again by the same grant. Only a dead last king's
   heir is drawn from the record into exile.
 - **A treasury nobody takes goes to the people there** (gold stays where it is; nothing vanishes): a court lost where no
   power holds the place spends its gold into that place's purse (`spendAt`).
