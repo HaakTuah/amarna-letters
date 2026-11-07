@@ -3,6 +3,8 @@ import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type 
 import type { Pt } from "../map/art.ts";
 import type { MapInput, MapRenderer } from "../map/renderer.ts";
 import { SvgMapRenderer } from "../map/svg-renderer.ts";
+import { renameLabels } from "../map/markup.ts";
+import { useNames } from "../ui/names.ts";
 import { useKeys, withKey } from "../ui/keys.ts";
 
 export interface MapHandle {
@@ -125,6 +127,12 @@ export function GameMap({
   useEffect(() => {
     renderer.current?.render({ ...input, mode });
   });
+
+  // The map's names follow the player's name settings (item 17+++b).
+  const names = useNames();
+  useEffect(() => {
+    if (view.current !== null) renameLabels(view.current);
+  }, [names]);
 
   // A view returns to where it was left, or opens at its opening; the view left is kept.
   useEffect(() => {

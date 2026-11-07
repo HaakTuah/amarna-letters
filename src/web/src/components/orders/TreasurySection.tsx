@@ -64,7 +64,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
             .filter((p) => v.owner.tryGet(p.id) === me && v.units.every((u) => u.province !== p.id))
             .map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}
+                {provinceName(p.id)}
               </option>
             ))}
         </select>

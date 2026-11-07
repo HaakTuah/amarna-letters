@@ -304,7 +304,7 @@ P.resolveMovement = function (unitOrders) {
   }
   // Moves the people of a land held off (item 10+a).
   for (const l of result.lines.filter((x) => x.failure?.stop === "Resisted"))
-    logEvent(S, "resisted", `The people of ${Map.get(l.failure!.province).name} held off ${l.power}'s troops.`, [...AllPowers.filter((p) => sightBefore.get(p).has(l.failure!.province)), ...(l.power !== null ? [l.power] : [])], "resisted");
+    logEvent(S, "resisted", `The people of ${Map.get(l.failure!.province).name} held off ${l.power}'s troops.`, [...AllPowers.filter((p) => sightBefore.get(p).has(l.failure!.province)), ...(l.power !== null ? this.nearOf(l.failure!.province, l.power) : [])], "resisted");
   const lostToWinter = this.winterCrossings(result.newPositions);
   this._movedNow.clear();
   for (const [id, prov] of result.newPositions) if (S.units.find((x) => x.id === id)?.province !== prov) this._movedNow.add(id);
@@ -357,7 +357,7 @@ P.updateOwnership = function () {
     this.lowerWalls(u.province);
     this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
     S.breached.set(u.province, u.power);
-    notify(S, u.power, "Battle", "Walls stormed", `Your troops stormed the walls of ${this.map.get(u.province).name} and stand within them.`);
+    this.tell(u.power, u.province, "Battle", "Walls stormed", `Your troops stormed the walls of ${this.map.get(u.province).name} and stand within them.`);
   }
 };
 
@@ -386,8 +386,9 @@ P.foldUnit = function (p, o) {
   S.armies.delete(u.id);
   loseUnit(S, u);
   this.liftSiegesOf(u.id);
-  logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
-  notify(S, p, "Resolution", "Troops joined", `Your ${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, who are now ${into.men} men strong.`);
+  // Bug #615: told from where they joined, as word of far troops comes.
+  logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, this.nearOf(into.province, p), "fold");
+  this.tell(p, into.province, "Resolution", "Troops joined", `Your ${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, who are now ${into.men} men strong.`);
 };
 
 P.resolveTransfers = function (cessions, gifts) {
@@ -689,7 +690,8 @@ P.endOfTurn = function () {
   for (const c of S.characters.filter((c) => c.at !== null && c.employer !== null && c.at !== c.employer)) {
     c.turnsAbroad++;
     // Long years abroad become part of a character's past (item 10, "a past made in play"), known to both courts.
-    if (c.turnsAbroad === LongAbroad && c.status !== "Dead")
+    // Not of Pharaoh's open residents, whose post already says where they sit.
+    if (c.turnsAbroad === LongAbroad && c.status !== "Dead" && !c.openly)
       c.facts.push(newFact({ id: newId(S, "f"), text: `Spent three years and more at the court of ${land(c.at!)}.`, secrecy: "Hidden", tag: "abroad", knownBy: [c.employer!, c.at!] }));
   }
 

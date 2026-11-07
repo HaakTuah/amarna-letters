@@ -289,8 +289,9 @@ P.payTroops = function (p) {
       u.unpaid++;
       // Item 17++: wages unpaid are a taking its men remember of their king.
       this.armyEntry(u, u.power, -UnrestData.unpaid);
-      held.push(unitLabel(u));
-      logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
+      // A far unit's, as its missing pay is, its own report's to tell (bug #615).
+      if (!this.isFar(p, u.province)) held.push(unitLabel(u));
+      logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, this.nearOf(u.province, p), "pay-held");
       continue;
     }
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
@@ -402,7 +403,8 @@ P.feedTroops = function () {
         u.savings -= r.paid;
         eaten += r.taken;
         buying = true;
-        bought.set(u.power, (bought.getOrDefault(u.power, 0) + r.paid));
+        // A far unit's buying its own report tells (bug #615).
+        if (!this.isFar(u.power, u.province)) bought.set(u.power, bought.getOrDefault(u.power, 0) + r.paid);
       }
     }
     if (eaten < need) {
@@ -432,7 +434,7 @@ P.feedTroops = function () {
           this._foodNow.set(prov.id, Math.max(0, this._foodNow.getOrDefault(prov.id, 0) - take - waste));
           eaten += take;
           taken.add(prov.id, u.power, take + waste);
-          foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
+          if (!this.isFar(u.power, u.province)) foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
         }
       }
     }
@@ -445,6 +447,11 @@ P.feedTroops = function () {
       u.hungry++;
       // Hunger is a taking, held against the hand that feeds them.
       this.armyEntry(u, this.armyHand(u), -UnrestData.starved);
+      // Bug #615: a far unit's hunger comes home by the road, from where it went hungry.
+      if (this.isFar(u.power, u.province)) {
+        this.tell(u.power, u.province, "Notice", EconomyTitle, `Hungry this season, with nothing left in depot, baggage or field: your ${unitLabel(u)}. A unit hungry ${EconomyData.hungryMutiny} seasons running mutinies.`);
+        continue;
+      }
       let h = hungry.tryGet(u.power);
       if (!h) hungry.set(u.power, (h = []));
       h.push(unitLabel(u));

@@ -158,7 +158,8 @@ P.newHead = function (province, rose, rng, court = null) {
     elder: `Raised by the people of ${this.map.get(province).name} to rule them when no one else did.`,
   };
   c.facts.push(newFact({ id: newId(S, "f"), text: how[rose], secrecy: "Public", tag: "rose" }));
-  c.facts.push(newFact({ id: newId(S, "f"), text: rose === "refugees" ? `Speaks the tongue of ${land(court ?? "Egypt")}, and knows something of its court.` : "Speaks the tongue of the land he rose in.", secrecy: "Public", tag: "tongue" }));
+  // What he speaks is in what he says he speaks (item 12); of the fallen court he led out, he knows its ways too.
+  if (rose === "refugees") c.facts.push(newFact({ id: newId(S, "f"), text: `Knows the ways of the court of ${land(court ?? "Egypt")}.`, secrecy: "Public", tag: "tongue" }));
   if (rose !== "elder") c.facts.push(newFact({ id: newId(S, "f"), text: "Rode with the Habiru.", secrecy: "Hidden", tag: "outlaw" }));
   c.arrived = S.turn;
   c.status = "Free";

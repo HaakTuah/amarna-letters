@@ -118,8 +118,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
   standing) by the road. Save version 69. Left to #615: the rest of a far unit as it truly is. Report:
   `docs/rounds/2026-11-03-far-unit-known.md`.
-- **A far unit of a king's own, the rest of it as reported (bug #615): next, for a fresh session.** Its brief: the
-  issue's last comment (what #612 built to build on, what is left, files and lines, how to test).
+- ~~**A far unit of a king's own, the rest of it as reported (bug #615)**~~ (done, branch `fix/615-far-units`): where its
+  king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
+  road. Save version 72. Left to #759: a far unit's other orders still checked or timed by its true place. Report:
+  `docs/rounds/2026-11-06-far-unit-reported.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -220,9 +222,13 @@ the workshop check): among them the history check's lines still unclear for a re
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
-  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later:
-  the biographies' stock lines, and one game-wide decision on place names, season against turn, minas in engine
-  notices and order names inside them). **Next:** the rest in the order above, from the cast's biographies. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
+  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
+  below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
+  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766). **Next:** the rest in the order above,
+  from the interface, the council and the help. **Still open, one game-wide decision:** one
+  place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
+  "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
+  and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
   (the owner, 6 November 2026, #735; archive item 230): done, #744 (the notice-shapes guard flags "in a hundred");
   `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge. **In a character's own words** (the script
   kings' letters, the envoys' speech, and the models' voice guidance for letters and audiences), a share is said as
@@ -294,7 +300,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 | 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
 | 17+++ | The season plays out | done: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight; the world acting on them) merged, #728 | `item/season-plays-out`, `item/season-plays-out-e` | `docs/rounds/2026-11-03-season-plays-out.md` |
 | 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
-| 17+++b | History, search and names | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17+++b"), and each new window, view or action adds its row to `ui/keys.ts` (`docs/design/54-keys.md`) | | |
+| 17+++b | History, search and names | done, #767 (bug #769 fixed with it) | `item/history-search-names` | `docs/rounds/2026-11-07-history-search-names.md` |
 | 17++++ | A small state as a seat | not started | | |
 | 17++++a | Raiders from beyond the map | not started | | |
 | 17b | Every person on one scoreboard | not started | | |

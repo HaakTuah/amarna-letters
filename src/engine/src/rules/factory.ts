@@ -18,7 +18,7 @@ import { newTablet, newTabletCopy } from "../model/records.ts";
 import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
 import { newCharacter, newContract, newFact, newJobErrand, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
-import { AllPowers, adjective, isGreatKing, land, setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { AllPowers, isGreatKing, land, setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { newTreasury, newGameState, newUnit, logEvent, newId, notify, unitReport, type GameState } from "../model/state.ts";
 import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
@@ -133,9 +133,14 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     if (name !== null) return s.characters.find((c) => c.name === name) ?? null;
     // A name the sources lost: one of the ordinary people of the court's region in the pool, free and with no post,
     // named in its style already; his calling becomes the post.
-    const free = s.characters.filter((c) => !c.attested && c.status === "Free" && c.at === court && !c.facts.some((f) => f.tag.startsWith("stake:")));
-    const c = free.length > 0 ? rng(`${court}:${calling}`).pick(free) : null;
-    if (c !== null) c.calling = calling;
+    const free = s.characters.filter((c) => !c.attested && c.status === "Free" && !c.facts.some((f) => f.tag.startsWith("stake:")));
+    // Of the court's own people, not a stranger a lover drew to it: one of its name style standing at it, else one away
+    // from it, else whoever stands at it.
+    const own = free.filter((c) => Styles.some((st) => st.court === court && st.names.includes(c.name)));
+    const here = (xs: Character[]): Character[] => xs.filter((c) => c.at === court);
+    const pool = [here(own), own, here(free)].find((xs) => xs.length > 0) ?? [];
+    const c = pool.length > 0 ? rng(`${court}:${calling}`).pick(pool) : null;
+    if (c !== null) called(c, calling);
     return c;
   };
   // One taken from another court's service into his post of 1346: that court takes on one of the free people at it instead,
@@ -150,7 +155,7 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     if (free.length === 0) return;
     const x = rng(`in place of ${c.id}`).pick(there.length > 0 ? there : free);
     employ(s, rng(`hire ${x.id}`), x, old, false);
-    x.facts.push(newFact({ id: newId(s, "f"), text: `Taken into the service of ${land(old)} in place of ${c.name}, who went to his post.`, secrecy: "Public", tag: "replaced" }));
+    x.facts.push(newFact({ id: newId(s, "f"), text: `Serves ${land(old)}, taken on when ${c.name} left its service for a post of his own.`, secrecy: "Public", tag: "replaced" }));
   };
   for (const g of Governors1346) {
     if (s.owner.getOrDefault(g.province, null) !== g.court) continue;
@@ -191,7 +196,12 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     c.watchProvince = r.province;
     c.openly = true;
     c.met = [...new Set([...c.met, "Egypt", host])];
-    c.facts.push(newFact({ id: newId(s, "f"), text: `Pharaoh's commissioner, resident in ${m.get(r.province).name}: known to all as his man, reporting home.`, secrecy: "Public", tag: "resident" }));
+    // His post is his calling's line, said once: where he sits and that he writes home.
+    const at = c.facts.find((f) => f.tag === "calling");
+    if (at !== undefined) {
+      at.text = `Pharaoh's commissioner in ${m.get(r.province).name}, known to all as his man, who sends word home to Pharaoh.`;
+      at.tag = "resident";
+    }
     book(r.province).set(c.id, UnrestData.stake);
   }
 }
@@ -440,10 +450,14 @@ function more(s: GameState, unused: Seed[]): void {
   for (const sd of cast) {
     const attested = (known.includes(sd) && !sd.nubian) || NubiansAttested.has(sd.name);
     const c = create(s, rng, { name: sd.name, origin: sd.origin, attested }, sd.calling, attested ? null : Math.min(rng.range(15, 95), rng.range(15, 95)));
-    if (sd.nubian) c.facts.push(newFact({ id: newId(s, "f"), text: "A Nubian in Egypt's service, who speaks a Nubian tongue as well as Egyptian.", secrecy: "Public", tag: "nubian" }));
+    if (sd.nubian) c.facts.push(newFact({ id: newId(s, "f"), text: "A Nubian in Egypt's service.", secrecy: "Public", tag: "nubian" }));
     // Item 17+: what the sources say of a person of 1346, as public facts; a claim or a town of his own as a stake.
-    for (const text of sd.facts) c.facts.push(newFact({ id: newId(s, "f"), text, secrecy: "Public", tag: "source" }));
-    if (sd.stake !== null) c.facts.push(newFact({ id: newId(s, "f"), text: `Holds a stake in the love of the people of ${WorldMap.default.get(sd.stake).name}: a claim, or a town of his own.`, secrecy: "Public", tag: `stake:${sd.stake}` }));
+    // The data keeps its sources in brackets ("(EA 62)", "(the Shattiwaza treaty)"); a king reads only what they say.
+    for (const text of sd.facts) c.facts.push(newFact({ id: newId(s, "f"), text: text.replace(/\s*\([^)]*\)/g, ""), secrecy: "Public", tag: "source" }));
+    // A calling the sources' first line already gives is said once, there.
+    const told = c.facts.find((f) => f.tag === "source")?.text.toLowerCase() ?? "";
+    if (told.startsWith(sd.calling.toLowerCase().replace(/^(a|an|the) /, "")) || told.startsWith(sd.calling.toLowerCase())) c.facts = c.facts.filter((f) => f.tag !== "calling");
+    if (sd.stake !== null) c.facts.push(newFact({ id: newId(s, "f"), text: `Many of the people of ${WorldMap.default.get(sd.stake).name} would have him as their lord.`, secrecy: "Public", tag: `stake:${sd.stake}` }));
     finish(s, c, sd.core, attested);
     if (sd.post) {
       // Item 17+: in his post from the first season, placed where the sources put him: employed by his court, as a starting servant.
@@ -494,13 +508,28 @@ function finish(s: GameState, c: Character, core: Core | null, attested: boolean
   drawSkills(s.seed, c);
 }
 
+/** The calling's public line: what a person is, as a king would be told it ("A charioteer.", "Son of Abdi-Ashirta."). */
+function callingLine(c: Character): string {
+  // An office or a kinship reads as a title ("Governor of Nippur."), a trade with its article ("A charioteer.").
+  const k = c.calling.includes(" of ") ? c.calling : calling(c);
+  return `${k.charAt(0).toUpperCase()}${k.slice(1)}.`;
+}
+
+/** A new calling, and its line with it, so that no biography keeps the old one. */
+function called(c: Character, k: string): void {
+  c.calling = k;
+  const f = c.facts.find((x) => x.tag === "calling");
+  if (f !== undefined) f.text = callingLine(c);
+}
+
 function create(s: GameState, rng: Rng, sd: Seed, callingAs: string | null = null, competence: number | null = null): Character {
   const picked = rng.pick(Callings);
   const c = newCharacter({
     id: newId(s, "c"),
     name: sd.name,
     origin: sd.origin,
-    calling: callingAs ?? picked,
+    // An envoy of the letters is a royal envoy, whatever the draw (the draw stays, so that no later one moves).
+    calling: callingAs ?? (sd.attested ? "royal envoy" : picked),
     traits: newTraits({
       loyalty: rng.range(15, 95),
       greed: rng.range(5, 95),
@@ -521,29 +550,28 @@ function create(s: GameState, rng: Rng, sd: Seed, callingAs: string | null = nul
   // A person of 1346 is shown where the sources put him serving, since none of them gives a birthplace; an invented one where
   // he was born (#486).
   add(sd.attested ? `Of ${c.origin}.` : `Born in ${c.origin}.`, "Public", "origin");
-  add(`Served as ${calling(c)}.`, "Public", "calling");
-  if (sd.attested) add("Known by name at more than one royal court.", "Public", "renown");
+  add(callingLine(c), "Public", "calling");
 
   // The life before the game (item 10): a debt, a brother or a lover each comes with a tie that has a mechanical hook.
   const hidden: [string, string, () => void][] = [];
   if (c.traits.greed > 55) {
     const amount = rng.range(2, 9) * 30;
     const to = rng.pick(AllPowers);
-    hidden.push([`Owes ${amount} shekels to a ${adjective(to)} trader.`, "debt", () => c.ties.push(newTie({ kind: "Debt", court: to, amount }))]);
+    hidden.push([`Owes ${amount} shekels to a merchant of ${land(to)}.`, "debt", () => c.ties.push(newTie({ kind: "Debt", court: to, amount }))]);
   }
-  if (c.traits.loyalty < 45) hidden.push([`Was dismissed from a former post for ${rng.pick(Lapses)}.`, "dismissed", () => {}]);
-  if (c.traits.courage < 35) hidden.push(["Once fled from a battle and hid it.", "coward", () => {}]);
+  if (c.traits.loyalty < 45) hidden.push([`Was put out of an office for ${rng.pick(Lapses)}.`, "dismissed", () => {}]);
+  if (c.traits.courage < 35) hidden.push(["Once ran from a battle, and has kept it hidden.", "coward", () => {}]);
   const brother = rng.pick(AllPowers);
-  hidden.push([`Has a brother serving in the army of ${land(brother)}.`, "brother", () => c.ties.push(newTie({ kind: "Family", court: brother }))]);
+  hidden.push([`Has a brother among the fighting men of ${land(brother)}.`, "brother", () => c.ties.push(newTie({ kind: "Family", court: brother }))]);
   const lover = rng.pick(Lovers);
-  hidden.push([`Keeps a lover at the court of ${land(lover)}.`, "lover", () => c.ties.push(newTie({ kind: "Lover", court: lover }))]);
+  hidden.push([`Has a beloved at the court of ${land(lover)}.`, "lover", () => c.ties.push(newTie({ kind: "Lover", court: lover }))]);
   for (const [text, tag, tie] of rng.shuffle(hidden).slice(0, 2)) {
     add(text, "Hidden", tag);
     tie();
   }
 
-  if (c.traits.sympathy !== null) add(`Secretly sympathizes with ${land(c.traits.sympathy)}.`, "Deep", "sympathy");
-  else if (c.traits.ambition > 70) add("Dreams of ruling a city of their own one day.", "Deep", "ambition");
+  if (c.traits.sympathy !== null) add(`Would serve ${land(c.traits.sympathy)} before any other, and tells no one.`, "Deep", "sympathy");
+  else if (c.traits.ambition > 70) add("Wants a city of his own to rule.", "Deep", "ambition");
 
   return c;
 }

@@ -80,7 +80,7 @@ P.battles = function (result, sightBefore) {
     const lc = this.commanderOf(loser);
     if (wc !== null) {
       wc.won++;
-      logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, [winner.power], "commander-won");
+      logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, this.nearOf(f.at, winner.power), "commander-won");
     }
     if (lc !== null) lc.lost++;
     battleNews(this, crushed ? { ...f, won: true } : f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], f.at, a.power, d.power), crushed);

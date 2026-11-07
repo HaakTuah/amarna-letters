@@ -16,7 +16,7 @@ import { type Order } from "../model/orders.ts";
 import { land, quoteWords, type Power, powerName } from "../model/power.ts";
 import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
-import { isAlive, logEvent, newId, notify, unitAt, unitReport, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, newId, notify, unitAt, unitReport, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
@@ -353,7 +353,7 @@ P.caravanNear = function (c, province) {
 
 P.keepTrails = function () {
   for (const u of this.s.units) {
-    u.trail.push(unitReport(u));
+    u.trail.push(unitReport(u, findCharacter(this.s, u.commander)));
     if (u.trail.length > TrailKept) u.trail.splice(0, u.trail.length - TrailKept);
   }
   // Bug #540: the caravans' reports too, which come home as word does.

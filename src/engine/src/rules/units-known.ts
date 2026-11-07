@@ -5,20 +5,21 @@
  * (GameState.unitsGone) stands, as last reported, until word of its end could come.
  */
 import { HSet } from "../core/collections.ts";
-import { cmpStr, sortBy } from "../core/seq.ts";
+import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import type { Power } from "../model/power.ts";
-import { newLevyRef, type PlannedOrder } from "../model/sleep.ts";
+import { newLevyRef, type PlannedOrder, type SleepState } from "../model/sleep.ts";
+import type { Character } from "../model/people.ts";
 import type { Unit } from "../model/state.ts";
 import { wordCame } from "./caravans-known.ts";
 import { sight } from "./known-land.ts";
 import type { TurnEngine } from "../turn/turn-engine.ts";
 
 /**
- * Whether word of the unit's raising has reached its king (at once for the troops a game begins with); `now` as for
- * `wordCame`.
+ * Whether word of the unit's raising, or of its parting from the troops it was split off (bug #615), has reached its king
+ * (at once for the troops a game begins with); `now` as for `wordCame`.
  */
 export function raisedKnown(engine: TurnEngine, p: Power, u: Unit, now: number = engine.s.turn): boolean {
-  return u.since === 0 || heardFrom(engine, p, u.since, u.home, now);
+  return u.since === 0 || heardFrom(engine, p, u.since, u.raisedAt || u.home, now);
 }
 
 /**
@@ -74,6 +75,12 @@ export function trailEntry(t: string): {
   return savings === undefined ? chested : { ...chested, savings: Number(savings) };
 }
 
+/** A report's record of its unit's commander `id`, battles won and lost (bug #615), or null if it gave none of his. */
+function commanderReported(t: string, id: string): { won: number; lost: number } | null {
+  const [won, lost, of] = t.split("|").slice(8);
+  return won === undefined || of !== id ? null : { won: Number(won), lost: Number(lost) };
+}
+
 /**
  * An own unit beyond what a courier brings within the season, as its last report has it; nothing to change for one
  * within it. A unit gone has no reports after the season it left: its newest is the last it sent.
@@ -123,6 +130,44 @@ export function ownPlaces(engine: TurnEngine, p: Power, seen: { has(province: st
   return known.flatMap((u) => placed.get(u) ?? []);
 }
 
+/**
+ * Where its king believes an own unit stands (bug #615): where his view shows it (`ownPlaces`), else by its newest report,
+ * else where it is (one its couriers reach within the season). What he is told of his own doings with it names this place.
+ */
+export function placeKnown(engine: TurnEngine, u: Unit): string {
+  return placesKnown(engine, u.power)(u);
+}
+
+/** `placeKnown` for each of a court's own units, its view's places reckoned once. */
+export function placesKnown(engine: TurnEngine, p: Power, seen?: { has(province: string): boolean }): (u: Unit) => string {
+  const shown = new Map(ownPlaces(engine, p, seen).map((x) => [x.unit.id, x.province]));
+  return (u) => {
+    const at = u.power === p ? shown.get(u.id) : undefined;
+    if (at !== undefined) return at;
+    const i = u.power === p ? reportIndex(engine, u) : null;
+    return i === null ? u.province : trailEntry(u.trail[i]).province;
+  };
+}
+
+/**
+ * An own commander as his court knows him (bug #615): commanding where it believes his troops stand (`placeKnown`), with
+ * his record of battles as their reports give it.
+ */
+export function commanderKnown(engine: TurnEngine, p: Power, c: Character, place: (u: Unit) => string = placesKnown(engine, p)): Character {
+  if (c.duty !== "Commanding" || (c.employer !== p && c.grantedBy !== p)) return c;
+  const u = engine.s.units.find((x) => x.commander === c.id && x.power === p);
+  if (u === undefined) return c;
+  // His battles as far as its reports have come: farther off, as its newest report gives his record.
+  const i = reportIndex(engine, u);
+  const record = i === null ? null : commanderReported(u.trail[i], c.id);
+  return { ...c, watchProvince: place(u), ...(record ?? {}) };
+}
+
+/** The court's own units where its view shows them (`ownPlaces`), each with its men as that report gives them, for the map (bug #615). */
+export function ownUnitsShown(engine: TurnEngine, p: Power): { unit: Unit; province: string; men: number }[] {
+  return ownPlaces(engine, p).map(({ unit, at, province }) => ({ unit, province, men: at === null ? unit.men : trailEntry(unit.trail[at]).men }));
+}
+
 /** The season a unit's report `i` is labelled with, as the view dates it ("as reported in turn N"). */
 export function reportedAt(engine: TurnEngine, u: Unit, i: number): number {
   return engine.s.turn - (u.goneTurn > 0 ? engine.s.turn - u.goneTurn : 0) - (u.trail.length - 1 - i);
@@ -142,4 +187,21 @@ export function plannedAsKnown(engine: TurnEngine, p: Power, x: PlannedOrder): P
   const [a, b] = [unheard(x.unitId), unheard(x.otherUnitId)];
   if (a === null && b === null) return x;
   return { ...x, ...(a !== null ? { unitId: null, unitLevy: levy(a) } : {}), ...(b !== null ? { otherUnitId: null, otherLevy: levy(b) } : {}) };
+}
+
+/**
+ * A seat's scheduled orders as it knows them (bug #615): those of a far unit whose march was held up or ended out of its
+ * sight as they stood before, until word of it could come (`SleepState.scheduleUnheard`), the oldest such first.
+ */
+export function scheduleKnown(engine: TurnEngine, sl: SleepState): PlannedOrder[] {
+  const now = engine.s.turn;
+  const before = new Map<string, { turn: number; orders: PlannedOrder[] }>();
+  for (const x of sortBy(
+    sl.scheduleUnheard.filter((y) => y.until > now),
+    [(y) => y.until, cmpNum],
+  ))
+    if (!before.has(x.unitId)) before.set(x.unitId, { turn: x.turn, orders: x.orders.filter((o) => o.turn >= now) });
+  // Orders it gave the unit since are its own, and shown.
+  const kept = sl.scheduled.filter((x) => x.unitId === null || x.given > (before.get(x.unitId)?.turn ?? -1));
+  return sortBy([...kept, ...[...before.values()].flatMap((x) => x.orders)], [(x: PlannedOrder) => x.turn, cmpNum]);
 }

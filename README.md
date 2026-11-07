@@ -233,7 +233,12 @@ Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the De
 the north Sinai, Hayasa, Tjehenu for Libya, Seir for the Shasu's land, Kaska and Sutu for the Kaska's hills and the
 Suteans' steppe, and their realms by the same names); every province has a proper name, never a description: where the period gives none, the oldest name the
 sources do give (Tamassos for the copper hills of Cyprus), and a modern one only where no ancient name survives (Enkomi).
-What a place is ("the copper hills of Alashiya") and its modern name are on the province card, under its name. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
+What a place is ("the copper hills of Alashiya") and its modern name are on the province card, under its name. Two settings in the game's menu show you places by the names a reader knows today (Byblos, Thebes) and the Great Kings'
+realms by their own letters' names (Miṣri, Karduniash, Aššur) instead; they change only what you read, never what a king
+is told. Every province, realm, title and person has a history button, its events as your court learned them (the whole
+record once the game ends); the Search window finds anything your court knows by any of its names, forgiving
+misspellings; and every real place, realm and person links to its page to learn more, while what the game made up is
+marked as invented. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
 in Egypt's own seat; his other names are on his card.
 
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
@@ -446,7 +451,8 @@ the land's new holder.
 Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
 harvest as its officials last reported them, your caravans there as their last word has them, your troops there as
 their last report has them (an army raised far off is counted once word of its levy comes, and one lost far off until
-word of its end does), and your strength reckoned from what you know. To know sooner, hire a rider at your court to
+word of its end does; what befalls them there, hunger, a winter crossing, a march held up, comes to you by the road),
+and your strength reckoned from what you know. To know sooner, hire a rider at your court to
 fetch one far province's report this season: he names his price by what he has heard a ride pays and how badly you
 want him, and takes less if you haggle, up to a point. Click such a city and its card gives only what your stewards
 last reported and how many seasons ago, never its new holder's affairs; a band your people last told of there is drawn

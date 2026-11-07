@@ -235,3 +235,18 @@ the Tigris below Nineveh) is crossed within them. Crossings in the rules stay as
   building and oil stores at its height in the 14th-13th centuries) [B], since the clay of the Alashiya letters comes
   from the southern Troodos foothills near Alassa and Kalavasos [C: Goren et al. 2003, as quoted by Wikipedia, "Alashiya": the analyses "indicate Kalavasos-Agios Dimitrios and Alassa as likely origins"; Pleiades 754796063: "A Bronze Age site with monumental architecture"], if it reaches the south coast;
   **Toumba tou Skourou** if it centres on Morphou Bay, though its height was earlier, before about 1400 [C].
+
+## The Great Kings' realms by their period names (item 17+++b)
+
+The realms keep the names people know by default ("Places by their own names"); a player's setting shows them by the
+names their own letters used instead. Only three differ from the names people know; Hatti, Mitanni, Arzawa and Alashiya
+are the same either way.
+
+- <a id="02-misri"></a>**Egypt:** **Miṣri**, the land of Miṣri in the letters' Akkadian [B: Wikipedia, "Egypt": "The oldest
+  attestation of this name for Egypt is the Akkadian mi-iṣ-ru (miṣru)"; Miṣri is its genitive, the form after "land of"].
+- <a id="02-karduniash"></a>**Babylonia:** **Karduniash**, the Kassite kingdom's own name, which the letters already use for its
+  land in the game [B: Wikipedia, "Kassites": "regions = Karduniash", citing the volume edited by Bartelmus and Sternitzke
+  (De Gruyter, 2017), "Karduniaš. Babylonia under the Kassites"].
+- <a id="02-assur"></a>**Assyria:** **Aššur**, the land of Aššur [B: Wikipedia, "Assyria": "From the time of its rise as a
+  territorial state in the 14th century BC and onward, Assyria was referred to in official documents as māt Aššur ("the
+  land of Ashur")", first under Ashur-uballit I].

@@ -9,6 +9,7 @@ import { WorldMap, type Power, type Province } from "@amarna/engine";
 import { F, Shapes, landClipOf } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
 import type { MapScene } from "./scene.ts";
+import { provinceName } from "../ui/format.ts";
 
 /** The map's view: who holds what (the default), or the mood of the land. */
 export type MapMode = "realms" | "mood";
@@ -66,7 +67,7 @@ export const MoodLegend = { title: "Mood of the land, as you last heard it; olde
 export function governorLine(s: MapScene, id: string): string | null {
   const g = s.governors.get(id);
   if (g === undefined) return null;
-  const seat = WorldMap.default.get(g.seat).name;
+  const seat = provinceName(g.seat);
   return g.seat === id ? `Governed by ${g.name}, who sits here.` : `Governed by ${g.name}, from his seat at ${seat}.`;
 }
 

@@ -30,7 +30,7 @@ import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
-import { ownPlaces, plannedAsKnown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
+import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
@@ -100,6 +100,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const seen = sight(s, m, p);
   const known = knownHolders(s, m, p, seen);
   const own = ownKnown(s, engine, m, p, seen, known);
+  // Where it believes each of its own units stands (bug #615): what its orders and servants name them by.
+  const place = placesKnown(engine, p, seen);
   const t = s.treasuries.get(p);
   const v = newSeatView({
     claims: s.claims.map((c) => ({ ...c })),
@@ -149,7 +151,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     payCarriers: s.payCarriers.includes(p),
     ...(() => {
       const o = upkeepOf(s, p);
-      const held = (ids: string[]): string[] => sortBy([...new Set(s.units.filter((u) => u.power === p && ids.includes(u.id)).map((u) => u.province))], [(x: string) => x, cmpStr]);
+      // Where its view shows the troops held back (bug #615).
+      const held = (ids: string[]): string[] => sortBy([...new Set(ownPlaces(engine, p, seen).filter((x) => ids.includes(x.unit.id)).map((x) => x.province))], [(x: string) => x, cmpStr]);
       return { payTroops: o.pay, feedTroops: o.feed, payHeld: held(o.payExcept), feedHeld: held(o.feedExcept) };
     })(),
     huntBands: huntNow(s, p) !== null,
@@ -231,13 +234,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     v.whileAsleep = slept.slice(v.whileAsleepLeftOut);
     v.digest = [...sleep.digest];
     v.digestLeftOut = sleep.digestLeftOut;
-    // Orders follow their units: each is shown as it would be given from where its unit stands now.
+    // Orders follow their units: each is shown as it would be given from where its king believes its unit stands now.
     // Orders of one season with different conditions (a march held up a season among them) are shown apart.
     const entries: ScheduledOrders[] = [];
-    for (const x of sleep.scheduled) {
+    for (const x of scheduleKnown(engine, sleep)) {
       const last = entries.length > 0 ? entries[entries.length - 1] : null;
       // A unit raised far off is named by its levy until word of its raising comes (bug #600).
-      const shown = asShown(s, p, plannedAsKnown(engine, p, x));
+      const shown = asShown(s, p, plannedAsKnown(engine, p, x), place);
       if (last !== null && last.turn === x.turn && sameConditions(last.conditions, x.conditions)) last.orders.push(shown);
       else entries.push(newScheduledOrders({ turn: x.turn, orders: [shown], conditions: [...x.conditions] }));
     }
@@ -252,7 +255,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         when: x.when,
         power: x.power,
         province: (x.when === "UnitAttacked" ? (s.units.find((u) => u.id === x.unitId && u.power === p)?.province ?? x.province) : x.province) ?? "",
-        orders: x.orders.map((o) => asShown(s, p, o)),
+        orders: x.orders.map((o) => asShown(s, p, o, place)),
         conditions: [...x.conditions],
       }),
     );
@@ -262,7 +265,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
 
   for (const c of s.characters) {
     if (!knows(c, p) || unheardHire(s, c, p)) continue;
-    const cv = characterView(s, c, p);
+    const cv = characterView(s, commanderKnown(engine, p, c, place), p);
     // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
     if (coverOf(c, p) !== null || isOurs(c, p)) v.court.push(cv);
     else v.known.push(cv);
@@ -330,7 +333,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
   // #587: the gold the court sent, until word of what became of it comes (it reached the coffer, or came back), with no
   // day of arrival, which would tell it the roads before any word of them (Codex, #635).
-  v.goldSent = s.sent.filter((x) => x.power === p).map((x) => ({ province: x.province, gold: x.gold }));
+  v.goldSent = s.sent.filter((x) => x.power === p && !x.food).map((x) => ({ province: x.province, gold: x.gold }));
   // By the court's one clock for its land, the line its sight already draws (word home within the season).
   v.far = v.provinces.filter((x) => engine.isFar(p, x.province)).map((x) => x.province);
   // Bug #540: walking home to the land it knows it holds; its caravans as their reports have come.
@@ -818,6 +821,8 @@ export const Views = {
   siegesKnown,
   // Bug #540: a court's caravans as it knows them, for the map as for its view.
   caravansKnown: (s: GameState, p: Power, map: WorldMap | null = null): CaravanView[] => caravansKnown(new TurnEngine(s, map ?? WorldMap.default), p),
+  // Bug #615: and its own troops, where and as its view shows them.
+  ownUnitsShown: (s: GameState, p: Power, map: WorldMap | null = null) => ownUnitsShown(new TurnEngine(s, map ?? WorldMap.default), p),
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
   letters,
