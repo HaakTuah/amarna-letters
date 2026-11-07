@@ -161,6 +161,9 @@ describe("CourtTakenTests", () => {
     s.fallsHeard.set("Mitanni", ["Egypt"]);
     Assert.equal(null, claimKnown(s, "Mitanni", heir));
     Assert.equal("Egypt", claimKnown(s, "Hatti", heir));
+    // Hatti keeps what it heard from him when he walks on.
+    e.startTravel(heir, "Mitanni");
+    Assert.equal("Egypt", claimKnown(s, "Hatti", heir));
   });
 
   test("Word of a record heir's claim follows him on the road to where he is going", () => {

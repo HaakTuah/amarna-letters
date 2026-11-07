@@ -10,7 +10,7 @@ import { fallenRealmOf } from "./court.ts";
 /**
  * The fallen realm a character claims, as `viewer` knows it: once it has heard of the fall (a fallen court sees all); and,
  * for an heir raised in exile, once his claim is his, told openly by a new man who carries it, or by a man of the record
- * only where he stands, at the viewer's court.
+ * where he stands, to the courts he has stood at since (the claim fact's `knownBy`).
  */
 export function claimKnown(s: GameState, viewer: Power, c: Character): Power | null {
   const p = fallenRealmOf(s, c.id);
@@ -19,5 +19,5 @@ export function claimKnown(s: GameState, viewer: Power, c: Character): Power | n
   if (!s.reigns.get(p).exiled) return p;
   const claim = c.facts.find((f) => f.tag === "claim");
   if (claim === undefined) return null;
-  return claim.secrecy === "Public" || c.at === viewer || !isAlive(s, viewer) ? p : null;
+  return claim.secrecy === "Public" || claim.knownBy.includes(viewer) || c.at === viewer || !isAlive(s, viewer) ? p : null;
 }

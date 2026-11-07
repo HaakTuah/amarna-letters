@@ -295,8 +295,8 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   claim shows in the People tab and the models' audience lines, not to script kings alone.
 - **A man of the record already elsewhere learns he is the heir by word** (the design escalation after #815 merged,
   follow-up PR): word goes from where the realm fell and finds him (following him on the road or to a court that moved),
-  and his claim (a hidden fact, and his memory of the news) is his when it comes; a court sees him as a claimant only
-  where he stands, so no court that merely knows him reads it at once (Codex's first round on the follow-up). An exile choosing his host by his own stakes is left for later (the design check's idea,
+  and his claim (a hidden fact, and his memory of the news) is his when it comes; a court sees him as a claimant once
+  he has stood at it, and keeps it, so no court that merely knows him reads it at once (Codex's first round on the follow-up). An exile choosing his host by his own stakes is left for later (the design check's idea,
   not filed).
 - **#806 left open**: nothing in C2 depends on whether a captive king's court gives orders in his name; parts B and C1's
   reading stands (it rules in his name once word of his capture comes).
