@@ -11,7 +11,8 @@ import { type RejectedOrder, type TurnSubmission } from "../model/submission.ts"
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
-import { findCharacter, isAlive, ledger, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, ledger, unitAt, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { Views } from "./views.ts";
 import { formatMoney } from "./calendar.ts";
 

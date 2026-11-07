@@ -13,7 +13,7 @@ import { seasonOfTurn } from "../model/map.ts";
 import { hold } from "../model/order-makers.ts";
 import { type MoveOrder, type Order } from "../model/orders.ts";
 import type { Dict } from "../core/collections.ts";
-import type { Unit } from "../model/state.ts";
+import type { Unit } from "../model/units.ts";
 import { PointsPerDay, legPoints } from "../model/travel.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";

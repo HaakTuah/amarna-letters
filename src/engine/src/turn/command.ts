@@ -15,7 +15,8 @@ import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../m
 import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, newId, newUnit, notify, type Unit, loseUnit } from "../model/state.ts";
+import { findCharacter, logEvent, newId, notify } from "../model/state.ts";
+import { newUnit, type Unit, loseUnit } from "../model/units.ts";
 import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";

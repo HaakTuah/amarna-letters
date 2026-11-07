@@ -23,7 +23,8 @@ import {
   type StandingOrder,
   type StandingRequest,
 } from "../model/sleep.ts";
-import { findCharacter, logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, notify, unitAt, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { goneHeard, placesKnown } from "../rules/units-known.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";

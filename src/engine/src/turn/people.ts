@@ -16,7 +16,8 @@ import { climateOf, DroughtRegions, RiverFloods, Rivers } from "../model/geograp
 import { climatePercentIn, countryNeed, harvestIn, LandData, menAvailable, reckonedOf, resistanceOf, wallMenOf, type People } from "../model/land.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent, type Unit } from "../model/state.ts";
+import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { fastestPoints, PointsPerDay } from "../model/travel.ts";
 import { Views } from "../rules/views.ts";
 import { listed, upper } from "../rules/wording.ts";
