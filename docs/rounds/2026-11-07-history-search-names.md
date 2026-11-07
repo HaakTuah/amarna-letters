@@ -69,7 +69,8 @@ window "History of Byblos, also Gubla"; no page error.
   note that the game gave the name. Principle: "a player always knows what is history and what is fiction": the man is
   history, the name fiction, and the card says both.
 - **The weekly link check is a script, not yet a workflow**: a new workflow needs the owner's yes in its PR (`SECURITY.md`,
-  rule 3), so the workflow that runs `scripts/links.mjs` weekly is proposed in a PR of its own for his yes.
+  rule 3), so the workflow that runs `scripts/links.mjs` weekly is proposed in a PR of its own, once this one merges, for
+  his yes.
 - **No key for Search or History by default**: neither of Paradox's games gives one a sure like (`54-keys.md`); a player
   gives them one on the Keys page.
 
@@ -81,4 +82,5 @@ regression check: below.
 
 ## Questions for the owner
 
-See the pull request.
+- #768: what the two name settings show: the realms' setting for the Great Kings' realms only, and modern names as the
+  names readers know (Hattusa, not Boğazkale).
