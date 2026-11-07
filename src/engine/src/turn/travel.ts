@@ -633,6 +633,11 @@ P.wordArrives = function (j) {
     this.kingDeadHeard(j);
     return;
   }
+  // Part C2: word to a man of the record, already elsewhere, that he is a fallen realm's heir.
+  if (j.news === "HeirClaim") {
+    this.heirClaimHeard(j);
+    return;
+  }
   if (!isAlive(S, j.to)) return;
   switch (j.news) {
     case "RoadsClosed":

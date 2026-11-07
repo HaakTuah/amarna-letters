@@ -4,7 +4,7 @@ Found while building item 17b part C2 (#815). `scripts/usage.sh` reads "unknown"
 
 ## What changed
 
-- **A court's view of a person** (`factsAsHeard` in `rules/views.ts`): when a realm falls, its living king's public fact
+- **A court's view of a person** (`factsAsHeard` in `rules/people-views.ts`): when a realm falls, its living king's public fact
   "Rules Gubla from …" becomes "Ruled …" (`fall` in `turn/resolve.ts`). A court that has not yet heard of the fall
   (`GameState.fallsHeard`, as its `fallen` list already reads it) now still reads "Rules …", so a king who holds the
   fallen king captive far away learns of the fall only when word of it comes.

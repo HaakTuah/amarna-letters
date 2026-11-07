@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, inboxOf, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, Views, inboxOf, newGame, newGameConfig, newGoldLot, newFact } from "@amarna/engine";
+import { claimKnown } from "../src/rules/claims.ts";
 import { fallenRealmOf } from "../src/rules/court.ts";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
 
@@ -133,5 +134,61 @@ describe("CourtTakenTests", () => {
     const n = Assert.single(inboxOf(s, "Egypt").filter((i) => i.title === "The court taken on the road"));
     Assert.contains("stopped and taken on the road", n.body);
     Assert.contains(`shelters in ${e.map.get(where).name}`, n.body);
+  });
+
+  test("A man of the record already elsewhere learns he is the heir as word from where his realm fell reaches him", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const king = kingOf(s, "Egypt");
+    // Egypt's record names its next king, Smenkhkare: here a free man of the sources standing at Hatti's court.
+    const man = s.characters.find((c) => c.at === "Hatti" && c.status === "Free" && c.heldBy === null && c.errand === null)!;
+    Object.assign(man, { name: "Smenkhkare", attested: true, duty: "None" });
+    const before = new Set(s.characters.map((c) => c.id));
+    e.fall("Egypt", "Hatti");
+    e.dies(king, e.courtAt("Hatti"), "on the road");
+    e.kingDeadHeard(s.journeys.find((j) => j.news === "KingDead" && j.to === "Egypt")!);
+    const heir = kingOf(s, "Egypt");
+    Assert.equal(man.id, heir.id);
+    Assert.true(before.has(heir.id));
+    Assert.false(heir.facts.some((f) => f.tag === "claim"));
+    Assert.equal(null, Views.for(s, "Hatti").known.concat(Views.for(s, "Hatti").court).find((c) => c.id === heir.id)?.heirOf ?? null);
+    const word = s.journeys.find((j) => j.news === "HeirClaim" && j.characterId === heir.id)!;
+    // Mitanni knew him before, by a hidden fact it holds.
+    heir.facts.push(newFact({ id: "f-known", text: "Once served at Washukanni.", secrecy: "Hidden", knownBy: ["Mitanni"] }));
+    e.heirClaimHeard(word);
+    const seen = [...Views.for(s, "Mitanni").known, ...Views.for(s, "Mitanni").court].find((x) => x.id === heir.id);
+    Assert.notNull(seen);
+    Assert.false(seen!.knownFacts.some((f) => f.includes("claims its throne")));
+    const claim = heir.facts.find((f) => f.tag === "claim")!;
+    // His claim is his, told where he stands: not a public fact any court that knows him would read at once.
+    Assert.equal("Hidden", claim.secrecy);
+    Assert.equal(null, claimKnown(s, "Mitanni", heir));
+    s.fallsHeard.set("Mitanni", ["Egypt"]);
+    Assert.equal(null, claimKnown(s, "Mitanni", heir));
+    Assert.equal("Egypt", claimKnown(s, "Hatti", heir));
+    // Hatti keeps what it heard from him when he walks on.
+    e.startTravel(heir, "Mitanni");
+    Assert.equal("Egypt", claimKnown(s, "Hatti", heir));
+    // Both his claim and who he is reach each court he comes to.
+    heir.at = "Mitanni";
+    e.cameToCourts();
+    Assert.true(heir.facts.filter((f) => f.tag === "claim").every((f) => f.knownBy.includes("Mitanni")));
+  });
+
+  test("Word of a record heir's claim follows him on the road to where he is going", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const king = kingOf(s, "Egypt");
+    const man = s.characters.find((c) => c.at === "Hatti" && c.status === "Free" && c.heldBy === null && c.errand === null)!;
+    Object.assign(man, { name: "Smenkhkare", attested: true, duty: "None" });
+    e.fall("Egypt", "Hatti");
+    e.dies(king, e.courtAt("Hatti"), "on the road");
+    e.kingDeadHeard(s.journeys.find((j) => j.news === "KingDead" && j.to === "Egypt")!);
+    const word = s.journeys.find((j) => j.news === "HeirClaim" && j.characterId === man.id)!;
+    e.startTravel(man, "Mitanni");
+    e.heirClaimHeard(word);
+    Assert.false(man.facts.some((f) => f.tag === "claim"));
+    const on = s.journeys.find((j) => j.news === "HeirClaim" && j !== word)!;
+    Assert.equal(["Mitanni", e.courtAt("Mitanni")], [on.to, on.toProvince]);
   });
 });

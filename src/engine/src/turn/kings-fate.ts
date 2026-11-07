@@ -70,6 +70,8 @@ declare module "./core.ts" {
     kingDeadWord(p: Power, from: string, seat: string, text: string): void;
     /** Part C2: word of a king's death arrives: sent on to a court that has moved since, else his heir reigns. */
     kingDeadHeard(j: Journey): void;
+    /** Part C2: word reaches a man of the record, already elsewhere, that he is a fallen realm's heir: sent on after him, else his claim is his. */
+    heirClaimHeard(j: Journey): void;
     /** Word of a realm's new king, its `count`th heir, has reached court `by`, which knows him by his name from now. */
     heirHeard(p: Power, by: Power, count: number): void;
   }
@@ -412,7 +414,7 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
   // A man of the record already on the map takes the throne himself, from wherever he is.
   if (there !== null) crownPerson(e, there, p, about);
   const c = there ?? newKing(e, p, name, traits, [about]);
-  S.reigns.set(p, { traits, since: S.turn, character: c.id, strength: e.strength(p), name: c.name, about, line: at });
+  S.reigns.set(p, { traits, since: S.turn, character: c.id, strength: e.strength(p), name: c.name, about, line: at, exiled: false });
   setCrowned(crownedIn(S));
   e.syncNames();
   remember(c, S.turn, `${dead.name} is dead, and I reign over ${land(p)}.`);
@@ -432,7 +434,7 @@ function exileHeir(e: TurnEngine, p: Power, dead: Character): void {
   const { at, traits, name, about, there } = nextHeir(e, p, dead, was);
   const fell = e.fallOf(p)?.capital ?? e.map.capital(p).id;
   const host = sortBy(alive(S), [(q: Power) => e.travelTurnsBetween(fell, e.courtAt(q)), cmpNum], [(q: Power) => AllPowers.indexOf(q), cmpNum])[0] ?? null;
-  const claim = `Heir of the kings of ${land(p)}, in exile; claims its throne.`;
+  const news = `${dead.name} is dead, and ${land(p)} has fallen: I am the heir of its kings, in exile.`;
   let c = there;
   if (c === null) {
     c = newCharacter({ id: newId(S, "c"), name: S.characters.some((x) => x.name === name) ? `${name} of ${land(p)}` : name, origin: e.map.get(fell).name, calling: `heir of ${land(p)}, in exile`, traits: newTraits(personTraits(traits)) });
@@ -446,14 +448,53 @@ function exileHeir(e: TurnEngine, p: Power, dead: Character): void {
     // He sets out among its refugees from where it fell, as a free man walks to a court (C2's design check).
     if (host !== null) e.startTravel(c, host, null, fell);
     // A new man, he carries his claim from where it fell: whoever meets him on the road or at a court hears it from him.
-    for (const text of [claim, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
-    remember(c, S.turn, `${dead.name} is dead, and ${land(p)} has fallen: I am the heir of its kings, in exile.`);
+    claimHis(e, c, p, about, news, "Public");
+  } else {
+    // A man of the record already elsewhere learns it as word from where it fell reaches him (`heirClaimHeard`); till
+    // then neither he nor those who know him know of it (Codex's third round, the design escalation).
+    const to = c.at ?? host;
+    if (to !== null) S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + e.travelTurnsBetween(fell, e.courtAt(to)), from: p, to, news: "HeirClaim", text: news, characterId: c.id, toProvince: e.courtAt(to) }));
   }
-  // A man of the record already elsewhere gains no fact and no memory now: word of the death and the fall has not reached
-  // him, nor those who know him (Codex's third round); a seat sees his claim once it has heard of the fall (`heirOf`).
-  S.reigns.set(p, { ...was, traits, character: c.id, name: c.name, about, line: at });
+  S.reigns.set(p, { ...was, traits, character: c.id, name: c.name, about, line: at, exiled: true });
   logEvent(S, "king-exile", `${c.name}, heir of ${land(p)}, lives on in exile.`, [], "king-exile");
 }
+
+/**
+ * Part C2: an heir in exile's claim, his own from now: facts of it and of who he is, and the memory of the news. A new man
+ * carries them in the open from where his realm fell; a man of the record already known elsewhere keeps them hidden, and a
+ * court learns his claim where he stands (`claimKnown`), so word of it never runs ahead of him.
+ */
+function claimHis(e: TurnEngine, c: Character, p: Power, about: string, news: string, secrecy: "Public" | "Hidden"): void {
+  const S = e.s;
+  const knownBy = secrecy === "Public" || c.at === null ? [] : [c.at];
+  c.facts.push(newFact({ id: newId(S, "f"), text: `Heir of the kings of ${land(p)}, in exile; claims its throne.`, secrecy, tag: "claim", knownBy }));
+  c.facts.push(newFact({ id: newId(S, "f"), text: about, secrecy, tag: "claim", knownBy: [...knownBy] }));
+  remember(c, S.turn, news);
+}
+
+P.heirClaimHeard = function (j) {
+  const S = this.s;
+  const c = findCharacter(S, j.characterId ?? "");
+  const p = j.from;
+  // Dead, or no longer its heir (made king again, or dead and followed), by the time the word comes: it is moot.
+  if (c === null || c.status === "Dead" || S.reigns.get(p).character !== c.id || fallenRealmOf(S, c.id) !== p) return;
+  // The word must find him where he is: at a court standing where it came, else it follows him there; on the road, to
+  // where he is going; nowhere to be found (held, or away on some errand), it waits a season and tries again.
+  const at = c.at ?? S.journeys.find((x) => x.kind === "Travel" && x.characterId === c.id)?.to ?? null;
+  const from = j.toProvince ?? this.courtAt(j.to);
+  // Among a fallen court's people the fall is no news; and word that has sought him a year of seasons reaches him at last.
+  const found = c.at !== null && (!isAlive(S, c.at) || this.courtAt(c.at) === from);
+  if (found || j.gold >= HeirWordTries) {
+    claimHis(this, c, p, S.reigns.get(p).about, j.text ?? "", "Hidden");
+    return;
+  }
+  const to = at !== null && isAlive(S, at) ? at : null;
+  const arrive = S.turn + (to === null ? 1 : Math.max(1, this.travelTurnsBetween(from, this.courtAt(to))));
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: arrive, from: p, to: to ?? j.to, news: "HeirClaim", text: j.text, characterId: c.id, toProvince: to === null ? from : this.courtAt(to), gold: j.gold + 1 }));
+};
+
+/** Part C2: how many times word of a record heir's claim seeks him before it reaches him wherever he is (a first guess). */
+const HeirWordTries = 4;
 
 /** One already on the map comes to the throne: his service, errands and roads end, and he is at his court. */
 function crownPerson(e: TurnEngine, c: Character, p: Power, about: string): void {

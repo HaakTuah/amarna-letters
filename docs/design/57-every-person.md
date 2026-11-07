@@ -120,8 +120,12 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
 - **An heir in exile** (`exileHeir`): when word of the death of a fallen realm's last king reaches where it fell, or word
   of a king's death reaches his court after his realm fell, his heir (the record's next name, or drawn, as `nextHeir`
   picks him) lives on as a free man among its refugees, walking from where it fell to the court nearest it, carrying a
-  public fact that he claims its throne, seeking service; a man of the record already elsewhere stays as he is, with no
-  new fact, since word of the fall has not reached those who know him. He reigns over nothing (`realmOfKing` counts no fallen realm); the
+  public fact that he claims its throne, seeking service; a man of the record already elsewhere learns it as word from
+  where it fell finds him (`heirClaimHeard`: at his court, following him on the road or to a court that moved, or waiting
+  while he cannot be found), and has his claim from then, a hidden fact told where he stands. An heir raised in exile
+  (`Reign.exiled`) shows as a claimant (`heirOf`, `rules/claims.ts`) only once his claim is his: a new man's to all who
+  meet him, a man of the record's to the courts he has stood at since (the fact's
+  `knownBy`, added as he comes to a court, `cameToCourts`). He reigns over nothing (`realmOfKing` counts no fallen realm); the
   realm's reign names him, so the record goes on through him. A last king who lives is its claimant the same way, seen
   by the same `heirOf` and never by a public fact (one would tell a far court of the fall before word of it came), unless
   he gave it away by sealed tablet (a cession leaves no claim). His death, by any cause, raises the heir after him
