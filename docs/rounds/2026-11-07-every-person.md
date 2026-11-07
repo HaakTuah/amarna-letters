@@ -211,13 +211,13 @@ abroad, the heir an exile with a claim, and word of a death sent on to a court t
 
 ### Script players and the measure
 
-- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the code after the second rounds): all 50
-  games ran and replayed exactly. Wins: Babylonia 20, Egypt 19, Hatti 4, Assyria 4, and the rest one each or none (part
-  B: Egypt 27, Babylonia 13, Hatti 2, Mitanni 1, Assyria 1). Kings taken 1,074 times, escaping 222 times, dying 552 times
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the code after the escalation step): all 50
+  games ran and replayed exactly. Wins: Egypt 19, Babylonia 18, Hatti 6, Assyria 4, and the rest one each or none (part
+  B: Egypt 27, Babylonia 13, Hatti 2, Mitanni 1, Assyria 1). Kings taken 1,076 times, escaping 220 times, dying 570 times
   (part B: 13), most in the fall of their cities, the new first guess; kings went alone 736 times in 44 games, and got
-  away from a battle lost 47 times. **Games stay playable**: the deaths fall mostly on the kings of one-city realms, which
-  fall with their city as before; no Great King's realm fell for want of a king (Egypt, Hatti, Babylonia and Alashiya
-  never fell; Mitanni 21 times and Assyria 31, against 14 and 29 in part B), and every game ran to its end or an early
+  away from a battle lost 51 times. **Games stay playable**: the deaths fall mostly on the kings of one-city realms, which
+  fall with their city as before; no Great King's realm fell for want of a king (Egypt, Hatti and Babylonia never fell,
+  Alashiya once; Mitanni 19 times and Assyria 32, against 14 and 29 in part B), and every game ran to its end or an early
   winner as before. For item 18, which tunes the odds.
 - **Use against ignore** (`--field-play-half`, 50 games, same seeds): script kings that go to the front won 29 to 21
   against those that stay at court, mean growth 0.76 to 0.73. Pays in wins and growth.
