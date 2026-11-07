@@ -178,7 +178,7 @@ describe("RequestTextTests", () => {
     // What the model reads is the persona as it is now.
     let asker = new Recorder();
     await new LlmCharacterMind(asker).present(audience(envoy, 0));
-    const seat = Assert.single(asker.calls).seatSystem;
+    const seat = Assert.single(asker.calls).seatSystem ?? "";
     Assert.startsWith(now, seat);
     // Its secret comes beside the persona once, marked as a secret.
     Assert.contains("Things about yourself you keep secret and do not volunteer: Keeps a lover in Ugarit.", seat);
