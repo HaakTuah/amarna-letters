@@ -195,6 +195,19 @@ abroad, the heir an exile with a claim, and word of a death sent on to a court t
 - **His presence in a walled city keeps its gate** (`gateHolds`, the design check): the ruler "there" is the king where he
   commands from, no longer his court without him.
 
+### Script players and the measure
+
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the code after the design check's first
+  round): all 50 games ran and replayed exactly. Wins: Egypt 23, Babylonia 17, Hatti 4, Assyria 3, and the Suteans, Lukka
+  and Akko one each (part B: Egypt 27, Babylonia 13, Hatti 2, Mitanni 1, Assyria 1). Kings taken 1,076 times, escaping
+  211 times, dying 580 times (part B: 13), most in the fall of their cities, the new first guess; kings went alone 664
+  times in 44 games, and got away from a battle lost 51 times. For item 18, which tunes the odds.
+- **Use against ignore** (`--field-play-half`, 50 games, same seeds): script kings that go to the front won 29 to 21
+  against those that stay at court, mean growth 0.76 to 0.73. Pays in wins and growth.
+- **Every feature is every seat's**: script kings go alone to the front and back; a found weakness patched in this part:
+  the script king looked for its own person among the court's foreign contacts and so never went (its king is listed
+  among its own people), caught by the new unit test before any game was run on it.
+
 ### Questions for the owner
 
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806): added to it: while a king is away from his court, is
