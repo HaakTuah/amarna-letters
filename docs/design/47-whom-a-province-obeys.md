@@ -37,7 +37,7 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   next door, or before walls they have not stormed (`GameState.breached`), weigh a quarter as much and at most `nearMost`
   25 in all, for every power alike; plus love, his ledger and that of the men serving him there who have not chosen to
   rise against him; less, for the holder against a rising or the floor, his weakness (`besieged` 20, up to `weakness` 40 as his realm
-  shrinks): it is the moment a low standing becomes a rising, and against a foreign king's troops his beaten armies already
+  shrinks below `GameState.startStrength`, for an heir what he inherited, item 17b part D): it is the moment a low standing becomes a rising, and against a foreign king's troops his beaten armies already
   weigh as the force he has left. A guest
   by sealed passage weighs nothing.
 - **Conquest is this rule alone**: moving in takes nothing by itself, and a unit that storms walls breaks in (`stormed`

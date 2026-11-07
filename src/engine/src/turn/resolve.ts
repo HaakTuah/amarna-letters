@@ -700,7 +700,7 @@ P.endOfTurn = function () {
     S.ended = true;
     S.endReason = reason;
     this.decideWinners();
-    // Every person on one scoreboard (item 17b, part D): every placement counts. The winner is the first of the kings.
+    // Every person on one scoreboard (item 17b, part D): every placement counts. The winner is the first on the board.
     const board = this.scoreboard();
     const shown = board.slice(0, 10).map(placing).join("; ") + (board.length > 10 ? `; and ${board.length - 10} more` : "");
     logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. The scoreboard: ${shown}.`);

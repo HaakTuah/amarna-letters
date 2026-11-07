@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, boardLine, characterResult, gain, idNumber, newCharacter, newGame, newGameConfig, newEarnings, newHoard, rankAmong, standingOf } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, boardLine, characterResult, gain, idNumber, newCharacter, newGame, newGameConfig, nameFrom, newEarnings, newHoard, newTablet, rankAmong, standingOf } from "@amarna/engine";
 import { CharacterPar } from "../src/rules/par-results.ts";
 import { Assert, orderBy, smallWorld } from "./support.ts";
 
@@ -74,7 +74,24 @@ describe("ScoreboardTests", () => {
     [c.purse, c.earned.savings] = [100000, 0];
     e.decideWinners();
     Assert.equal(c, e.scoreboard()[0].character);
-    Assert.equal([c.name], s.winners);
+    Assert.equal([nameFrom(c)], s.winners);
+  });
+
+  test("A sworn pair shares the victory only above every other living person, characters too", () => {
+    const s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0, sharedVictory: true, sizeWeight: 0 })), "Egypt", "Hatti");
+    s.tablets.push(newTablet({ id: "t901", text: "Alliance.", proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 1, allianceOath: true }));
+    // The pair grown past their par; every character kept only what he brought.
+    for (const c of s.characters) [c.purse, c.hoard, c.earned.savings] = [0, null, 0];
+    s.treasuries.get("Egypt").gold += 5000;
+    s.treasuries.get("Hatti").gold += 5000;
+    const e = new TurnEngine(s);
+    e.decideWinners();
+    Assert.equal(["Egypt", "Hatti"], s.winners);
+    // A merchant above them both takes it alone.
+    const c = s.characters.find((x) => x.duty !== "Ruling" && x.status !== "Dead")!;
+    [c.purse, c.earned.savings] = [100000, 0];
+    e.decideWinners();
+    Assert.equal([nameFrom(c)], s.winners);
   });
 
   test("A king who dies held his realm, and is ranked below the living by it", () => {

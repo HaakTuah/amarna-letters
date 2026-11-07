@@ -148,7 +148,9 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
 - **A king** (reigning over a living realm, `realmOfKing`) holds his realm (`strength`) and is measured from his
   accession: his growth is its strength over what he inherited (`GameState.startStrength`, set again at each
   accession, so his seat, his script and Standings measure what the board does), ranked among par for his realm's
-  start (`standingOf` / 2). A king who dies held his realm as it stood (`kingDied` sets `Character.diedWith`).
+  start (`standingOf` / 2). The same baseline measures a realm's weakness for its provinces and a lender's "shrunk
+  below its start" ([47](47-whom-a-province-obeys.md), `MoneyData`), so an heir is judged from what he inherited by
+  everyone. A king who dies held his realm as it stood (`kingDied` sets `Character.diedWith`).
 - **Anyone else** (a character, a fallen realm's king or heir in exile) holds his purse and hoard (`Wealth.of`) and is
   measured from what he brought into play (`characterResult`, from his savings brought in, `Earnings.savings`: 1 for as
   much as he brought, 1 more for every shekel gained, below 1 in proportion to what he lost of it; 0 for the dead),

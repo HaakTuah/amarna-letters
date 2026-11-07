@@ -142,5 +142,5 @@ P.decideWinners = function () {
       return;
     }
   }
-  S.winners = [best.power ?? best.character.name];
+  S.winners = [best.power ?? nameFrom(best.character)];
 };

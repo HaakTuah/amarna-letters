@@ -78,7 +78,7 @@ export function parLine(): string {
 export function howYouWin(c: GameConfig, fullRulebook: boolean): string {
   // A house rule: the kings read it only in games that use it.
   const sharedVictory = c.sharedVictory
-    ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their score together (each partner's, weighed by its starting strength) beats every other power's.`
+    ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their score together (each partner's, weighed by its starting strength) beats every other living person's, king or character.`
     : ``;
   return `You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The rules enforce only movement, combat, production and payment, and the passage and basing a sealed tablet grants. Every treaty, alliance and betrayal is invented by the players. You play one power: a Great King, a city's king or a land's chief. Your goal is to finish as high as you can: there is one winner, the person with the highest score, king or character, but every place counts, so climbing from eighth to fifth is worth the effort.
 

@@ -368,6 +368,12 @@ the pull request.
 - **A king's holding is his realm, not his purse** ("A king's holding is his realm"); a fallen realm's king or heir in
   exile holds his purse and hoard, as any character.
 - **A realm whose king is dead and whose heir has not risen has no score**: its player is out, and nobody reigns to win.
+- **One baseline: an heir is judged from what he inherited, by everyone** (one fact, one place; Codex's first round, the
+  design check's second): `GameState.startStrength` is set again at each accession, so a realm's growth, its king's
+  score, his seat's and his script's reckoning, a lender's "shrunk below its start" and a province's reading of its
+  master's weakness all measure from the heir's accession. His fragility is a third of his father's standing with the
+  people and the soldiers ("A realm holds by its ledger"), not his father's losses counted against him; a realm
+  ruined before he came is weak by its standing and its armies, not by a ratio to a greatness he never held.
 - **The powers' par was not refreshed**: the same run's growth differs from the recorded par, since earlier parts
   changed who falls; refreshing it moves every benchmark and is item 18's to do with the weights.
 
