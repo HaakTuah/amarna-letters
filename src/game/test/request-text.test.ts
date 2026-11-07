@@ -158,7 +158,7 @@ describe("RequestTextTests", () => {
     let envoy = envoyOf(80, 20);
     envoy.facts.push(newFact({ id: "f1", text: "Keeps a lover in Ugarit.", secrecy: "Hidden", tag: "lover" }));
     envoy.persona = Personas.template(envoy);
-    Assert.contains("steadfast to whoever treats you fairly; indifferent to riches", envoy.persona);
+    Assert.contains("steadfast to whoever treats you fairly; careless of small sums", envoy.persona);
     Assert.equal(envoy.persona, Personas.current(envoy));
 
     // Years unpaid and a court's gold: loyalty falls and greed rises. The template persona is rewritten in place.
@@ -170,15 +170,19 @@ describe("RequestTextTests", () => {
     Assert.contains("What you want most: wealth", now);
     Assert.doesNotContain("steadfast", now);
     Assert.doesNotContain("to serve well and be trusted", now);
-    // The rest stays as written, its secrets among them; the persona it was given is not changed.
-    Assert.contains("Things about yourself you do not volunteer: Keeps a lover in Ugarit.", now);
-    Assert.endsWith("You speak in the formal manner of a royal messenger of the Late Bronze Age.", now);
+    // The rest stays as written, its voice line among them; the persona it was given is not changed. It holds no facts.
+    Assert.endsWith(Personas.voice(envoyOf(80, 20).traits), now);
+    Assert.doesNotContain("Keeps a lover", now);
     Assert.contains("steadfast", envoy.persona);
 
     // What the model reads is the persona as it is now.
     let asker = new Recorder();
     await new LlmCharacterMind(asker).present(audience(envoy, 0));
-    Assert.startsWith(now, Assert.single(asker.calls).seatSystem);
+    const seat = Assert.single(asker.calls).seatSystem;
+    Assert.startsWith(now, seat);
+    // Its secret comes beside the persona once, marked as a secret.
+    Assert.contains("Things about yourself you keep secret and do not volunteer: Keeps a lover in Ugarit.", seat);
+    Assert.equal(1, seat.split("Keeps a lover").length - 1);
 
     // A persona the narrator wrote cannot be rewritten without a model: the trait words as they are now follow it.
     envoy.persona = "You are Keliya, a scribe who has served one master faithfully all his life. You speak softly.";
@@ -189,6 +193,14 @@ describe("RequestTextTests", () => {
         ".",
       Personas.current(envoy),
     );
+  });
+
+  test("Template tempers do not share one voice line, and none is the old formal one", () => {
+    const lines = new Set<string>();
+    for (const courage of [20, 50, 80]) for (const ambition of [20, 50, 80]) lines.add(Personas.voice({ ...envoyOf(50, 50).traits, courage, ambition }));
+    Assert.equal(5, lines.size);
+    for (const l of lines) Assert.doesNotContain("formal manner", l);
+    Assert.doesNotContain("formal manner", CharacterSystem);
   });
 
   // <summary>Sends one envoy to Hatti in the first season; answers every audience plainly.</summary>
