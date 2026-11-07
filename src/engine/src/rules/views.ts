@@ -29,7 +29,8 @@ import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtV
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { broughtToKing, courtLagOf, courtOf, fallenRealmOf, kingAfield, kingLossUnheard, realmOfKing, seatOf } from "./court.ts";
+import { broughtToKing, courtLagOf, courtOf, kingAfield, kingLossUnheard, realmOfKing, seatOf } from "./court.ts";
+import { claimKnown } from "./claims.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -545,7 +546,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
     kingOf,
-    heirOf: heirKnown(s, viewer, c),
+    heirOf: claimKnown(s, viewer, c),
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
     ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
@@ -902,15 +903,4 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
   if (u.march === null) return { march: null, marchDays: 0 };
   const left = Math.max(0, engine.marchPoints(u, u.march, false) - u.along);
   return { march: u.march, marchDays: Math.ceil(left / PointsPerDay) };
-}
-
-/**
- * Item 17b, part C2: the fallen realm a character claims, once the viewer has heard of its fall (a fallen court sees all),
- * and, for an heir raised in exile, once his claim is his to tell (his claim fact), which reaches others as he does.
- */
-function heirKnown(s: GameState, viewer: Power, c: Character): Power | null {
-  const p = fallenRealmOf(s, c.id);
-  if (p === null) return null;
-  if (s.reigns.get(p).exiled && !c.facts.some((f) => f.tag === "claim")) return null;
-  return !isAlive(s, viewer) || (s.fallsHeard.tryGet(viewer) ?? []).includes(p) ? p : null;
 }

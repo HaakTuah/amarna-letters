@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import { type GameState, type Power, TurnEngine, Views, inboxOf, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
+import { claimKnown } from "../src/rules/claims.ts";
 import { fallenRealmOf } from "../src/rules/court.ts";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
 
@@ -153,6 +154,29 @@ describe("CourtTakenTests", () => {
     Assert.equal(null, Views.for(s, "Hatti").known.concat(Views.for(s, "Hatti").court).find((c) => c.id === heir.id)?.heirOf ?? null);
     const word = s.journeys.find((j) => j.news === "HeirClaim" && j.characterId === heir.id)!;
     e.heirClaimHeard(word);
-    Assert.true(heir.facts.some((f) => f.tag === "claim"));
+    const claim = heir.facts.find((f) => f.tag === "claim")!;
+    // His claim is his, told where he stands: not a public fact any court that knows him would read at once.
+    Assert.equal("Hidden", claim.secrecy);
+    Assert.equal(null, claimKnown(s, "Mitanni", heir));
+    s.fallsHeard.set("Mitanni", ["Egypt"]);
+    Assert.equal(null, claimKnown(s, "Mitanni", heir));
+    Assert.equal("Egypt", claimKnown(s, "Hatti", heir));
+  });
+
+  test("Word of a record heir's claim follows him on the road to where he is going", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const king = kingOf(s, "Egypt");
+    const man = s.characters.find((c) => c.at === "Hatti" && c.status === "Free" && c.heldBy === null && c.errand === null)!;
+    Object.assign(man, { name: "Smenkhkare", attested: true, duty: "None" });
+    e.fall("Egypt", "Hatti");
+    e.dies(king, e.courtAt("Hatti"), "on the road");
+    e.kingDeadHeard(s.journeys.find((j) => j.news === "KingDead" && j.to === "Egypt")!);
+    const word = s.journeys.find((j) => j.news === "HeirClaim" && j.characterId === man.id)!;
+    e.startTravel(man, "Mitanni");
+    e.heirClaimHeard(word);
+    Assert.false(man.facts.some((f) => f.tag === "claim"));
+    const on = s.journeys.find((j) => j.news === "HeirClaim" && j !== word)!;
+    Assert.equal(["Mitanni", e.courtAt("Mitanni")], [on.to, on.toProvince]);
   });
 });
