@@ -79,6 +79,16 @@ export function confessedMaster(s: GameState, id: string, court: Power): Power |
   return any ? found : null;
 }
 
+/**
+ * What `viewer` knows of a person, in words. A king whose realm has fallen "Ruled" it (`fall` in turn/resolve.ts); to a
+ * court that has not yet heard of the fall (`fallsHeard`), he still "Rules" it (bug #817).
+ */
+function factsAsHeard(s: GameState, c: Character, viewer: Power): string[] {
+  const fell = [...s.reigns].find(([p, r]) => r.character === c.id && s.eliminated.includes(p))?.[0] ?? null;
+  const unheard = fell !== null && fell !== viewer && !(s.fallsHeard.tryGet(viewer) ?? []).includes(fell);
+  return factsKnownTo(c, viewer).map((f) => (unheard && f.tag === "origin" && f.text.startsWith("Ruled ") ? `Rules ${f.text.slice("Ruled ".length)}` : f.text));
+}
+
 export function characterView(s: GameState, c: Character, viewer: Power): CharacterView {
   // Item 17b, part C: its own king taken or dead away from his court, as the court last knew him until the word comes.
   if (c.status !== "Employed" && realmOfKing(s, c.id) === viewer && kingLossUnheard(s, viewer))
@@ -98,7 +108,7 @@ export function characterView(s: GameState, c: Character, viewer: Power): Charac
   // of a borrowed name, what you know of the man whose name it is.
   const alias = falseNameAt(c, viewer);
   const borrowed = alias?.as != null ? (s.characters.find((x) => x.id === alias.as) ?? null) : null;
-  const facts = [...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []), ...factsKnownTo(c, viewer)].map((f) => f.text);
+  const facts = [...(borrowed !== null ? factsAsHeard(s, borrowed, viewer) : []), ...factsAsHeard(s, c, viewer)];
   // Item 17b: a king the viewer knows reigns (an heir, once word of him has come).
   const realm = realmOfKing(s, c.id);
   const kingOf = realm !== null && reignKnown(viewer, realm) ? realm : null;

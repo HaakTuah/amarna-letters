@@ -108,7 +108,8 @@ on sealed tablets comes with item 9.
   may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):
   the envoy turns back on arrival. Ceding land or giving troops to it is still refused, which tells the court (a known
   leak, kept so that no land or troops go to a dead kingdom). ENVOY TRAVEL lists every court not heard to have fallen.
-  An envoy at an audience weighs whether its lord looks doomed by what the host's court knows.
+  An envoy at an audience weighs whether its lord looks doomed by what the host's court knows. A fallen realm's living king, whose fact
+  "Rules …" becomes "Ruled …" at the fall, still "Rules" it in the view of a court that has not heard (bug #817).
 - **Word from vassals and allies** (#618, `turn/tidings.ts`, save version 58): at the season's end
   (`TurnEngine.sendTidings`, after `keepTrails`) each province that changed hands in it (`GameState.ownerLog`), unless it
   passed with a kingdom's fall (which travels as `KingdomFalls`), is reported by every court that sees it (`Views.sight`)
