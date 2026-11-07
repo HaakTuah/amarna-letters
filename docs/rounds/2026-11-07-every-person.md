@@ -373,9 +373,11 @@ the pull request.
 
 ### Script players and the measure
 
-- **Characters' par** (`scripts/sim.sh --games 50 --seed 101 --par-out`, 39 minutes): of every character's result, the
-  lowest sixth died, two thirds gained nothing, and the top fifth gained from 2 to 2,741 shekels (median of those
-  gaining, about 70). The richest character held 876 shekels at the end on average (range 252-2,741).
+- **Characters' par** (`scripts/sim.sh --games 50 --seed 101 --par-out`, about 40 minutes, on the final rules): of
+  every character's result, the lowest quarter died or ended with nothing, a few lost part of what they brought, more
+  than half kept what they brought and gained nothing, and the top fifth gained from 3 to 3,113 shekels (median of those
+  gaining, about 65). The richest character held 812 shekels at the end on average (range 274-3,113); a character
+  stood first on the board in 2 of the 50 games.
 - **No new lever**: part D changes what is counted, not what a player can do, so there is no use against ignore; script
   kings already play for their realm's growth and characters for their gold, which is what the board counts.
 - **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, at 3221440): all 50 games ran and replayed
