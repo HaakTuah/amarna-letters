@@ -401,7 +401,7 @@ export interface BandSeen {
   raiders: string;
   /** Item 17++++a: the people it holds, carried off where it robbed, where the viewer has the band in sight (else 0). */
   captives: number;
-  /** Item 17++++a: the last season it keeps out of your land, if you paid it off and that still holds; 0 if not. */
+  /** Item 17++++a: the last season it keeps out of your land, if you paid it off, that still holds and it is in sight; else 0. */
   paidUntil: number;
 }
 

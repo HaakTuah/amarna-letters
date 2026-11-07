@@ -228,7 +228,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           raiders: raidersHome(b.from)?.beyond.raids?.who ?? "",
           // Its captives as its eyes see them, in sight; out of sight, word of them comes by the king's reports (`tell`).
           captives: seen.has(b.province) ? b.captives : 0,
-          paidUntil: ((c) => (c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
+          // In sight only: out of it, word of a pay-off taken reaches the king with its notice (`tell`).
+          paidUntil: ((c) => (seen.has(b.province) && c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
         }),
       ),
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
