@@ -164,8 +164,12 @@ describe("RaiderTests", () => {
     const purse = e.market(prov).purse;
     Assert.true(e.keepsWord(b));
     Assert.false(e.bandMayGo(b, prov));
-    // Nor does it rob travellers on that king's roads.
+    // Nor does it rob travellers on that king's roads; a model chief who chose his season himself is bound by no formula.
     Assert.empty(e.robbersAt(prov));
+    loyal.chiefPlan = newChiefChoice({ turn: s.turn - 1 });
+    Assert.false(e.keepsWord(b));
+    Assert.equal(1, e.robbersAt(prov).length);
+    loyal.chiefPlan = null;
     s.turn++;
     e.bandsSeason();
     Assert.equal(0, loyal.earned.loot);

@@ -398,7 +398,7 @@ P.bandsSeason = function () {
     // A script chief who keeps his word to the king who paid him off spares that king's land (item 17++++a).
     // Where it robs now: a hunted band may have fled into other land this season.
     const robbed = S.owner.getOrDefault(b.province, null);
-    const spared = !own && robbed !== null && robbed === paidOffBy(this, b);
+    const spared = robbed !== null && robbed === paidOffBy(this, b);
     const gold = besieged || spared ? 0 : rate(m.purse);
     const grain = besieged || spared ? 0 : rate(this.stores(b.province));
     const country = besieged && !spared ? rate(S.granary.getOrDefault(b.province, 0)) : 0;

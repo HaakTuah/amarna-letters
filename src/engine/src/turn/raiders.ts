@@ -49,7 +49,8 @@ declare module "./core.ts" {
     bandMayGo(b: Band, to: string): boolean;
     /**
      * Whether a script chief keeps his word to the king who paid him off, while its term holds: if he is more loyal than
-     * greedy (a first guess). While he keeps it, he turns home or keeps out of that king's land, and robs none of it.
+     * greedy (a first guess). While he keeps it, he turns home or keeps out of that king's land, and robs none of it, its
+     * roads included. A model chief who chose his band's season himself is never bound by it.
      */
     keepsWord(b: Band): boolean;
     /** A king's offer to the chief of a band to leave his land (`pay_off`): taken by the chief's own formula, or refused. */
@@ -214,7 +215,9 @@ P.raiderChooses = function (b, chief) {
 
 P.keepsWord = function (b) {
   const chief = findCharacter(this.s, b.leaderId);
-  return chief !== null && chief.paidOffBy !== "" && this.s.turn <= chief.paidOffUntil && chief.traits.loyalty >= chief.traits.greed;
+  // A model chief who decided his band's season himself is bound by no formula: he keeps his word or not by his own choice.
+  const own = chief !== null && chief.chiefPlan !== null && chief.chiefPlan.turn >= this.s.turn - 1;
+  return chief !== null && !own && chief.paidOffBy !== "" && this.s.turn <= chief.paidOffUntil && chief.traits.loyalty >= chief.traits.greed;
 };
 
 /** The king whose land a band spares while its chief keeps his word to him, or null. */
