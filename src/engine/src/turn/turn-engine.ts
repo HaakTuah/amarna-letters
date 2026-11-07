@@ -10,6 +10,7 @@ import "./command.ts";
 import "./couriers.ts";
 import "./kings.ts";
 import "./kings-fate.ts";
+import "./scoreboard.ts";
 import "./governors.ts";
 import "./crowns.ts";
 import "./declarations.ts";

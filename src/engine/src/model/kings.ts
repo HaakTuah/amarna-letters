@@ -149,7 +149,7 @@ export const ReignData = { vary: 10 };
 
 /**
  * The reign of a power's king: his traits as this game drew them, the season he began to reign, and (part B) the person he
- * is (his character's id), the strength of his realm as he came to it (his score is measured from it), and, for an heir,
+ * is (his character's id), and, for an heir,
  * his name and what the record shows of him (empty for the king the game began with, or a ruler risen in play, whose
  * names are his power's).
  */
@@ -157,7 +157,6 @@ export interface Reign {
   traits: number[];
   since: number;
   character: string;
-  strength: number;
   name: string;
   about: string;
   /** His place on his realm's record of the kings who followed (`model/heirs.ts`): -1 for the king the game began with. */
@@ -167,14 +166,13 @@ export interface Reign {
 }
 
 export function newReign(init: Partial<Reign> = {}): Reign {
-  return { traits: [], since: 1, character: "", strength: 0, name: "", about: "", line: -1, exiled: false, ...init };
+  return { traits: [], since: 1, character: "", name: "", about: "", line: -1, exiled: false, ...init };
 }
 
 export const ReignSchema: ObjSchema<Reign> = obj("Reign", newReign, {
   traits: list(I),
   since: I,
   character: S,
-  strength: I,
   name: S,
   about: S,
   line: I,

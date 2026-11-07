@@ -28,6 +28,7 @@ import { finalScore, strength as scoringStrength, standingOf, type FinalScore } 
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
+import { placing } from "./scoreboard.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 
 /** The notice of a seat's orders refused. */
@@ -54,10 +55,7 @@ declare module "./core.ts" {
     strength(p: Power): number;
     landYield(p: Power): number;
     growth(p: Power): number;
-    /** The final score of each living power, highest first, with its size and performance beside it (item 11e). */
-    finalScores(): FinalScore[];
     endOfTurn(): void;
-    decideWinners(): void;
   }
 }
 
@@ -702,61 +700,15 @@ P.endOfTurn = function () {
     S.ended = true;
     S.endReason = reason;
     this.decideWinners();
-    // The score that decides, with size and performance beside it (item 11e): every placement counts.
-    const placings = this.finalScores().map((x, i) => `${i + 1}. ${x.power} ${fmt(x.score, "0.00")} (size ${fmt(x.size, "0.00")}, performance ${fmt(x.performance, "0.00")})`);
-    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. Final scores: ${placings.join("; ")}.`);
+    // Every person on one scoreboard (item 17b, part D): every placement counts. The winner is the first on the board.
+    const board = this.scoreboard();
+    const shown = board.slice(0, 10).map(placing).join("; ") + (board.length > 10 ? `; and ${board.length - 10} more` : "");
+    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. The scoreboard: ${shown}.`);
     return;
   }
   S.turn++;
   // Item 17++, part C: each court sees its own city's mood as the new season begins.
   this.courtsSee();
-};
-
-P.finalScores = function () {
-  const S = this.s;
-  const living = alive(S);
-  // Size: the realm's wealth as a share of the largest living realm's. Performance: where its growth ranks among its own
-  // starting position's results ("One scoreboard for every power", item 11e).
-  const largest = Math.max(1, ...living.map((p) => this.strength(p)));
-  const rows = living.map((p) => {
-    const size = Math.max(0, this.strength(p)) / largest;
-    const performance = standingOf(p, this.growth(p)) / 2;
-    return { power: p, score: finalScore(S.config.sizeWeight, size, performance), size, performance };
-  });
-  return sortBy(rows, [(x: FinalScore) => x.score, desc(cmpNum)], [(x: FinalScore) => x.power, cmpPower]);
-};
-
-P.decideWinners = function () {
-  const S = this.s;
-  const living = alive(S);
-  const scores = this.finalScores();
-  const score = new Dict(scores.map((x) => [x.power, x.score] as const));
-  if (scores.length === 0) {
-    S.winners = [];
-    return;
-  }
-  const best = scores[0].power;
-
-  if (S.config.sharedVictory) {
-    let bestPair: [Power, Power, number] | null = null;
-    for (const t of S.tablets.filter((t) => t.allianceOath && isSealedAgreement(t))) {
-      const a = t.proposedBy;
-      const b = t.partner!;
-      if (!isAlive(S, a) || !isAlive(S, b)) continue;
-      // The pair's score together: each partner's, weighed by its starting strength.
-      const start = S.startStrength.get(a) + S.startStrength.get(b);
-      const combined = (score.get(a) * S.startStrength.get(a) + score.get(b) * S.startStrength.get(b)) / start;
-      const others = living.filter((p) => p !== a && p !== b).map((p) => score.get(p));
-      const rivals = others.length === 0 ? 0 : max(others, (x) => x);
-      if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
-    }
-    if (bestPair !== null) {
-      S.winners = [bestPair[0], bestPair[1]];
-      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (score together ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
-      return;
-    }
-  }
-  S.winners = [best];
 };
 
 P.refused = function (p, rejected) {

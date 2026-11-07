@@ -418,7 +418,7 @@ export interface Character {
   waited: number;
   /** Item 11a, "Working for oneself": a free person seeking service; false while it works for itself. */
   seeking: boolean;
-  /** Item 11a, "The richest characters": what it held, purse and hoard, when it died; null while it lives. */
+  /** Item 11a: what it held, purse and hoard, when it died (a king, since item 17b part D: his realm); null while it lives. */
   diedWith: number | null;
   /** Item 11a: the last season it decided a season of its own; null since it arrived somewhere new (or never). */
   lastLife: number | null;

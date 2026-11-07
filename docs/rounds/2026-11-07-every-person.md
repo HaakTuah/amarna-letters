@@ -324,3 +324,77 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
 ### Questions for the owner
 
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; C2 does not depend on it).
+
+## Part D: one scoreboard for every person
+
+Started from `develop` at 779fc13 (C2 and its follow-up merged). As built: [57](../design/57-every-person.md), "Part D".
+The live design document could not be read from this account; the copy on `develop` is read again by its diff before
+the pull request.
+
+### What was built
+
+- **Every person on one board** (`TurnEngine.scoreboard`, `turn/scoreboard.ts`): every character, kings included, by
+  what he holds blended with his performance (`sizeWeight` percent for size, as for the realms); the living by score,
+  the dead below them all by what they held when they died, ties by id. It replaces the characters' ranking
+  (`Wealth.ranking`, `Wealth.line`, removed) and the powers' table: the realms' final scores are their reigning kings'
+  rows (`finalScores`), and `finalScores` and `decideWinners` moved beside it from `turn/resolve.ts`.
+- **A king** holds his realm and is measured from his accession, his realm's strength over what he inherited
+  (`GameState.startStrength`, set again at each accession; `Reign.strength`, its duplicate, removed: Codex's first
+  round), by par for its start; save version 86; a king who dies held his realm as it stood (`kingDied` sets `diedWith`).
+- **Anyone else** holds his purse and hoard, and is measured from what he brought into play (`characterResult`: gains
+  above 1, losses below it) against characters' results in 50 script games (`CharacterPar`, every hundredth); a result
+  tied with several recorded ones ranks at the middle of their run (`rankAmong`).
+- **The winner is the first on the board**, a realm or a character by name (the design check's first round).
+- **Shown** in the end event (the first ten), the web app's Standings (one table, once the age has ended), the batch
+  (top three per game, how often a king and a character stood first). The kings' rulebook (HOW YOU WIN), the
+  characters' goal (`strategyText`), the README ("Winning") and the design notes say so.
+
+### First guesses (item 18 tunes them)
+
+- Size weighs 5 in a hundred for every person, as for the realms (`sizeWeight`); characters' par is what characters
+  gained in seeds 101-150, pooled for every calling.
+
+### Readings taken
+
+- **Size weighs 5, not half** (one fact, one place): the item's text says "half and half as a first guess", but the
+  owner's measured answer of 29 October set size at 5 in a hundred, which the Victory tab still states; one weight
+  (`sizeWeight`) serves both, and item 18 sets it. At half and half a character could score at most about a half and
+  never win, against the section's "a character wins now and then". Since the two texts disagree, it is #825.
+- **A character's start is what he brought into play** ("against par for his own start"): most characters start with
+  nothing, so a ratio like a realm's growth has no meaning; his result is 1 for keeping what he brought, 1 more for every
+  shekel gained, and below 1 in proportion to what he lost of it (the design check: a loss must count, as a realm's
+  shrinking does), and par is characters' results in the script games, pooled (no calling's par apart until item 18
+  asks for it).
+- **A king's holding is his realm, not his purse** ("A king's holding is his realm"); a fallen realm's king or heir in
+  exile holds his purse and hoard, as any character.
+- **A realm whose king is dead and whose heir has not risen has no score**: its player is out, and nobody reigns to win.
+- **One baseline: an heir is judged from what he inherited, by everyone** (one fact, one place; Codex's first round, the
+  design check's second): `GameState.startStrength` is set again at each accession, so a realm's growth, its king's
+  score, his seat's and his script's reckoning, a lender's "shrunk below its start" and a province's reading of its
+  master's weakness all measure from the heir's accession. His fragility is a third of his father's standing with the
+  people and the soldiers ("A realm holds by its ledger"), not his father's losses counted against him; a realm
+  ruined before he came is weak by its standing and its armies, not by a ratio to a greatness he never held.
+- **The powers' par was not refreshed**: the same run's growth differs from the recorded par, since earlier parts
+  changed who falls; refreshing it moves every benchmark and is item 18's to do with the weights.
+
+### Script players and the measure
+
+- **Characters' par** (`scripts/sim.sh --games 50 --seed 101 --par-out`, about 40 minutes, on the final rules): of
+  every character's result, the lowest quarter died or ended with nothing, a few lost part of what they brought, more
+  than half kept what they brought and gained nothing, and the top fifth gained from 3 to 3,113 shekels (median of those
+  gaining, about 65). The richest character held 812 shekels at the end on average (range 274-3,113); a character
+  stood first on the board in 2 of the 50 games.
+- **No new lever**: part D changes what is counted, not what a player can do, so there is no use against ignore; script
+  kings already play for their realm's growth and characters for their gold, which is what the board counts.
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the final rules, ec53891): all 50 games ran
+  and replayed exactly. Wins: Egypt 23, Babylonia 14, Hatti 6, Assyria 4, Ugarit and Ashkelon one each, and **one by a
+  character**, Ashur-iddin, a free man of Ashur, first on the board in seed 37, a game that ended after 8 seasons (C2:
+  Egypt 21, Babylonia 17, Hatti 5, Assyria 4, three others one each). Kings taken 1,048 times, escaping 233, dying
+  593; heirs in exile 108 times in 38 games (C2: 1,032, 232, 593 and 124). The richest character held 708 shekels at
+  the end on average (range 299-1,257). Games stay playable.
+
+### Questions for the owner
+
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825): the weight of size on the one scoreboard, 5 in a
+  hundred as built or half and half as 17b's text says (new).
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; part D does not depend on it).

@@ -1,11 +1,11 @@
 import { describe, test } from "vitest";
 import { scriptSeats, seasons } from "./small-world.ts";
-import { Dict, type GameState, Wealth, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
+import { Dict, type GameState, TurnEngine, Wealth, boardLine, characterResult, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
 import { GameRunner, ScriptMind, TemplateNarrator, batchReport, playGame } from "@amarna/game";
 import { selfText } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 
-// <summary>The richest characters, ranked at the end of a game where the game's end is shown.</summary>
+// <summary>Every person on the scoreboard at the end of a game where the game's end is shown (item 17b, part D).</summary>
 describe("RichestTests", () => {
   function script(s: GameState): GameRunner {
     return Object.assign(
@@ -19,7 +19,7 @@ describe("RichestTests", () => {
     );
   }
 
-  test("At the end of a game the batch ranks the living characters by wealth", async () => {
+  test("At the end of a game the batch puts every person on the scoreboard", async () => {
     let runner: GameRunner | null = null;
     // A short game of the small world (small-world.ts).
     let summary = (await playGame(3, (s) => (runner = script(s)), false, seasons(12)))[0];
@@ -30,19 +30,19 @@ describe("RichestTests", () => {
     Assert.all(state.characters.filter((c) => c.status !== "Dead"), (c) => Assert.equal(earningsTotal(c.earned) - c.earned.spent, c.purse + (c.hoard?.gold ?? 0)));
     Assert.contains(state.characters, (c) => c.purse > 0);
 
-    let ranking = Wealth.ranking(state);
-    Assert.equal(ranking.map(Wealth.line), summary.richest);
-    Assert.equal(ranking[0].total, summary.topWealth);
+    let board = new TurnEngine(state).scoreboard();
+    Assert.equal(board.map(boardLine), summary.board);
+    Assert.equal(Math.max(0, ...board.filter((x) => x.power === null && !x.dead).map((x) => x.holding)), summary.topWealth);
+    Assert.equal(board[0].power !== null, summary.firstIsKing);
+    Assert.equal(board.filter((x) => x.power === null).map((x) => characterResult(x.character)), summary.characterResults);
     Assert.equal(
       sum(state.characters, (c) => earningsTotal(c.earned)),
       earningsTotal(summary.gained),
     );
-    // The living first, richest first; then the dead, by what they held when they died (item 11b: people die of the road).
-    Assert.true(ranking.slice(1).every((x, i) => (ranking[i].dead === x.dead ? ranking[i].total >= x.total : !ranking[i].dead)));
 
     let report = batchReport([summary]);
-    Assert.contains("The richest characters (the second game, played under the kings'):", report);
-    Assert.contains(`  The richest held ${summary.topWealth} shekels at the end on average (range ${summary.topWealth}-${summary.topWealth}).`, report);
+    Assert.contains("Every person on one scoreboard (item 17b, part D):", report);
+    Assert.contains(`  The richest character held ${summary.topWealth} shekels at the end on average (range ${summary.topWealth}-${summary.topWealth}).`, report);
     Assert.contains(Wealth.WhatCounts, report);
   });
 

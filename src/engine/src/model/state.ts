@@ -92,7 +92,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 85;
+export const CURRENT_VERSION = 86;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -435,6 +435,10 @@ export interface GameState {
    */
   unitsGone: Unit[];
   treasuries: Dict<Power, Treasury>;
+  /**
+   * Each realm's strength when its reigning king came to the throne: at the start, at a rise or grant, and since item 17b
+   * part D at each heir's accession. Its growth, and its king's score, are measured from it.
+   */
   startStrength: Dict<Power, number>;
   eliminated: Power[];
   /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */

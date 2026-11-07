@@ -349,13 +349,14 @@
   objects of that kind exist in the world (copies made at other courts, for instance); the shared
   counter told the same of all kinds together. Left as it is.
 - **Shared victory is off** (since 18 October 2026; see `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 23). One
-  power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
+  wins: the first on the scoreboard ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)). A tablet can still be marked as a sworn alliance,
   and the script kings still treat it as a full alliance, but it shares nothing (the order schema
   says the mark "changes no rule and binds nobody"). The rulebook and
   the order schema mention shared victory only when the house rule is on (`--shared-victory` in the
   batch runner, "Customize" in the browser). With it on, two powers holding a sealed tablet marked
-  as a sworn alliance win together if their combined growth beats every other power's growth; only
-  pairs count, never three or more.
+  as a sworn alliance win together if their score together, each partner's weighed by its starting strength, beats every
+  other living person's, king or character ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts));
+  only pairs count, never three or more.
 - **Convoys** follow Diplomacy, with Kruijswijk's guess-and-check adjudication; circular movement
   succeeds, and convoy paradoxes are resolved by the Szykman rule (the convoyed army stays put).
 - **News of a season is read the next season.** Battles, purchases, rejected orders and notices

@@ -147,18 +147,9 @@
   Characters start with nothing and spend nothing yet (no escort, storage fee, loan or robbery exists; item 11), so the
   parts add up to the purse (tested over a whole game). A captive or a dead character keeps its purse, as before (what
   capture and execution do to a purse is item 11).
-  - **Wealth** (`Wealth.of`) is the purse plus the back pay every court still owes it (a fallen court's debt died with
-    it). The document's other two parts, a hoard and what kings owe it on debt tablets, do not exist yet (item 11) and
-    count nothing; every place the ranking is shown says so ("Wealth is the gold in a character's purse and the back pay
-    kings still owe it; hoards and loans to kings on debt tablets do not exist yet. The dead are not ranked.").
-  - **The ranking** (`Wealth.ranking`): the living characters, richest first, ties by id, each with whom it serves (or
-    free, or captive where), its wealth, purse and back pay owed, and where its gold came from: "Mane of Thebes (serving
-    Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)". The dead are left out: their gold is no longer
-    theirs to enjoy, and a ranking of the dead would reward a character for dying rich.
-  - **Where it is shown**: where the game's end is shown. The batch prints the top three after each game's result line
-    (the whole ranking with `--detail`), and its summary how rich the richest was on average and where all characters'
-    gold came from; the web app's Standings tab shows the whole ranking once the age has ended, to every viewer, and the
-    season's end notice points to it. Kings never read it: it is not their game.
+  - **Wealth** (`Wealth.of`) is what it holds, purse and hoard (since item 11a; the dead's what they held when they
+    died), and it ranks on the one scoreboard of every person (item 17b, part D): how, where it is shown and what it
+    counts, [57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts).
   - **During play a character knows its own wealth, not the ranking.** A model-played character reads its purse and,
     if any, what it is worth with the back pay kings owe it ("Your purse holds 100 shekels; with the back pay kings owe
     you, you are worth 142 shekels."), and now also the back pay courts other than its lord owe it ("The king of Hatti

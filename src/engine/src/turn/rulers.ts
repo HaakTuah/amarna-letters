@@ -145,7 +145,6 @@ P.ruleOwn = function (id, c, r) {
   // His people's regard for him is his realm's now: he rules in its name (item 17++).
   regardToRealm(this, id, c, p);
   S.startStrength.set(p, this.strength(p));
-  S.reigns.get(p).strength = S.startStrength.get(p);
   const men = sum(followed, (u) => u.men);
   const troops = followed.length === 0 ? (r.followers.length === 0 ? "no troops stand with you" : "the troops there would not follow you, for you cannot pay them") : `${men} men follow you${followed.length < r.followers.length ? ", though not all: the rest you could not pay" : ""}`;
   const walls = levelOf(S, "Walls", id);

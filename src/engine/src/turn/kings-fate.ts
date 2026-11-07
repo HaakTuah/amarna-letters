@@ -305,6 +305,8 @@ P.kingDied = function (c, how, where) {
   if (fallen !== null) this.kingDeadWord(fallen, where, this.fallOf(fallen)?.capital ?? this.map.capital(fallen).id, `${c.name}, once ${rulerStyle(fallen)} of ${powerName(fallen)}, is dead, ${how}.`);
   if (p === null) return;
   const r = S.reigns.get(p);
+  // Part D: what he held when he died is his realm, as it stood then.
+  c.diedWith = Math.round(Math.max(0, this.strength(p)));
   // His reign, and his player's game, end where he dies; his road ends with him. Apart from his court, it believes him
   // where he was until the word comes.
   S.kingRoads = S.kingRoads.filter((x) => !(x.power === p && x.alone));
@@ -414,7 +416,9 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
   // A man of the record already on the map takes the throne himself, from wherever he is.
   if (there !== null) crownPerson(e, there, p, about);
   const c = there ?? newKing(e, p, name, traits, [about]);
-  S.reigns.set(p, { traits, since: S.turn, character: c.id, strength: e.strength(p), name: c.name, about, line: at, exiled: false });
+  S.reigns.set(p, { traits, since: S.turn, character: c.id, name: c.name, about, line: at, exiled: false });
+  // Part D: his growth, and his score, are measured from what he inherited.
+  S.startStrength.set(p, e.strength(p));
   setCrowned(crownedIn(S));
   e.syncNames();
   remember(c, S.turn, `${dead.name} is dead, and I reign over ${land(p)}.`);
