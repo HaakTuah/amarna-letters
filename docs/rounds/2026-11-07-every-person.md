@@ -120,6 +120,19 @@ Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md)
   they speak through their seats.
 - **The seat's script captors value a king's city as before** (half the rest of his land), since taking it takes the king.
 
+### Script players and the measure
+
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games ran and replayed exactly. Wins:
+  Egypt 27, Babylonia 13, Hatti 2, Mitanni 1, Assyria 1 and the rest one each or none (part A: Egypt 24, Babylonia 14,
+  Assyria 4, Hatti 2). Kings taken 1,161 times in 50 games (each game), escaping 98 times in 36 games, dying 13 times in
+  13 (put to death or on the road); 1,016 realms fell holding nothing, almost all city-states of one city, and Assyria in
+  29 of 50, Mitanni in 14 (for item 18, which tunes the pace of war).
+- **Use against ignore** (`--king-play-half`, 50 games, same seeds): scripts that ask a king's ransom or put a foe's
+  king to death and ransom their own won 29 to 21 against those that let captive kings go and never ransom their own,
+  mean growth even (0.76 to 0.77). Pays in wins.
+- **Every feature is every seat's**: script captors ransom or put to death every king they take, script kings ransom
+  their own; kings escape by their skill alone, which no seat chooses.
+
 ### Questions for the owner
 
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806): while a king is held captive, should his court keep giving orders in his name (the reading taken), or should his realm be limited until he is back?
