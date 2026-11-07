@@ -305,6 +305,8 @@ P.kingDied = function (c, how, where) {
   if (fallen !== null) this.kingDeadWord(fallen, where, this.fallOf(fallen)?.capital ?? this.map.capital(fallen).id, `${c.name}, once ${rulerStyle(fallen)} of ${powerName(fallen)}, is dead, ${how}.`);
   if (p === null) return;
   const r = S.reigns.get(p);
+  // Part D: what he held when he died is his realm, as it stood then.
+  c.diedWith = Math.round(Math.max(0, this.strength(p)));
   // His reign, and his player's game, end where he dies; his road ends with him. Apart from his court, it believes him
   // where he was until the word comes.
   S.kingRoads = S.kingRoads.filter((x) => !(x.power === p && x.alone));

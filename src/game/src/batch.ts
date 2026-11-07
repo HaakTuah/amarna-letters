@@ -10,6 +10,9 @@ import {
   Wealth,
   addEarnings,
   align,
+  boardLine,
+  characterResult,
+  count,
   cmpNum,
   cmpStr,
   courtDecided,
@@ -77,10 +80,14 @@ export interface GameSummary {
   /** Standing orders every seat kept over the game, and how many of them fired. */
   standingKept: number;
   standingFired: number;
-  /** The living characters at the end, richest first, one line each. */
-  richest: string[];
-  /** The richest character's wealth at the end. */
+  /** Every person on the scoreboard at the end (item 17b, part D), first place first, one line each (`boardLine`). */
+  board: string[];
+  /** The richest living character's wealth at the end, kings apart. */
   topWealth: number;
+  /** Whether a king or a character stood first on the scoreboard; older summaries have none. */
+  firstIsKing?: boolean;
+  /** Each character's result against par (`characterResult`), kings apart, for `CharacterPar`; older summaries have none. */
+  characterResults?: number[];
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
   /**
@@ -308,7 +315,8 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
 
   const engine = new TurnEngine(s);
   const [held, reopened, stoodIn] = courtsOf(s);
-  const ranking = Wealth.ranking(s);
+  const board = engine.scoreboard();
+  const characters = board.filter((x) => x.power === null);
   const gained = newEarnings();
   for (const c of s.characters) addEarnings(gained, c.earned);
   const growth: Record<string, number> = {};
@@ -320,8 +328,10 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   let standingKept = 0;
   for (const b of s.standing.values()) standingKept += b.last;
   const summary: GameSummary = {
-    richest: ranking.map(Wealth.line),
-    topWealth: ranking.length === 0 ? 0 : ranking[0].total,
+    board: board.map(boardLine),
+    topWealth: Math.max(0, ...characters.filter((x) => !x.dead).map((x) => x.holding)),
+    firstIsKing: board.length > 0 && board[0].power !== null,
+    characterResults: characters.map((x) => characterResult(x.character)),
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
@@ -587,16 +597,17 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
   return lines.join("\n");
 }
 
-/** The richest characters over many games: how rich the richest was at the end, and where all characters' gold came from. */
-export function richestReport(games: readonly GameSummary[]): string[] {
+/** The scoreboard over many games: who stood first, how rich the richest character was at the end, and where all characters' gold came from. */
+export function scoreboardReport(games: readonly GameSummary[]): string[] {
   const top = games.map((g) => g.topWealth);
   const gained = newEarnings();
   for (const g of games) addEarnings(gained, g.gained);
   const total = earningsTotal(gained);
   const share = (part: number): string => (total === 0 ? "0%" : `${fmt((100.0 * part) / total, "0.0")}%`);
   return [
-    "The richest characters (the second game, played under the kings'):",
-    `  The richest held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
+    "Every person on one scoreboard (item 17b, part D):",
+    `  First place: a king in ${count(games, (g) => g.firstIsKing === true)} of ${games.length} games, a character in ${count(games, (g) => g.firstIsKing === false)}.`,
+    `  The richest character held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
     `  All the gold characters gained, ${total} shekels: fees ${share(gained.fees)}, lending and dealing ${share(gained.dealt)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal or capture ${share(gained.carried)}, savings brought in ${share(gained.savings)}, loot ${share(gained.loot)}, news and carrying ${share(gained.news)}; they spent ${gained.spent}.`,
     "  " + Wealth.WhatCounts,
   ];
@@ -619,7 +630,19 @@ export function parResultsSource(games: readonly GameSummary[], seeds: string): 
     ...rows,
     "};",
     "",
+    "/**",
+    ` * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games, one`,
+    " * more than that for the living and 0 for the dead (`characterResult`), pooled and cut at every hundredth.",
+    " */",
+    `export const CharacterPar: readonly number[] = [${hundredths(games.flatMap((g) => g.characterResults ?? [])).join(", ")}];`,
+    "",
   ].join("\n");
+}
+
+/** A pool of results cut at every hundredth, lowest first (101 values; none for an empty pool). */
+function hundredths(results: readonly number[]): number[] {
+  const sorted = [...results].sort((a, b) => a - b);
+  return sorted.length === 0 ? [] : Array.from({ length: 101 }, (_, i) => sorted[Math.round((i * (sorted.length - 1)) / 100)]);
 }
 
 export function batchReport(games: readonly GameSummary[]): string {
@@ -706,7 +729,7 @@ export function batchReport(games: readonly GameSummary[]): string {
         [...people.entries()].sort((a, b) => b[1][0] + b[1][1] - (a[1][0] + a[1][1]) || a[0].localeCompare(b[0])).map(([n, t]) => `${n} ${t[0]}/${t[1]}/${t[2]}`).join(", ") + ".",
     );
   lines.push("");
-  lines.push(...richestReport(games));
+  lines.push(...scoreboardReport(games));
   const cost = sum(games, (g) => g.costUsd);
   if (cost > 0) lines.push(`\nModel cost: $${fmt(cost, "0.00")} total, $${fmt(cost / games.length, "0.00")} per game.`);
   const errors = sum(games, (g) => g.errors);

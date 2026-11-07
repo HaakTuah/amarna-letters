@@ -418,9 +418,9 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
       (summary.costUsd > 0 ? `, $${fmt(summary.costUsd, "0.00")}` : "") +
       (summary.errors > 0 ? `, ${summary.errors} fallbacks` : ""),
   );
-  // Beside the kings' result, the richest characters: the top three, or with --detail the whole ranking.
-  const richest = summary.richest.slice(0, o.detail ? summary.richest.length : 3).map((line, i) => `${i + 1}. ${line}`);
-  if (richest.length > 0) out.push(o.detail ? "  Richest characters:\n" + richest.map((r) => "    " + r).join("\n") : `  Richest characters: ${richest.join("; ")}`);
+  // The scoreboard of every person (item 17b, part D): the top three, or with --detail the whole of it.
+  const board = summary.board.slice(0, o.detail ? summary.board.length : 3).map((line, i) => `${i + 1}. ${line}`);
+  if (board.length > 0) out.push(o.detail ? "  Scoreboard:\n" + board.map((r) => "    " + r).join("\n") : `  Scoreboard: ${board.join("; ")}`);
   if (keep !== null && (o.folders.length > 0 || o.characterFolders.length > 0 || keep.state.sleep.size > 0 || choices.usesModels)) out.push(seatReport(keep));
   // Model or file characters beside the script with the same traits, and how large each kind of request was.
   if (keep !== null && keep.log.shadows.length > 0) out.push(characterReport(keep.log));

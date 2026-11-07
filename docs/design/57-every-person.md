@@ -138,3 +138,28 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
 - **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
   his fallen realm that king holds, by the same sum as any grant, keeping it reckoned as risky land (its people take an heir
   of their own house better than a stranger).
+
+## Part D: one scoreboard for every person (`turn/scoreboard.ts`)
+
+- **Every person on one board** (`TurnEngine.scoreboard`): every character, kings included, each with what he holds
+  (`holding`), his size (his holding as a share of the largest living person's), his performance and his score, the
+  two blended by `GameConfig.sizeWeight` percent for size (`finalScore`, as for the realms). The living rank by score,
+  the dead below them all by what they held when they died, ties by id.
+- **A king** (reigning over a living realm, `realmOfKing`) holds his realm (`strength`) and is measured from his
+  accession: his growth is its strength over what he inherited (`Reign.strength`), ranked among par for his realm's
+  start (`standingOf` / 2). A king who dies held his realm as it stood (`kingDied` sets `Character.diedWith`).
+- **Anyone else** (a character, a fallen realm's king or heir in exile) holds his purse and hoard (`Wealth.of`) and is
+  measured by what he gained since he came into play (`characterResult`: one more than his holding over his savings
+  brought in, `Earnings.savings`; 0 for the dead), ranked among what characters gained in the script games
+  (`CharacterPar` in `rules/par-results.ts`, every hundredth of the pooled results of seeds 101-150, written by
+  `scripts/sim.sh --par-out`, with `rankAmong`).
+- **The realms' final scores are their kings' rows** (`finalScores`): a realm whose king is dead and whose heir has not
+  yet risen has none. The winner (`decideWinners`) is still a realm, the one whose king stands highest, so the seats
+  play for their kings' places; a character above every king is first on the board, not the winner.
+- **Where it is shown**: the end event names the first ten (`placing`); the web app's Standings shows the whole board
+  once the age has ended, to every viewer, and the season's end notice points to it; the batch prints the top three
+  after each game's result line (the whole with `--detail`, `boardLine`), and its summary how often a king and a
+  character stood first, how rich the richest character was and where all characters' gold came from. During play a
+  character knows its own wealth, never the board. Kings read how they are scored in their rulebook (HOW YOU WIN), and
+  characters their goal (`strategyText`).
+

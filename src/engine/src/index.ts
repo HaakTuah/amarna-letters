@@ -7,6 +7,7 @@ export * from "./core/text.ts";
 export * from "./model/index.ts";
 export * from "./core/regex.ts";
 export * from "./turn/turn-engine.ts";
+export { boardLine, characterResult, placing, type PersonScore } from "./turn/scoreboard.ts";
 export * from "./rules/adjudicator.ts";
 export * from "./rules/calendar.ts";
 export * from "./rules/clauses.ts";
