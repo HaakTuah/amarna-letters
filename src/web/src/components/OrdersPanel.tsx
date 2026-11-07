@@ -50,7 +50,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         </p>
         <p className="muted">
           <small>
-            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {travelTimes(v.travelTimes)}.
+            Tap one of your units on the map, then a destination, to move it. Tap the unit again to hold. Envoys take, each way: {travelTimes(v.travelTimes)}.
           </small>
         </p>
       </div>
