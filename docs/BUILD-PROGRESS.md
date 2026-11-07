@@ -1,9 +1,5 @@
 # Build progress
 
-> **Paused for usage** (3 November 2026, at 83% of the week): the orchestrator's hourly check is deleted and restarts when the
-> owner says "resume", from this file. On resume, each lane's entry below names its queue and its PR; the item lane picks up
-> at 17+++ part E.
-
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
 `docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
 how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
@@ -115,27 +111,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
   review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
   file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
-- ~~**Far troops raised and gone (bug #600)**~~ (done, #612, as the owner decided on 3 November 2026, archive item
-  204): a far unit is known once word of its raising could come and kept, as last reported, until word of its end
-  could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
-  standing) by the road. Save version 69. Left to #615: the rest of a far unit as it truly is. Report:
-  `docs/rounds/2026-11-03-far-unit-known.md`.
-- ~~**A far unit of a king's own, the rest of it as reported (bug #615)**~~ (done, branch `fix/615-far-units`): where its
-  king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
-  road. Save version 72. #759 (done, branch `fix/759-far-orders`, save version 73): a far unit's refused orders come
-  by the road, and a scheduled order's road is reckoned to where its king's view shows it
-  (`docs/rounds/2026-11-07-far-orders-refused.md`). Report:
-  `docs/rounds/2026-11-06-far-unit-reported.md`.
-- ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
-  holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 75.
-  Report: `docs/rounds/2026-11-07-own-governors.md`.
-- ~~**A claim to the rank made in play (bug #777)**~~ (done, branch `fix/777-claims-in-play`): a king outside the seven
-  who names himself Great King in a greeting claims the rank, known where that greeting is read, and established as
-  Assyria's is. Save version 76. Report: `docs/rounds/2026-11-07-claims-in-play.md`.
-- ~~**An envoy never received remembers it (bug #784)**~~ (done, branch `fix/784-never-received`): its fact says it was
-  never received, not that it came home with the answer. Save version 77. Report: `docs/rounds/2026-11-07-never-received.md`.
-- ~~**Courts by their shown names in the people's lines (bug #797)**~~ (done, branch `fix/797-court-names`): "at the court
-  of Gubla", not "of Byblos", in the seat view and the People tab. Save version 80. Report: `docs/rounds/2026-11-07-court-names.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -152,102 +127,16 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Built with the first item whose errands use them; a save version.
 
 - **The owner's answers of 3 November, morning** (archive item 185):
-  - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
-    honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
-    borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
-    kings' trust readings still behave well.
-    **Done** (#680, `lane/591-envoy-tells`; report `docs/rounds/2026-11-03-envoy-tells.md`): no form or shape of an
-    envoy's report home marks its state (`envoy-tells.test.ts`); save version 63; the trust readings measured.
-  - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
-    the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
-    together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
-  - ~~**#601, a fast courier, hired:**~~ (done, #641) a job whose errand is a ride to a far province of the king's: its
-    report and notices come home within the season; the rider asks by what he heard a ride pays, how much sooner the
-    report comes and how many rides the court asks against the free people there, and takes less down to a least. For
-    item 18: the rider is never stopped on the road (a first guess). Save version 59. Report:
-    `docs/rounds/2026-11-03-hired-courier.md`.
-  - ~~**#618, after item 17++a:**~~ (done, #637) word of a change of hands a vassal's or ally's court saw goes by the
-    road to the king it is bound to: a notice, and his map. The Great Kings hear of a change of the map every 4.3 to
-    5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
-    `docs/rounds/2026-11-03-news-beyond-sight.md`.
-  - ~~**#592:**~~ (done, #733) a caught offer is held by its captor, who sends it on (to its claimant or the land's
-    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 67. Report:
-    `docs/rounds/2026-11-06-held-offers.md`.
   - **Held letters never lapse** (the fallback security review of #733, P2): a letter kept, never bought, or held by a
     court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
     games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is
     the fix.
 
-- ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
-  from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
-  captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
-- ~~**An archive a far force seizes on the road, sent home as a load (bug #726)**~~ (done, #742): it goes to the taker's
-  capital by the road (`lootHome`), as a taken capital's archive does. Save version 64. Filed: #740 (loot with no road
-  home arrives at once). Report: `docs/rounds/2026-11-06-far-archive-home.md`.
-- ~~**Tolls and smugglers at a far border, heard by the road (bug #736)**~~ (done, #745): each border's tolls notice
-  comes as word from there does and says where its gold went; the events name the holder only where his couriers reach.
-  Save version 65. Report: `docs/rounds/2026-11-06-far-border-word.md`.
-- ~~**Loot with no road home, sent by courier (bug #740)**~~ (done, #750): where no road takes a load home, `lootHome`
-  sends gold and tablets by courier, to reach the court with word from where they were taken. Save version 68. Report:
-  `docs/rounds/2026-11-06-loot-by-courier.md`.
-- ~~**The realms' name setting names every realm**~~ (done, branch `names/768-every-realm`; the owner, 7 November 2026,
-  #768; archive item 233): the realms' setting, apart from the places', names the city-states' and edge lands' realms
-  too (Gubla or Byblos, Tjehenu or Libya), so by default Gubla's realm reads Byblos while the city reads Gubla. Report:
-  `docs/rounds/2026-11-07-every-realm-named.md`.
-
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
-the workshop check): among them the history check's lines still unclear for a reader with the editions.
+the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
 
-- **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
-  - ~~**#566:**~~ (done, #722) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
-    seasons off, by sea), the place a parameter; it found a far levy's army in the movements notice, listed under #600.
-    Report: `docs/rounds/2026-11-06-twin-second-place.md`.
-  - ~~**#543:**~~ (done, #725) a caravan leaving a province for its claimant's land carries its offer, his own for
-    nothing, another's for a fee where the people are far gone; caravans carry talk of the leaning to the land their road
-    ends in. Save version 64. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
-
-- **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
-  the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
-  down the Euphrates and the marshes. The full `--versus solo` run, seeds 1-40, was run with 17+++a (#753; its report,
-  "Benchmarks"): 2.29 growth alone and 1.07 as baseline over every seat.
-
-- **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
-  - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
-    a caught spy's report is read ("A letter taken on the road"). Done, #576 (`docs/rounds/2026-11-02-offer-caught.md`).
-  - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
-    heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
-  - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
-    (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road). Done, the history lane's PR (`docs/rounds/2026-11-03-connection-notes.md`).
-
-- **The slop audit** (the owner, 2 November 2026; archive item 178): everything a player reads, checked by fresh eyes
-  for the tells of machine-written text, as a side lane now.
-  1. **Scope:** the rulebook and the seat view; notices, news and the season's reports; the script kings' letters and
-     their envoys' speech (`src/game/src/bots/statecraft-letters.ts` and its kin), whose templates a player meets every
-     season; the cast's biographies; the interface, the council and the help; the README's player text. And the
-     requests that make models write (personas, letters, envoys' words): no stock phrasing a model would echo back,
-     as "Requests are rules too" asks, changed only with that rule's care.
-  2. **A fresh-eyes reviewer** (a helper given only the text and this brief, Opus at high effort) reads each kind
-     whole and lists its worst lines, each with its tell ("Text a player reads" in `docs/review-guidelines.md`).
-  3. **The builder rewrites them** in the period's voice, as "Voice of the age" under World and history describes it;
-     the PR shows ten lines before and after, so the owner can set the bar.
-  4. **A cheap guard after:** a test that fails when a script king's letters, or a report's lines, keep repeating one
-     shape across a game.
-  Each kind of text is reviewed as every review is ("Reviews" in `docs/claude-and-codex.md`), against the bar in
-  "Text a player reads" in `docs/review-guidelines.md`. One PR per kind of text.
-  **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
-  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
-  envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
-  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
-  season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
-  `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
-  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
-  below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
-  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766); the interface, the council and the help,
-  #772 (report `docs/rounds/2026-11-07-slop-audit-interface.md`; save version 74; season against turn and minas
-  against shekels: #775; realm names beside place names: #768); the README's player text, #781 (its developers' part
-  moved to `docs/for-developers.md`, Step 0) and #782 (report `docs/rounds/2026-11-07-slop-audit-readme.md`); the
-  requests that make models write, the last kind (report `docs/rounds/2026-11-07-slop-audit-requests.md`; voice lines
-  by temper, `Personas.voice`; clause words, not ids, to envoys; save version 78). **Still open, one game-wide decision:** one
+- **The slop audit** (the owner, 2 November 2026; archive item 178): done kind by kind; its brief and record are in
+  `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 7 November 2026). **Still open, one game-wide decision:** one
   place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
   "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
   and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
@@ -295,7 +184,8 @@ Everything for the owner is an issue: [questions and readings](https://github.co
 Every item adds its numbers here: on the same seeds, scripts that use the item's features against scripts that ignore them ("Using a feature must pay" in the builder rules, 28 October 2026). While the game is incomplete a feature may not win yet; once it is feature complete (item 18) none may be left whose users do not come out ahead. Earlier items' numbers are in their reports; item 10+a's audit of every feature built so far adds them here.
 
 The rows of done items (6c to 17++) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
-17+ moved 2 November 2026, 17++ on 6 November, "The workshop check"); new rows are added here. Where they stand:
+17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check");
+new rows are added here. Where they stand:
 **pays** 6c planning ahead, 7b roads, 9+b trade, 10+b borders, 11a and 11a+ money and seasons (a little), 13 command
 (a little), 15 works (growth), 16 the council, 17++ (occupying, the census, governors' regions and grants, the spy's
 check, remnants; the war of choice in wins); **even or barely** 7a sea play, 8 inventories, 9 authority, 10+a land
@@ -306,14 +196,8 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
-| #587 | Sending gold ahead to far coffers that owe or run short (`--coffer-play-half`) | 0.81 growth to 0.72, 21 wins to 29, in 50 games; 32 sends in 15 games, 24 bills unpaid in 10 | Pays in growth, not in wins: credit covers most far costs, so sending ahead seldom matters; for item 18 |
-| #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
-| #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
-| #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
-| 17++++a | Heeding raiders from beyond the map: hunting where an army stands, hiring, paying off (`--raider-play-half`) | First 0.77 growth to 0.80, 21 wins to 29 (with police at the doors and marches after raiders, both since dropped); then 0.75 to 0.79, 26 wins to 24; with only the sourced raiders, 0.78 to 0.78, 25 wins to 25, in 50 games; about 12 raids a game, 6 to 15 pay-offs in 50 games | Even: raids are small against a realm; re-measure in item 18 |
 | 17b B | A captive king ransomed or put to death, and one's own ransomed (`--king-play-half`) | 0.76 growth to 0.77, 29 wins to 21, in 50 games; kings taken 1,178 times, 72 escapes, 6 deaths | Pays in wins |
 | 17b C1 | A king who goes to the front without his court when his army fights where the court's couriers come late (`--field-play-half`) | 0.76 growth to 0.73, 29 wins to 21, in 50 games; kings went alone 736 times in 44 of 50 games (regression run) | Pays in wins |
-| #592 | Heeding talk, with caught offers sent on to friends, sold to the land's king, and bought (`--talk-play-half`) | 0.78 growth to 0.73, 26 wins to 24, in 50 games; 1,628 offers sent, 152 arrived (107 by caravan); 1 offer caught and held | Too rare to tell: one catch in 50 games; for item 18 |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
@@ -322,16 +206,10 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
 | 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) merged, #538; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
-| 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
-| 17+++ | The season plays out | done: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight; the world acting on them) merged, #728 | `item/season-plays-out`, `item/season-plays-out-e` | `docs/rounds/2026-11-03-season-plays-out.md` |
-| 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
-| 17+++b | History, search and names | done, #767 (bug #769 fixed with it) | `item/history-search-names` | `docs/rounds/2026-11-07-history-search-names.md` |
-| 17++++ | A small state as a seat | done, #774 (bug #777 filed: a small state's claim to the rank is never recorded in play) | `item/small-state-seat` | `docs/rounds/2026-11-07-small-state-seat.md` |
-| 17++++a | Raiders from beyond the map | done, #786 (idea #792 filed: a Libyan door) | `item/raiders` | `docs/rounds/2026-11-07-raiders-from-beyond-the-map.md` |
-| 17b | Every person on one scoreboard | in progress, in four parts: Step 0 split of `state.ts` merged, #800; part A (the kings as persons, by their traits from the sources; the record of heirs, dossier 16) merged, #802, live through milestone #804. part B (every king a person with duty Ruling, a taken king his captor's captive, his court fleeing to a city held, only a realm holding nothing falling, the heir from dossier 16 by word, a third of his standing; save version 82) merged, #807. **Pick up at part C** on a fresh branch from `develop`: the court as a place apart from the king (a taken capital's treasury and archive lost, a court fleeing abroad, the heir as an exile with a claim, the king travelling without his court and commanding from where he is, so he can die in battle or a stormed city; word of a death sent on to a court that fled), replacing what is left of `fall`/`fallsSpread` except for a realm that holds nothing. Part C is split in two: C1 (the king apart from his court, commanding from where he stands, the court's business sent on to him and back, dying or taken where he stands in battle or a city's fall; `item/court-apart`, #812) and C2 (the court taken: its treasury lost, its flight a real journey, a court taken on the road, the heir in exile with a claim, word of a death sent on; `item/court-c2`, draft PR, built and tested by its own tests; **pick up C2 there**: run `scripts/test.sh`, the regression `scripts/sim.sh --games 50 --seed 1 --verify-replay` and `--grant-play-half` (an heir in exile restored by a script king's grant), write C2's section of `docs/rounds/2026-11-07-every-person.md`, take the next save version (Journey.toProvince is new), then the reviews; `item/court-taken` is an older copy, to be deleted). C1 merged, #812, live through milestone #814. A docs PR moving this file's done rows to `docs/archive/` is due (37 KB, past the 20 KB mark). Part D: one scoreboard of every person (`finalScores` with `rules/wealth.ts`), the dead below the living | `item/every-person-traits` | `docs/rounds/2026-11-07-every-person.md` |
+| 17b | Every person on one scoreboard | in progress, in four parts: Step 0 split of `state.ts` merged, #800; part A (the kings as persons, by their traits from the sources; the record of heirs, dossier 16) merged, #802, live through milestone #804. part B (every king a person with duty Ruling, a taken king his captor's captive, his court fleeing to a city held, only a realm holding nothing falling, the heir from dossier 16 by word, a third of his standing; save version 82) merged, #807. **Pick up at part C** on a fresh branch from `develop`: the court as a place apart from the king (a taken capital's treasury and archive lost, a court fleeing abroad, the heir as an exile with a claim, the king travelling without his court and commanding from where he is, so he can die in battle or a stormed city; word of a death sent on to a court that fled), replacing what is left of `fall`/`fallsSpread` except for a realm that holds nothing. Part C is split in two: C1 (the king apart from his court, commanding from where he stands, the court's business sent on to him and back, dying or taken where he stands in battle or a city's fall; `item/court-apart`, #812) and C2 (the court taken: its treasury lost, its flight a real journey, a court taken on the road, the heir in exile with a claim, word of a death sent on; `item/court-c2`, draft PR, built and tested by its own tests; **pick up C2 there**: run `scripts/test.sh`, the regression `scripts/sim.sh --games 50 --seed 1 --verify-replay` and `--grant-play-half` (an heir in exile restored by a script king's grant), write C2's section of `docs/rounds/2026-11-07-every-person.md`, take the next save version (Journey.toProvince is new), then the reviews; `item/court-taken` is an older copy, to be deleted). C1 merged, #812, live through milestone #814. Part D: one scoreboard of every person (`finalScores` with `rules/wealth.ts`), the dead below the living | `item/every-person-traits` | `docs/rounds/2026-11-07-every-person.md` |
 | 18 | The balance pass | not started | | |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |
 
-Done items 1 to 14 (11d to 14 moved on 30 October 2026, "The workshop check"), done items 15 to 19+++, 17a and 17+ and the side lanes (moved on 1 November 2026), and the port's findings (all handled): `docs/archive/progress-done.md`.
+Done items 1 to 14 (11d to 14 moved on 30 October 2026, "The workshop check"), done items 15 to 19+++, 17a and 17+ and the side lanes (moved on 1 November 2026), done items 17++a to 17++++a (moved on 7 November 2026), and the port's findings (all handled): `docs/archive/progress-done.md`.
