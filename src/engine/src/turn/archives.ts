@@ -26,7 +26,7 @@ declare module "./core.ts" {
     archive(court: Power): Tablet[];
     copyFromArchive(spy: Character, court: Power, master: Power): string[];
     archiveCopiesArrive(j: Journey, spy: Character): string[];
-    takeArchive(taker: Power, province: string): void;
+    takeArchive(taker: Power, province: string, of?: Power): void;
     archiveArrives(holder: Power, tabletIds: readonly string[], court: string, place: string): void;
     copyLine(copy: TabletCopy): string;
     scribe(writer: Power, text: string | null): string;
@@ -108,11 +108,12 @@ P.archiveCopiesArrive = function (j, spy) {
  * taker's scribes carry them home to his capital as a load that can be waylaid (item 10+b), becoming his copies when they
  * arrive.
  */
-P.takeArchive = function (taker, province) {
+P.takeArchive = function (taker, province, of) {
   const S = this.s;
   const prov = this.map.get(province);
-  // Item 13: the archive moves with the court, so it lies wherever its king is.
-  const court = alive(S).find((q) => q !== taker && this.courtAt(q) === province) ?? (prov.capital && prov.home !== null && !alive(S).includes(prov.home) ? prov.home : null);
+  // Item 13: the archive moves with the court, so it lies wherever the court is (item 17b, part C: not where its king is).
+  // Item 17b, part C2: a court taken on the road names itself (`of`), since another may stand in the same place.
+  const court = of ?? alive(S).find((q) => q !== taker && this.courtAt(q) === province) ?? (prov.capital && prov.home !== null && !alive(S).includes(prov.home) ? prov.home : null);
   if (court === null || court === taker) return;
   const held = new HSet(S.copies.filter((k) => k.holder === taker).map((k) => k.tabletId));
   const tablets = this.archive(court)

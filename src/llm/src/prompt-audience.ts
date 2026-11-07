@@ -26,6 +26,8 @@ export function person(c: CharacterView): string
         {
             parts.push(c.status !== `your captive` ? c.status : c.intercepted ? `your captive (an envoy your besiegers caught)` : `your captive (a caught spy)`);
             if (c.employer !== null) parts.push(`serves ${c.employer}`);
+            // Item 17b, part C2: the throne of a fallen realm he claims, once you have heard of its fall.
+            if (c.heirOf !== null) parts.push(`claims the throne of ${c.heirOf}, which has fallen`);
             if (c.heldByYou) parts.push(`held at your court against their will`);
             if (c.where.length > 0) parts.push(c.where);
         }

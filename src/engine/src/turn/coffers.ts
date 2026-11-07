@@ -23,6 +23,9 @@ import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { lootOf } from "./trade.ts";
 
+/** Where gold received at a place went: the treasury, a coffer there, home as a load, or among the people there. */
+export type Received = "treasury" | "coffer" | "home" | "people";
+
 declare module "./core.ts" {
   interface TurnEngine {
     /** Whether a province lies beyond the season's reach of the king's court, where only gold that is there pays. */
@@ -30,7 +33,7 @@ declare module "./core.ts" {
     /** The king's coffer in a province of his (made if `make`), null where he does not hold it. */
     cofferOf(p: Power, province: string, make?: boolean): Coffer | null;
     /** Gold reaching a king at a province: into its coffer if it is a far province of his, else into the treasury. */
-    receiveAt(p: Power, province: string, gold: number, income?: boolean): void;
+    receiveAt(p: Power, province: string, gold: number, income?: boolean): Received;
     /** The gold a king has to spend at a province with no credit: the treasury's near, the coffer's far. */
     goldAt(p: Power, province: string): number;
     /** Takes gold that is there (`goldAt`), all or none. */
@@ -89,17 +92,24 @@ P.cofferOf = function (p, province, make = false) {
 };
 
 P.receiveAt = function (p, province, gold, income = true) {
-  if (gold <= 0) return;
+  if (gold <= 0) return "treasury";
   if (this.isFar(p, province)) {
-    if (this.s.owner.getOrDefault(province, null) === p) intoCoffer(this, this.cofferOf(p, province, true)!, gold);
+    if (this.s.owner.getOrDefault(province, null) === p) {
+      intoCoffer(this, this.cofferOf(p, province, true)!, gold);
+      return "coffer";
+    }
     // Far off in another's land, it goes home as a load; with no road home for it, it stays among the people there.
-    else if (homeRoad(this, p, province)) this.lootHome(p, province, gold, [], "");
-    else this.spendAt(province, gold);
-    return;
+    if (homeRoad(this, p, province)) {
+      this.lootHome(p, province, gold, [], "");
+      return "home";
+    }
+    this.spendAt(province, gold);
+    return "people";
   }
   const t = this.s.treasuries.get(p);
   t.gold += gold;
   if (income) t.income += gold;
+  return "treasury";
 };
 
 P.goldAt = function (p, province) {
