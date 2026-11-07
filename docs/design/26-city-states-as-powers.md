@@ -95,3 +95,19 @@ it knows (the opening bonds, public, and the tablets it holds):
   nobody, offers itself (`tribute`, `serve`, `askProtect`). `sealBond` seals a vassal tablet by the same sums: as
   overlord, real tribute from a sender not hostile; as vassal, a bearable price to an overlord it fears or needs.
 - **Third kings** weigh an overlord's troops near a vassal, and his friendship, before falling on it (`bondWar`).
+
+## A small state as a seat (item 17++++)
+
+Any city-state's or chief's seat can be taken by a human or a model, from the same seat choice as a Great King's: the
+start screen lists the seven Great Kings first, "the advised start", then "a small state: harder, not the advised start",
+and says why when one is chosen. Nothing checks which power a seat is: it plays by the same rules, with its own seat view,
+letters and council, and is judged on the one scoreboard against its own start ("Relative score"). What the item changed
+is how a seat is styled where it was written for a Great King: the seat's own identity line in every request
+(`rulerOf`: "Rib-Hadda, king of Gubla", "the king of Tunip", "the Great King of Alashiya", "the chief of the Kaska",
+an unnamed ruler under the realm he claims), the rulebook's line on whom a seat plays, the phrasing of a court's answers
+("a ruler … a Great King, a city's king or a land's chief"), both chronicle narrators' annals, and the script kings'
+words that named their own rank; `rulerStyle` gives the style, from the seven Great
+Kings and the lands under chiefs, and no rule reads it. Rank beyond it is earned in greetings ("Recognition is earned"). And the seat's orders give the
+envoys' journeys grouped by their length once the list is long, by the grouping the model's request uses (`journeyGroups`) ("1 season to every court but these; Arrapha, Elam: 2
+seasons"), since a small state's seat, like any, reads forty-six courts, most a season away.
+

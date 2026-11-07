@@ -35,3 +35,30 @@ export function upper(s: string): string {
 export function notTaken(name: string, key: string): string {
   return pick([`${name} is not in your service: they did not take the job offered.`, `${name} did not take your job, and is not yours to send.`, `${name} has not taken service with you, so they cannot be sent.`], key);
 }
+
+/** An envoy's journey as the seat view words it: "Terqa: 2 season(s) each way". */
+const Journey = /^(?<court>.+): (?<n>\d+) season\(s\) each way$/;
+
+/** Courts a journey of the same length away. */
+export interface JourneyGroup {
+  seasons: number;
+  courts: string[];
+}
+
+/**
+ * A seat view's journeys (`SeatView.travelTimes`) grouped by their length, for the model's request and the human's orders
+ * alike, each in its own words (item 17++++): the most common length (null for none), the other lengths, shortest first,
+ * and any line not in the usual form.
+ */
+export function journeyGroups(lines: readonly string[]): { most: JourneyGroup | null; others: JourneyGroup[]; odd: string[] } {
+  const by = new Map<number, string[]>();
+  const odd: string[] = [];
+  for (const t of lines) {
+    const m = Journey.exec(t)?.groups;
+    if (m === undefined) odd.push(t);
+    else by.set(Number(m.n), [...(by.get(Number(m.n)) ?? []), m.court]);
+  }
+  const groups = [...by].map(([seasons, courts]) => ({ seasons, courts })).sort((a, b) => a.seasons - b.seasons);
+  const most = groups.reduce<JourneyGroup | null>((a, g) => (a === null || g.courts.length > a.courts.length ? g : a), null);
+  return { most, others: groups.filter((g) => g !== most), odd };
+}
