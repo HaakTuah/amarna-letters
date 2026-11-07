@@ -78,6 +78,8 @@ function personTraits(t: readonly number[]): { ambition: number; courage: number
 /** A reigning king taken alive by `by` at `where`: under his captor's guard to his court, like any captive given over. */
 function captureKing(e: TurnEngine, c: Character, p: Power, by: Power, where: string): void {
   const S = e.s;
+  // Apart from his court, his realm learns of it only when the word comes (`kingLostWord`).
+  const apart = S.kingAt.has(p) && where !== e.courtAt(p);
   c.status = "Captured";
   c.heldBy = by;
   c.duty = "UnderGuard";
@@ -91,7 +93,7 @@ function captureKing(e: TurnEngine, c: Character, p: Power, by: Power, where: st
   e.meet(c, by);
   remember(c, S.turn, `I was taken by ${land(by)} in ${e.map.get(where).name}.`);
   notify(S, by, "Notice", "A king taken", `Your men took ${c.name}, ${rulerStyle(p)} of ${powerName(p)}, in ${e.map.get(where).name}; your guards bring him to your court. His fate is yours: you may put him to death, ransom him, release him or hand him over (order captive).`, c.id);
-  logEvent(S, "king-taken", `${by} took ${c.name}, king of ${p}, in ${e.map.get(where).name}.`, [p, by], "king-taken");
+  logEvent(S, "king-taken", `${by} took ${c.name}, king of ${p}, in ${e.map.get(where).name}.`, apart ? [by] : [p, by], "king-taken");
 }
 
 /** A new person for a power's throne, at its court, reigning (the reign is set by the caller). */
@@ -161,13 +163,19 @@ P.kingLostWord = function (p, where, text) {
     S.kingAt.delete(p);
     return;
   }
+  // He commands from nowhere now: what the court believes is kept apart from where he is.
+  S.kingHeard.set(p, S.kingAt.get(p));
+  S.kingAt.delete(p);
   S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(where, this.courtAt(p)), from: p, to: p, news: "KingTaken", text }));
 };
 
 P.kingLostHeard = function (p, text) {
   const S = this.s;
-  S.kingAt.delete(p);
-  notify(S, p, "Notice", "The king taken", `${text} Your court rules in his name until he is back.`);
+  S.kingHeard.delete(p);
+  const c = findCharacter(S, S.reigns.get(p).character);
+  const still = c !== null && c.status === "Captured" ? " Your court rules in his name until he is back." : "";
+  notify(S, p, "Notice", "The king taken", `${text}${still}`);
+  logEvent(S, "king-taken-heard", text, [p]);
 };
 
 P.courtFlees = function (p, by) {
@@ -226,6 +234,11 @@ P.kingsInBattle = function (result) {
 
 P.kingsHeld = function () {
   const S = this.s;
+  // A king back at his court before word of his loss came: it knows where he is.
+  for (const p of [...S.kingHeard.keys()]) {
+    const k = findCharacter(S, S.reigns.get(p).character);
+    if (k !== null && k.status === "Employed" && k.duty === "Ruling" && k.at === p) S.kingHeard.delete(p);
+  }
   for (const p of alive(S)) {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Captured" || c.heldBy === null || c.duty === "UnderGuard") continue;
@@ -257,8 +270,6 @@ P.kingDied = function (c, how, where) {
   // where he was until the word comes.
   S.kingRoads = S.kingRoads.filter((x) => !(x.power === p && x.alone));
   S.reignsEnded.push({ power: p, character: c.id, since: r.since, until: S.turn, how });
-  // His seat wakes: a death concerns it, and a human player's heir is played by a script from now.
-  this.endSleep(p, "the king is dead");
   logEvent(S, "king-dies", `${c.name}, king of ${p}, died ${how}.`, [], "king-dies");
   // His court learns of it as word comes from where he died (at once, if he died there), and his heir reigns from then.
   const seat = this.courtAt(p);
@@ -268,6 +279,8 @@ P.kingDied = function (c, how, where) {
     this.heirReigns(p, text);
     return;
   }
+  if (S.kingAt.has(p)) S.kingHeard.set(p, S.kingAt.get(p));
+  S.kingAt.delete(p);
   S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(where, seat), from: p, to: p, news: "KingDead", text }));
 };
 
@@ -276,6 +289,8 @@ P.heirReigns = function (p, text) {
   const r = S.reigns.get(p);
   const dead = findCharacter(S, r.character);
   if (dead === null || dead.status !== "Dead" || !isAlive(S, p)) return;
+  // Its seat wakes as the word comes: a death concerns it, and a human player's heir is played by a script from now.
+  this.endSleep(p, "the king is dead");
   // The heir inherits a third of his father's standing, love and hate alike, with the people and the soldiers.
   for (const book of [...S.ledger.values(), ...S.armies.values()]) {
     const v = book.tryGet(p);

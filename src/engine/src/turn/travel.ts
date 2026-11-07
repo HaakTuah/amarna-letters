@@ -672,7 +672,7 @@ P.wordArrives = function (j) {
       break;
     case "KingDead":
       // Item 17b: word of the king's death reaches his own court, and his heir reigns; it no longer believes him afield.
-      S.kingAt.delete(j.to);
+      S.kingHeard.delete(j.to);
       this.heirReigns(j.to, j.text ?? "");
       break;
     case "KingTaken":

@@ -194,7 +194,8 @@ P.sendOrders = function (p, sub) {
       keep.push(named);
       continue;
     }
-    const at = placeOf(this, p, o);
+    // Item 17b, part C: the court's own business, ordered by a king away from it, goes to his court with his couriers.
+    const at = placeOf(this, p, o) ?? (S.kingAt.has(p) && unitOf(o) === null && !(o.type === "court" && o.alone === true) ? { province: this.courtAt(p), unit: null } : null);
     if (at === null || !this.map.exists(at.province)) {
       keep.push(o);
       continue;
@@ -296,7 +297,7 @@ P.tell = function (p, province, kind, title, text, extra = 0) {
 P.tellAt = function (p, at, kind, title, text, from) {
   const S = this.s;
   if (at <= S.turn + S.deliveryOffset) {
-    notify(S, p, kind, title, text);
+    notify(S, p, kind, title, text, null, true, false);
     return;
   }
   // A report from afar: a courier brings it, a season or more later than a near one's.

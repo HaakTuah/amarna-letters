@@ -149,6 +149,7 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is CourtOrder => o.type === "court")) this.setOutCourt(p, o);
   // Item 17b: kings taken where they stand are captives, courts lost flee; a realm that holds nothing falls.
   this.capitalsTaken();
+  this.courtLags();
   // Item 13+: the parts of fallen kingdoms that word of the fall has reached come apart.
   this.fallsSpread();
   this.resolveTransfers(

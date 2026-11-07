@@ -383,6 +383,11 @@ export interface GameState {
    * he commands; a king with his court is left out.
    */
   kingAt: Dict<Power, string>;
+  /**
+   * Item 17b, part C: where a court still believes its king stands apart from it, while word that he was taken or died
+   * there is on its way; he commands from nowhere meanwhile, and its orders go out from the court.
+   */
+  kingHeard: Dict<Power, string>;
   /** Item 13: the courts on the road, with their kings or without them; item 17b, part C: kings on the road alone. */
   kingRoads: KingRoad[];
   /** Item 13: orders on the road with the realm's couriers, from a king's court to where they are carried out. */
@@ -505,6 +510,11 @@ export interface GameState {
   // computed in C#: Powers.All.Where(IsAlive)
   /** While a season resolves, news is stamped for the next season, when the courts read it. */
   deliveryOffset: number; // not serialized
+  /**
+   * Item 17b, part C: for each king apart from his court, the seasons a courier takes from his court to him, by which the
+   * court's business it sends on reaches him (`CourtKinds`); set each season by the engine, not serialized.
+   */
+  courtLag: Dict<Power, number>;
 }
 
 export function newGameState(init: Partial<GameState> = {}): GameState {
@@ -568,6 +578,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     crowns: [],
     court: new Dict(),
     kingAt: new Dict(),
+    kingHeard: new Dict(),
     kingRoads: [],
     couriers: [],
     lettersCarried: new Dict(),
@@ -631,6 +642,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     winners: [],
     idCounters: new Dict(),
     deliveryOffset: 0,
+    courtLag: new Dict(),
     ...init,
   };
 }
@@ -707,6 +719,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   crowns: list(() => CrownSchema),
   court: dict(S),
   kingAt: dict(S),
+  kingHeard: dict(S),
   kingRoads: list(() => KingRoadSchema),
   couriers: list(() => CourierSchema),
   lettersCarried: dict(I),
@@ -958,10 +971,18 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
 }
 
 /**
- * A notice to a court: its powers named as that court knows and gives them (item 17+, {@link namedFor}), unless `named` is
- * false, for a notice that speaks of a name itself rather than the power it names.
+ * Item 17b, part C: the notices of a court's own business (audiences, envoys' and spies' reports, foreign news, people
+ * presenting themselves, tablets and the checks of them), which a court sends on to its king when he is away from it.
  */
-export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true): void {
+export const CourtKinds: ReadonlySet<InboxKind> = new Set<InboxKind>(["Audience", "EnvoyReport", "SpyReport", "Rumor", "CheckResult", "Candidates", "Assay", "Authentication", "Tablet"]);
+
+/**
+ * A notice to a court: its powers named as that court knows and gives them (item 17+, {@link namedFor}), unless `named` is
+ * false, for a notice that speaks of a name itself rather than the power it names. A notice of the court's own business
+ * (`CourtKinds`) reaches a king away from it when his court's courier could bring it (`GameState.courtLag`), unless `atCourt`
+ * is false, for word timed by its own road.
+ */
+export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true, atCourt = true): void {
   title = named ? namedFor(p, title) : unmarked(title);
   body = named ? namedFor(p, body) : unmarked(body);
   // A person the court knows by a false name (item 10) is named to it by that name.
@@ -972,7 +993,8 @@ export function notify(s: GameState, p: Power, kind: InboxKind, title: string, b
     title = title.replace(own, alias);
     body = body.replace(own, alias);
   }
-  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset, kind, title, body, subject }));
+  const lag = atCourt && CourtKinds.has(kind) ? s.courtLag.getOrDefault(p, 0) : 0;
+  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset + lag, kind, title, body, subject }));
 }
 
 export function logEvent(s: GameState, kind: string, text: string, visibleTo: Iterable<Power> | null = null, signal: string | null = null): GameEvent {

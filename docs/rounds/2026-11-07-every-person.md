@@ -177,14 +177,17 @@ abroad, the heir an exile with a claim, and word of a death sent on to a court t
 
 ### Readings taken
 
-- **What reaches his court is answered there while he is away, for now** (part B's reading for a held king): envoys,
-  letters and foreign news come to the court, and the seat answers them there; only his orders to his land and armies,
-  and their reports, go by where he stands. The design check found this against "nothing is known at a distance without
-  someone carrying it", so part C2 sends what reaches the court on to him, and his answers back, unless the owner prefers
-  the reading (added to question #806).
-- **Word of his capture or death travels** (the design check's first round): taken or killed away from his court, the
-  court learns of it when word from where it happened comes, and believes him where he was till then (his view, his
-  status, `kingAt`); an order sent him meanwhile goes nowhere.
+- **What reaches his court is sent on to him, and his orders for its business go to it** (the one-page: "nothing is
+  known or delivered at a distance without someone carrying it"; "envoys and reports still reach the old seat and must
+  be sent on"): built in this part after the design check's second round, which ruled the earlier reading (answered at
+  the court at once) a mistake against the one-page, not a question. The notices of the court's business reach him a
+  courier's time late; letters, envoys, people, captives and tolls on all his land, and moving the court, go to it with his
+  couriers. Notices of other kinds (his own orders' outcomes, the realm's notices) are not sent on: most are already timed
+  by the road from where they happen to him.
+- **Word of his capture or death travels** (the design check's first and second rounds): taken or killed away from his
+  court, the court learns of it when word from where it happened comes, and believes him where he was till then (his
+  view, his status, `kingHeard`) and sees nothing of it (the capture is his captor's event); meanwhile he commands from
+  nowhere, so the realm's orders go out from the court, and an order for his own journey goes nowhere.
 - **Death where he stands applies with his court too** ("a king dies only by a cause where he is": battle, a fallen
   city): a king taken in his court's city may now die in its fall, as part B left for part C.
 - **A court without its king is not stopped on the road** in this part: a court taken on the road is part C2's.
@@ -210,8 +213,7 @@ abroad, the heir an exile with a claim, and word of a death sent on to a court t
 
 ### Questions for the owner
 
-- [#806](https://github.com/HaakTuah/amarna-letters/issues/806): added to it: while a king is away from his court, is
-  what reaches his court answered there at once, or sent on to him (part C2 builds the sending-on unless he says
-  otherwise)?
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806): while a king is held captive, does his court keep giving
+  orders in his name (still open; the sending-on for a king away and free is built here, as the one-page settles it).
 - Idea [#813](https://github.com/HaakTuah/amarna-letters/issues/813): a king who stands with his army gives it an edge in
   battle.

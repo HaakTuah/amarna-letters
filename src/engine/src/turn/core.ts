@@ -107,6 +107,8 @@ export class TurnEngine {
   beginTurn(): void {
     const S = this.s;
     if (S.ended) return;
+    // Item 17b, part C: how late the court's business reaches a king away from it this season.
+    this.courtLags();
     this.mindRequests.length = 0;
     S.audiences.length = 0;
     S.counterIntel.clear();

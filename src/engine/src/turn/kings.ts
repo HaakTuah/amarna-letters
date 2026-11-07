@@ -15,7 +15,7 @@ import type { CourtOrder } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
 import { alive, findCharacter, logEvent, notify } from "../model/state.ts";
 import { PointsPerDay, legPoints } from "../model/travel.ts";
-import { courtMoveCost, courtOf, kingRoute, seatOf } from "../rules/court.ts";
+import { courtMoveCost, courtOf, kingRoute, seatOf, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { TurnEngine } from "./core.ts";
@@ -35,6 +35,8 @@ declare module "./core.ts" {
     courtsLost(): Map<Power, Power | null>;
     /** Who took `at` from `p` this season, or undefined; `court`: a court never moved counts its map capital lost if it is not his. */
     lostThisSeason(p: Power, at: string, court: boolean): Power | null | undefined;
+    /** Item 17b, part C: how late the court's business reaches each king apart from his court (`GameState.courtLag`), as things stand now. */
+    courtLags(): void;
     /** Who may stop the king on the road in a province: a power besieging a city of his there, or one that closed its roads to him with troops there. */
     kingStoppedAt(p: Power, x: string): Power | null;
   }
@@ -125,6 +127,15 @@ P.kingsTravel = function () {
           ? `Your court is in ${this.map.get(at).name}: envoys and letters come to it there, and your treasury and archive are kept there.`
           : `You and your court are in ${this.map.get(at).name}: your orders go out from here.`;
     notify(S, p, "Resolution", road.alone ? "You arrive" : "The court arrives", text);
+  }
+};
+
+P.courtLags = function () {
+  const S = this.s;
+  S.courtLag.clear();
+  for (const [p, at] of S.kingAt) {
+    const t = wordHomeAt(S, this.map, at, courtOf(S, this.map, p), S.turn);
+    if (Number.isFinite(t) && t > S.turn) S.courtLag.set(p, t - S.turn);
   }
 };
 

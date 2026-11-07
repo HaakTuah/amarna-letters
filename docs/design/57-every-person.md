@@ -71,8 +71,16 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   the treasury, the archive and the officials, and receives envoys and letters; the king may stand apart from it
   (`GameState.kingAt`), and his seat (`seatOf`, `TurnEngine.seatAt`) is where he stands, else his court. His orders to his
   land and armies go out from his seat by courier, their reports and what he sees as current come to it, and a unit he
-  stands with carries out a standing order as one with its commander does. What reaches his court (envoys, letters,
-  foreign news) his officials carry on in his name, as while he is held (part B's reading).
+  stands with carries out a standing order as one with its commander does.
+- **What reaches his court is sent on to him** (`CourtKinds`, `GameState.courtLag`, set by `courtLags` each season): the
+  notices of its business (audiences, envoys' and spies' reports, foreign news, people presenting themselves, tablets and
+  their checks) reach him when a courier from his court could bring them; his orders for that business (letters, envoys,
+  people, captives, tolls on all his land, moving the court) go to the court with his couriers (`sendOrders`), carried out
+  there when they arrive.
+- **His court learns of his capture or death by word** (`kingLostWord`, `kingLostHeard`, news `KingTaken`; `KingDead`):
+  taken or killed apart from it, he commands from nowhere and its orders go out from the court, but it believes him where
+  he was (`GameState.kingHeard`: its view's `kingAt` and `seat`, and its own king shown as last known) and sees nothing of
+  it (the event is his captor's) until the word comes; a king back at his court first ends that.
 - **He travels alone** (order `court` with `alone`, `travel_alone`): with his guard, for 5 shekels and 2 more for every
   ten days of road, as a company of 60, faster than his court (`KingAloneData`, first guesses), on the court's road rules
   (`GameState.kingRoads`, `alone`), stopped where a king besieges a city of his or has troops in land closed to him. Only
