@@ -14,7 +14,8 @@ import { type PendingTask } from "../model/records.ts";
 import { isAlive, type GameState } from "../model/state.ts";
 import { newCharacterView, newNewsOffer, type CharacterView } from "../model/views.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { courtOf, fallenRealmOf, kingLossUnheard, realmOfKing } from "./court.ts";
+import { courtOf, kingLossUnheard, realmOfKing } from "./court.ts";
+import { claimKnown } from "./claims.ts";
 import { basePrice, LetterData } from "../turn/turn-engine.ts";
 import { travelTurns } from "../turn/core.ts";
 
@@ -140,7 +141,7 @@ export function characterView(s: GameState, c: Character, viewer: Power): Charac
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
     kingOf,
-    heirOf: heirKnown(s, viewer, c.id),
+    heirOf: claimKnown(s, viewer, c),
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
     ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
@@ -346,10 +347,4 @@ export function whereText(c: Character, viewer: Power): string {
   if (c.watchProvince === null) return "travelling";
   if (c.duty === "Leading" || c.duty === "Commanding" || c.duty === "Governing" || (c.duty === "SpyPosted" && c.missionTarget === null)) return "";
   return `in ${placeName(c.watchProvince)}`;
-}
-
-/** Item 17b, part C2: the fallen realm a character claims, once the viewer has heard of its fall (a fallen court sees all). */
-export function heirKnown(s: GameState, viewer: Power, id: string): Power | null {
-  const p = fallenRealmOf(s, id);
-  return p !== null && (!isAlive(s, viewer) || (s.fallsHeard.tryGet(viewer) ?? []).includes(p)) ? p : null;
 }
