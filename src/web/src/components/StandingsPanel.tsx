@@ -47,7 +47,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
           <thead>
             <tr>
               <th>Power</th>
-              <th title="The yield of the land held now over the homeland's at the start: not growth">
+              <th title="The yield of the land held now over the homeland's at the start">
                 Land yield<span className="sr"> (not growth)</span>
               </th>
               <th>Growth</th>

@@ -610,10 +610,13 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
  * handed over and what falls due when it is done, by when, and the standing orders that go with it. `fee` is null when
  * no job is to be said.
  */
+/** Where an errand goes, by the name a king reads: a court by its realm's name, a province by its own (never its id). */
+const errandPlace = (where: string): string => ((AllPowers as readonly string[]).includes(where) ? land(where as Power) : placeName(where));
+
 function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
   if (fee === null) return "";
   const e = k?.errand ?? null;
-  const errand = e === null ? "a job, its errand named when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${e.where} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const errand = e === null ? "a job, its errand named when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${errandPlace(e.where)} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${errandPlace(e.where)}` : `spy on ${errandPlace(e.where)}`}`;
   const rest = Math.max(0, fee - (advance ?? 0));
   const due = k === null || k.payOnDone ? `${rest} when it is done` : `${rest} owed when it is done, paid only if you order it (pay_fee)`;
   const serves = `${errand}: ${fee} shekels, ${advance ?? 0} paid, ${due}`;

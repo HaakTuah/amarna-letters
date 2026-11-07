@@ -197,11 +197,12 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     c.openly = true;
     c.met = [...new Set([...c.met, "Egypt", host])];
     // His post is his calling's line, said once: where he sits and that he writes home.
+    const resident = `Sits in ${m.get(r.province).name} as Pharaoh's commissioner, known to all as his man, and sends word home to Pharaoh.`;
     const at = c.facts.find((f) => f.tag === "calling");
     if (at !== undefined) {
-      at.text = `Pharaoh's commissioner in ${m.get(r.province).name}, known to all as his man, who sends word home to Pharaoh.`;
+      at.text = resident;
       at.tag = "resident";
-    }
+    } else c.facts.push(newFact({ id: newId(s, "f"), text: resident, secrecy: "Public", tag: "resident" }));
     book(r.province).set(c.id, UnrestData.stake);
   }
 }
@@ -454,9 +455,11 @@ function more(s: GameState, unused: Seed[]): void {
     // Item 17+: what the sources say of a person of 1346, as public facts; a claim or a town of his own as a stake.
     // The data keeps its sources in brackets ("(EA 62)", "(the Shattiwaza treaty)"); a king reads only what they say.
     for (const text of sd.facts) c.facts.push(newFact({ id: newId(s, "f"), text: text.replace(/\s*\([^)]*\)/g, ""), secrecy: "Public", tag: "source" }));
-    // A calling the sources' first line already gives is said once, there.
-    const told = c.facts.find((f) => f.tag === "source")?.text.toLowerCase() ?? "";
-    if (told.startsWith(sd.calling.toLowerCase().replace(/^(a|an|the) /, "")) || told.startsWith(sd.calling.toLowerCase())) c.facts = c.facts.filter((f) => f.tag !== "calling");
+    // A calling the sources' first line already gives is said once, there: the two open on the same title ("A general." and
+    // "A general of Akhenaten's", "Commissioner at Ṣumur." and "Pharaoh's commissioner at Ṣumur").
+    const head = (t: string): string => t.toLowerCase().replace(/^(a|an|the) /, "").replace(/^pharaoh's /, "").split(/[ ,.]/)[0];
+    const told = c.facts.find((f) => f.tag === "source")?.text ?? "";
+    if (told !== "" && head(told) === head(sd.calling)) c.facts = c.facts.filter((f) => f.tag !== "calling");
     if (sd.stake !== null) c.facts.push(newFact({ id: newId(s, "f"), text: `Many of the people of ${WorldMap.default.get(sd.stake).name} would have him as their lord.`, secrecy: "Public", tag: `stake:${sd.stake}` }));
     finish(s, c, sd.core, attested);
     if (sd.post) {

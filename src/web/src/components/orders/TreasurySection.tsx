@@ -72,7 +72,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="Army">army ({shekels(price("army"))})</option>
           <option value="Fleet">fleet ({shekels(price("fleet"))})</option>
         </select>
-        <input type="number" min={1} max={100} placeholder="share %" title="Empty: a full unit. A share of the men of fighting age at home, which the province hides part of as its count ages." value={f.raiseShare} onChange={(e) => set({ raiseShare: e.target.value })} style={{ width: "5rem" }} />
+        <input type="number" min={1} max={100} placeholder="share %" title="Leave it empty for a full unit, or give a share of the men of fighting age at home (a province hides more of them the older its count)." value={f.raiseShare} onChange={(e) => set({ raiseShare: e.target.value })} style={{ width: "5rem" }} />
         <button
           className="small"
           disabled={f.raiseAt === "" || (f.raiseShare !== "" && !(Number(f.raiseShare) >= 1 && Number(f.raiseShare) <= 100))}
@@ -168,7 +168,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                       ? `${provinceName(id)} (${!v.far.includes(id) ? "within your couriers' season: the treasury pays there" : `coffer ${shekels(x.coffer)}${x.owed > 0 ? `, owing ${shekels(x.owed)}` : ""}${x.reported !== null ? ` as reported ${when(x.reported, me)}` : ""}`})`
                       : f.grainAction === "share" || f.grainAction === "amount"
                       ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, ${x.counted === null ? "never counted" : `harvest ${counted(x.harvest, v.turn - x.counted)} as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
-                      : `${provinceName(id)} (stores about ${about(x.stores)}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
+                      : `${provinceName(id)} (stores about ${about(x.stores)} of ${x.capacity}; ${x.stock} in its market at ${shekels(priceForTen(x.price))} for ten measures; its people's purse ${shekels(x.purse)})`}
                 </option>
               );
             })}

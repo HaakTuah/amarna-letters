@@ -16,9 +16,11 @@ describe("The cast's biographies", () => {
         // "a Ashkelonite trader".
         Assert.doesNotContain(lines, (t) => /\ba [AEIOU]/.test(t));
         Assert.true(new Set(lines).size === lines.length, `${c.name}: ${lines.join(" | ")}`);
-        const calling = c.facts.find((f) => f.tag === "calling")?.text.toLowerCase().replace(/^(a|an|the) /, "").replace(/\.$/, "");
-        const source = c.facts.find((f) => f.tag === "source")?.text.toLowerCase();
-        if (calling !== undefined && source !== undefined) Assert.false(source.startsWith(calling), `${c.name}: ${calling}`);
+        // The calling's line and the sources' first line never open on the same title.
+        const head = (t: string): string => t.toLowerCase().replace(/^(a|an|the) /, "").replace(/^pharaoh's /, "").split(/[ ,.]/)[0];
+        const calling = c.facts.find((f) => f.tag === "calling")?.text;
+        const source = c.facts.find((f) => f.tag === "source")?.text;
+        if (calling !== undefined && source !== undefined) Assert.false(head(source) === head(calling), `${c.name}: ${calling} | ${source}`);
       }
   });
 
@@ -28,7 +30,7 @@ describe("The cast's biographies", () => {
       const lines = c.facts.filter((f) => f.tag === "calling" || f.tag === "resident").map((f) => f.text);
       Assert.true(lines.length <= 1, c.name);
       // Pharaoh's residents say where they sit; a governor's line names his post.
-      if (c.openly) Assert.true(lines[0]?.startsWith("Pharaoh's commissioner in ") ?? false, `${c.name}: ${lines[0]}`);
+      if (c.openly) Assert.true(lines[0]?.startsWith("Sits in ") ?? false, `${c.name}: ${lines[0]}`);
       else if (lines.length === 1) Assert.equal(`Governor of ${c.calling.slice("governor of ".length)}.`, lines[0]);
     }
   });

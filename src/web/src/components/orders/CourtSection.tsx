@@ -32,7 +32,7 @@ import {
   claimableNames,
   type Power,
 } from "@amarna/engine";
-import { dated, grantLine, heardIn, powerName, provinceName, shekels } from "../../ui/format.ts";
+import { dated, grantLine, heardIn, powerName, provinceName, shekels, when } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { Person } from "../Person.tsx";
 import { map, num } from "./form.ts";
@@ -74,7 +74,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           const closed = v.roadsClosed.includes(p);
           return (
             <button key={p} className="small" disabled={draft.other.some((o) => o.type === "roads" && o.court === p)} onClick={() => add(roads(p, !closed))}>
-              {closed ? `Open to ${powerName(p)}` : `Close to ${powerName(p)}`}
+              {closed ? `Open the roads to ${powerName(p)}` : `Bar the roads to ${powerName(p)}`}
             </button>
           );
         })}
@@ -283,7 +283,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       {v.debts.map((d) => (
         <div className="row" key={d.id}>
           <small>
-            Debt {d.id}: {shekels(d.left)} left to repay by turn {d.dueTurn}; the tablet is held by {d.holder}
+            {shekels(d.left)} still owed, due by {when(d.dueTurn, me)}; the tablet is held by {d.holder}
             {d.here ? ", who stands at your court" : ""}.
           </small>
           {d.here && (

@@ -65,10 +65,10 @@ describe("CoverBotTests", () => {
     // A model king reads the same: the caught spy at its post, never "at court, ready".
     let text = situation(view);
     Assert.contains(
-      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job as spy on Hatti, for ${caught.contract!.fee} shekels (${caught.contract!.advance} handed over, ${rest(caught.contract!)} `,
+      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job as spy on Hatti: ${caught.contract!.fee} shekels, ${caught.contract!.advance} paid, ${rest(caught.contract!)} `,
       text,
     );
-    Assert.contains(`), by turn ${caught.contract!.untilTurn};`, text);
+    Assert.contains(`; term to turn ${caught.contract!.untilTurn}`, text);
     Assert.contains(`${gone.id} ${gone.name} of ${gone.origin}; on the road home;`, text);
 
     let king = new ScriptLeader(11);
