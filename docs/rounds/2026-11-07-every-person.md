@@ -231,3 +231,61 @@ abroad, the heir an exile with a claim, and word of a death sent on to a court t
   orders in his name (still open; the sending-on for a king away and free is built here, as the one-page settles it).
 - Idea [#813](https://github.com/HaakTuah/amarna-letters/issues/813): a king who stands with his army gives it an edge in
   battle.
+
+## Part C2: the court taken, fled, in exile
+
+Started from `develop` at ef4a4626 (C1 merged). As built: [57](../design/57-every-person.md), "Part C2". The live design
+document could not be read from this account (the docs connector refused it); the copy on `develop` has not changed
+since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-rules.md` is empty).
+
+### What was built
+
+- **A court taken loses its treasury** (`courtFlees`): where its city is taken, its treasury's gold goes to the taker (into
+  his treasury, or a coffer of his there if it is far from his court), or to the people there if nobody holds it. The
+  province's own stores stay with the province, and its archive goes by item 10's rule for a city taken.
+- **A court taken on the road**: a court on the move is stopped as a king alone is (a city of its realm besieged, troops
+  where its roads are closed, `RoadOdds.troops`), and taken: its treasury and archive go to whoever stopped it, and its
+  king with it if he is with it. C1 left a court without its king never stopped.
+- **Its flight is a real journey**: it flees by road (`GameState.kingRoads`) to the nearest city its realm still holds, at
+  the court's pace, and rules from the road.
+- **Word of a king's death is sent on** (`kingDeadWord`, `kingDeadHeard`, `Journey.toProvince`): it goes to his court as
+  it stood when he died, and a court that has moved since has it sent on from there. Word that comes after his realm
+  fell still finds his heir.
+- **An heir in exile with a claim** (`exileHeir`): when the last king of a fallen realm dies, or word of his death comes
+  after it fell, the record's next heir (or a drawn one) lives on as a free man among its refugees at the court nearest
+  where it fell, with a public fact that he claims its throne, seeking service. His seat sees whose throne he claims
+  (`CharacterView.heirOf`). Any king may make him king again by granting him land (order `crown`, item 17++).
+- **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
+  his fallen realm that king holds, by the same sum as any grant, the land kept reckoned as risky.
+- **Counted in the batch report**: `court-treasury`, `court-taken-road`, `king-exile`, `crown-exile` (a grant to an heir
+  in exile, counted apart from `crown-taken`).
+- The rulebook (COMMAND AT A DISTANCE and step 10), the seat view, the About page, the README and the design notes say so.
+
+### First guesses (item 18 tunes them)
+
+- A court on the road is stopped at the odds a king alone is (`RoadOdds.troops`), and an heir in exile goes to the court
+  nearest where his realm fell. No new numbers.
+
+### Readings taken
+
+- **The treasury goes with the court, the stores stay with the land** (the one-page: the court is "treasury, archive,
+  officials"; a province's grain and coffers are the province's): a court taken gives up what it carries, not what the
+  land holds.
+- **A court stopped on the road is taken, as its city taken would be** (C1's reading, "a court taken on the road is part
+  C2's"): the same odds as a king alone, since both are a guard on a road through hostile troops.
+- **The heir in exile is a person, not a seat** ("A realm holds by its ledger": "abroad, and he is an exile with a
+  claim"): he reigns over nothing and plays as any free character until a king grants him land, as Suppiluliuma made
+  Shattiwaza king of Mitanni again (dossier 16). No new order: the grant (item 17++) is the lever.
+- **His host is the court nearest where his realm fell** (refugees flee to the nearest court that will take them, as in
+  item 17): not one chosen by a rule about which power it is.
+- **#806 left open**: nothing in C2 depends on whether a captive king's court gives orders in his name; parts B and C1's
+  reading stands (it rules in his name once word of his capture comes).
+- **Planning done by the builder**, as in C1, to spare the week's usage; the design check reviews it.
+
+### Script players and the measure
+
+RESULTS
+
+### Questions for the owner
+
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; C2 does not depend on it).
