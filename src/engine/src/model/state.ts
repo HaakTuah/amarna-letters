@@ -3,7 +3,6 @@ import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core
 import { distinct, sortBy, sum } from "../core/seq.ts";
 import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
 import { WorldMap } from "./map.ts";
-import { type Unit, UnitSchema } from "./units.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
 import { AllPowers, type Power, type RisenPower, cmpPower, namedFor, unmarked } from "./power.ts";
@@ -27,6 +26,7 @@ import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, Pay
 import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema } from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 import { type Bill, BillSchema, type Coffer, CofferSchema, type Remittance, RemittanceSchema } from "./coffers.ts";
+import { type Unit, UnitSchema } from "./units.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
