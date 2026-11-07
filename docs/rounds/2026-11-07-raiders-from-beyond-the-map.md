@@ -75,7 +75,8 @@ tenth over their reckoning, with three times the fee in the treasury; a chief's 
   played it badly, not the feature mattering nothing: police at a door cost every season and hold a raid's chance down
   by a sixth, and an army marched after raiders who leave within a few seasons wastes its moves. Patched: no police at
   the doors and no march after raiders (they are still hunted where an army stands with them, hired and paid off).
-  Then: growth 0.75 to 0.79, 26 wins to 24; 737 raids, 7 paid off. Even: a raid of 30 to 160 men barely touches a realm
+  Then: growth 0.75 to 0.79, 26 wins to 24; 737 raids, 7 paid off. On the code after the design check (no Sherden or
+  Nile raiders): growth 0.78 to 0.78, 25 wins to 25; 613 raids, 6 paid off, 1 offer refused. Even: a raid of 30 to 160 men barely touches a realm
   of thousands, so heeding it matters little either way. Re-measure in item 18, when the raids' first guesses are tuned.
 - **Every feature is every seat's:** raider chiefs (all script in these games) came, robbed, took captives and went home
   every game; script kings hunted, hired and paid them off (15 pay-offs in the first batch, every one taken and gone
