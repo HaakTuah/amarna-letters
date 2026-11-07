@@ -29,7 +29,7 @@ import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtV
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { courtOf, realmOfKing } from "./court.ts";
+import { broughtToKing, courtLagOf, courtOf, kingAfield, kingLossUnheard, realmOfKing, seatOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -130,7 +130,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     power: p,
     king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
-    courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
+    courtTo: s.kingRoads.find((r) => r.power === p && !r.alone)?.to ?? null,
+    // Where the court believes him: while word of his loss is on the road, where he was.
+    kingAt: kingAfield(s, p) ?? null,
+    kingTo: s.kingRoads.find((r) => r.power === p && r.alone)?.to ?? null,
+    seat: seatOf(s, m, p),
     traits: s.reigns.tryGet(p)?.traits ?? [],
     // Its governors as it knows them: one whose end (death, turning, land lost) has not yet reached it still stands.
     governors: governorsKnown(s, s.turn).filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, seat: seatKnown(g, s.turn), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
@@ -280,19 +284,24 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // Its standing answers for what arrives at its court.
   v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
-  for (const c of s.characters) {
-    if (!knows(c, p) || unheardHire(s, c, p)) continue;
+  // Item 17b, part C: what came to its court reaches a king away from it as a courier from there brings it (`broughtToKing`).
+  const lag = courtLagOf(s, m, p);
+  for (const person of s.characters) {
+    // One newly come to his court he does not yet know to be there: as he last knew of it, if at all.
+    const fresh = person.at === p && !broughtToKing(s, s.cameToCourt.tryGet(`${person.id}@${p}`) ?? -Infinity, lag);
+    const c = fresh ? { ...person, at: null, pitches: new Dict<Power, string>() } : person;
+    if (!knows(c, p, s) || unheardHire(s, c, p)) continue;
     const cv = characterView(s, commanderKnown(engine, p, c, place), p);
     // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
-    if (coverOf(c, p) !== null || isOurs(c, p)) v.court.push(cv);
+    if (coverOf(c, p) !== null || isOurs(c, p, s)) v.court.push(cv);
     else v.known.push(cv);
   }
 
   const archive: Tablet[] = [];
-  for (const copy of s.copies.filter((x) => x.holder === p)) {
+  for (const copy of s.copies.filter((x) => x.holder === p && broughtToKing(s, x.acquiredTurn, lag))) {
     const tab = s.tablets.find((x) => x.id === copy.tabletId);
     if (tab === undefined) continue;
-    v.tablets.push(tabletView(tab, copy, s.turn));
+    v.tablets.push(tabletView(tab, broughtToKing(s, copy.authTurn, lag) ? copy : { ...copy, authResult: null }, s.turn));
     archive.push(tab);
   }
   // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
@@ -301,7 +310,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   });
 
   const asleep = s.sleep.tryGet(p);
-  v.letters = letters(s, p, v.court, s.config.sleepingSeats && asleep !== undefined ? asleep.lastCalled : s.turn - 1);
+  v.letters = letters(s, p, v.court, s.config.sleepingSeats && asleep !== undefined ? asleep.lastCalled : s.turn - 1, lag);
 
   // Every court it has not heard has fallen (item 7b).
   for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x))) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
@@ -389,11 +398,16 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
  * whose envoy's report has reached it since it last gave orders (`since`), so the king can set the report beside what he
  * sent. A letter whose envoy it knows has left its service, or died, drops out.
  */
-function letters(s: GameState, p: Power, court: readonly CharacterView[], since: number): LetterView[] {
+function letters(s: GameState, p: Power, court: readonly CharacterView[], since: number, lag = 0): LetterView[] {
   const away = new Set(court.filter((c) => c.ours && !c.ready).map((c) => c.id));
   const latest = new Set(groupBy(s.trails.filter((t) => t.from === p && !t.pretended), (t) => t.envoyId).map(([, g]) => g[g.length - 1].id));
+  // An envoy's report reaches a king away from his court as its notice does (item 17b, part C).
+  const reported = (t: (typeof s.trails)[number]): number | null => (t.reportTurn !== null && broughtToKing(s, t.reportTurn, lag) ? t.reportTurn : null);
   return s.trails
-    .filter((t) => t.from === p && !t.pretended && (t.reportTurn !== null ? t.reportTurn > since : away.has(t.envoyId) && latest.has(t.id)))
+    .filter((t) => {
+      const r = reported(t);
+      return t.from === p && !t.pretended && (r !== null ? r > since : away.has(t.envoyId) && latest.has(t.id));
+    })
     .map((t) =>
       newLetterView({
         turn: t.turn,
@@ -404,7 +418,7 @@ function letters(s: GameState, p: Power, court: readonly CharacterView[], since:
         message: t.leaderLetter,
         mandate: t.mandate,
         tablet: t.proposalText,
-        reportedTurn: t.reportTurn,
+        reportedTurn: reported(t),
       }),
     );
 }
@@ -423,11 +437,11 @@ function seenAtCourt(c: Character, viewer: Power): boolean {
  * themselves to it, and anyone a fact it knows names. A foreign spy posted at its court in secret is not seen there. The
  * dead are known only to the court they served.
  */
-function knows(c: Character, viewer: Power): boolean {
+function knows(c: Character, viewer: Power, s: GameState | null = null): boolean {
   if (coverOf(c, viewer) !== null) return true;
   if (c.status === "Dead" && c.employer !== viewer) return false;
   return (
-    isOurs(c, viewer) ||
+    isOurs(c, viewer, s) ||
     seenAtCourt(c, viewer) ||
     c.heldBy === viewer ||
     c.pitches.has(viewer) ||
@@ -436,14 +450,22 @@ function knows(c: Character, viewer: Power): boolean {
 }
 
 /** A servant of the court's, at home, abroad or held captive. */
-function isOurs(c: Character, viewer: Power): boolean {
+function isOurs(c: Character, viewer: Power, s: GameState | null = null): boolean {
   // Item 13: one who holds the king's command or governorship is his, in his service or free.
-  return (c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (c.grantedBy === viewer && c.status !== "Dead");
+  if ((c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (c.grantedBy === viewer && c.status !== "Dead")) return true;
+  // Item 17b, part C: its own king, dead away from it, is its own until the word comes.
+  return s !== null && c.employer === viewer && realmOfKing(s, c.id) === viewer && kingLossUnheard(s, viewer);
 }
 
 /** One its court does not know took its job yet (an offer taken abroad, whose word is on the road): it sees nothing of it. */
 function unheardHire(s: GameState, c: Character, viewer: Power): boolean {
   return c.employer === viewer && !jobKnown(c, s.turn);
+}
+
+/** Whom a captive held by `court` is known there to serve: a king's realm, to a court that knows he reigns (item 17b), else whom it confessed to serving. */
+function captiveMaster(s: GameState, id: string, court: Power): Power | null {
+  const realm = realmOfKing(s, id);
+  return realm !== null && reignKnown(court, realm) ? realm : confessedMaster(s, id, court);
 }
 
 /**
@@ -462,6 +484,9 @@ function confessedMaster(s: GameState, id: string, court: Power): Power | null {
 }
 
 function characterView(s: GameState, c: Character, viewer: Power): CharacterView {
+  // Item 17b, part C: its own king taken or dead away from his court, as the court last knew him until the word comes.
+  if (c.status !== "Employed" && realmOfKing(s, c.id) === viewer && kingLossUnheard(s, viewer))
+    return characterView(s, { ...c, status: "Employed", duty: "Ruling", heldBy: null, intercepted: false, at: viewer }, viewer);
   const cover = coverOf(c, viewer);
   if (cover !== null) return coveredView(s, c, cover);
   const ours = c.employer === viewer || c.grantedBy === viewer;
@@ -856,6 +881,7 @@ export const Views = {
   seenAtCourt,
   knows,
   confessedMaster,
+  captiveMaster,
   // Bug #797: as the court it is for names every power.
   character: (s: GameState, c: Character, viewer: Power): CharacterView => asSeenBy(viewer, () => characterView(s, c, viewer)),
   termText,

@@ -32,7 +32,7 @@ a season follow him; the land is his homeland, absorbed and content. The chronic
 ## The gate opened from within (`sieges.ts`, `gateHolds`)
 
 A besieged city that cannot feed its people no longer surrenders the season it starves: it counts its seasons starving
-(`Siege.hungry`) and its gate opens from within after `gate` 1, one more where its ruler is there (his court or his
+(`Siege.hungry`) and its gate opens from within after `gate` 1, one more where its ruler is there (the king himself, where he commands from, or his
 governor; Rib-Hadda lost Byblos the one time he left it), one more where its people were content (unrest below half the
 threshold), one fewer where they were restless. `siege-starved` now marks a gate opened.
 

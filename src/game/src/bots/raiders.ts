@@ -50,7 +50,7 @@ export function payOffOrders(b: Board, orders: Order[], breaks: (x: BandSeen, ar
     if (here.length === 0) continue;
     const army = here.reduce((a, u) => a + u.men, 0);
     if (breaks(x, army)) continue;
-    const carried = v.courtAt === x.province || here.some((u) => u.commander !== null && u.commandFrom <= v.turn);
+    const carried = (v.seat) === x.province || here.some((u) => u.commander !== null && u.commandFrom <= v.turn);
     if (!carried) continue;
     // A raider asks at least for the rest of his raid: a crew to the winter, a band over land for its longest stay.
     const rest = x.ship ? 1 + ((WinterSeason - seasonOfTurn(v.turn + 1) + 3) % 3) : RaiderData.stay;

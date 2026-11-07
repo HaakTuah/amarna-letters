@@ -324,8 +324,9 @@ export const CrownChoiceSchema: ObjSchema<CrownChoice> = obj("CrownChoice", newC
 export const MostGovernorLevies = 3;
 
 /**
- * The king on the road with his court (item 13, "The capital is wherever the king is"): where he goes, his route, the
- * route's province he last reached and the points he has made beyond it, and the season he set out.
+ * A court on the road, with its king or without him (item 13, "The capital is wherever the king is"), or the king on the
+ * road alone with his guard (`alone`, item 17b, part C): where it goes, its route, the route's province it last reached and
+ * the points made beyond it, and the season it set out.
  */
 export interface KingRoad {
   power: Power;
@@ -334,13 +335,14 @@ export interface KingRoad {
   leg: number;
   along: number;
   since: number;
+  alone: boolean;
 }
 
 export function newKingRoad(init: Partial<KingRoad> = {}): KingRoad {
-  return { power: "Egypt", to: "", route: [], leg: 0, along: 0, since: 0, ...init };
+  return { power: "Egypt", to: "", route: [], leg: 0, along: 0, since: 0, alone: false, ...init };
 }
 
-export const KingRoadSchema: ObjSchema<KingRoad> = obj("KingRoad", newKingRoad, { power: S, to: S, route: list(S), leg: I, along: I, since: I });
+export const KingRoadSchema: ObjSchema<KingRoad> = obj("KingRoad", newKingRoad, { power: S, to: S, route: list(S), leg: I, along: I, since: I, alone: B });
 
 /**
  * Moving the court, first guesses (item 18 tunes them): it costs `moveBase` shekels and `movePer` more for every ten days
@@ -348,6 +350,15 @@ export const KingRoadSchema: ObjSchema<KingRoad> = obj("KingRoad", newKingRoad, 
  * `companyMen` people, at their pace.
  */
 export const CourtData = { moveBase: 20, movePer: 5, companyMen: 300 } as const;
+
+/**
+ * The king travelling without his court (item 17b, part C), first guesses (item 18 tunes them): his guard and household
+ * cost `base` shekels and `per` more for every ten days of road, and go as a company of `companyMen`, faster than the court.
+ * Where he stands, a battle his side loses there kills him `fallsInBattle` times in a hundred and takes him
+ * `takenInBattle` in a hundred, else he gets away with his beaten men; a city taken where he stands kills him `diesInCity` in a hundred,
+ * else takes him.
+ */
+export const KingAloneData = { base: 5, per: 2, companyMen: 60, fallsInBattle: 20, takenInBattle: 30, diesInCity: 30 } as const;
 
 /**
  * An order on the road with the realm's couriers (item 13, "Distance inside your own realm"): men of the realm carrying

@@ -147,8 +147,9 @@ P.resolveSeason = function (submissions) {
   // Item 13: kings on the road with their courts go on (setting out from next season).
   this.kingsTravel();
   for (const [p, o] of all((o): o is CourtOrder => o.type === "court")) this.setOutCourt(p, o);
-  // Item 17b: kings taken where they stand are captives, their courts flee; a realm that holds nothing falls.
+  // Item 17b: kings taken where they stand are captives, courts lost flee; a realm that holds nothing falls.
   this.capitalsTaken();
+  this.courtLags();
   // Item 13+: the parts of fallen kingdoms that word of the fall has reached come apart.
   this.fallsSpread();
   this.resolveTransfers(
@@ -296,6 +297,8 @@ P.resolveMovement = function (unitOrders) {
 
   // What the battles cost (item 13): men on both sides; a unit beaten from its place falls back, or is destroyed.
   const gone = this.battles(result, sightBefore);
+  // Item 17b, part C: a king where his side lost a battle may die in it, be taken, or get away with his men.
+  this.kingsInBattle(result);
   this.marchesDone(result, byProvince, marching);
   for (const id of result.dislodgedUnitIds) {
     const u = S.units.find((x) => x.id === id)!;
@@ -518,13 +521,16 @@ P.raise = function (p, r) {
 };
 
 /**
- * Item 17b, part B: a king taken where he stands, or stopped on the road, is his taker's captive, and his court flees to the
- * nearest city his realm still holds (`TurnEngine.kingTaken`); only a realm that holds nothing falls.
+ * Item 17b, part B: a king taken where he stands, or stopped on the road, is his taker's captive, or dies in a city's fall
+ * (part C), and a court lost flees to the nearest city its realm still holds (`TurnEngine.kingTaken`, `courtFlees`); only a
+ * realm that holds nothing falls.
  */
 P.capitalsTaken = function () {
   const S = this.s;
   const taken = this.kingsTaken();
-  for (const p of alive(S).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p) ?? null);
+  const lost = this.courtsLost();
+  for (const p of alive(S).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p)!.by, taken.get(p)!.city);
+  for (const p of alive(S).filter((x) => lost.has(x))) this.courtFlees(p, lost.get(p) ?? null);
   // A realm left holding nothing falls, wherever its king is (one whose court stood abroad among them).
   for (const p of alive(S).filter((x) => ownedBy(S, x).length === 0)) this.fall(p, S.owner.getOrDefault(this.courtAt(p), null));
 };
@@ -545,7 +551,7 @@ P.fall = function (p, conqueror, ceded = false) {
   // A fallen court claims no name (item 17+).
   this.syncNames();
   this.endSleep(p);
-  // Its court's journey and its couriers on the road end with it.
+  // Its court's journey and its couriers on the road end with it; its king stands apart from no court (below).
   S.kingRoads = S.kingRoads.filter((r) => r.power !== p);
   S.couriers = S.couriers.filter((x) => x.power !== p);
   // Item 13: its armies in the field are their commanders' to decide once word of the fall reaches them (item 13+,
@@ -590,8 +596,17 @@ P.fall = function (p, conqueror, ceded = false) {
     if (ruler.status === "Free") {
       ruler.seeking = true;
       chooseStrategy(ruler);
+      // Item 17b, part C: one away from his court stands where he was, and walks to the nearest court still standing.
+      const afield = S.kingAt.tryGet(p);
+      const host = afield === undefined ? undefined : sortBy(alive(S), [(q: Power) => this.travelTurnsBetween(afield, this.courtAt(q)), cmpNum], [(q: Power) => AllPowers.indexOf(q), cmpNum])[0];
+      if (afield !== undefined && host !== undefined) {
+        ruler.at = null;
+        this.startTravel(ruler, host, null, afield);
+      }
     }
   }
+  S.kingAt.delete(p);
+  S.kingHeard.delete(p);
   const who = ceded ? `its king ceded its capital, ${capital.name}, to ${conqueror}` : conqueror !== null ? `${conqueror} took ${capital.name}, the last it held` : `${capital.name}, the last it held, was lost`;
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
   const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));
@@ -676,6 +691,8 @@ P.endOfTurn = function () {
       c.facts.push(newFact({ id: newId(S, "f"), text: `Spent three years and more at the court of ${land(c.at!)}.`, secrecy: "Hidden", tag: "abroad", knownBy: [c.employer!, c.at!] }));
   }
 
+  // Item 17b, part C: who came to each court this season, for a king away from it.
+  this.cameToCourts();
   let reason: string | null = null;
   if (alive(S).length <= 1) reason = OneKingdomLeft;
   // The last season was drawn in secret at the start (rules/ending.ts); an open age has none.

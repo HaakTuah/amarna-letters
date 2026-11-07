@@ -64,12 +64,19 @@ export function CommandSection({ c }: { c: OrdersContext }) {
       <p className="muted">
         <small>
           Your court is in {provinceName(v.courtAt)}
-          {v.courtTo !== null && <>, on the road to {provinceName(v.courtTo)}</>}. Orders for places your couriers cannot reach this season go out now and are carried out when they arrive.
+          {v.courtTo !== null && <>, on the road to {provinceName(v.courtTo)}</>}
+          {v.kingAt !== null && (
+            <>
+              ; you are in {provinceName(v.kingAt)}
+              {v.kingTo !== null && <>, on the road to {provinceName(v.kingTo)}</>}, apart from it, and your orders go out from there
+            </>
+          )}
+          . Orders for places your couriers cannot reach this season go out now and are carried out when they arrive. You may travel without your court, with your guard, to command near the front, at the risk of your life.
         </small>
       </p>
       <div className="row">
         <select value={courtTo} onChange={(e) => setCourtTo(e.target.value)}>
-          <option value="">— move the court to? —</option>
+          <option value="">— the court, or you alone, to? —</option>
           {lands.map((p) => (
             <option key={p} value={p}>
               {provinceName(p)}
@@ -77,7 +84,10 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           ))}
         </select>
         <button className="small" disabled={courtTo === ""} onClick={() => add(moveCourt(courtTo))}>
-          Set out
+          Move the court
+        </button>
+        <button className="small" disabled={courtTo === ""} onClick={() => add(moveCourt(courtTo, true))}>
+          Go alone
         </button>
       </div>
       {own.map((u) => (

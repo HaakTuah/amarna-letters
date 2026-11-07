@@ -792,6 +792,7 @@ P.finishAuthentication = function (task) {
     } else result = genuine;
   }
   copy.authResult = result;
+  copy.authTurn = S.turn;
   // The tablet as every court names it, the court's own mark for its copy, and its text in full.
   notify(
     S,

@@ -19,7 +19,7 @@ export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrde
 export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
 export const crown = (character: string, provinces: string[], tribute: number, price = 0): CrownOrder => ({ type: "crown", character, provinces, tribute, price });
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
-export const moveCourt = (to: string): CourtOrder => ({ type: "court", to });
+export const moveCourt = (to: string, alone = false): CourtOrder => (alone ? { type: "court", to, alone } : { type: "court", to });
 export const enlist = (province: string, fee: number, term: number): EnlistOrder => ({ type: "enlist", province, fee, term });
 export const payOff = (province: string, fee: number, term: number): PayOffOrder => ({ type: "payOff", province, fee, term });
 export const move = (unit: string, to: string, forced = false): MoveOrder => (forced ? { type: "move", unit, to, forced } : { type: "move", unit, to });

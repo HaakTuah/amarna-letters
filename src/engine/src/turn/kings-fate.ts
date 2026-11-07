@@ -18,7 +18,10 @@ import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, s
 import { newJourney } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
-import { crownedIn, realmOfKing } from "../rules/court.ts";
+import { crownedIn, kingAfield, kingLossUnheard, realmOfKing, standsAt } from "../rules/court.ts";
+import type { AdjudicationResult } from "../rules/adjudicator.ts";
+import { KingAloneData } from "../model/command.ts";
+import { defenderLost } from "./battles.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
@@ -35,8 +38,19 @@ declare module "./core.ts" {
   interface TurnEngine {
     /** The game's start: each power's king as a person, reigning. */
     seatKings(): void;
-    /** A power's king, taken by `by` where he stood (null: by nobody, and he gets away); his court flees, or his realm falls. */
-    kingTaken(p: Power, by: Power | null): void;
+    /**
+     * A power's king, taken by `by` where he stood (null: by nobody, and he gets away), in a city taken (`city`), where he
+     * may die in its fall, or on the road.
+     */
+    kingTaken(p: Power, by: Power | null, city: boolean): void;
+    /** Item 17b, part C: a power's court lost to `by`: it flees to the nearest city its realm holds, or the realm, holding nothing, falls. */
+    courtFlees(p: Power, by: Power | null): void;
+    /** Item 17b, part C: word that the king was taken (`text`) sets out from `where` to his court, unless he was with it. */
+    kingLostWord(p: Power, where: string, text: string): void;
+    /** Item 17b, part C: word that the king was taken reaches his court, which rules in his name from now. */
+    kingLostHeard(p: Power, text: string): void;
+    /** Item 17b, part C: a king whose side lost a battle where he stood dies in it, is taken, or gets away with his men. */
+    kingsInBattle(result: AdjudicationResult): void;
     /** Each season: a king held at his captor's court may get away, by his skill at going unseen. */
     kingsHeld(): void;
     /** A king walks home, set free or escaped, from the province where he is. */
@@ -59,6 +73,27 @@ const P = TurnEngine.prototype;
 function personTraits(t: readonly number[]): { ambition: number; courage: number; loyalty: number; greed: number; competence: number } {
   const at = (k: (typeof KingTraitValues)[number]): number => t[KingTraitValues.indexOf(k)] ?? 50;
   return { ambition: at("aggression"), courage: 100 - at("caution"), loyalty: at("honesty"), greed: at("greed"), competence: KingData.competence };
+}
+
+/** A reigning king taken alive by `by` at `where`: under his captor's guard to his court, like any captive given over. */
+function captureKing(e: TurnEngine, c: Character, p: Power, by: Power, where: string): void {
+  const S = e.s;
+  // Apart from his court, his realm learns of it only when the word comes (`kingLostWord`).
+  const apart = S.kingAt.has(p) && where !== e.courtAt(p);
+  c.status = "Captured";
+  c.heldBy = by;
+  c.duty = "UnderGuard";
+  // He was no spy at a post: he can be put to death, ransomed, released or handed over, never turned.
+  c.intercepted = true;
+  c.at = null;
+  const j = newJourney({ id: newId(S, "j"), kind: "CaptiveConvoy", departTurn: S.turn, from: by, to: by, characterId: c.id });
+  S.journeys.push(j);
+  // So he may be freed on the road.
+  e.setOut(j, where, e.courtAt(by));
+  e.meet(c, by);
+  remember(c, S.turn, `I was taken by ${land(by)} in ${e.map.get(where).name}.`);
+  notify(S, by, "Notice", "A king taken", `Your men took ${c.name}, ${rulerStyle(p)} of ${powerName(p)}, in ${e.map.get(where).name}; your guards bring him to your court. His fate is yours: you may put him to death, ransom him, release him or hand him over (order captive).`, c.id);
+  logEvent(S, "king-taken", `${by} took ${c.name}, king of ${p}, in ${e.map.get(where).name}.`, apart ? [by] : [p, by], "king-taken");
 }
 
 /** A new person for a power's throne, at its court, reigning (the reign is set by the caller). */
@@ -104,29 +139,50 @@ P.seatKings = function () {
   S.baseline += AllPowers.length;
 };
 
-P.kingTaken = function (p, by) {
+P.kingTaken = function (p, by, city) {
+  const S = this.s;
+  const where = standsAt(S, this.map, p);
+  const c = findCharacter(S, S.reigns.get(p).character);
+  // Only a king free and reigning where it fell, or on the road, is taken: one walking home elsewhere is not.
+  if (c === null || c.status !== "Employed" || c.duty !== "Ruling" || by === null || !isAlive(S, by)) return;
+  // His own road ends.
+  S.kingRoads = S.kingRoads.filter((r) => !(r.power === p && r.alone));
+  // Item 17b, part C: in a city taken he may die in its fall.
+  if (city && this.r("king-city", p).chance(KingAloneData.diesInCity / 100)) {
+    this.dies(c, where, "as the city fell");
+    return;
+  }
+  captureKing(this, c, p, by, where);
+  this.kingLostWord(p, where, `Word comes that ${c.name} was taken by ${powerName(by)} in ${this.map.get(where).name}.`);
+};
+
+P.kingLostWord = function (p, where, text) {
+  const S = this.s;
+  // With his court, it knows at once; apart from it, it knows when the word comes, and believes him where he was till then.
+  if (!S.kingAt.has(p) || where === this.courtAt(p)) {
+    S.kingAt.delete(p);
+    return;
+  }
+  // He commands from nowhere now: what the court believes is kept apart from where he is.
+  S.kingHeard.set(p, S.kingAt.get(p));
+  S.kingAt.delete(p);
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(where, this.courtAt(p)), from: p, to: p, news: "KingTaken", text }));
+};
+
+P.kingLostHeard = function (p, text) {
+  const S = this.s;
+  S.kingHeard.delete(p);
+  const c = findCharacter(S, S.reigns.get(p).character);
+  const still = c !== null && c.status === "Captured" ? " Your court rules in his name until he is back." : "";
+  notify(S, p, "Notice", "The king taken", `${text}${still}`);
+  logEvent(S, "king-taken-heard", text, [p]);
+};
+
+P.courtFlees = function (p, by) {
   const S = this.s;
   const where = this.courtAt(p);
-  const c = findCharacter(S, S.reigns.get(p).character);
-  // Only a king at his court, or with it on the road, is taken with it: one walking home elsewhere is not.
-  if (c !== null && c.status === "Employed" && c.duty === "Ruling" && by !== null && isAlive(S, by)) {
-    // Taken alive: under his captor's guard to his court, like any captive given over, so he may be freed on the road.
-    c.status = "Captured";
-    c.heldBy = by;
-    c.duty = "UnderGuard";
-    // He was no spy at a post: he can be put to death, ransomed, released or handed over, never turned.
-    c.intercepted = true;
-    c.at = null;
-    const j = newJourney({ id: newId(S, "j"), kind: "CaptiveConvoy", departTurn: S.turn, from: by, to: by, characterId: c.id });
-    S.journeys.push(j);
-    this.setOut(j, where, this.courtAt(by));
-    this.meet(c, by);
-    remember(c, S.turn, `I was taken by ${land(by)} in ${this.map.get(where).name}.`);
-    notify(S, by, "Notice", "A king taken", `Your men took ${c.name}, ${rulerStyle(p)} of ${powerName(p)}, in ${this.map.get(where).name}; your guards bring him to your court. His fate is yours: you may put him to death, ransom him, release him or hand him over (order captive).`, c.id);
-    logEvent(S, "king-taken", `${by} took ${c.name}, king of ${p}, in ${this.map.get(where).name}.`, [p, by], "king-taken");
-  }
-  S.kingRoads = S.kingRoads.filter((r) => r.power !== p);
-  // His court flees to the nearest city his realm still holds; a realm that holds nothing has fallen.
+  S.kingRoads = S.kingRoads.filter((r) => !(r.power === p && !r.alone));
+  // Its people flee to the nearest city the realm still holds; a realm that holds nothing has fallen.
   const held = ownedBy(S, p);
   if (held.length === 0) {
     this.fall(p, by);
@@ -135,12 +191,60 @@ P.kingTaken = function (p, by) {
   const to = sortBy(held, [(x: string) => this.travelTurnsBetween(where, x), cmpNum], [(x: string) => x, cmpStr])[0];
   if (to === where) return;
   S.court.set(p, to);
-  const king = c !== null && c.status === "Captured" ? `${c.name} is ${by === null ? "lost" : `held by ${powerName(by)}`}, and ` : "";
-  notify(S, p, "Notice", "The court flees", `${this.map.get(where).name} is lost: ${king}your court has fled to ${this.map.get(to).name}, from where it rules${king === "" ? "" : " in his name until he is back"}.`);
+  const c = findCharacter(S, S.reigns.get(p).character);
+  // Fled to where the king stands (as it knows), it is with him again.
+  if (kingAfield(S, p) === to) {
+    S.kingAt.delete(p);
+    S.kingHeard.delete(p);
+  }
+  // Its king held, as the court knows (a capture whose word is still on the road it does not know of).
+  const king = c !== null && c.status === "Captured" && !kingLossUnheard(S, p) ? `${c.name} is ${c.heldBy === null ? "lost" : `held by ${powerName(c.heldBy)}`}, and ` : "";
+  const afield = kingAfield(S, p);
+  const apart = afield !== undefined ? ` You are in ${this.map.get(afield).name}, apart from it.` : "";
+  notify(S, p, "Notice", "The court flees", `${this.map.get(where).name} is lost: ${king}your court has fled to ${this.map.get(to).name}, from where it rules${king === "" ? "" : " in his name until he is back"}.${apart}`);
+};
+
+P.kingsInBattle = function (result) {
+  const S = this.s;
+  for (const p of alive(S)) {
+    const c = findCharacter(S, S.reigns.get(p).character);
+    if (c === null || c.status !== "Employed" || c.duty !== "Ruling") continue;
+    // A battle his side lost where he stands: his men beaten from it, or crushed holding it.
+    const x = standsAt(S, this.map, p);
+    const f = result.fights.find((f) => f.at === x && S.units.find((u) => u.id === f.defender)?.power === p && defenderLost(f));
+    if (f === undefined) continue;
+    const by = S.units.find((u) => u.id === f.attacker)?.power ?? null;
+    const rng = this.r("king-battle", p);
+    const roll = rng.range(0, 99);
+    if (roll < KingAloneData.fallsInBattle) {
+      this.dies(c, x, "in battle");
+      continue;
+    }
+    if (by !== null && isAlive(S, by) && roll < KingAloneData.fallsInBattle + KingAloneData.takenInBattle) {
+      S.kingRoads = S.kingRoads.filter((r) => !(r.power === p && r.alone));
+      captureKing(this, c, p, by, x);
+      this.kingLostWord(p, x, `Word comes that ${c.name} was taken by ${powerName(by)} in battle in ${this.map.get(x).name}.`);
+      continue;
+    }
+    // He gets away with his beaten men, where they fall back, apart from his court.
+    const to = result.newPositions.tryGet(f.defender) ?? x;
+    if (to === x || this.map.get(to).isSea) continue;
+    S.kingRoads = S.kingRoads.filter((r) => !(r.power === p && r.alone));
+    S.kingAt.set(p, to);
+    if (to === this.courtAt(p)) S.kingAt.delete(p);
+    remember(c, S.turn, `My men were beaten in ${this.map.get(x).name}, and I got away with them to ${this.map.get(to).name}.`);
+    logEvent(S, "king-battle", `${c.name}, king of ${p}, got away from the battle in ${this.map.get(x).name}.`, [p], "king-away");
+    notify(S, p, "Battle", "You got away", `Your men were beaten in ${this.map.get(x).name}, where you stood; you got away with them to ${this.map.get(to).name}, and your orders go out from there.`);
+  }
 };
 
 P.kingsHeld = function () {
   const S = this.s;
+  // A king back at his court before word of his loss came: it knows where he is.
+  for (const p of [...S.kingHeard.keys()]) {
+    const k = findCharacter(S, S.reigns.get(p).character);
+    if (k !== null && k.status === "Employed" && k.duty === "Ruling" && k.at === p) S.kingHeard.delete(p);
+  }
   for (const p of alive(S)) {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Captured" || c.heldBy === null || c.duty === "UnderGuard") continue;
@@ -168,18 +272,21 @@ P.kingDied = function (c, how, where) {
   const p = realmOfKing(S, c.id);
   if (p === null) return;
   const r = S.reigns.get(p);
-  // His reign, and his player's game, end where he dies.
+  // His reign, and his player's game, end where he dies; his road ends with him. Apart from his court, it believes him
+  // where he was until the word comes.
+  S.kingRoads = S.kingRoads.filter((x) => !(x.power === p && x.alone));
   S.reignsEnded.push({ power: p, character: c.id, since: r.since, until: S.turn, how });
-  // His seat wakes: a death concerns it, and a human player's heir is played by a script from now.
-  this.endSleep(p, "the king is dead");
   logEvent(S, "king-dies", `${c.name}, king of ${p}, died ${how}.`, [], "king-dies");
   // His court learns of it as word comes from where he died (at once, if he died there), and his heir reigns from then.
   const seat = this.courtAt(p);
   const text = `${c.name}, ${rulerStyle(p)} of ${powerName(p)}, is dead, ${how}.`;
   if (where === seat) {
+    S.kingAt.delete(p);
     this.heirReigns(p, text);
     return;
   }
+  if (S.kingAt.has(p)) S.kingHeard.set(p, S.kingAt.get(p));
+  S.kingAt.delete(p);
   S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(where, seat), from: p, to: p, news: "KingDead", text }));
 };
 
@@ -188,6 +295,8 @@ P.heirReigns = function (p, text) {
   const r = S.reigns.get(p);
   const dead = findCharacter(S, r.character);
   if (dead === null || dead.status !== "Dead" || !isAlive(S, p)) return;
+  // Its seat wakes as the word comes: a death concerns it, and a human player's heir is played by a script from now.
+  this.endSleep(p, "the king is dead");
   // The heir inherits a third of his father's standing, love and hate alike, with the people and the soldiers.
   for (const book of [...S.ledger.values(), ...S.armies.values()]) {
     const v = book.tryGet(p);

@@ -18,7 +18,7 @@ import type { Power } from "../model/power.ts";
 import { findCharacter, logEvent, newId, notify } from "../model/state.ts";
 import { newUnit, type Unit, loseUnit } from "../model/units.ts";
 import { newJourney } from "../model/records.ts";
-import { courtOf, wordFromKing, wordHomeAt } from "../rules/court.ts";
+import { courtOf, seatOf, standsAt, wordFromKing, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { placesNamed } from "../model/order-reading.ts";
@@ -65,7 +65,7 @@ P.commanderOf = function (u) {
 };
 
 P.kingWith = function (u) {
-  return courtOf(this.s, this.map, u.power) === u.province;
+  return standsAt(this.s, this.map, u.power) === u.province;
 };
 
 P.commandOf = function (u) {
@@ -82,7 +82,8 @@ P.grantCommand = function (p, o) {
   // with the king: from next season).
   // Bug #615: for where its king believes it stands (`placeKnown`), as his word names it.
   const at = placeKnown(this, u);
-  const seasons = Math.max(1, wordFromKing(S, this.map, p, at));
+  // He sets out from the court, wherever the king is (item 17b, part C).
+  const seasons = Math.max(1, this.fromCourt(p, at));
   u.commander = c.id;
   u.commandFrom = S.turn + (Number.isFinite(seasons) ? seasons : 1);
   u.relieveAt = null;
@@ -202,7 +203,7 @@ P.commandSeason = function () {
     // The word of its end by the one clock of the road home (wordHomeAt, #616), from where and when it ended (the gone
     // army's own copy), or from where he stood in the season just ended.
     const army = lord === null ? undefined : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
-    const court = lord === null ? "" : courtOf(S, this.map, lord);
+    const court = lord === null ? "" : seatOf(S, this.map, lord);
     const heard =
       lord === null || c.watchProvince === null ? 0 : army !== undefined ? wordHomeAt(S, this.map, court, army.province, army.goneTurn) : wordHomeAt(S, this.map, court, c.watchProvince, S.turn - 1);
     if (lord !== null && c.watchProvince !== null && heard > S.turn) {

@@ -316,7 +316,7 @@
   for a limit above what the game has spent). Save
   version 8.
 - **A realm that holds nothing falls** (until item 17b, part B, a kingdom fell with its capital, from the siege package,
-  Build order item 5; since part B a king taken is his captor's captive and his court flees to a city his realm still
+  Build order item 5; since part B a king taken is his captor's captive and a court taken flees to a city its realm still
   holds: [57](57-every-person.md)). After the moves, sieges and the change of hands, a realm left holding nothing has
   fallen (`TurnEngine.fall`, step 10 of HOW A SEASON RESOLVES): its sieges are lifted, its debts die with it (back pay owed
   by it is lost), its prisoners are let go, its servants are free, its king lives on as a free man, a former ruler, and none

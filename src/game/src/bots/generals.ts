@@ -185,7 +185,7 @@ export function enlistOrders(b: Board, brain: Brain, orders: Order[]): void {
   for (const x of sortBy(heeded(b.me, v.bands).filter((x) => x.men >= 100), [(x) => -x.men, cmpNum], [(x) => x.province, cmpStr])) {
     const u = b.mine.find((u) => u.province === x.province && u.kind === "Army");
     if (u === undefined) continue;
-    const carried = v.courtAt === x.province || (u.commander !== null && u.commandFrom <= v.turn);
+    const carried = (v.seat) === x.province || (u.commander !== null && u.commandFrom <= v.turn);
     if (!carried) continue;
     const term = 4;
     // What the chief asks, as we reckon it, with a tenth over (item 17++++a: his ask counts what his men take, too).
