@@ -340,8 +340,10 @@ the pull request.
   rows (`finalScores`), and `finalScores` and `decideWinners` moved beside it from `turn/resolve.ts`.
 - **A king** holds his realm and is measured from his accession, his realm's strength over what he inherited
   (`Reign.strength`), by par for its start; a king who dies held his realm as it stood (`kingDied` sets `diedWith`).
-- **Anyone else** holds his purse and hoard, and is measured by what he gained since he came into play (`characterResult`,
-  over his savings brought in) against what characters gained in 50 script games (`CharacterPar`, every hundredth).
+- **Anyone else** holds his purse and hoard, and is measured from what he brought into play (`characterResult`: gains
+  above 1, losses below it) against characters' results in 50 script games (`CharacterPar`, every hundredth); a result
+  tied with several recorded ones ranks at the middle of their run (`rankAmong`).
+- **The winner is the first on the board**, a realm or a character by name (the design check's first round).
 - **Shown** in the end event (the first ten), the web app's Standings (one table, once the age has ended), the batch
   (top three per game, how often a king and a character stood first). The kings' rulebook (HOW YOU WIN), the
   characters' goal (`strategyText`), the README ("Winning") and the design notes say so.
@@ -355,14 +357,13 @@ the pull request.
 
 - **Size weighs 5, not half** (one fact, one place): the item's text says "half and half as a first guess", but the
   owner's measured answer of 29 October set size at 5 in a hundred, which the Victory tab still states; one weight
-  (`sizeWeight`) serves both, and item 18 sets it.
+  (`sizeWeight`) serves both, and item 18 sets it. At half and half a character could score at most about a half and
+  never win, against the section's "a character wins now and then". Since the two texts disagree, it is #825.
 - **A character's start is what he brought into play** ("against par for his own start"): most characters start with
-  nothing, so a ratio like a realm's growth has no meaning; his result is the gold he gained since, one more for the
-  living so that every living result stands above a death's 0, and par is what characters gained in the script games,
-  pooled (no calling's par apart until item 18 asks for it).
-- **The winner is still a realm** (the seats play kings: "When a king dies, his player is out"): the first of the kings
-  on the board wins, so a character above every king is first on the board but no seat's loss; the batch's wins and
-  benchmarks stay comparable.
+  nothing, so a ratio like a realm's growth has no meaning; his result is 1 for keeping what he brought, 1 more for every
+  shekel gained, and below 1 in proportion to what he lost of it (the design check: a loss must count, as a realm's
+  shrinking does), and par is characters' results in the script games, pooled (no calling's par apart until item 18
+  asks for it).
 - **A king's holding is his realm, not his purse** ("A king's holding is his realm"); a fallen realm's king or heir in
   exile holds his purse and hoard, as any character.
 - **A realm whose king is dead and whose heir has not risen has no score**: its player is out, and nobody reigns to win.
@@ -385,4 +386,6 @@ the pull request.
 
 ### Questions for the owner
 
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825): the weight of size on the one scoreboard, 5 in a
+  hundred as built or half and half as 17b's text says (new).
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; part D does not depend on it).

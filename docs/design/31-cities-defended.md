@@ -44,8 +44,8 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
   since item 11f, the owner's answer to the review; 50 at first; a first guess, set in item 18 so that every power has
   about the same chance of first place). Since item 17b, part D, every person is scored on one scoreboard, and a realm's
   final score is its reigning king's row ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)).
-  The winner is the realm whose king scores highest; a shared victory compares the pair's scores, each weighed by its
-  starting strength, with every other realm's. The batch report gives each power's mean score where it lived.
+  The winner is the first person on the board, a realm's king or a character; a shared victory compares the pair's
+  scores, each weighed by its starting strength, with every other living person's. The batch report gives each power's mean score where it lived.
 - **The goal in words**: the rulebook says to finish as high as one can, every place counting, and what the score
   blends, without the weight until item 18 sets it, and that no court can measure the standings. The script kings still
   weigh rivals by performance (`Board.growth`) and size by strength in `leader`; playing for a better place is item 18's
