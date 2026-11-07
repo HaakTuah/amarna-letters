@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, newGame, newGameConfig, setNameClaims, type GameState } from "@amarna/engine";
+import { Views, newGame, newGameConfig, newOwnerChange, setNameClaims, type GameState } from "@amarna/engine";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 import { buildScene } from "../src/map/scene.ts";
 import { dated, powerName, provinceName } from "../src/ui/format.ts";
@@ -92,5 +92,14 @@ describe("Search and names", () => {
     } finally {
       setNameClaims([], []);
     }
+  });
+
+  test("Lost is the seat's homeland its map shows held by another, never a change it has not heard of", () => {
+    const s = small();
+    // Codex's case: Tuwanuwa passes Hatti -> Egypt and back before either court has word of it.
+    s.ownerLog.push(newOwnerChange({ province: "tuwanuwa", turn: 2, owner: "Egypt" }), newOwnerChange({ province: "tuwanuwa", turn: 3, owner: "Hatti" }));
+    const egypt = knownTo(s, "Egypt", sceneOf(s, "Egypt"));
+    Assert.equal(egypt.find((k) => k.id === "tuwanuwa")!.held, null);
+    Assert.equal(egypt.filter((k) => k.held === "lost").map((k) => k.id), []);
   });
 });

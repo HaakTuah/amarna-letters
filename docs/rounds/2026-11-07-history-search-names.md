@@ -62,7 +62,8 @@ window "History of Byblos, also Gubla"; no page error.
   by the season of the event, as the events panel dates them. The whole record shows in god view and once the game ends.
   Principle: hidden information (the canary reads every history window for every seat).
 - **A person's history is their legend**, as the follow view's "In the record" reads it, so the two never differ.
-- **"Held or lost"** applies to a seat's provinces and the titles it claims; **"alive or dead"** to people and realms
+- **"Held or lost"** applies to a seat's provinces and the titles it claims; "lost" is its homeland that its map shows
+  held by another, since the holders' log would tell it of changes it has not heard of (Codex's second review); **"alive or dead"** to people and realms
   (standing or fallen, as the seat view's `fallen` says). **"Place"** narrows to a province and the people the seat knows
   to stand there.
 - **The counts are of what the seat knows**: its own people and those come to its notice, every province and realm on its

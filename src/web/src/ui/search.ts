@@ -5,7 +5,7 @@
  * claimed; in god view, and for every seat once the record opens, everything. Counts are of what is known, never the truth.
  */
 import {
-  AllPowers, FamiliarPlaceNames, PeriodRealmNames, Views, WorldMap, alive, changes, claimedName, describedAs, knownName, kingFor, kingOtherNames, modernOf,
+  AllPowers, FamiliarPlaceNames, PeriodRealmNames, Views, WorldMap, alive, claimedName, describedAs, knownName, kingFor, kingOtherNames, modernOf,
   realmNames, type GameState, type HistoryKind, type Power,
 } from "@amarna/engine";
 import type { MapScene } from "../map/scene.ts";
@@ -27,14 +27,13 @@ export interface Known {
   place: string | null;
   /** A person alive, a realm standing; null where it does not apply. */
   alive: boolean | null;
-  /** A province or title the seat holds now, or once held and lost; null where it does not apply or in god view. */
+  /** A province or title the seat holds now, or a province of its homeland it has heard is lost; else, and in god view, null. */
   held: "held" | "lost" | null;
 }
 
 /** Everything the seat knows (`viewer` null: the whole record). */
 export function knownTo(state: GameState, viewer: Power | null, scene: MapScene): Known[] {
   const out: Known[] = [];
-  const lost = new Set(viewer === null ? [] : changes(state).filter((m) => m.from === viewer).map((m) => m.province));
   const view = viewer !== null ? Views.for(state, viewer) : null;
   const standing = alive(state);
   const fallen = (p: Power): boolean => (view !== null ? view.fallen.includes(p) : !standing.includes(p));
@@ -49,7 +48,8 @@ export function knownTo(state: GameState, viewer: Power | null, scene: MapScene)
       realms: owner !== null ? [owner] : [],
       place: p.id,
       alive: null,
-      held: viewer === null || p.isSea ? null : owner === viewer ? "held" : lost.has(p.id) ? "lost" : null,
+      // Lost: its own homeland its map shows held by another, as the news has reached it; never the record's log.
+      held: viewer === null || p.isSea ? null : owner === viewer ? "held" : p.home === viewer ? "lost" : null,
     });
   }
   for (const p of AllPowers) {

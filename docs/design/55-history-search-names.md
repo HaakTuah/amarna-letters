@@ -32,7 +32,8 @@ The match forgives misspellings: a name's beginning first, then a word's, then t
 one edit (a query of four letters or fewer) or two of it; diacritics, ʿ and ' are ignored, so "Surru" finds Ṣurru.
 Filters narrow it by kind, realm (a province's holder as the seat knows it, a person's employer, a title's claimants),
 place, alive or dead (a realm standing or fallen, as the seat view's `fallen` says) and, for a seat, held or lost (its
-provinces now, and those it held and lost). Every list says its count of what the seat knows, never the true total.
+provinces now, as its map shows them, and its homeland's that its map shows held by another: never the record's log of
+who held what, which would tell it of changes it has not heard of). Every list says its count of what the seat knows, never the true total.
 
 **Two name settings** (`ui/names.ts`, in the game's menu, kept in this browser as `amarna-names`). Places: their names
 of 1346 (the default) or the names a modern reader knows them by (`FamiliarPlaceNames` in
