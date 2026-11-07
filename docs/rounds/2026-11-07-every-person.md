@@ -289,6 +289,11 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   king's death reaches where his realm fell, and walks from there.
 - **His host is the court nearest where his realm fell** (refugees flee to the nearest court that will take them, as in
   item 17): not one chosen by a rule about which power it is.
+- **A man of the record already elsewhere is not told he is the heir** (no stopgaps; the design check's third round): he
+  learns it only as any news reaches him, from a court that heard of the fall; word of the death sent to him from where
+  the realm fell, with his claim on its arrival, is left for a later item, as is an exile choosing his host by his own
+  stakes (the design check's idea, not filed). Rare: the record's next name must be alive and away when the last king
+  dies after the fall.
 - **#806 left open**: nothing in C2 depends on whether a captive king's court gives orders in his name; parts B and C1's
   reading stands (it rules in his name once word of his capture comes).
 - **Planning done by the builder**, as in C1, to spare the week's usage; the design check reviews it.
