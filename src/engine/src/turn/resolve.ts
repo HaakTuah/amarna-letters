@@ -772,8 +772,9 @@ P.refused = function (p, rejected) {
   const near: string[] = [];
   for (const r of rejected) {
     const named = unitOf(r.order);
-    // One lost out of sight, its end unheard, by its copy (`_riddenNow`), as it was checked.
-    const u = named === null ? null : (unitAt(S, named) ?? [...(this._riddenNow.tryGet(p)?.values() ?? [])].find((x) => x.province === named) ?? null);
+    // One lost out of sight, its end unheard, by its copy (`_riddenNow`), as it was checked: first, though others' troops
+    // stand where it stood now.
+    const u = named === null ? null : (this._riddenNow.tryGet(p)?.get(r.order) ?? unitAt(S, named));
     // #759: an order for a unit of its own beyond its couriers' season is refused where the unit stands: its king hears of it
     // by the road from there, the unit named where his view shows it.
     if (u !== null && u.power === p && this.heardAt(p, u.province) > S.turn + S.deliveryOffset) {

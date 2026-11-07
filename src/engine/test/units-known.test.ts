@@ -176,6 +176,7 @@ describe("UnitsKnownTests", () => {
     const cases: [string, (at: string, far: string) => Order, boolean, boolean, string | null][] = [
       ["a hold", (at) => hold(at), false, false, "It gave these orders"],
       ["a move it cannot make", (at, far) => move(at, far), false, false, "Refused"],
+      ["a move it cannot make, its province taken", (at, far) => move(at, far), true, false, "Refused"],
       ["a hold, its province taken", (at) => hold(at), true, false, "It gave these orders"],
       ["food, with gold", (at) => supply(at, true, 50), false, false, "It gave these orders"],
       ["a recall", (at) => relieve(at), false, false, "It gave these orders"],
