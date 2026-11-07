@@ -5,8 +5,9 @@ import { idiv, roundTo, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, placesNamed, told } from "../model/order-reading.ts";
-import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
+import { describe, placesNamed, told, unitOf } from "../model/order-reading.ts";
+import { placesKnown } from "../rules/units-known.ts";
+import { newTurnSubmission, type RejectedOrder, type TurnSubmission } from "../model/submission.ts";
 import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type LetterOrder, type BuyLetterOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
@@ -27,10 +28,15 @@ import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
 
+/** The notice of a seat's orders refused. */
+export const RefusedTitle = "Orders that could not be carried out";
+
 declare module "./core.ts" {
   interface TurnEngine {
     resolve(submissions: Dict<Power, TurnSubmission>): Dict<Power, ValidationResult>;
     resolveSeason(submissions: Dict<Power, TurnSubmission>): Dict<Power, ValidationResult>;
+    /** A seat's orders refused this season, told it: one for a far unit of its own by the road from where it stands (#759). */
+    refused(p: Power, rejected: RejectedOrder[]): void;
     resolveMovement(unitOrders: [Power, Order][]): void;
     updateOwnership(): void;
     /** A remnant marches to the troops of its own side next to it and joins them (item 17++). */
@@ -96,8 +102,7 @@ P.resolveSeason = function (submissions) {
     const ridden = this._riddenNow.tryGet(p) ?? new Map<Order, Unit>();
     const v = (ridden.size === 0 ? validator : new OrderValidator({ ...S, units: [...ridden.values(), ...S.units] }, this.map, (o) => this._goneNow.get(o) ?? null)).validate(p, sub);
     valid.set(p, v);
-    if (v.rejected.length > 0)
-      notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`).join("\n"));
+    if (v.rejected.length > 0) this.refused(p, v.rejected);
     this.afterValidation(p, sub, v);
     // Given, they ride out and find it gone, instead of running.
     for (const [o, u] of ridden) {
@@ -759,4 +764,22 @@ P.decideWinners = function () {
     }
   }
   S.winners = [best];
+};
+
+P.refused = function (p, rejected) {
+  const S = this.s;
+  const place = placesKnown(this, p);
+  const near: string[] = [];
+  for (const r of rejected) {
+    const named = unitOf(r.order);
+    // One lost out of sight, its end unheard, by its copy (`_riddenNow`), as it was checked.
+    const u = named === null ? null : (unitAt(S, named) ?? [...(this._riddenNow.tryGet(p)?.values() ?? [])].find((x) => x.province === named) ?? null);
+    // #759: an order for a unit of its own beyond its couriers' season is refused where the unit stands: its king hears of it
+    // by the road from there, the unit named where his view shows it.
+    if (u !== null && u.power === p && this.heardAt(p, u.province) > S.turn + S.deliveryOffset) {
+      const shown = { ...r.order, unit: place(u) } as Order;
+      this.tell(p, u.province, "Rejected", RefusedTitle, `- ${upper(told(shown))}: ${placesNamed(r.reason)}.`);
+    } else near.push(`- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`);
+  }
+  if (near.length > 0) notify(S, p, "Rejected", RefusedTitle, near.join("\n"));
 };
