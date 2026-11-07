@@ -226,8 +226,9 @@ P.courtFlees = function (p, by, road) {
   const king = c !== null && c.status === "Captured" && !kingLossUnheard(S, p) ? `${c.name} is ${c.heldBy === null ? "lost" : `held by ${powerName(c.heldBy)}`}, and ` : "";
   const afield = kingAfield(S, p);
   const apart = afield !== undefined ? ` You are in ${this.map.get(afield).name}, apart from it.` : "";
-  const flees = r !== null ? `your court flees to ${this.map.get(to).name}, and rules from the road` : `your court is in ${this.map.get(to).name}, from where it rules`;
-  notify(S, p, "Notice", "The court flees", `${this.map.get(where).name} is lost: ${king}${flees}${king === "" ? "" : " in his name until he is back"}.${lost}${apart}`);
+  const flees = r !== null ? `your court flees to ${this.map.get(to).name}, and rules from the road` : to === where ? `your court shelters in ${this.map.get(to).name}, from where it rules` : `your court is in ${this.map.get(to).name}, from where it rules`;
+  const how = road ? `Your court was stopped and taken on the road in ${this.map.get(where).name}` : `${this.map.get(where).name} is lost`;
+  notify(S, p, "Notice", road ? "The court taken on the road" : "The court flees", `${how}: ${king}${flees}${king === "" ? "" : " in his name until he is back"}.${lost}${apart}`);
 };
 
 P.kingsInBattle = function (result) {
@@ -344,9 +345,9 @@ P.heirReigns = function (p, text) {
   const r = S.reigns.get(p);
   const dead = findCharacter(S, r.character);
   if (dead === null || dead.status !== "Dead") return;
-  // Part C2: the realm fell before the word came: its heir lives on in exile.
+  // Part C2: the realm fell before the word came: its heir lives on in exile, unless it was given away by sealed tablet.
   if (!isAlive(S, p)) {
-    exileHeir(this, p, dead);
+    if ((this.fallOf(p)?.land.length ?? 0) === 0) exileHeir(this, p, dead);
     return;
   }
   // Its seat wakes as the word comes: a death concerns it, and a human player's heir is played by a script from now.

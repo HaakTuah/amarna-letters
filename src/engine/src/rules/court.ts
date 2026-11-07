@@ -172,6 +172,8 @@ export function wordFromKing(s: GameState, map: WorldMap, p: Power, to: string):
  * gave away by sealed tablet (a cession passes its land, and leaves no claim).
  */
 export function fallenRealmOf(s: GameState, id: string): Power | null {
+  // One made king again by a grant reigns his new realm, and is no exile.
+  if (realmOfKing(s, id) !== null) return null;
   for (const [p, r] of s.reigns) if (r.character === id && s.eliminated.includes(p) && !s.falls.some((f) => f.power === p && f.land.length > 0)) return p;
   return null;
 }

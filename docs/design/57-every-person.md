@@ -127,7 +127,9 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   he gave it away by sealed tablet (a cession leaves no claim). His death, by any cause, raises the heir after him
   (`kingDied`). Any king may make either king again by granting him land (order `crown`, item 17++), as
   Suppiluliuma put Shattiwaza on his father's throne (`docs/history/14-courts-and-free-cities.md`). A seat that has heard
-  of the fall sees whose throne he claims (`CharacterView.heirOf`, `fallenRealmOf`).
+  of the fall sees whose throne he claims (`CharacterView.heirOf`, `fallenRealmOf`; in the People tab and the models'
+  audience lines too), until a grant makes him king again; a realm given away by sealed tablet, even while word of its
+  king's death was on the road, raises no heir in exile.
 - **Word, not knowledge**: the taker of a treasury hears of it as word from where he took it comes (`tell`).
 - **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
   his fallen realm that king holds, by the same sum as any grant, keeping it reckoned as risky land (its people take an heir

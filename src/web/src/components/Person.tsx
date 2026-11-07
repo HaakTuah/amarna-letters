@@ -57,6 +57,11 @@ export function Person({ c, court, onFollow, onHistory, learn }: { c: CharacterV
           <small>Serves {powerName(c.employer)}</small>
         </div>
       )}
+      {c.heirOf !== null && (
+        <div>
+          <small>Claims the throne of {powerName(c.heirOf)}, which has fallen</small>
+        </div>
+      )}
       {c.knownFacts.length > 0 && (
         <div>
           <small>Known: {c.knownFacts.map((f) => dated(f, court)).join(" ")}</small>

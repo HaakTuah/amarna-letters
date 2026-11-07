@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, inboxOf, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
 import { fallenRealmOf } from "../src/rules/court.ts";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
 
@@ -111,5 +111,27 @@ describe("CourtTakenTests", () => {
     e.fall("Mitanni", "Hatti");
     e.dies(c, e.courtAt("Hatti"), "on the road");
     Assert.contains(s.journeys, (j) => j.news === "KingDead" && j.to === "Mitanni");
+  });
+
+  test("A realm given away while word of its king's death was on the road raises no heir in exile", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const c = kingOf(s, "Mitanni");
+    e.dies(c, "gaza", "on the road");
+    const word = s.journeys.find((j) => j.news === "KingDead" && j.to === "Mitanni")!;
+    e.fall("Mitanni", "Hatti", true);
+    e.kingDeadHeard(word);
+    Assert.equal(c.id, kingOf(s, "Mitanni").id);
+    Assert.false(s.events.some((x) => x.kind === "king-exile"));
+  });
+
+  test("A court stopped on the road in its own city says so, and shelters there", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const where = e.courtAt("Egypt");
+    e.courtFlees("Egypt", "Hatti", true);
+    const n = Assert.single(inboxOf(s, "Egypt").filter((i) => i.title === "The court taken on the road"));
+    Assert.contains("stopped and taken on the road", n.body);
+    Assert.contains(`shelters in ${e.map.get(where).name}`, n.body);
   });
 });

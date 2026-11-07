@@ -289,6 +289,10 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   king's death reaches where his realm fell, and walks from there.
 - **His host is the court nearest where his realm fell** (refugees flee to the nearest court that will take them, as in
   item 17): not one chosen by a rule about which power it is.
+- **The escalation step** (after Codex's three rounds): a realm given away while word of its king's death was on the
+  road raises no heir in exile; a court stopped on the road says so ("stopped and taken on the road"), and shelters in
+  its own besieged city where that is the nearest it holds; a restored heir is no longer shown as an exile; and the
+  claim shows in the People tab and the models' audience lines, not to script kings alone.
 - **A man of the record already elsewhere is not told he is the heir** (no stopgaps; the design check's third round): he
   learns it only as any news reaches him, from a court that heard of the fall; word of the death sent to him from where
   the realm fell, with his claim on its arrival, is left for a later item, as is an exile choosing his host by his own
