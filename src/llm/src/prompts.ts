@@ -18,8 +18,7 @@ import {
   fmt,
   groupBy,
   isEnvoyWaiting,
-  kingFor,
-  claimedName,
+  rulerOf,
   landGrowth,
   sortBy,
   terrainOf,
@@ -45,7 +44,7 @@ import { person } from "./prompt-audience.ts";
 import { NoneRead, copySource, inFull, letterBrief, letterLine, lettersGold, openingTreaties, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
 import { Sb, andList, asViewFigures, joinS, num } from "./text.ts";
 export function identity(p: Power): string {
-  return `You are ${kingFor(p, p)}, Great King of ${claimedName(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
+  return `You are ${rulerOf(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
 }
 
     /// <summary>

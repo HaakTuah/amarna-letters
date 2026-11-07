@@ -2,7 +2,7 @@
  * The narrator: writes each character's persona once, phrases background checks, and writes the chronicles. It only ever
  * receives facts the engine has already released.
  */
-import { king, land, nameFrom, personaTemplate, StrategyWords, strategiesOf, year, type Character } from "@amarna/engine";
+import { king, land, nameFrom, rulerNamed, rulerStyle, personaTemplate, StrategyWords, strategiesOf, year, type Character } from "@amarna/engine";
 import { threadWords, type CheckContext, type ChronicleContext, type INarrator, type ThreadContext } from "@amarna/game";
 import type { ModelClient } from "./client.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
@@ -80,7 +80,7 @@ Facts: ${joinS(
     const known = ctx.known.filter((e) => e.kind !== "start" && e.kind !== "support");
     for (const e of known.slice(Math.max(0, known.length - 120))) events.appendLine(`- year ${year(e.turn)}, turn ${e.turn}: ${e.text}`);
     const last = ctx.scores.length > 0 ? ctx.scores[ctx.scores.length - 1] : null;
-    const user = `Write the royal annals of ${king(p)}, Great King of ${land(p)}, for this age: glorious and self-serving, in the manner of Late Bronze Age royal inscriptions. The model is the Battle of Kadesh, which Egypt and the Hatti each recorded as their own victory. Spin every event in the king's favour, blame setbacks on treacherous enemies, faithless messengers or the testing of the gods, and never admit defeat. Use only the events below (this is what ${land(p)}'s court knew). 250 to 400 words, divided by year.
+    const user = `Write the royal annals of ${rulerNamed(p) ? `${king(p)}, ${rulerStyle(p)} of ${land(p)}` : king(p)}, for this age: glorious and self-serving, in the manner of Late Bronze Age royal inscriptions. The model is the Battle of Kadesh, which Egypt and the Hatti each recorded as their own victory. Spin every event in the king's favour, blame setbacks on treacherous enemies, faithless messengers or the testing of the gods, and never admit defeat. Use only the events below (this is what ${land(p)}'s court knew). 250 to 400 words, divided by year.
 
 Outcome: ${ctx.winners.includes(p) ? "this king won the age" : `the age was won by ${joinS(" and ", ctx.winners)}`}; at the end ${land(p)} held ${last?.provinces ?? 0} provinces.
 Events known to this court:

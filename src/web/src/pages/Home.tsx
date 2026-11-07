@@ -1,4 +1,4 @@
-import { FixedPowers, FirstYearBce, SeasonsPerYear, dateLabel, tier, yearBce, type Power } from "@amarna/engine";
+import { FixedPowers, FirstYearBce, SeasonsPerYear, dateLabel, isGreatKing, king, rulerNamed, rulerStyle, tier, yearBce, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, type LogHeader } from "@amarna/game";
 import {
   AnthropicId,
@@ -354,13 +354,30 @@ export function Home() {
           <span>Your seat</span>
           <select value={seat ?? ""} onChange={(e) => changeSeat(e.target.value)}>
             <option value="">Watch the kings (spectator)</option>
-            {FixedPowers.map((p) => (
-              <option key={p} value={p}>
-                Play as {powerName(p)} ({tier(p).toLowerCase()})
-              </option>
-            ))}
+            <optgroup label="The seven Great Kings (the advised start)">
+              {FixedPowers.filter(isGreatKing).map((p) => (
+                <option key={p} value={p}>
+                  Play as {powerName(p)} ({tier(p).toLowerCase()})
+                </option>
+              ))}
+            </optgroup>
+            {/* Item 17++++: any city-state's or chief's seat, by the same rules, judged against its own start: harder. */}
+            <optgroup label="A small state: harder, not the advised start">
+              {FixedPowers.filter((p) => !isGreatKing(p)).map((p) => (
+                <option key={p} value={p}>
+                  Play as {powerName(p)}
+                  {rulerNamed(p) ? `, under ${king(p)}` : ""} ({rulerStyle(p) === "chief" ? "a chief's land" : "a small kingdom"})
+                </option>
+              ))}
+            </optgroup>
           </select>
         </label>
+        {seat !== null && !isGreatKing(seat) && (
+          <p className="muted small">
+            A small state is harder: few men, little gold and Great Kings on every side. It plays by the same rules and is judged against its own start,
+            so a {powerName(seat)} that holds out and grows can win.
+          </p>
+        )}
 
         <details className="customize">
           <summary>Customize the table</summary>

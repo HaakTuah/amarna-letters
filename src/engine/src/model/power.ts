@@ -553,6 +553,22 @@ export function kingOtherNames(viewer: Power | null, p: Power): readonly string[
   return [x.home, x.king, ...x.others].filter((n): n is string => n !== null && n !== shown);
 }
 
+/**
+ * How a ruler is styled (presentation only, item 17++++): one of the seven Great Kings is a Great King; a land under a chief
+ * (the Kaska, the Lukka men, the Suteans, the Shasu, the Tjehenu) has a chief; every other ruler, a city's or a risen
+ * power's, is a king. Rank beyond this is earned in greetings ("Recognition is earned"), and no rule reads this.
+ */
+export function rulerStyle(p: Power): "Great King" | "king" | "chief" {
+  if (isGreatKing(p)) return "Great King";
+  return dataOf(p).king.toLowerCase().startsWith("the chief") ? "chief" : "king";
+}
+
+/** The ruler as he calls himself to his own seat: "Rib-Hadda, king of Gubla", "the chief of the Kaska". */
+export function rulerOf(p: Power): string {
+  const name = kingFor(p, p);
+  return rulerNamed(p) ? `${name}, ${rulerStyle(p)} of ${claimedName(p)}` : name;
+}
+
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */
 export function rulerNamed(p: Power): boolean {
   return !dataOf(p).king.toLowerCase().startsWith("the ");

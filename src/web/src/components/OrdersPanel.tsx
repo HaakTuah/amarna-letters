@@ -23,11 +23,26 @@ import { CouncilSection } from "./orders/CouncilSection.tsx";
  * (`llm/src/prompts.ts`).
  */
 const TravelTime = /^(?<court>.+?): (?<n>\d+) season\(s\) each way$/;
-function travelTime(t: string): string {
-  const m = TravelTime.exec(t);
-  if (m?.groups === undefined) return t;
-  const n = Number(m.groups.n);
-  return `${powerName(m.groups.court)}: ${n} ${n === 1 ? "season" : "seasons"}`;
+/**
+ * Every court's journey, grouped by its length (item 17++++: a small state's seat reads forty-six courts, most of them a
+ * season away): the most common length once, "1 season to every court but", and the others by name.
+ */
+export function travelTimes(lines: readonly string[]): string {
+  const by = new Map<number, string[]>();
+  const odd: string[] = [];
+  for (const t of lines) {
+    const m = TravelTime.exec(t);
+    if (m?.groups === undefined) odd.push(t);
+    else by.set(Number(m.groups.n), [...(by.get(Number(m.groups.n)) ?? []), powerName(m.groups.court)]);
+  }
+  const seasons = (n: number): string => `${n} ${n === 1 ? "season" : "seasons"}`;
+  const groups = [...by].sort((a, b) => b[1].length - a[1].length);
+  if (groups.length === 0) return odd.join("; ");
+  const [[most, many], ...rest] = groups;
+  const others = rest.map(([n, courts]) => `${courts.join(", ")}: ${seasons(n)}`);
+  // Only a list long enough to need it is grouped; a few courts read best one by one.
+  if (lines.length <= 8) return [...groups.flatMap(([n, courts]) => courts.map((c) => `${c}: ${seasons(n)}`)), ...odd].join("; ");
+  return [`${seasons(most)} to ${rest.length === 0 ? "every court" : "every court but these"}${rest.length === 0 ? ` (${many.length})` : ""}`, ...others, ...odd].join("; ");
 }
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
@@ -46,7 +61,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         </p>
         <p className="muted">
           <small>
-            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {v.travelTimes.map(travelTime).join("; ")}.
+            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {travelTimes(v.travelTimes)}.
           </small>
         </p>
       </div>

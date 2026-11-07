@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { kingFor, kingOtherNames } from "@amarna/engine";
+import { kingFor, kingOtherNames, rulerOf, rulerStyle } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 describe("KingNames", () => {
@@ -14,5 +14,13 @@ describe("KingNames", () => {
     }
     // A king the sources give one name has no other names on his card.
     Assert.equal([], [...kingOtherNames("Egypt", "Hatti")]);
+  });
+
+  test("A ruler is styled as he is: a Great King, a city's king or a land's chief (item 17++++)", () => {
+    Assert.equal(rulerOf("Egypt"), "Akhenaten, Great King of Egypt");
+    Assert.equal(rulerOf("Byblos"), "Rib-Hadda, king of Gubla");
+    Assert.equal(rulerOf("Tunip"), "the king of Tunip");
+    Assert.equal(rulerStyle("Kaska"), "chief");
+    Assert.equal(rulerStyle("Amurru"), "king");
   });
 });
