@@ -6,6 +6,7 @@ import { CapitalAtStake, Search } from "../src/bots/search.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { MilitaryPlan, Tactics } from "../src/bots/tactics.ts";
 import {
+  ownedBy,
   type Character,
   Dict,
   type DispatchOrder,
@@ -219,7 +220,7 @@ describe("SiegePlayTests", () => {
     treaty(s, "Egypt", "Hatti", false);
     s.owner.set("jerusalem", "Babylonia");
     // Item 17b: a king who sends gifts and tablets (Tushratta's nature on Egypt's throne), since Akhenaten seldom does.
-    s.reigns.set("Egypt", { traits: [...Natures.Mitanni.traits], since: 1 });
+    s.reigns.get("Egypt").traits = [...Natures.Mitanni.traits];
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Egypt"));
     let trusted = sub.orders.filter((o): o is DispatchOrder => o.type === "dispatch").filter((d) => d.proposal !== null || d.gold > 0);
     Assert.notEmpty(trusted);
@@ -297,8 +298,15 @@ describe("SiegePlayTests", () => {
       ]),
     );
     Assert.equal(["Captured", "Babylonia"], [envoy.status, envoy.heldBy]);
-    // Worn nearly through (since item 9+a, three seasons a level): the supported season breaches the walls.
+    // Worn nearly through (since item 9+a, three seasons a level): the supported season breaches the walls. Ashur is all
+    // Assyria holds, its other land Babylonia's, its people indifferent (since item 17b a realm falls only when it holds
+    // nothing).
     single(s.sieges).progress = 3 * EconomyData.breachPerLevel - 2;
+    for (const id of ownedBy(s, "Assyria"))
+      if (id !== "ashur") {
+        s.owner.set(id, "Babylonia");
+        s.ledger.set(id, new Dict());
+      }
     season(s, new Dict([["Babylonia", press]]));
     Assert.contains("Assyria", s.eliminated);
     Assert.equal(["Captured", "Babylonia"], [envoy.status, envoy.heldBy]);

@@ -345,8 +345,9 @@ export class GameRunner {
   async prepare(signal?: AbortSignal): Promise<void> {
     if (this.prepared) return;
     this.setPhase("The narrator meets the characters");
+    // The kings (item 17b) speak through their seats while they reign: their persons keep the template's persona.
     const results = await Promise.all(
-      this.state.characters.map(async (c) => {
+      this.state.characters.filter((c) => c.duty !== "Ruling").map(async (c) => {
         const persona = await this.recorded<string>(
           `setup/persona/${c.id}`,
           S,

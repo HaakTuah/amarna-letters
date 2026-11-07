@@ -161,7 +161,8 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 
 ## A kingdom falls with its capital (`TurnEngine.fall`)
 
-- The province where the king was passes to whoever took him at once; since item 13+ the rest comes apart only as word
+- Since item 17b, part B, a king taken is his captor's captive and only a realm that holds nothing falls
+  ([57](57-every-person.md)); what follows is how a fall worked until then, the armies' part still as built. The province where the king was passed to whoever took him at once; since item 13+ the rest came apart only as word
   of the fall reaches each part, land where the conqueror's troops stand then his, a governed province its governor's
   own seat, the rest lawless ([37](37-answers-to-13.md)). A capital ceded by tablet passes whole, as before. The fallen
   king's armies, once the word reaches them, with a commander become the commanders' bands; one with none, if owed pay or hungry, raises a captain from its ranks (`Rose` "captain",

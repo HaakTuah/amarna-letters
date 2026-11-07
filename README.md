@@ -41,8 +41,8 @@ rumours, and those can be late, shaded or false.
    may bribe the envoy, offer him a post, seal his tablet, detain him or send gold back. Each audience
    has up to two exchanges, and the envoy decides how to respond.
 4. **Orders.** Every king submits secret, simultaneous orders.
-5. **Resolution.** Movement and battles, then sieges. Land changes hands, and a kingdom whose
-   capital is taken falls. Then the rest of the season's orders are carried out, and any disaster strikes.
+5. **Resolution.** Movement and battles, then sieges. Land changes hands, and a king taken where
+   he stands is his captor's captive. Then the rest of the season's orders are carried out, and any disaster strikes.
 6. **Reports.** News of the season reaches each court the next season.
 
 ### What a king can do
@@ -188,11 +188,13 @@ Any season may be the last. Early on the end is very unlikely; it grows likelier
 are over by 1320 BCE, about season 80. The last season is drawn in secret when the game begins: nobody can read it, and
 your court's omens darken as it nears. A table can change how long games run, or play on with no end at all.
 
-A kingdom falls with its capital, which passes to whoever took it. The rest of the realm comes apart as word of the
-fall reaches each part: where the conqueror's troops stand the land is his, a governor of the fallen king's may rule
-his province in his own name, as a new power, and the rest falls lawless; armies with a commander become his band, and
-the others disband or follow a captain of their own. A fallen player watches the rest of the game in god view (a table
-setting).
+A king is a person. Taken in the city where he stands, or on the road, he is his captor's captive, to be put to death,
+ransomed, released or handed over, and he may get away by his own skill; his court flees to the nearest city his realm
+still holds and rules in his name. He dies only by a cause where he is, never of age, and then his player is out: his
+heir reigns from that season, the next name on the record of the kings who followed (or past it a son or brother), with
+a third of his father's standing among the people and the soldiers. A realm that holds nothing has fallen; its armies
+with a commander become his band, and the others disband or follow a captain of their own. A player who is out watches
+the rest of the game in god view (a table setting).
 
 There is one winner. Shared victory for sworn allies is a house rule, off by default.
 

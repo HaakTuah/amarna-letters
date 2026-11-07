@@ -7,8 +7,8 @@
  */
 import { Rng } from "../core/rng.ts";
 import { cmpNum, desc, sortBy } from "../core/seq.ts";
-import { I, type ObjSchema, list, obj } from "../core/json.ts";
-import { type FixedPower, type Power, risenOf } from "./power.ts";
+import { I, S, type ObjSchema, list, obj } from "../core/json.ts";
+import { type FixedPower, type Power, heirOf, risenOf } from "./power.ts";
 
 /** The traits a king plays by, in this order wherever they are kept as a list. */
 export const KingTraitValues = ["aggression", "caution", "honesty", "greed", "generosity", "pride", "diplomacy", "cunning", "vengeance", "commerce"] as const;
@@ -147,13 +147,53 @@ const fixedNature = (p: Power): KingNature | undefined => (Natures as Record<str
 /** First guesses (item 18 tunes them): how far a game varies each trait either way. */
 export const ReignData = { vary: 10 };
 
-/** The reign of a power's king: his traits as this game drew them, and the season he began to reign. */
+/**
+ * The reign of a power's king: his traits as this game drew them, the season he began to reign, and (part B) the person he
+ * is (his character's id), the strength of his realm as he came to it (his score is measured from it), and, for an heir,
+ * his name and what the record shows of him (empty for the king the game began with, or a ruler risen in play, whose
+ * names are his power's).
+ */
 export interface Reign {
   traits: number[];
   since: number;
+  character: string;
+  strength: number;
+  name: string;
+  about: string;
+  /** His place on his realm's record of the kings who followed (`model/heirs.ts`): -1 for the king the game began with. */
+  line: number;
 }
 
-export const ReignSchema: ObjSchema<Reign> = obj("Reign", (init: Partial<Reign> = {}) => ({ traits: [], since: 1, ...init }), { traits: list(I), since: I });
+export function newReign(init: Partial<Reign> = {}): Reign {
+  return { traits: [], since: 1, character: "", strength: 0, name: "", about: "", line: -1, ...init };
+}
+
+export const ReignSchema: ObjSchema<Reign> = obj("Reign", newReign, {
+  traits: list(I),
+  since: I,
+  character: S,
+  strength: I,
+  name: S,
+  about: S,
+  line: I,
+});
+
+/** A reign ended by the king's death (part B): whose, who he was, from when to when, and how he died, in words ("put to death by Hatti"). */
+export interface ReignEnded {
+  power: Power;
+  character: string;
+  since: number;
+  until: number;
+  how: string;
+}
+
+export const ReignEndedSchema: ObjSchema<ReignEnded> = obj("ReignEnded", (init: Partial<ReignEnded> = {}) => ({ power: "Egypt", character: "", since: 1, until: 1, how: "", ...init }), {
+  power: S,
+  character: S,
+  since: I,
+  until: I,
+  how: S,
+});
 
 /** A king's traits for a game: his nature's, each moved by a seeded amount within `ReignData.vary`. */
 export function drawTraits(seed: number, p: Power, nature: readonly number[]): number[] {
@@ -171,8 +211,11 @@ export function risenTraits(t: { ambition: number; courage: number; loyalty: num
   return [w(t.ambition), w(100 - t.courage), w(t.loyalty), w(t.greed), 40, 50, 55, 50, 50, 50];
 }
 
-/** What is known of a power's king for display: a ruler of 1346's nature, or a risen ruler's story (his traits are his reign's). */
+/** What is known of a power's king for display: a ruler of 1346's nature, a risen ruler's story, or an heir's line (his traits are his reign's). */
 export function natureOf(p: Power): { epithet: string; description: string } {
+  // Part B: a realm's heir, as the record shows him.
+  const heir = heirOf(p);
+  if (heir !== null) return { epithet: "the heir", description: heir.about };
   const fixed = fixedNature(p);
   if (fixed !== undefined) return fixed;
   const r = risenOf(p);

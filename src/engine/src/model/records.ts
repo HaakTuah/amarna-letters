@@ -44,7 +44,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * tells a court of the world: a king closed or opened his roads to it, a kingdom fell, or (#618) a vassal or ally
  * reports a change of hands its court saw.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Loot"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Loot", "Succession", "KingDead"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -59,6 +59,7 @@ export interface Journey {
   cargo: HomeCargo | null;
   report: SpyReport | null;
   text: string | null;
+  /** The gold it carries; for word of a succession (item 17b), how many heirs the realm has had by then. */
   gold: number;
   /** For a rumour about one of the receiving court's own people ({@link CharacterId}): what it tells. */
   news: NewsKind | null;

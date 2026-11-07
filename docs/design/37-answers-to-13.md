@@ -6,6 +6,10 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), the 
 
 ## A realm comes apart as the news arrives (`turn/falls.ts`, `TurnEngine.fall`, `fallsSpread`)
 
+- **Since item 17b, part B,** a realm falls only when it holds nothing, so nothing is left to come apart and no governor
+  rises with a fall; its armies still hear the word where they stand ([57](57-every-person.md)). What follows is how
+  it was built here.
+
 - When a king is taken, his capital passes at once to whoever took it (a capital ceded by tablet passes whole, as
   before). Every other part of his realm stays as it was until word of the fall reaches it: it reaches each province at
   the pace word of the fall reaches foreign courts (`travelTurns` from the fallen capital, so a season at least), and his

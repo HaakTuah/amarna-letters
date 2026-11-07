@@ -871,11 +871,11 @@ export function Play() {
               {state.config.sleepingSeats
                 ? " A human seat sleeps only when you choose to: seal your orders with a sleep and the seasons pass by themselves, your standing and scheduled orders acting for you, until something concerns you or you wake yourself."
                 : ""}{" "}
-              Standing orders do: give them in the orders tab, under Standing orders. If your kingdom falls with its capital, your game is over: you watch the
+              Standing orders do: give them in the orders tab, under Standing orders. If you die, or your kingdom holds nothing, your game is over: your heir plays on as a script, and you watch the
               rest{" "}
               {state.config.fallenSeeAll
                 ? "in god view, seeing everything (this table's setting)"
-                : "with what your kingdom knew when it fell (this table's setting)"}
+                : "with what your court knew when your game ended (this table's setting)"}
               .
             </p>
             <div className="item">

@@ -1,28 +1,21 @@
 /**
- * A fallen kingdom comes apart as the news arrives (the owner's answers to item 13's review, item 13+; "A kingdom falls
- * with its capital" under War). The capital passes at once to whoever took it; every other part of the realm is on its
- * own only once word of the fall reaches it, carried by road from the fallen capital like any news. Until then life
- * there goes on as before: its harvest is reaped and taxed, and the gold sent to the fallen capital goes to whoever holds
- * it. When the word arrives, a province where the conqueror's troops stand is his, held by force; a governed province is
- * its governor's, who rules it with a seat of his own as a freed vassal does, and the troops there follow him if he can
- * pay them; the rest falls lawless ("Land without a ruler"). The fallen king's armies hear it where they stand, and are
- * then their commanders' to decide, as item 13 built.
+ * What remains of a fallen kingdom hears of its fall as the news arrives (the owner's answers to item 13's review, item
+ * 13+). Since item 17b, part B, only a realm that holds nothing falls, so no land is left to come apart: its armies hear
+ * the word where they stand, carried by road from where it fell like any news, and are then their commanders' to decide,
+ * as item 13 built; its governors and commanders are their own men once their army has heard. Gold still on its way to it
+ * goes to whoever holds the city where it fell.
  */
-import { endSieges } from "../model/sieges-ended.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
-import type { Character } from "../model/people.ts";
-import { AllPowers, land, type Power, powerName } from "../model/power.ts";
-import { isAlive, logEvent, type KingdomFall } from "../model/state.ts";
+import type { Power } from "../model/power.ts";
+import { isAlive, type KingdomFall } from "../model/state.ts";
 import { type Unit, loseUnit } from "../model/units.ts";
-import { Views } from "../rules/views.ts";
 import { TurnEngine, travelTurns } from "./core.ts";
-import type { Governor } from "../model/command.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** Each season after the falls: the parts of fallen kingdoms that word of the fall has reached come apart. */
+    /** Each season after the falls: the armies of fallen kingdoms that word of the fall has reached are on their own. */
     fallsSpread(): void;
     /** A fallen kingdom's unit, once word of the fall reaches it: its commander's, a captain's, or disbanded (item 13). */
     fallenUnit(u: Unit, p: Power): void;
@@ -34,8 +27,6 @@ declare module "./core.ts" {
      * counted in the season's income.
      */
     credit(p: Power, gold: number, province: string, income?: boolean): void;
-    /** A fallen kingdom's governor rises as his province's ruler, with a seat of his own (item 13+). */
-    governorRises(g: Governor, c: Character, f: KingdomFall): Power;
   }
 }
 
@@ -55,32 +46,9 @@ P.fallsSpread = function () {
   for (const f of S.falls) {
     if (isAlive(S, f.power)) continue;
     const p = f.power;
-    const held = this.map.landProvinces.filter((x) => S.owner.getOrDefault(x.id, null) === p).map((x) => x.id);
     const units = S.units.filter((u) => u.power === p);
-    if (held.length === 0 && units.length === 0 && !S.characters.some((c) => c.employer === p)) continue;
-    const conqueror = f.conqueror !== null && isAlive(S, f.conqueror) ? f.conqueror : null;
-    const lawless: string[] = [];
-    for (const id of held) {
-      if (S.turn < wordArrives(this, f, id)) continue;
-      const name = this.map.get(id).name;
-      const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, this.map, x).has(id)), ...extra])];
-      if (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) {
-        this.setOwner(id, conqueror);
-        endSieges(S, this.map, (x) => x.province === id && x.power === conqueror);
-        this.tell(conqueror, id, "Battle", "Land held by force", `Word of the fall of ${powerName(p)} has reached ${name}, where your troops stand: it is yours, held by force.`);
-        logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and ${conqueror}'s troops there hold it.`, seeing([conqueror]), "fall-held");
-        continue;
-      }
-      const found = this.governorOf(id);
-      if (found !== null && found[0].power === p) {
-        this.governorRises(found[0], found[1], f);
-        continue;
-      }
-      this.setOwner(id, null);
-      lawless.push(name);
-      logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and it has fallen lawless, held by nobody.`, seeing([]), "fall-lawless");
-    }
-    // The armies hear it where they stand, after the land, so troops in a governed province can follow its new ruler.
+    if (units.length === 0 && !S.characters.some((c) => c.employer === p)) continue;
+    // The armies hear it where they stand.
     for (const u of sortBy(units, [(u: Unit) => u.id, cmpStr])) {
       if (!S.units.includes(u) || u.power !== p) continue;
       if (S.turn < wordArrives(this, f, u.province)) continue;
@@ -131,23 +99,4 @@ P.fallenUnit = function (u, p) {
     return;
   }
   this.disbandUnit(u);
-};
-
-P.governorRises = function (g, c, f) {
-  const S = this.s;
-  const id = g.province;
-  const prov = this.map.get(id);
-  const was = f.power;
-  // A commanded army is its commander's to decide, as the word reaches him (fallenUnit).
-  const followers = S.units.filter((u) => u.power === was && this.commanderOf(u) === null && (u.province === id || (prov.waters !== null && u.province === prov.waters)));
-  return this.ruleOwn(id, c, {
-    how: "governor",
-    from: was,
-    followers,
-    gold: 0,
-    rising: false,
-    story: `Word has come that the kingdom of ${powerName(was)} has fallen with its capital, ${this.map.get(f.capital).name}. You governed ${prov.name} for its king.`,
-    memory: `Word came that the kingdom of ${land(was)} has fallen.`,
-    line: `${c.name}, governor of ${prov.name} for ${powerName(was)}, rules it in his own name now that ${powerName(was)} has fallen`,
-  });
 };

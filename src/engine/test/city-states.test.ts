@@ -62,8 +62,9 @@ describe("City-states as powers (item 11+)", () => {
     // Item 17+: and the people of 1346 in their posts at their courts.
     // Item 17++: and the governors and residents of 1346 placed in their posts besides (Addaya, the commissioners, the border lords).
     const posted = (p: string): number => s.characters.filter((c) => c.employer === p && (c.duty === "Governing" || c.openly) && !PeopleOf1346.some((x) => x.name === c.name && x.post)).length;
-    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length + posted(p), s.characters.filter((c) => c.employer === p).length);
-    Assert.equal(100 + scribes, s.characters.length);
+    // Item 17b: and each king, a person too.
+    for (const p of AllPowers) Assert.equal(1 + (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length + posted(p), s.characters.filter((c) => c.employer === p).length);
+    Assert.equal(100 + scribes + AllPowers.length, s.characters.length);
   });
 
   test("Cities start in the relation they had: sealed vassal tablets with their overlords, in the template's clauses", () => {

@@ -184,7 +184,7 @@ describe("SeasonRulebookTests", () => {
       "7. Movement and battles",
       "8. Sieges",
       "9. Walls stormed",
-      "10. A kingdom falls with its capital",
+      "10. Kings taken",
       "11. Cessions and gifts of troops",
       "12. Building",
       "13. Disbanding",
@@ -232,7 +232,7 @@ describe("SeasonRulebookTests", () => {
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
-      "A kingdom falls with its capital, which is wherever you are. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you have fallen and your game is over: your realm comes apart (step 10 of how a season resolves, below), and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it",
+      "You are a person, like every character: you die only by a cause where you are (put to death by a king who holds you, or on the road), never of age. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you are his captive and your fate is his to decide;",
     ],
   ] as const)("The rulebook states each rule %s", (rule: string) => {
     Assert.contains(rule, Rules);

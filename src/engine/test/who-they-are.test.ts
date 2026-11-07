@@ -61,17 +61,18 @@ describe("WhoTheyAreTests", () => {
       const large = newGame(seed);
       // And since item 11f an Akkadian scribe at every court that reads Akkadian.
       const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
-      Assert.equal(100 + scribes, large.characters.length);
+      // Item 17b: and every king, a person too.
+      Assert.equal(100 + scribes + AllPowers.length, large.characters.length);
       // Item 17++: the posts of 1346 add facts after the pool is drawn, numbered after it, so facts are compared without ids.
       const first = (g: typeof small): string => JSON.stringify(g.characters.slice(0, FirstPool).map((c) => ({ ...c, facts: c.facts.map((f) => ({ ...f, id: f.tag === "resident" ? "" : f.id })) })));
       Assert.equal(first(small), first(large));
       // Item 17+: and the people of 1346 in their posts at their courts.
       // Item 17++: and the governors and residents of 1346 placed in their posts besides.
       const posted = (p: string): number => large.characters.filter((c) => c.employer === p && (c.duty === "Governing" || c.openly) && !PeopleOf1346.some((x) => x.name === c.name && x.post)).length;
-      for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length + posted(p), large.characters.filter((c) => c.employer === p).length);
+      for (const p of AllPowers) Assert.equal(1 + (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length + posted(p), large.characters.filter((c) => c.employer === p).length);
       // The first eighteen serve the first powers in order; the rest of the city-states' staff come from the larger pool, and
       // so do the posts of 1346 and those taken on in place of a servant who went to his post.
-      Assert.all(large.characters.slice(FirstPool), (c) => Assert.true(c.status === "Free" || !isGreatKing(c.employer!) || c.calling === "scribe" || PeopleOf1346.some((x) => x.name === c.name && x.post) || c.duty === "Governing" || c.openly || c.facts.some((f) => f.tag === "replaced")));
+      Assert.all(large.characters.slice(FirstPool), (c) => Assert.true(c.status === "Free" || !isGreatKing(c.employer!) || c.calling === "scribe" || PeopleOf1346.some((x) => x.name === c.name && x.post) || c.duty === "Governing" || c.duty === "Ruling" || c.openly || c.facts.some((f) => f.tag === "replaced")));
       // Hekanefer, prince of Miam, and Nubian captains in Egypt's service, at Pharaoh's court.
       Assert.contains(large.characters, (c) => c.name === "Hekanefer" && c.attested && c.at === "Egypt");
       Assert.equal(3, large.characters.filter((c) => c.facts.some((f) => f.tag === "nubian")).length);
@@ -90,7 +91,7 @@ describe("WhoTheyAreTests", () => {
   });
 
   test("Mostly ordinary people and few excellent ones among the newcomers", () => {
-    const extra = [1, 2, 3, 4, 5].flatMap((seed) => newGame(seed).characters.slice(FirstPool).filter((c) => !c.attested));
+    const extra = [1, 2, 3, 4, 5].flatMap((seed) => newGame(seed).characters.slice(FirstPool).filter((c) => !c.attested && c.duty !== "Ruling"));
     const excellent = extra.filter((c) => c.traits.competence >= 75).length;
     const ordinary = extra.filter((c) => c.traits.competence < 55).length;
     Assert.true(excellent * 5 < extra.length);

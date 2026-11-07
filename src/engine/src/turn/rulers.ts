@@ -15,7 +15,7 @@ import { addRisen, AllPowers, land, type Power, type RisenPower, powerName } fro
 import { isAlive, logEvent, newId, newTreasury, notify } from "../model/state.ts";
 import { newUnit, type Unit, keepGone } from "../model/units.ts";
 import { UnrestData } from "../model/unrest.ts";
-import { risenTraits } from "../model/kings.ts";
+import { newReign, risenTraits } from "../model/kings.ts";
 import { levelOf } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { stateOfRealm } from "../rules/realm.ts";
@@ -28,7 +28,7 @@ import { TurnEngine } from "./core.ts";
 const WallsWords = ["low", "stout", "high"];
 
 /** How a character came to rule: see `RisenPower.how`. */
-export type RiseHow = "governor" | "turned" | "revolt" | "chief" | "elder" | "granted";
+export type RiseHow = "turned" | "revolt" | "chief" | "elder" | "granted";
 
 export interface Rising {
   how: RiseHow;
@@ -96,7 +96,7 @@ P.ruleOwn = function (id, c, r) {
   addRisen(risen);
   const p = risen.power;
   // Item 17b: he reigns as the person he was, his traits his own.
-  S.reigns.set(p, { traits: risenTraits(t), since: S.turn });
+  S.reigns.set(p, newReign({ traits: risenTraits(t), since: S.turn, character: c.id }));
   // His purse becomes his realm's treasury, with any of the people's gold that comes to him: nothing appears or vanishes.
   S.treasuries.set(p, newTreasury({ gold: spend(c, c.purse) + r.gold }));
   S.inbox.set(p, []);
@@ -145,6 +145,7 @@ P.ruleOwn = function (id, c, r) {
   // His people's regard for him is his realm's now: he rules in its name (item 17++).
   regardToRealm(this, id, c, p);
   S.startStrength.set(p, this.strength(p));
+  S.reigns.get(p).strength = S.startStrength.get(p);
   const men = sum(followed, (u) => u.men);
   const troops = followed.length === 0 ? (r.followers.length === 0 ? "no troops stand with you" : "the troops there would not follow you, for you cannot pay them") : `${men} men follow you${followed.length < r.followers.length ? ", though not all: the rest you could not pay" : ""}`;
   const walls = levelOf(S, "Walls", id);
@@ -157,7 +158,7 @@ P.ruleOwn = function (id, c, r) {
     c.id,
   );
   notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));
-  const tag = r.how === "governor" ? "risen" : `risen-${r.how}`;
+  const tag = `risen-${r.how}`;
   logEvent(S, "rise", `${r.line}${men > 0 ? `, with ${men} men` : ""}.`, [p, ...AllPowers.filter((x) => x !== p && isAlive(S, x) && Views.sight(S, this.map, x).has(id))], tag);
   // Others hear of it as word travels from his city.
   for (const other of AllPowers.filter((x) => x !== p && isAlive(S, x) && !Views.sight(S, this.map, x).has(id))) this.word(p, other, "Realm", `Rumor|A new ruler|Word comes that ${r.line}.`);

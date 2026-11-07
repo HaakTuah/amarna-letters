@@ -25,7 +25,8 @@ describe("StartingTermTests", () => {
     });
     return hash(
       list(person),
-      s.characters.map((c) => ({
+      // The kings (item 17b), persons since, come after everyone else and change no other draw.
+      s.characters.filter((c) => c.duty !== "Ruling").map((c) => ({
         name: c.name,
         origin: c.origin,
         calling: c.calling,
