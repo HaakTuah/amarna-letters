@@ -122,4 +122,4 @@ Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md)
 
 ### Questions for the owner
 
-None.
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806): while a king is held captive, should his court keep giving orders in his name (the reading taken), or should his realm be limited until he is back?
