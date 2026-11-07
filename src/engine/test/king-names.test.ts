@@ -20,6 +20,7 @@ describe("KingNames", () => {
     Assert.equal(rulerOf("Egypt"), "Akhenaten, Great King of Egypt");
     Assert.equal(rulerOf("Byblos"), "Rib-Hadda, king of Gubla");
     Assert.equal(rulerOf("Tunip"), "the king of Tunip");
+    Assert.equal(rulerOf("Alashiya"), "the Great King of Alashiya");
     Assert.equal(rulerStyle("Kaska"), "chief");
     Assert.equal(rulerStyle("Amurru"), "king");
   });

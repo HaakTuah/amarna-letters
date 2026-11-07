@@ -21,7 +21,7 @@ seat choice's words and the seat view's fit for a small realm:
   chief's land; choosing one says why it is harder and that it can win.
 - **How a seat is styled** (`rulerStyle`, `rulerOf` in `src/engine/src/model/power.ts`): a request's identity line said
   "Great King of" to every seat, so Rib-Hadda was told he was the Great King of Gubla. It now says "Rib-Hadda, king of
-  Gubla", "the king of Tunip", "the chief of the Kaska"; the phrasing of a court's answers speaks of "a ruler … a Great King,
+  Gubla", "the king of Tunip", "the Great King of Alashiya", "the chief of the Kaska"; the phrasing of a court's answers speaks of "a ruler … a Great King,
   a city's king or a land's chief"; the chronicle's annals style each ruler so.
 - **The envoys' journeys** in the seat's orders, grouped by their length once the list is long ("1 season to every court but
   these; Arrapha, Elam: 2 seasons"), where it was forty-six courts one by one.
