@@ -17,7 +17,7 @@ import { clamp, idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData, type Band } from "../model/bands.ts";
 import { BattleData, battleLosses, seatOf } from "../model/command.ts";
-import { courierSeasons } from "../rules/court.ts";
+import { courierSeasons, standsAt } from "../rules/court.ts";
 import { menIn, shareOfFull, wallMenOf } from "../model/land.ts";
 import { EconomyData } from "../model/economy.ts";
 import { gain, newRisingView, remember, type Character } from "../model/people.ts";
@@ -432,7 +432,7 @@ function seasonEntries(e: TurnEngine): void {
     const hand = e.handOf(prov.id, holder);
     const fed = S.fed.getOrDefault(prov.id, 1000);
     if (fed < 1000) e.take(prov.id, hand, idiv(D.hunger * (1000 - fed), 1000));
-    const t = travelTurns(S.config, e.map, e.courtAt(holder), prov.id, S.turn);
+    const t = travelTurns(S.config, e.map, standsAt(S, e.map, holder), prov.id, S.turn);
     const seen = hand !== holder ? 100 : 100 - Math.min(D.farMost, D.far * Math.max(0, Number.isFinite(t) ? t - 1 : 4));
     let given = 0;
     const next = new Set(e.map.neighbors(prov.id));

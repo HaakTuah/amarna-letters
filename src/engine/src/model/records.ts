@@ -44,7 +44,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * tells a court of the world: a king closed or opened his roads to it, a kingdom fell, or (#618) a vassal or ally
  * reports a change of hands its court saw.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Loot", "Succession", "KingDead"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "KingTaken", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Loot", "Succession", "KingDead"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -631,6 +631,8 @@ export interface TabletCopy {
   acquiredTurn: number;
   source: string;
   authResult: string | null;
+  /** Item 17b, part C: the season its check (`authResult`) was done, which reaches a king away from his court as its notice does. */
+  authTurn: number;
   /**
    * Item 12, "Reading a tablet": true while nobody at its holder's court has read it (it waits for a reader); false once
    * read or readable; null until the holder's court first looks at it, as the next season begins.
@@ -646,6 +648,7 @@ export function newTabletCopy(init: Partial<TabletCopy> = {}): TabletCopy {
     acquiredTurn: 0,
     source: "",
     authResult: null,
+    authTurn: 0,
     unread: null,
     ...init,
   };
@@ -658,6 +661,7 @@ export const TabletCopySchema: ObjSchema<TabletCopy> = obj("TabletCopy", newTabl
   acquiredTurn: I,
   source: S,
   authResult: S,
+  authTurn: I,
   unread: opt(B),
 });
 

@@ -587,6 +587,8 @@ function other(x: Node): Order | null {
       return crown(person, L(x, "lands").map(prov), Math.max(0, I(x, "gold")), Math.max(0, amount));
     case "move_court":
       return moveCourt(province);
+    case "travel_alone":
+      return moveCourt(province, true);
     case "enlist_band":
       return enlist(province, Math.max(0, I(x, "gold")), I(x, "term"));
     case "pay_off_band":

@@ -143,3 +143,91 @@ Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md)
 ### Questions for the owner
 
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806): while a king is held captive, should his court keep giving orders in his name (the reading taken), or should his realm be limited until he is back?
+
+## Part C1: the king apart from his court
+
+Started from `develop` at b9099627. As built: [57](../design/57-every-person.md), "Part C1". Part C is built in two pull
+requests, since it holds two things a reader looks up apart: (C1) the king apart from his court, commanding from where he
+stands and dying where he stands; (C2) the court as a place that can be taken, its treasury and archive lost, fleeing
+abroad, the heir an exile with a claim, and word of a death sent on to a court that fled.
+
+### What was built
+
+- The court is the capital (treasury, archive, officials, envoys and letters); the king may stand apart from it
+  (`GameState.kingAt`) and commands from where he stands as his court knows it (`seatOf`): his orders to his land and
+  armies, their reports, what he sees and his order checks read his seat; what is physically true there (the units he
+  stands with, a city's gate, where he can be taken) reads where he really stands (`standsAt`).
+- The order `court` with `alone` (`travel_alone` for a model king, "Go alone" on the Play page): the king sets out with
+  his guard, without his court; named where his court is, he goes back to it.
+- Where he stands, with his court or apart from it, a battle his side loses may kill or take him, or he gets away with
+  his men; a city taken there may kill him, else takes him. The king and his court are lost apart: the court's city taken
+  sends the court fleeing without a king who is elsewhere.
+- Script kings go to the front alone when their largest army fights where the court's couriers come a season late, and
+  go back when the fight ends or foes come near them (`bots/afield.ts`).
+- The rulebook (COMMAND AT A DISTANCE, HOW YOU WIN, steps 7 and 10), the seat view (COURT), the Play page, the About page,
+  the README and the design notes say so.
+- A mismatch the new captures showed: the map drew a captive king held at a court as nobody's man, though the court's
+  view names his realm; the map now reads the view's rule (`Views.captiveMaster`).
+
+### First guesses (item 18 tunes them)
+
+- The king alone: 5 shekels and 2 more for every ten days of road, a company of 60 (`KingAloneData`).
+- A battle lost where he stands: dies 20 in a hundred, taken 30, else gets away; a city taken where he stands: dies 30 in
+  a hundred, else taken (`KingAloneData`).
+- A script king this cautious (0.75) or more never goes to the front (`StaysHome`).
+
+### Readings taken
+
+- **What reaches his court is sent on to him, and his orders for its business go to it** (the one-page: "nothing is
+  known or delivered at a distance without someone carrying it"; "envoys and reports still reach the old seat and must
+  be sent on"): built in this part after the design check's second round, which ruled the earlier reading (answered at
+  the court at once) a mistake against the one-page, not a question. The notices of the court's business reach him a
+  courier's time late; letters, envoys, people, captives and tolls on all his land, and moving the court, go to it with his
+  couriers. Notices of other kinds (his own orders' outcomes, the realm's notices) are not sent on: most are already timed
+  by the road from where they happen to him, a far report brought by its own courier included (the design check's third
+  round). His view shows what came to the court as the notices do (the escalation step, on the design check's and Codex's
+  third rounds): a tablet, its check and an envoy's report a courier's time after the season it came, and a person come
+  to the court then too (`cameToCourt`), one of his own shown as on the road till then. A tablet or person come in the
+  first part of a season shows a season after its notice, never before it. The treasury is not sent on: it is the
+  ledger every order is checked against, and its reach is the court's (`isFar` and the order checks alike, Codex's third
+  round), so a far province keeps its coffer, and gold may be sent to it, wherever the king stands.
+- **Word of his capture or death travels** (the design check's first and second rounds): taken or killed away from his
+  court, the court learns of it when word from where it happened comes, and believes him where he was till then
+  (`kingHeard`) and sees nothing of it (the capture is his captor's event). Till then everything the seat sees or whose
+  timing it reads goes on as from where it believes him (the design check's third round): its sight and reports, the
+  timing of its notices and orders, its order checks, the sending-on of the court's business and its orders for it.
+  Physically he stands nowhere: the units there no longer carry out standing orders for him, its gate is no longer held
+  by him, and an order for his own journey goes nowhere.
+- **Death where he stands applies with his court too** ("a king dies only by a cause where he is": battle, a fallen
+  city): a king taken in his court's city may now die in its fall, as part B left for part C.
+- **A court without its king is not stopped on the road** in this part (nor one whose king it believes elsewhere, taken
+  unknown to it): a court taken on the road is part C2's.
+- **Only the defender's side risks the king in a battle**: a battle is fought where the defender stands, and the king
+  stands where he is, not with an army that marches out of his province.
+- **Planning done by the builder**, not by the planning-design helper the rule file names, to spare the week's usage the
+  orchestrator warned of; the design check reviews it.
+- **His presence in a walled city keeps its gate** (`gateHolds`, the design check): the ruler "there" is the king where he
+  stands, no longer his court without him.
+
+### Script players and the measure
+
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the code after the escalation step): all 50
+  games ran and replayed exactly. Wins: Egypt 19, Babylonia 18, Hatti 6, Assyria 4, and the rest one each or none (part
+  B: Egypt 27, Babylonia 13, Hatti 2, Mitanni 1, Assyria 1). Kings taken 1,076 times, escaping 220 times, dying 570 times
+  (part B: 13), most in the fall of their cities, the new first guess; kings went alone 736 times in 44 games, and got
+  away from a battle lost 51 times. **Games stay playable**: the deaths fall mostly on the kings of one-city realms, which
+  fall with their city as before; no Great King's realm fell for want of a king (Egypt, Hatti and Babylonia never fell,
+  Alashiya once; Mitanni 19 times and Assyria 32, against 14 and 29 in part B), and every game ran to its end or an early
+  winner as before. For item 18, which tunes the odds.
+- **Use against ignore** (`--field-play-half`, 50 games, same seeds): script kings that go to the front won 29 to 21
+  against those that stay at court, mean growth 0.76 to 0.73. Pays in wins and growth.
+- **Every feature is every seat's**: script kings go alone to the front and back; a found weakness patched in this part:
+  the script king looked for its own person among the court's foreign contacts and so never went (its king is listed
+  among its own people), caught by the new unit test before any game was run on it.
+
+### Questions for the owner
+
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806): while a king is held captive, does his court keep giving
+  orders in his name (still open; the sending-on for a king away and free is built here, as the one-page settles it).
+- Idea [#813](https://github.com/HaakTuah/amarna-letters/issues/813): a king who stands with his army gives it an edge in
+  battle.

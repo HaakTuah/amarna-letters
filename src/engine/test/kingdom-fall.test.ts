@@ -86,8 +86,10 @@ describe("KingdomFallTests", () => {
     Assert.empty(s.sieges);
     let fall = Assert.single(s.falls);
     Assert.equal(["Assyria", "Babylonia", "ashur"], [fall.power, fall.conqueror!, fall.capital]);
-    // Its king is Babylonia's captive still, his realm gone: a former ruler.
-    Assert.equal(["Captured", "Babylonia", null], [kingOf(s, "Assyria").status, kingOf(s, "Assyria").heldBy, kingOf(s, "Assyria").employer]);
+    // Its king is Babylonia's captive still, his realm gone: a former ruler; or he died in its fall (item 17b, part C).
+    const last = s.characters.find((c) => c.id === s.reigns.get("Assyria").character)!;
+    Assert.true((last.status === "Captured" && last.heldBy === "Babylonia") || s.reignsEnded.some((r) => r.power === "Assyria"));
+    Assert.null(last.employer);
     Assert.equal(
       "With Ashur you took the last land of Assyria: the kingdom has fallen, and its armies are their own commanders' or disband as word reaches them.",
       single(inboxOf(s, "Babylonia"), (i) => i.title === KingdomFallsTitle).body,
@@ -116,8 +118,11 @@ describe("KingdomFallTests", () => {
     }
     season(s, new Dict());
     Assert.doesNotContain(s.eliminated, (p) => p === "Assyria" || p === "Mitanni");
-    Assert.equal(["Captured", "Mitanni"], [kingOf(s, "Assyria").status, kingOf(s, "Assyria").heldBy]);
-    Assert.equal(["Captured", "Assyria"], [kingOf(s, "Mitanni").status, kingOf(s, "Mitanni").heldBy]);
+    // Item 17b, part C: each king is taken by the other, or died in his city's fall and his heir reigns.
+    for (const [p, by] of [["Assyria", "Mitanni"], ["Mitanni", "Assyria"]] as const) {
+      const ended = s.reignsEnded.find((r) => r.power === p);
+      Assert.true(ended !== undefined ? ended.how.includes("as the city fell") : kingOf(s, p).status === "Captured" && kingOf(s, p).heldBy === by);
+    }
   });
 
   test("A king cannot cede his own capital without a sealed tablet that gives it", () => {

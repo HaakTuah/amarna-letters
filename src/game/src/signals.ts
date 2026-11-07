@@ -40,6 +40,8 @@ export const SignalKinds: readonly string[] = [
   "raiders-came", "raiders-home", "band-paid-off", "band-pay-refused",
   // Item 17b: kings taken, escaping and dying.
   "king-taken", "king-escapes", "king-dies",
+  // Item 17b, part C: a king setting out without his court, and one getting away from a battle lost where he stood.
+  "king-alone", "king-away",
   "revolt-crushed", "revolt-led", "revolt-lawless", "revolt-home", "risen-revolt", "risen-turned", "risen-chief", "risen-elder",
   "supply-buy", "supply-take", "supply-kept", "supply-word-buy", "supply-word-take", "stir",
   "raze", "wall-repair", "harbour-short", "station-read",

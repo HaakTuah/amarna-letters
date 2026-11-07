@@ -9,7 +9,7 @@ import { countOf } from "../model/counts.ts";
 import { isAlive, unitAt } from "../model/state.ts";
 import { buildGold, landRefusal, levelOf, WorkKindValues, WorksData, workLevelText, workName } from "../model/works.ts";
 import type { Checking } from "./validator-context.ts";
-import { courtOf, wordHomeAt } from "./court.ts";
+import { courtOf, seatOf, wordHomeAt } from "./court.ts";
 
 /** Why the order is refused, null if it stands, or undefined if it is not one of these. */
 export function checkArmyOrder(v: Checking, order: Order): string | null | undefined {
@@ -136,7 +136,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       // The men at home as the court knows them (bug #517): where word comes home within the season (the road home, as
       // `sight`: bug #616), as they are; farther off, by its last count, or unchecked if it has none: the levy then fails
       // there, and word of it comes by the road.
-      const men = wordHomeAt(S, Map, courtOf(S, Map, power), p.id, S.turn) === S.turn ? menAvailable(S, p.id) : (countOf(S, power, p.id)?.men ?? null);
+      const men = wordHomeAt(S, Map, seatOf(S, Map, power), p.id, S.turn) === S.turn ? menAvailable(S, p.id) : (countOf(S, power, p.id)?.men ?? null);
       if (men !== null && men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (a levy takes ${LandData.levyLeast} at least of those at home and not carrying or building)`;
       if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
       // Item 17++: the gold set aside is reckoned by the men the king knows of, his last count, never those really there.

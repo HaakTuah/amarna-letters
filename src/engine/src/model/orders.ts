@@ -461,12 +461,14 @@ export interface PayOffOrder {
   term: number;
 }
 /**
- * Item 13 ("The capital is wherever the king is"): the king himself sets out for `to`, a province of his own or any he may
- * reach, with his court; it costs gold and takes the road's time, and his orders travel from wherever he is.
+ * Item 13 ("The capital is wherever the king is"): the court sets out for `to`, a province of his own or any he may reach,
+ * with the king if he is with it; it costs gold and takes the road's time. Item 17b, part C: `alone`, the king sets out
+ * without his court, with his guard, and commands from wherever he is; to where his court is, he goes back to it.
  */
 export interface CourtOrder {
   type: "court";
   to: string;
+  alone?: boolean;
 }
 export interface HuntOrder {
   type: "hunt";
