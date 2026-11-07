@@ -49,6 +49,8 @@ export function CommandSection({ c }: { c: OrdersContext }) {
   const [gov, setGov] = useState<{ province: string; person: string; levies: number }>({ province: "", person: "", levies: 1 });
   const [king, setKing] = useState<{ person: string; tribute: string; price: string; land: string }>({ person: "", tribute: "", price: "", land: "" });
   const [food, setFood] = useState<Record<string, number>>({});
+  // Item 17++++a: the fee offered a band's chief, to serve or to leave, the player's own (a first figure from its men's cost).
+  const [bandFee, setBandFee] = useState<Record<string, number>>({});
   const ready = v.court.filter((x) => x.ready);
   // Item 17++: who may be offered a kingship, and over what: a governor of ours over the provinces he governs, never the court's city.
   const governs = (id: string): string[] => v.governors.filter((g) => g.character === id && !g.relieving && g.from <= v.turn && g.province !== v.courtAt).map((g) => g.province);
@@ -201,11 +203,12 @@ export function CommandSection({ c }: { c: OrdersContext }) {
             <small>
               {x.chief}'s {x.raiders !== "" ? `${x.raiders}, ${x.men} from beyond the map,` : `band of ${x.men}`} in {provinceName(x.province)}, where your army stands
             </small>
-            <button className="small" onClick={() => add(enlist(x.province, bandCost(x.men) * 4 * 3, 4))}>
-              Offer {bandCost(x.men) * 4 * 3} shekels for four seasons' service
+            <input type="number" min={1} style={{ width: "5rem" }} aria-label="Fee in shekels" value={bandFee[x.province] ?? bandCost(x.men) * 4 * 3} onChange={(e) => setBandFee({ ...bandFee, [x.province]: Math.max(1, Number(e.target.value) || 1) })} />
+            <button className="small" onClick={() => add(enlist(x.province, bandFee[x.province] ?? bandCost(x.men) * 4 * 3, 4))}>
+              Offer it for four seasons' service
             </button>
-            <button className="small" onClick={() => add(payOff(x.province, bandCost(x.men) * 4 * 3, 4))}>
-              Offer {bandCost(x.men) * 4 * 3} shekels to leave your land for four seasons
+            <button className="small" onClick={() => add(payOff(x.province, bandFee[x.province] ?? bandCost(x.men) * 4 * 3, 4))}>
+              Offer it to leave your land for four seasons
             </button>
           </div>
         ))}

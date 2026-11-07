@@ -226,7 +226,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "",
           ship: b.ship,
           raiders: raidersHome(b.from)?.beyond.raids?.who ?? "",
-          captives: b.captives,
+          // Its captives as its eyes see them, in sight; out of sight, word of them comes by the king's reports (`tell`).
+          captives: seen.has(b.province) ? b.captives : 0,
           paidUntil: ((c) => (c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
         }),
       ),
