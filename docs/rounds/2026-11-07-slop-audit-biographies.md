@@ -74,6 +74,10 @@ audit's brief and nothing else, and listed its worst lines. Most of what it foun
 
 ## Tests and benchmarks
 
-See the PR.
+- `scripts/test.sh`: the governors' test reads Pharaoh's residents by their line's tag, which the one line keeps; the
+  starting cast's fingerprint (`starting-term.test.ts`) is taken again, since the lines and the envoys' callings changed.
+  CI green on every shard.
+- `scripts/sim.sh --games 20 --seed 1 --verify-replay`: 20 games, every replay verified; winners Egypt 6, Hatti 5,
+  Babylonia 5, Lukka 2, Niya 1, Amurru 1. A regression check only: no script reads the lines changed here.
 
-Questions for the owner: see the PR.
+Questions for the owner: none. Filed: #765 (bug), #766 (idea).
