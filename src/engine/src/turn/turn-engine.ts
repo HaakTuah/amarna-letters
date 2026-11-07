@@ -9,6 +9,7 @@ import "./marching.ts";
 import "./command.ts";
 import "./couriers.ts";
 import "./kings.ts";
+import "./kings-fate.ts";
 import "./governors.ts";
 import "./crowns.ts";
 import "./declarations.ts";

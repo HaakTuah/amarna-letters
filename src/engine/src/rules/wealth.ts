@@ -44,6 +44,8 @@ export function wealthRanking(s: GameState): CharacterWealth[] {
 /** Who a character is at the end, in a few words: whom it serves, or that it is free, held or dead. */
 export function wealthStanding(c: Character): string {
   if (c.status === "Dead") return "dead";
+  // A king (item 17b) and a risen ruler rule; they serve nobody.
+  if (c.duty === "Ruling" && c.employer !== null) return `ruling ${c.employer}`;
   if (c.status === "Captured" && c.heldBy !== null) return `captive in ${c.heldBy}` + (c.employer !== null ? `, serving ${c.employer}` : "");
   return c.employer !== null ? `serving ${c.employer}` : "free";
 }

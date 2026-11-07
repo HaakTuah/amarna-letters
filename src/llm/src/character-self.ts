@@ -2,7 +2,7 @@
  * Who a character is, as its own model reads it: the shared system text, its own persona, life and memory, and the lines
  * that name kings, courts and offers in its requests. Split from `character-mind.ts`, which builds the requests.
  */
-import { AllPowers, beliefWords, cap, currentPersona, king, land, strategyText, type Character, type Power, type SpyReport } from "@amarna/engine";
+import { AllPowers, beliefWords, cap, currentPersona, king, kingFor, land, strategyText, type Character, type Power, type SpyReport } from "@amarna/engine";
 import type { EnvoyContext } from "@amarna/game";
 import { PeriodShares, Sb, joinS } from "./text.ts";
 
@@ -89,11 +89,23 @@ export const keepLine = (forger: boolean): string =>
     ? "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. You believe your hand is skilled enough to fake a seal."
     : "You could quietly keep some before it is weighed, but you do not believe your hand is skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.";
 
+/**
+ * A king's name as `viewer`'s court knows him (item 17b: the king it last heard of; a character knows what his court has
+ * heard), his own court by the letters' name; the world's name with no viewer.
+ */
+const nameOf = (p: Power, viewer: Power | null): string => (viewer === null || viewer === p ? king(p) : kingFor(viewer, p));
+
 /** A king by name and land ("Tushratta of Mitanni"), or by his title alone where it names the land. */
-export const kingOf = (p: Power): string => (king(p).includes(land(p)) ? king(p) : `${king(p)} of ${land(p)}`);
+export const kingOf = (p: Power, viewer: Power | null = null): string => {
+  const k = nameOf(p, viewer);
+  return k.includes(land(p)) ? k : `${k} of ${land(p)}`;
+};
 
 /** A king's court ("the court of Tushratta, king of Mitanni", or "the court of the King of Alashiya"). */
-export const courtOf = (p: Power): string => (king(p).includes(land(p)) ? `the court of ${king(p)}` : `the court of ${king(p)}, king of ${land(p)}`);
+export const courtOf = (p: Power, viewer: Power | null = null): string => {
+  const k = nameOf(p, viewer);
+  return k.includes(land(p)) ? `the court of ${k}` : `the court of ${k}, king of ${land(p)}`;
+};
 
 /** A host's offer of service, with what the envoy's job pays it and, if any, the rest of its fee it would give up by leaving. */
 export const offerLine = (ctx: EnvoyContext, offer: number): string => {

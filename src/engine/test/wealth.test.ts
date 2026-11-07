@@ -79,7 +79,7 @@ describe("WealthTests", () => {
     Assert.equal(earningsTotal(envoy.earned) - envoy.earned.spent, envoy.purse);
 
     // Another envoy dismissed on the way out keeps the gold it carried.
-    let other = last(s.characters, (c) => c.employer === "Egypt" && c.id !== envoy.id);
+    let other = last(s.characters, (c) => c.employer === "Egypt" && c.id !== envoy.id && c.duty !== "Ruling");
     other.secretMaster = null;
     let e = begin(s);
     e.resolve(orders("Egypt", dispatch(other.id, "Hatti", "Greetings.", { gold: 50 })));

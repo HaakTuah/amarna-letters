@@ -9,7 +9,7 @@ import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, reignKnown, type Power } from "../model/power.ts";
 import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -29,7 +29,7 @@ import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtV
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { courtOf } from "./court.ts";
+import { courtOf, realmOfKing } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -478,6 +478,9 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
   const alias = falseNameAt(c, viewer);
   const borrowed = alias?.as != null ? (s.characters.find((x) => x.id === alias.as) ?? null) : null;
   const facts = [...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []), ...factsKnownTo(c, viewer)].map((f) => f.text);
+  // Item 17b: a king the viewer knows reigns (an heir, once word of him has come).
+  const realm = realmOfKing(s, c.id);
+  const kingOf = realm !== null && reignKnown(viewer, realm) ? realm : null;
   return newCharacterView({
     id: c.id,
     name: alias?.name ?? c.name,
@@ -485,7 +488,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     ours,
     status: c.status === "Captured" && c.heldBy === viewer ? "your captive" : c.status.toLowerCase(),
     // A spy you caught: whom it confessed to serving, if it did.
-    employer: ours || (c.status === "Employed" && here) ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
+    employer: ours || (c.status === "Employed" && here) || kingOf !== null ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
     duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
     where: ours || here ? whereText(c, viewer) : "",
     province: ours && !captive ? landPlace(c) : null,
@@ -516,6 +519,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
+    kingOf,
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
     ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,

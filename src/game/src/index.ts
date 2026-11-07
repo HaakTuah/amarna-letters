@@ -26,6 +26,7 @@ export { BorderPlay } from "./bots/borders.ts";
 export { MoneyPlay } from "./bots/credit.ts";
 export { UpkeepPlay } from "./bots/upkeep.ts";
 export { RemnantPlay } from "./bots/remnants.ts";
+export { KingPlay } from "./bots/statecraft-court.ts";
 export { CountPlay } from "./bots/counts.ts";
 export { GrantPlay } from "./bots/crowns.ts";
 export { TakeUpPlay } from "./bots/declarations.ts";

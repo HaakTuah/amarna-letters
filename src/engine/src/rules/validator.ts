@@ -23,7 +23,7 @@ import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
 import { checkLetterOrder } from "./validator-letters.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
-import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
+import { courierSeasons, courtOf, realmOfKing, wordHomeAt } from "./court.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export class ValidationResult {
@@ -223,6 +223,8 @@ export class OrderValidator {
       // The owner's answers to item 11a: one offered a job at your court by an earlier order may be sent on its errand at once
       // (if it takes the job).
       if (hiring.has(c.id) && c.at === power) return busyCharacters.has(c.id) ? `${c.name} was already given a task by an earlier order` : null;
+      // Item 17b: the king is no servant of his own court.
+      if (realmOfKing(S, c.id) === power) return `${c.name} is your king, no servant`;
       const away = covered(c) || (c.employer === power && c.status === "Captured");
       if (!away && (c.employer !== power || c.status !== "Employed")) return `${c.name} is not in your service`;
       if (mustBeHome && (away || c.duty !== "None" || c.at !== power)) return `${c.name} is not at your court`;

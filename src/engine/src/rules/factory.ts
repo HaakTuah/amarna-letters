@@ -1,7 +1,7 @@
 /** A new game: the map's owners and walls, the opening troops and treasuries, the characters, and starting strength. */
 import { Dict } from "../core/collections.ts";
 import { Rng } from "../core/rng.ts";
-import { cmpNum, range, sortBy } from "../core/seq.ts";
+import { range } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
 import { levelOf, newWorkPlan, setLevel, startLevel, WorkKindValues } from "../model/works.ts";
 import { seasonOfTurn, StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
@@ -18,15 +18,15 @@ import { newTablet, newTabletCopy } from "../model/records.ts";
 import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
 import { newCharacter, newContract, newFact, newJobErrand, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
-import { AllPowers, PowerValues, isGreatKing, land, setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { Natures, drawTraits } from "../model/kings.ts";
+import { AllPowers, PowerValues, isGreatKing, land, setCrowned, setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { Natures, drawTraits, newReign } from "../model/kings.ts";
 import { newTreasury, newGameState, logEvent, newId, notify, type GameState } from "../model/state.ts";
 import { newUnit, unitReport } from "../model/units.ts";
 import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
-import { AttestedCast, FirstCores, Governors1346, Leanings1346, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Residents1346, Styles, type CastSeed, type Core } from "./cast.ts";
+import { AttestedCast, FirstCores, Governors1346, Leanings1346, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Residents1346, Styles, styleOf, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
 import { drawTongues, kingTongues, servedThere } from "./tongues.ts";
 import { courtReads, courtSpeaks, peopleSpeak } from "../model/languages.ts";
@@ -38,12 +38,13 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   // A new game starts with the powers the map gives; powers rise in play only (item 13+).
   setRisen([]);
   setNameClaims([], []);
+  setCrowned([]);
   const m = map ?? WorldMap.default;
   const s = newGameState({ seed, config: config ?? newGameConfig(), turn: 1 });
   // The last season, drawn once in secret from its own stream before anything else is rolled.
   const last = drawFinalSeason(seed, s.config);
   // Item 17b: each king as the person the sources show, his traits varied a little in every game.
-  for (const p of PowerValues) s.reigns.set(p, { traits: drawTraits(seed, p, Natures[p].traits), since: 1 });
+  for (const p of PowerValues) s.reigns.set(p, newReign({ traits: drawTraits(seed, p, Natures[p].traits) }));
   s.finalSeason = last?.season ?? null;
   s.finalByCap = last?.byCap ?? false;
 
@@ -99,7 +100,12 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   const engine = new TurnEngine(s, m);
   // Item 17++, part C: each court sees its own city's mood.
   engine.courtsSee();
-  for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));
+  // Item 17b, part B: each king a person, reigning.
+  engine.seatKings();
+  for (const p of AllPowers) {
+    s.startStrength.set(p, engine.strength(p));
+    s.reigns.get(p).strength = s.startStrength.get(p);
+  }
   // Each court's state of the realm, from the data by one rule for all (item 11+).
   for (const p of AllPowers) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));
   logEvent(s, "start", "The age begins. Seven Great Kings hold their thrones, and the city-states and chiefs between them their own.");
@@ -375,14 +381,6 @@ export function populate(s: GameState): void {
     chooseStrategy(c);
   }
   s.baseline = s.characters.length;
-}
-
-/** A court's name style, or the nearest court's if it has none of its own. */
-function styleOf(p: Power): (typeof Styles)[number] {
-  const map = WorldMap.default;
-  const capital = map.capital(p).id;
-  const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => map.hops(map.capital(x).id, capital), cmpNum])[0];
-  return Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
 }
 
 /** The first of `names` (a court's style, shuffled) nobody has yet, else "the younger" or "the elder" of one. */

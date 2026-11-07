@@ -4,7 +4,7 @@
  * travels sealed, the envoy cannot alter it.
  */
 import { isBlank, trim, trimEnd } from "../core/text.ts";
-import { claimantsOf, claimedName, house, isGreatKing, king, knownName, ownLand, rulerNamed, type Power } from "../model/power.ts";
+import { claimantsOf, claimedName, house, isGreatKing, king, kingFor, knownName, ownLand, type Power } from "../model/power.ts";
 import { newGreetingOptions, type GreetingOptions } from "../model/records.ts";
 
 export function renderGreeting(from: Power, to: Power, options: GreetingOptions | null): string {
@@ -16,8 +16,8 @@ export function renderGreeting(from: Power, to: Power, options: GreetingOptions 
   // by the name he claims.
   // The recipient as the sender knows his claim, from the greetings the sender's court has read.
   const known = knownName(from, to);
-  const recipient = greetingName(to, o.grantGreatKing, o.byHouse === true && claimantsOf(known, from).length > 1 ? house(to) : known) + (o.callBrother ? ", my brother" : "");
-  const sender = greetingName(from, o.claimGreatKing, claimedName(from)) + (o.callBrother ? ", your brother" : "");
+  const recipient = greetingName(to, from, o.grantGreatKing, o.byHouse === true && claimantsOf(known, from).length > 1 ? house(to) : known) + (o.callBrother ? ", my brother" : "");
+  const sender = greetingName(from, null, o.claimGreatKing, claimedName(from)) + (o.callBrother ? ", your brother" : "");
   const address = o.senderFirst ? `Thus says ${sender}: say to ${recipient}.` : `Say to ${recipient}: thus says ${sender}.`;
   const wellbeing = o.callBrother
     ? "All goes well with me. May all go well with you, your household, your wives, your sons, your chariots, your horses and your country."
@@ -25,10 +25,12 @@ export function renderGreeting(from: Power, to: Power, options: GreetingOptions 
   return `${address} ${wellbeing}`;
 }
 
-function greetingName(p: Power, greatKing: boolean, name: string): string {
+/** `viewer`: the court naming him, which knows the king it last heard of (item 17b); null for a sender naming himself. */
+function greetingName(p: Power, viewer: Power | null, greatKing: boolean, name: string): string {
+  const k = viewer === null ? king(p) : kingFor(viewer, p);
   // A ruler the sources do not name (Alashiya's king, the city-states' and chiefs' of item 11+) is greeted by his title.
-  if (!rulerNamed(p)) return greatKing ? `the Great King of ${name}` : name === ownLand(p) ? king(p).replace(/^the King/, "the king") : `the king of ${name}`;
-  return greatKing ? `${king(p)}, Great King, king of ${name}` : `${king(p)}, king of ${name}`;
+  if (k.toLowerCase().startsWith("the ")) return greatKing ? `the Great King of ${name}` : name === ownLand(p) ? k.replace(/^the King/, "the king") : `the king of ${name}`;
+  return greatKing ? `${k}, Great King, king of ${name}` : `${k}, king of ${name}`;
 }
 
 /** A text cut to `max` characters, marked "…" when cut. */
