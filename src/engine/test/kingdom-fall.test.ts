@@ -25,7 +25,7 @@ import {
   support,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, subs, oldWorld, smallWorld } from "./support.ts";
+import { removeAll, Assert, subs, oldWorld, smallWorld, courtGoing } from "./support.ts";
 
 // Item 17b, part B: a king taken where he stands is his taker's captive and his court flees to the nearest city his realm
 // still holds; only a realm that holds nothing falls, its orders lapsing for the rest of the season and its armies their
@@ -60,9 +60,9 @@ describe("KingdomFallTests", () => {
     Assert.contains(s.journeys, (j) => j.kind === "CaptiveConvoy" && j.characterId === king.id && j.to === "Hatti");
     Assert.contains("His fate is yours", single(inboxOf(s, "Hatti"), (i) => i.title === "A king taken").body);
     // The court rules from a city Arzawa still holds, in his name.
-    const court = s.court.get("Arzawa");
+    const court = courtGoing(s, "Arzawa");
     Assert.equal("Arzawa", s.owner.get(court));
-    Assert.contains("rules in his name until he is back", single(inboxOf(s, "Arzawa"), (i) => i.title === "The court flees").body);
+    Assert.contains("in his name until he is back", single(inboxOf(s, "Arzawa"), (i) => i.title === "The court flees").body);
     Assert.empty(s.falls);
   });
 

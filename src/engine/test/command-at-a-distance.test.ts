@@ -28,7 +28,7 @@ import {
   unitAt,
   Views,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls, smallWorld } from "./support.ts";
+import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls, smallWorld, courtGoing } from "./support.ts";
 
 // Build order item 13, "Command at a distance": armies at the sources' sizes, battles with losses and falling back,
 // marching by distance, commanders and their mandates, standing orders through commanders, the court wherever the king is
@@ -210,7 +210,7 @@ describe("CommandAtADistanceTests", () => {
     Assert.doesNotContain(s.eliminated, (p) => p === "Babylonia");
     const king = s.characters.find((c) => c.id === s.reigns.get("Babylonia").character)!;
     Assert.equal(["Captured", "Assyria"], [king.status, king.heldBy]);
-    const court = s.court.get("Babylonia");
+    const court = courtGoing(s, "Babylonia");
     Assert.notEqual("durkurigalzu", court);
     Assert.equal("Babylonia", s.owner.get(court));
   });
