@@ -31,4 +31,5 @@ export * from "./rules/strategy.ts";
 export * from "./rules/news.ts";
 export { counted, pick } from "./rules/wording.ts";
 export * from "./rules/legends.ts";
+export * from "./rules/history.ts";
 export * from "./rules/tongues.ts";

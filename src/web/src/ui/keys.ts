@@ -12,7 +12,7 @@ export type KeyAction =
   | "pause" | "pace1" | "pace2" | "pace3" | "pace4" | "faster" | "slower" | "stepBack" | "stepOn" | "toNow"
   | "endSeason" | "escape"
   | "winSeat" | "winProvinces" | "winStandings" | "winPeople" | "winInbox" | "winThreads" | "winEvents" | "winRules" | "winChronicles"
-  | "winMind" | "winTrail" | "winFollow" | "winLegends"
+  | "winMind" | "winTrail" | "winFollow" | "winLegends" | "winSearch" | "winHistory"
   | "viewRealms" | "viewMood" | "panUp" | "panLeft" | "panDown" | "panRight" | "zoomIn" | "zoomOut" | "wholeMap";
 
 /**
@@ -63,6 +63,8 @@ export const KeyDefaults: Record<KeyAction, { key: Binding; what: string; group:
   winTrail: { key: none, what: "Trail (god view)", group: "Turns and windows" },
   winFollow: { key: none, what: "Follow (the person followed)", group: "Turns and windows" },
   winLegends: { key: none, what: "Legends (god view)", group: "Turns and windows" },
+  winSearch: { key: none, what: "Search everything your court knows", group: "Turns and windows" },
+  winHistory: { key: none, what: "History (of the province, realm, title or person last asked)", group: "Turns and windows" },
   viewRealms: { key: key(["KeyE"], "E"), what: "The realms' map (who holds what)", group: "The map" },
   viewMood: { key: key(["KeyR"], "R"), what: "The mood of the land", group: "The map" },
   panUp: { key: key(["KeyW", "ArrowUp"], "W, ↑"), what: "Move the map up", group: "The map" },

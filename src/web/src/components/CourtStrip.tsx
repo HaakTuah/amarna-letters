@@ -3,11 +3,12 @@ import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import type { FrameSleep } from "../session/frames.ts";
 import { powerName, when } from "../ui/format.ts";
+import { nameSettings } from "../ui/names.ts";
 import { sideScroll } from "../ui/side-scroll.ts";
 import { Emblem } from "./Emblem.tsx";
 import { sleepLine } from "./SeasonPanel.tsx";
 
-const short = (p: Power): string => (p === "Babylonia" ? "Babylon" : p === "Alashiya" ? "Alashiya" : powerName(p));
+const short = (p: Power): string => (p === "Babylonia" && nameSettings().realms === "known" ? "Babylon" : powerName(p));
 
 const title = (p: Power, held: number, fallen: boolean, s: FrameSleep | null): string =>
   `${powerName(p)}: ${held} provinces${fallen ? ", fallen" : ""}` + (s?.asleep ? `; asleep, wakes by ${when(s.wakeAt, null)} at the latest` : "");

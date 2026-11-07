@@ -5,6 +5,7 @@
 import ReliefImage from "./relief.jpg";
 import { ReliefFrame } from "./relief-frame.ts";
 import { FixedPowers, StartWalls, WorldMap, isGreatKing } from "@amarna/engine";
+import { provinceName } from "../ui/format.ts";
 import {
   CoastPath,
   Deserts,
@@ -132,7 +133,7 @@ function buildBase(): string {
     const coasts = Map_.coastsOf(p.id);
     const waters = coasts.length > 0 && p.name.endsWith(" waters");
     const at = city(p.id);
-    sb += `<text class="sea-name${waters ? " waters" : ""}" x="${F(at.x)}" y="${F(at.y + 4)}">${waters ? "waters" : p.name}</text>`;
+    sb += `<text class="sea-name${waters ? " waters" : ""}"${waters ? "" : ` data-sea="${p.id}"`} x="${F(at.x)}" y="${F(at.y + 4)}">${waters ? "waters" : provinceName(p.id)}</text>`;
   }
   // Punt, beyond the Red Sea: where newcomers come from, never a market.
   sb += `<text class="geo" transform="translate(${F(PuntDoor.x)},${F(PuntDoor.y)}) rotate(${F(PuntDoor.angle)})">TO PUNT →</text>`;
@@ -178,7 +179,7 @@ function buildLabels(): string {
     // A small gap beyond the ring, in the name's own units; below, the name hangs from its top; above, from its foot.
     const x = ux * 2.5;
     const y = uy * 2.5 + (uy > 0.6 ? 9.5 : uy < -0.6 ? -1 : 4);
-    sb += `<g class="lab" data-label="${p.id}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(p.capital, 0))};--ux:${F(ux)};--uy:${F(uy)}"><g class="lring"><text class="plabel${p.capital ? " cap" : ""}" x="${F(x)}" y="${F(y)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g></g>`;
+    sb += `<g class="lab" data-label="${p.id}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(p.capital, 0))};--ux:${F(ux)};--uy:${F(uy)}"><g class="lring"><text class="plabel${p.capital ? " cap" : ""}" x="${F(x)}" y="${F(y)}" text-anchor="${s.anchor}">${escape(provinceName(p.id))}</text></g></g>`;
   }
   // Item 17+ ("Places by their own names"): the lands outside the game drawn as no one's, each by the oldest name the
   // sources give it, with what it is in its tooltip.
@@ -221,3 +222,15 @@ export const Base = buildBase();
 export const MarksMarkup = buildMarks();
 /** Province names, above the borders and below the pieces. */
 export const Labels = buildLabels();
+
+/**
+ * The map's names as the player's name settings show them now (ui/names.ts; item 17+++b): the labels are drawn once, so a
+ * changed setting renames them where they stand, the provinces' and the open seas'.
+ */
+export function renameLabels(root: ParentNode): void {
+  for (const g of root.querySelectorAll<SVGGElement>("g.lab[data-label]")) {
+    const text = g.querySelector("text.plabel");
+    if (text !== null) text.textContent = provinceName(g.dataset.label!);
+  }
+  for (const s of root.querySelectorAll<SVGTextElement>("text[data-sea]")) s.textContent = provinceName(s.dataset.sea!);
+}

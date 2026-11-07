@@ -1,15 +1,18 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, nameFrom, powerName, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, nameFrom, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
-/** A power by the name every screen and notice gives it (the engine's `powerName`). */
-export { powerName };
+import { placeName, realmName, shown } from "./names.ts";
+
+/** A power by the name every screen gives it: the engine's `powerName`, as the player's name settings show it (ui/names.ts). */
+export const powerName: (p: Power) => string = realmName;
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
 /** Rounded to the whole shekel: the treasury keeps fractions (interest, shares), which no one reads as such. */
 export const shekels = (s: number): string => formatMoney(Math.round(s));
 
-export const provinceName = (id: string): string => (WorldMap.default.exists(id) ? WorldMap.default.get(id).name : id);
+/** A province by the name the player's settings show (ui/names.ts). */
+export const provinceName: (id: string) => string = placeName;
 
 /** The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's. */
 export const when = (turn: number, court: Power | null): string => dateLabel(turn, court);
@@ -38,11 +41,12 @@ const Words = rx(String.raw`\b[a-z]+\b`, "g");
 
 /**
  * Engine text with every "turn N" given its date label; "season of turn N" becomes the label alone, and a fact's
- * "(season N)", which counts turns too, becomes "(the label)". The engine's own text, which models read, stays as it is.
+ * "(season N)", which counts turns too, becomes "(the label)"; and every place and realm by the name the player's settings
+ * show (ui/names.ts). The engine's own text, which models read, stays as it is.
  */
 export function dated(text: string, court: Power | null): string {
   if (!text) return text;
-  return text
+  return shown(text)
     .replace(TurnNumber, (m: string, ...args: unknown[]) => {
       const groups = args[args.length - 1] as { n: string };
       const label = dateLabel(Number.parseInt(groups.n, 10), court);
@@ -66,7 +70,7 @@ export function describeOrder(o: Order, v: SeatView): string {
   }
   let text = describe(o);
   text = text.replace(Ids, (m) => names.get(m) ?? m);
-  return text.replace(Words, (m) => (WorldMap.default.exists(m) ? WorldMap.default.get(m).name : m));
+  return text.replace(Words, (m) => (WorldMap.default.exists(m) ? provinceName(m) : m));
 }
 
 /**
@@ -80,7 +84,7 @@ export function heardIn(heard: SeatView["nameClaims"][number]["heard"], me: Powe
 
 /** A grant of passage or basing as its two kings read it (item 9). */
 export function grantLine(g: GrantView, me: Power): string {
-  const where = grantPlace(g, g.grantor === me ? "your" : "his", (id) => WorldMap.default.get(id).name);
+  const where = grantPlace(g, g.grantor === me ? "your" : "his", provinceName);
   const what = g.kind === "passage" ? `pass through ${where}` : `stand within the walls of ${where}`;
   const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;

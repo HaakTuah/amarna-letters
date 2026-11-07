@@ -411,7 +411,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((p) => (
               <option key={p.id} value={`@${p.id}`}>
-                to watch {p.name}
+                to watch {provinceName(p.id)}
               </option>
             ))}
         </select>

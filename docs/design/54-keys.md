@@ -14,7 +14,7 @@ keys, Escape, its windows on F1 to F10 (the ruler is the seat; the realm, the pr
 the courtiers, the people; intrigue, the inbox; factions, the threads; decisions, the events; the encyclopedia, the
 rules; F10, the first free key, the chronicles), E for its realms map, and W, A, S, D with the arrows to move the map.
 Enter seals one's season, as in Civilization (seasons are turns). Where neither game has a like (the mood of the land, a
-model's own words, the trail, the follow, the legends, the timeline's and the zoom's buttons) the mood takes R, the next key
+model's own words, the trail, the follow, the legends, the timeline's and the zoom's buttons, item 17+++b's Search and History windows) the mood takes R, the next key
 of Crusader Kings III's map-mode row, and the rest have none until a player gives them one; the wheel zooms. F4, Crusader Kings III's council, waits for the council's window.
 
 **Each changeable.** A player's own keys are kept in this browser (`amarna-keys` in local storage; the page works without

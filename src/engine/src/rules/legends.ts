@@ -7,7 +7,7 @@
  */
 import { listed } from "./wording.ts";
 import { cmpNum, cmpStr, desc, sortBy } from "../core/seq.ts";
-import type { Character } from "../model/people.ts";
+import { nameKnownAt, type Character } from "../model/people.ts";
 import { AllPowers, type Power, type RisenPower } from "../model/power.ts";
 import type { GameEvent, Tablet } from "../model/records.ts";
 import type { GameState } from "../model/state.ts";
@@ -39,7 +39,7 @@ const line = (turn: number, text: string, province: string | null = null): Legen
 const provinceName = (id: string): string => WorldMap.default.get(id).name;
 const byTurn = (ls: LegendLine[]): LegendLine[] => sortBy(ls, [(l: LegendLine) => l.turn, cmpNum]);
 
-interface Change {
+export interface Change {
   province: string;
   turn: number;
   from: Power | null;
@@ -49,7 +49,7 @@ interface Change {
 }
 
 /** Each change of a province's holder, oldest first, with the holder it passed from and whether it was ceded. */
-function changes(s: GameState): Change[] {
+export function changes(s: GameState): Change[] {
   const cessions = s.events.filter((e) => e.kind === "cession");
   const ceded = (province: string, turn: number, from: Power | null, to: Power | null): boolean =>
     from !== null &&
@@ -78,11 +78,16 @@ export function characterLegend(s: GameState, id: string, viewer: Power | null):
   const c = s.characters.find((x) => x.id === id);
   if (c === undefined) return [];
   const out: LegendLine[] = [];
-  const unique = s.characters.filter((x) => x.name === c.name).length === 1;
+  // A court that knows them by a false name it has not seen through reads their life under that name only: an event that
+  // names the true man is never pinned on the name it knows (#769).
+  const name = viewer === null ? c.name : nameKnownAt(c, viewer);
+  // Only while no one else goes by that name at the court (a borrowed name is a real man's too), so nothing is pinned wrong.
+  const unique = s.characters.filter((x) => (viewer === null ? x.name : nameKnownAt(x, viewer)) === name).length === 1;
   if (unique)
     for (const e of s.events)
-      if (namesIn(e, c) && (viewer === null || e.visibleTo.includes(viewer))) out.push(line(e.turn, e.text));
-  for (const r of s.risen) if (r.ruler === id && (viewer === null || viewer === r.power || viewer === r.from)) out.push(newIdrimi(r));
+      if (wordIn(e.text, name) && (viewer === null || e.visibleTo.includes(viewer))) out.push(line(e.turn, e.text));
+  if (name === c.name)
+    for (const r of s.risen) if (r.ruler === id && (viewer === null || viewer === r.power || viewer === r.from)) out.push(newIdrimi(r));
   if (viewer === null) {
     for (const t of s.tablets) {
       if (t.inventory) continue;
@@ -96,11 +101,9 @@ export function characterLegend(s: GameState, id: string, viewer: Power | null):
   return byTurn(out).filter((l) => (seen.has(`${l.turn}|${l.text}`) ? false : (seen.add(`${l.turn}|${l.text}`), true)));
 }
 
-/** Whether an event names a person: their name as a whole word. */
-const namesIn = (e: GameEvent, c: Character): boolean => wordIn(e.text, c.name);
 
 /** Whether a text holds a name as a whole word, anywhere in it. */
-function wordIn(text: string, name: string): boolean {
+export function wordIn(text: string, name: string): boolean {
   for (let i = text.indexOf(name); i >= 0; i = text.indexOf(name, i + 1)) {
     const before = i === 0 ? " " : text[i - 1];
     const after = text[i + name.length] ?? " ";
