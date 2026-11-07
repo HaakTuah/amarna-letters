@@ -190,8 +190,8 @@ the workshop check): among them the history check's lines still unclear for a re
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
-  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 47, with the
-  next item's benchmarks (#523 measured two seeds only).
+  down the Euphrates and the marshes. The full `--versus solo` run, seeds 1-40, was run with 17+++a (#753; its report,
+  "Benchmarks"): 2.29 growth alone and 1.07 as baseline over every seat.
 
 - **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
   - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
@@ -222,13 +222,23 @@ the workshop check): among them the history check's lines still unclear for a re
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
-  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725). **Next:** the rest in the order above, from the seat
-  view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
+  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
+  below). **Next:** the rest in the order above, from the cast's biographies, which take with them the three stock
+  lines the seat view's review left (`src/engine/src/rules/factory.ts`; the bots read some fact texts, so check
+  `src/game/src/bots/` before rewording one): "Known by name at more than one royal court."; "Holds a stake in the
+  love of the people of …"; and the commissioner's doubled line ("Pharaoh's commissioner, resident in … : known to
+  all as his man, reporting home. Spent three years and more at the court of …"), with the doubled tongue sentence
+  ("Speaks the tongue of the land he rose in" beside "says they speak …"). **Still open, one game-wide decision:** one
+  place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
+  "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
+  and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
   (the owner, 6 November 2026, #735; archive item 230): done, #744 (the notice-shapes guard flags "in a hundred");
   `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge. **In a character's own words** (the script
   kings' letters, the envoys' speech, and the models' voice guidance for letters and audiences), a share is said as
   the period said it, "a fifth", "a tenth", "the half", never "%" or "in a hundred", and the letter-shapes guard flags
-  both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%".
+  both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%". Done: the line
+  `PeriodShares` (`src/llm/src/text.ts`) in the kings' and characters' voice guidance, the guards in `letter-shapes`
+  and `envoy-words` tests.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
@@ -291,9 +301,9 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 |---|---|---|---|---|
 | 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) merged, #538; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
 | 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
-| 17+++ | The season plays out | in progress: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight; the world acting on them) #728, the last part: done once it merges | `item/season-plays-out`, `item/season-plays-out-e` | `docs/rounds/2026-11-03-season-plays-out.md` |
-| 17+++a | Keys for everything | not started | | |
-| 17+++b | History, search and names | not started | | |
+| 17+++ | The season plays out | done: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight; the world acting on them) merged, #728 | `item/season-plays-out`, `item/season-plays-out-e` | `docs/rounds/2026-11-03-season-plays-out.md` |
+| 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
+| 17+++b | History, search and names | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17+++b"), and each new window, view or action adds its row to `ui/keys.ts` (`docs/design/54-keys.md`) | | |
 | 17++++ | A small state as a seat | not started | | |
 | 17++++a | Raiders from beyond the map | not started | | |
 | 17b | Every person on one scoreboard | not started | | |

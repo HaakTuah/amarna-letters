@@ -6,6 +6,7 @@ import {
 } from "@amarna/engine";
 import { describeOrder, powerName, shekels, when } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
+import { withKey } from "../ui/keys.ts";
 import { num } from "./orders/form.ts";
 import { useOrders } from "./orders/use-orders.ts";
 import { TroopsSection } from "./orders/TroopsSection.tsx";
@@ -18,7 +19,8 @@ import { CouncilSection } from "./orders/CouncilSection.tsx";
 
 /**
  * An envoy's journey as the engine words it for kings ("Terqa: 2 season(s) each way"), read for a person: the court by the
- * name the game shows, "1 season" or "2 seasons" rather than "season(s)". The engine's own line, which models read, is unchanged.
+ * name the game shows, "1 season" or "2 seasons" rather than "season(s)". Models read the same line rewritten by their seat view
+ * (`llm/src/prompts.ts`).
  */
 const TravelTime = /^(?<court>.+?): (?<n>\d+) season\(s\) each way$/;
 function travelTime(t: string): string {
@@ -150,7 +152,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             }}
           />
         </div>
-        <button className="primary" onClick={() => onSubmit(false)}>
+        <button className="primary" onClick={() => onSubmit(false)} title={withKey("Seal the orders for this season", "endSeason")}>
           Seal the orders for this season
         </button>
         {/* Sleep is for every seat (item 9+a): the seasons pass by themselves until something concerns you, or you wake. */}

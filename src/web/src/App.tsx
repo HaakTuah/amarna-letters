@@ -1,4 +1,5 @@
 import { About } from "./pages/About.tsx";
+import { Keys } from "./pages/Keys.tsx";
 import { Listen } from "./pages/Listen.tsx";
 import "./audio/player.ts";
 import { Home } from "./pages/Home.tsx";
@@ -44,7 +45,7 @@ export function App() {
         </div>
       )}
       {route !== "play" && <TopBar />}
-      {route === "play" ? <Play /> : route === "about" ? <About /> : route === "listen" ? <Listen /> : <Home />}
+      {route === "play" ? <Play /> : route === "about" ? <About /> : route === "listen" ? <Listen /> : route === "keys" ? <Keys /> : <Home />}
     </>
   );
 }

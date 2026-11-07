@@ -62,7 +62,7 @@ import { risingOf, risingSchema, risingSummary, risingText } from "./character-r
 import type { JsonObject, ReplySchema } from "./schema-tools.ts";
 import { Replies } from "./schemas.ts";
 import type { Stakes } from "./spending.ts";
-import { Sb, joinS } from "./text.ts";
+import { PeriodShares, Sb, joinS } from "./text.ts";
 import { CharacterSystem, canForge, courtOf, keepLine, kingOf, offerLine, selfText, traitLine } from "./character-self.ts";
 import { asGiven, recitedBy, reportedBy } from "./character-recital.ts";
 
@@ -231,7 +231,7 @@ export class LlmCharacterMind implements ICharacterMind {
           turn,
           role: `phrase:${c.id}`,
           model: this.model,
-          sharedSystem: "You put a decision already made into the words of one of the people of the Amarna age, in their own voice. Say nothing that is not in it, and promise nothing more. Reply with the reply tool.",
+          sharedSystem: `You put a decision already made into the words of one of the people of the Amarna age, in their own voice. Say nothing that is not in it, and promise nothing more. ${PeriodShares} Reply with the reply tool.`,
           seatSystem: `You speak as ${c.name}. ${currentPersona(c)}`,
           user: `Put this into your own words, as you would say or write it: "${text}"`,
           schema: Replies.text("speech", "The words, in one to four sentences."),

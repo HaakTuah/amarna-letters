@@ -51,14 +51,14 @@ import { leaderRules } from "./rules.ts";
 import { planRules } from "./rules-plan.ts";
 import type { JsonObject } from "./schema-tools.ts";
 import { Replies, Schemas } from "./schemas.ts";
-import { Sb, joinS } from "./text.ts";
+import { PeriodShares, Sb, joinS } from "./text.ts";
 
 /** The log key of one exchange of an audience: each answer is logged under it, whatever call made it. */
 const courtKey = (v: AudienceView): string => `t${v.turn}/aud/${v.audienceId}/host/${v.round}`;
 
 /** The fixed part of every phrasing call: what the job is, shared by every king (and cached). */
 const PhrasingSystem =
-  "You word the answers of a Great King of the Late Bronze Age to the envoys at his court, in the voice of the Amarna letters: courteous, formal, brief. Each answer was decided before: you only put it into his words. Reply with the reply tool.";
+  `You word the answers of a Great King of the Late Bronze Age to the envoys at his court, in the voice of the Amarna letters: courteous, formal, brief. Each answer was decided before: you only put it into his words. ${PeriodShares} Reply with the reply tool.`;
 
 export class LlmLeaderSeat implements ISeat {
   private readonly journalOf = new LeaderJournal();

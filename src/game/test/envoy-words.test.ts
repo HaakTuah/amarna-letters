@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { Abroad, Home } from "../src/bots/envoy-words.ts";
-import { reading } from "./readings.ts";
+import { ModernShare, reading } from "./readings.ts";
 
 // The slop audit (archive item 178): every form of an envoy's line reads to the script kings and the checks as its first
 // form does (what they read for: readings.ts), so that the form chosen changes no play.
@@ -11,6 +11,10 @@ describe("EnvoyWordsTests", () => {
   test.each(["Go in peace.", "I have heard your words."])("Every form of an envoy's line reads as its first form does (%s)", (words) => {
     for (const [name, forms] of [...Object.entries(Abroad), ...Object.entries(Home)])
       for (const f of forms) expect(reading(fill(f, words), "Egypt", "Mitanni", "envoy"), `${name}: "${f}"`).toBe(reading(fill(forms[0], words), "Egypt", "Mitanni", "envoy"));
+  });
+
+  test("No envoy says a share as a percentage (archive item 232)", () => {
+    for (const [name, forms] of [...Object.entries(Abroad), ...Object.entries(Home)]) for (const f of forms) expect(ModernShare.test(f), `${name}: "${f}"`).toBe(false);
   });
 
   test("What a king reads from a report stays in every form", () => {

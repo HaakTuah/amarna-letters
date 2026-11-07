@@ -10,6 +10,7 @@ import "./styles/map-glance.css";
 import "./styles/map-uncluttered.css";
 import "./styles/map-living.css";
 import "./styles/playback.css";
+import "./styles/keys.css";
 
 // No error leaves a white page (item 17a): the boundary shows a plain screen with the error and a way back to the game.
 catchPageErrors();
