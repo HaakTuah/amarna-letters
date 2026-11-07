@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { AllPowers, Dict, EconomyData, GameStateSchema, hash, isAlive, newCharacter, newGame, newGovernor, newId, newSiege, newTraits, newUnit, wallsOf, type GameState, type Power } from "@amarna/engine";
+import { AllPowers, Dict, EconomyData, GameStateSchema, hash, isAlive, risenTraits, newCharacter, newGame, newGovernor, newId, newSiege, newTraits, newUnit, wallsOf, type GameState, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, ReplayMind, ReplayNarrator, ReplaySeat, ScriptMind, TemplateNarrator, type ISeat } from "@amarna/game";
 import { Assert } from "../../engine/test/support.ts";
 import { scriptSeats, seasons } from "./small-world.ts";
@@ -38,6 +38,9 @@ describe("RisenSeatTests", () => {
     const risen = Assert.single(r.state.risen, (x) => x.how === "governor" && x.capital === "nippur");
     Assert.equal("Nippur", risen.power);
     Assert.true(isAlive(r.state, "Nippur"));
+    // Item 17b: he reigns as the person he was, his traits his own as a character.
+    const ruler = Assert.single(r.state.characters, (c) => c.id === risen.ruler);
+    Assert.equal(risenTraits(ruler.traits), r.state.reigns.get("Nippur").traits);
     // Its seat gave orders: their resolutions are in its own inbox.
     Assert.true(
       r.state.inbox.get("Nippur").some((i) => i.kind === "Resolution"),

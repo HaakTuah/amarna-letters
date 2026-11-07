@@ -1,40 +1,30 @@
 ### Temperament
 
-There are ten weights, each from 0 to 1. Each power has a historical archetype:
+No realm keeps a temper of its own (item 17b): a script king plays the man on its throne, by ten weights from 0 to 1,
+his traits from 0 to 100 as the engine keeps them (`model/kings.ts`: `Natures`, the rulers of 1346 as the sources show
+them, and `risenTraits`, a ruler risen in play from his own traits as a character). Each game moves every trait by a
+whole number between −10 and +10, drawn from the game's seed (`drawTraits`), clamped to 0–100, as for every attested
+character; the seat reads its own king's from its view (`SeatView.traits`), each season, so a new king plays as
+himself. The god view lists each king under Standings, naming the three traits furthest from the middle. When a king
+pictures a rival in the look-ahead, it uses that rival's ruler of 1346 as the sources show him, unvaried (`archetype`),
+and a ruler risen in play as a middling one.
 
-| Weight | Egypt | Hatti | Babylonia | Mitanni | Assyria | Arzawa | Alashiya |
-|---|---|---|---|---|---|---|---|
-| Aggression | 0.40 | 0.85 | 0.35 | 0.30 | 0.75 | 0.50 | 0.10 |
-| Caution | 0.60 | 0.35 | 0.70 | 0.80 | 0.40 | 0.55 | 0.90 |
-| Honesty | 0.45 | 0.40 | 0.65 | 0.75 | 0.35 | 0.30 | 0.80 |
-| Greed | 0.35 | 0.45 | 0.75 | 0.40 | 0.50 | 0.60 | 0.55 |
-| Generosity | 0.80 | 0.30 | 0.35 | 0.70 | 0.40 | 0.35 | 0.55 |
-| Pride | 0.90 | 0.80 | 1.00 | 0.60 | 0.85 | 0.50 | 0.40 |
-| Diplomacy | 0.75 | 0.50 | 0.70 | 0.95 | 0.60 | 0.65 | 0.75 |
-| Cunning | 0.50 | 0.60 | 0.45 | 0.40 | 0.65 | 0.80 | 0.35 |
-| Vengeance | 0.50 | 0.70 | 0.60 | 0.40 | 0.65 | 0.50 | 0.30 |
-| Commerce | 0.75 | 0.30 | 0.60 | 0.50 | 0.40 | 0.55 | 1.00 |
-
-The archetypes are Egypt, "Pharaoh of the gilded gifts"; Hatti, "the conqueror of Anatolia"; Babylonia, "keeper of the old order"; Mitanni, "seeker of a patron"; Assyria, "the upstart who would be brother"; Arzawa, "the western opportunist"; and Alashiya, "the copper merchant".
-
-Each game moves every weight by a uniform amount between −0.15 and +0.15, drawn from that power's seat seed, then clamps it to 0–1. So Babylonia's pride and Alashiya's commerce can only fall. The god view lists each king's temperament under Standings, naming the three traits furthest from 0.5. When a king pictures a rival in the look-ahead, it uses the rival's archetype without the nudge.
-
-Most behaviour switches on at a threshold. This table gives the share of seeds in which each king crosses it (the lull row is approximate, since it multiplies two weights):
+Most behaviour switches on at a threshold. This table gives the share of games in which each king of 1346 crosses it
+(the forgery and lull rows weigh two traits together):
 
 | Behaviour (rule) | Egy | Hat | Bab | Mit | Ass | Arz | Ala |
 |---|---|---|---|---|---|---|---|
-| Fights kings who have done it no wrong (aggression > 0.55) | 0% | 100% | 0% | 0% | 100% | 33% | 0% |
-| ...even while another king leads (aggression > 0.8) | 0% | 67% | 0% | 0% | 33% | 0% | 0% |
-| Will fight the leader (aggression > 0.25) | 100% | 100% | 83% | 67% | 100% | 100% | 0% |
-| May betray a friend (honesty < 0.55) | 83% | 100% | 17% | 0% | 100% | 100% | 0% |
-| Sends debased gold (honesty < 0.45) | 50% | 67% | 0% | 0% | 83% | 100% | 0% |
-| Forges (cunning > 0.7 and honesty < 0.4) | 0% | 8% | 0% | 0% | 22% | 69% | 0% |
-| Plants spies (cunning > 0.55) | 33% | 67% | 17% | 0% | 83% | 100% | 0% |
-| Bribes envoys (cunning > 0.6) | 17% | 50% | 0% | 0% | 67% | 100% | 0% |
-| Lulls its war target (cunning × (1 − honesty) > 0.3) | ~33% | ~77% | 0% | 0% | ~95% | 100% | 0% |
-| Turns captives (cunning > 0.65) | 0% | 33% | 0% | 0% | 50% | 100% | 0% |
-| Refuses the leader's tablets (caution < 0.6) | 50% | 100% | 17% | 0% | 100% | 67% | 0% |
-| Keeps its capital garrison with 3+ troops (caution > 0.5) | 83% | 0% | 100% | 100% | 17% | 67% | 100% |
-| Buys two cities a season (commerce > 0.45) | 100% | 0% | 100% | 67% | 33% | 83% | 100% |
-| Writes three letters a season (diplomacy ≥ 0.75) | 50% | 0% | 33% | 100% | 0% | 17% | 50% |
-
+| Fights kings who have done it no wrong (aggression > 0.55) | 0% | 100% | 0% | 0% | 100% | 71% | 0% |
+| ...even while another king leads (aggression > 0.8) | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
+| Will fight the leader (aggression > 0.25) | 24% | 100% | 71% | 100% | 100% | 100% | 0% |
+| May betray a friend (honesty < 0.55) | 71% | 71% | 0% | 0% | 71% | 71% | 0% |
+| Sends debased gold (honesty < 0.45) | 24% | 24% | 0% | 0% | 24% | 24% | 0% |
+| Forges (cunning > 0.7 and honesty < 0.4) | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
+| Plants spies (cunning > 0.55) | 0% | 100% | 0% | 0% | 71% | 0% | 0% |
+| Bribes envoys (cunning > 0.6) | 0% | 100% | 0% | 0% | 48% | 0% | 0% |
+| Lulls its war target (cunning × (1 − honesty) > 0.3) | 0% | 98% | 0% | 0% | 48% | 5% | 0% |
+| Turns captives (cunning > 0.65) | 0% | 100% | 0% | 0% | 24% | 0% | 0% |
+| Refuses the leader's tablets (caution < 0.6) | 48% | 48% | 24% | 100% | 100% | 95% | 0% |
+| Keeps its capital garrison with 3+ troops (caution > 0.5) | 95% | 95% | 100% | 24% | 24% | 48% | 100% |
+| Buys two cities a season (commerce > 0.45) | 100% | 0% | 100% | 71% | 48% | 71% | 100% |
+| Writes three letters a season (diplomacy ≥ 0.75) | 0% | 76% | 29% | 76% | 29% | 0% | 52% |

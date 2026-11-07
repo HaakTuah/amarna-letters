@@ -27,6 +27,7 @@ import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, ty
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 import { type Bill, BillSchema, type Coffer, CofferSchema, type Remittance, RemittanceSchema } from "./coffers.ts";
 import { type Unit, UnitSchema } from "./units.ts";
+import { type Reign, ReignSchema } from "./kings.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -91,7 +92,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 80;
+export const CURRENT_VERSION = 81;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -116,8 +117,8 @@ export const FoodWordSchema: ObjSchema<FoodWord> = obj(
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
-  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], how: "governor", ...init }),
-  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I), how: S },
+  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", how: "governor", ...init }),
+  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, how: S },
 );
 
 /**
@@ -423,6 +424,8 @@ export interface GameState {
   eliminated: Power[];
   /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */
   risen: RisenPower[];
+  /** Item 17b: each power's king as a person, his traits as this game drew them. */
+  reigns: Dict<Power, Reign>;
   /**
    * Item 17: each held province's unrest as last reckoned, from item 17++ how far its holder's lead in its people's eyes
    * falls short of a firm hold (its holder never sees the number: his governor, spies and the people's complaints tell
@@ -574,6 +577,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     startStrength: new Dict(),
     eliminated: [],
     risen: [],
+    reigns: new Dict(),
     restless: new Dict(),
     takenAt: new Dict(),
     breached: new Dict(),
@@ -709,6 +713,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   startStrength: dict(I),
   eliminated: list(S),
   risen: list(() => RisenPowerSchema),
+  reigns: dict(() => ReignSchema),
   restless: dict(I),
   takenAt: dict(I),
   breached: dict(S),

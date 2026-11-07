@@ -69,7 +69,7 @@ export type Tier = (typeof TierValues)[number];
 export const FixedPowers: readonly Power[] = PowerValues;
 
 /**
- * A power risen in play (item 13+): its names, its capital and the temper its ruler brings to the seat. Kept in the game
+ * A power risen in play (item 13+): its names and its capital (its ruler's traits are his reign's, `GameState.reigns`). Kept in the game
  * state (`GameState.risen`); the registry below mirrors it for the functions that name a power without the state.
  */
 export interface RisenPower {
@@ -86,8 +86,6 @@ export interface RisenPower {
   turn: number;
   /** The kingdom it was part of. */
   from: string;
-  /** His traits as a seat's temper (aggression, caution, honesty, greed), in hundredths, for script seats. */
-  temper: number[];
   /**
    * How he came to rule (item 17): `governor` (his kingdom fell), `turned` (a governor who refused his recall), `revolt`
    * (he led his province's revolt), `chief` (a chief or a commander who held land without a ruler) or `elder` (lawless land's
