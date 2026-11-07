@@ -376,3 +376,13 @@ the pull request.
   gaining, about 70). The richest character held 876 shekels at the end on average (range 252-2,741).
 - **No new lever**: part D changes what is counted, not what a player can do, so there is no use against ignore; script
   kings already play for their realm's growth and characters for their gold, which is what the board counts.
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, at 3221440): all 50 games ran and replayed
+  exactly. Wins: Egypt 22, Babylonia 16, Hatti 6, Assyria 4, Ashkelon and Akko one each (C2: Egypt 21, Babylonia 17,
+  Hatti 5, Assyria 4, three others one each). Kings taken 1,033 times, escaping 224, dying 598; heirs in exile 121
+  times in 39 games (C2: 1,032, 232, 593 and 124). **First place on the board: a king in 49 of 50 games, a character in
+  1** (seed 37, a game ended after 8 seasons: a free man of Ashur, 0.93, who
+  gained 289 shekels; the scores are first guesses for item 18). The richest character held 761 shekels at the end on average (range 299-3,395). Games stay playable.
+
+### Questions for the owner
+
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; part D does not depend on it).
