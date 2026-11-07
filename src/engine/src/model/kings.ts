@@ -7,7 +7,7 @@
  */
 import { Rng } from "../core/rng.ts";
 import { cmpNum, desc, sortBy } from "../core/seq.ts";
-import { I, S, type ObjSchema, list, obj } from "../core/json.ts";
+import { B, I, S, type ObjSchema, list, obj } from "../core/json.ts";
 import { type FixedPower, type Power, heirOf, risenOf } from "./power.ts";
 
 /** The traits a king plays by, in this order wherever they are kept as a list. */
@@ -162,10 +162,12 @@ export interface Reign {
   about: string;
   /** His place on his realm's record of the kings who followed (`model/heirs.ts`): -1 for the king the game began with. */
   line: number;
+  /** Item 17b, part C2: an heir raised in exile after his realm fell, whose claim others see only as it reaches them. */
+  exiled: boolean;
 }
 
 export function newReign(init: Partial<Reign> = {}): Reign {
-  return { traits: [], since: 1, character: "", strength: 0, name: "", about: "", line: -1, ...init };
+  return { traits: [], since: 1, character: "", strength: 0, name: "", about: "", line: -1, exiled: false, ...init };
 }
 
 export const ReignSchema: ObjSchema<Reign> = obj("Reign", newReign, {
@@ -176,6 +178,7 @@ export const ReignSchema: ObjSchema<Reign> = obj("Reign", newReign, {
   name: S,
   about: S,
   line: I,
+  exiled: B,
 });
 
 /** A reign ended by the king's death (part B): whose, who he was, from when to when, and how he died, in words ("put to death by Hatti"). */
