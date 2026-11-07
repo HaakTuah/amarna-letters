@@ -268,7 +268,8 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
     const now = f.sight.get(p) ?? new Set<string>();
     units.push(
       ...stack(
-        f.units.filter((u) => u.power === p || now.has(u.province)),
+        // Its own as it knows them (bug #615; frames saved before have none: as they stand), others' where it sees them.
+        [...(f.knownUnits?.get(p) ?? f.units.filter((u) => u.power === p)), ...f.units.filter((u) => u.power !== p && now.has(u.province))],
         false,
         0,
         index,

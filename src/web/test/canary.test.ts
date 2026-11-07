@@ -60,12 +60,15 @@ import { buildLifeRecord } from "../src/session/life-record.ts";
 import { CourtStrip } from "../src/components/CourtStrip.tsx";
 import { EventsPanel } from "../src/components/EventsPanel.tsx";
 import { FollowPanel } from "../src/components/FollowPanel.tsx";
+import { HistoryPanel } from "../src/components/HistoryPanel.tsx";
 import { InboxPanel } from "../src/components/InboxPanel.tsx";
 import { PeoplePanel } from "../src/components/PeoplePanel.tsx";
 import { ProvinceInfo } from "../src/components/ProvinceInfo.tsx";
+import { SearchPanel } from "../src/components/SearchPanel.tsx";
 import { SeasonPanel } from "../src/components/SeasonPanel.tsx";
 import { StandingsPanel } from "../src/components/StandingsPanel.tsx";
 import { ThreadsPanel } from "../src/components/ThreadsPanel.tsx";
+import { knownTo } from "../src/ui/search.ts";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -388,16 +391,25 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
     },
     {
       what: "people",
-      text: markup(createElement(PeoplePanel, { state: s, viewer: p, onPerson: none })),
+      text: markup(createElement(PeoplePanel, { state: s, viewer: p, onPerson: none, onHistory: none })),
     },
     {
       what: "standings",
-      text: markup(createElement(StandingsPanel, { state: s, viewer: p, seats: null })),
+      text: markup(createElement(StandingsPanel, { state: s, viewer: p, seats: null, onHistory: none })),
     },
     {
       what: "events",
       text: markup(createElement(EventsPanel, { state: s, upTo: t, viewer: p })),
     },
+    // Item 17+++b: the search over all the seat knows, and the history of every province, realm, title and person in it.
+    {
+      what: "search",
+      text: markup(createElement(SearchPanel, { state: s, viewer: p, record: false, scene, onHistory: none, onProvince: none, onPerson: none })),
+    },
+    ...knownTo(s, p, scene).map((k) => ({
+      what: `history of ${k.kind} ${k.id}`,
+      text: markup(createElement(HistoryPanel, { state: s, of: { kind: k.kind, id: k.id }, viewer: p, record: false, onProvince: none, onHistory: none, onClose: none })),
+    })),
     // Item 17+++: the threads to watch as told through the seat, every telling of the season.
     {
       what: "threads",
@@ -443,6 +455,7 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
           id,
           scene,
           onClose: none,
+          onHistory: none,
           onPerson: none,
         }),
       ),

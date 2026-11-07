@@ -114,7 +114,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((p) => (
                           <option key={p.id} value={p.id}>
-                            {p.name}
+                            {provinceName(p.id)}
                           </option>
                         ))}
                     </select>
@@ -201,7 +201,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name}
+                        {provinceName(p.id)}
                       </option>
                     ))}
             </select>

@@ -11,6 +11,7 @@ import { cmpPower, land, type Power, powerName } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { ownPlaces } from "../rules/units-known.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
 import { hearRide, hearRides, rideQuotes } from "./rides.ts";
@@ -347,7 +348,7 @@ P.renew = function (p, r) {
  */
 /**
  * Item 17+: the standing order for the troops' pay and food changed, before the season's movement, so a province named
- * holds the units the king saw there. A half left out (null) stands as it was. The whole order sets that half for every
+ * holds the units the king saw there (`ownPlaces`). A half left out (null) stands as it was. The whole order sets that half for every
  * unit; one province's sets it for the units standing there, kept as exceptions to the whole order.
  */
 P.setUpkeep = function (p, o) {
@@ -364,7 +365,8 @@ P.setUpkeep = function (p, o) {
       next.feedExcept = [];
     }
   } else {
-    const ids = S.units.filter((u) => u.power === p && u.province === o.province).map((u) => u.id);
+    // Where its view shows them (bug #615): a far unit by its last report.
+    const ids = ownPlaces(this, p).filter((x) => x.province === o.province).map((x) => x.unit.id);
     const set = (whole: boolean, except: string[], want: boolean | null | undefined): string[] =>
       want === null || want === undefined ? except : want === whole ? except.filter((id) => !ids.includes(id)) : [...new Set([...except, ...ids])];
     next.payExcept = set(cur.pay, cur.payExcept, o.pay);

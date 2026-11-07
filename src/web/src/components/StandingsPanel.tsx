@@ -2,6 +2,7 @@ import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth
 import { highlights, temperament } from "@amarna/game";
 import { color, fromWhere, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import type { HistoryOf } from "./HistoryPanel.tsx";
 import { useMemo } from "react";
 
 const X = (turn: number, last: number, w: number): number => (last <= 1 ? 0 : ((turn - 1) * w) / (last - 1));
@@ -9,7 +10,7 @@ const Y = (g: number, max: number, h: number): number => h - (g / max) * h + 4;
 const F = (v: number): string => v.toFixed(1);
 
 /** Who stands where: growth, land, the richest characters at the end, the opening positions and (in god view) the kings. */
-export function StandingsPanel({ state, viewer, seats }: { state: GameState; viewer: Power | null; seats: Record<string, string> | null }) {
+export function StandingsPanel({ state, viewer, seats, onHistory }: { state: GameState; viewer: Power | null; seats: Record<string, string> | null; onHistory: (h: HistoryOf) => void }) {
   const engine = new TurnEngine(state);
   const latest = state.scores.length === 0 ? 0 : Math.max(...state.scores.map((s) => s.turn));
   const known = viewer === null;
@@ -63,7 +64,9 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
               return (
                 <tr key={p}>
                   <td>
-                    <span className="named"><Emblem power={p} /> {powerName(p)}</span> {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
+                    <button className="named link" onClick={() => onHistory({ kind: "realm", id: p })} title="Its history">
+                      <Emblem power={p} /> {powerName(p)}
+                    </button> {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
                   </td>
                   <td>
                     {l.fallen ? (

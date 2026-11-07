@@ -4,7 +4,7 @@ import { describe, test } from "vitest";
 import {
   AllPowers, ArmyAnchors, AttestedCast, AttestedKm, CityWaters, CrossedRivers, CrossingAnchors, Crossings, DistanceAnchors,
   DoorAnchors, Doors, FirstCores, LandAnchors, FleetAnchors, HarbourAnchors, Invented, LanguageAnchors, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors,
-  RiverAnchors, Rivers, RulerAnchors, StartUnits, StartWalls, TongueAnchors, WallAnchors, WaterAnchors, WorldMap, beyondTongue, isGreatKing, king,
+  PeriodRealmNames, RiverAnchors, Rivers, RulerAnchors, StartUnits, StartWalls, TongueAnchors, WallAnchors, WaterAnchors, WorldMap, beyondTongue, isGreatKing, king,
   land, modernOf, peopleSpeak, rulerNamed, startHarbour,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
@@ -79,6 +79,11 @@ describe("HistoryAnchorTests", () => {
     Assert.equal("", rulers.filter((n) => !RulerAnchors.has(n)).join(", "));
     const wrong = [...RulerAnchors].filter(([name, id]) => !names(subject(id, id.startsWith("01-") ? 1 : 0), name));
     Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
+  });
+
+  test("Every Great King's realm named by its period name names an anchor, and its line names it (item 17+++b)", () => {
+    const wrong = [...PeriodRealmNames].filter(([, x]) => !names(subject(x.anchor, -1), x.name));
+    Assert.equal("", wrong.map(([p, x]) => `${p} -> ${x.anchor}${lines.has(x.anchor) ? "" : " (missing)"}`).join(", "));
   });
 
   test("A person marked attested is not marked invented", () => {

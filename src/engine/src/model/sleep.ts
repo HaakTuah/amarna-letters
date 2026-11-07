@@ -273,6 +273,24 @@ export const StandingOrderViewSchema: ObjSchema<StandingOrderView> = obj("Standi
 });
 
 /**
+ * Bug #615: the unit `unitId`'s scheduled orders as its seat knew them before they changed in season `turn`, until the
+ * season word of it could come.
+ */
+export interface ScheduleUnheard {
+  unitId: string;
+  turn: number;
+  until: number;
+  orders: PlannedOrder[];
+}
+
+export const ScheduleUnheardSchema: ObjSchema<ScheduleUnheard> = obj("ScheduleUnheard", (init: Partial<ScheduleUnheard> = {}) => ({ unitId: "", turn: 0, until: 0, orders: [], ...init }), {
+  unitId: S,
+  turn: I,
+  until: I,
+  orders: list(() => PlannedOrderSchema),
+});
+
+/**
  * A sleeping seat's state. Only seats that may sleep (model and file seats, when the setting is on) have one. A seat woken
  * only by envoys waiting holds court asleep: its orders stand unless it reopens them at an audience (Part H of the
  * simulation-fixes round).
@@ -290,6 +308,11 @@ export interface SleepState {
    * which every seat may keep, are in {@link GameState.Standing}.)
    */
   scheduled: PlannedOrder[];
+  /**
+   * Bug #615: a far unit's scheduled orders as its seat last knew them, before its march was held up or ended out of its
+   * sight: shown in their place until word of that could come.
+   */
+  scheduleUnheard: ScheduleUnheard[];
   /**
    * What happened in the seasons it slept through that did not wake it, one line each, shown when it wakes.
    */
@@ -337,6 +360,7 @@ export function newSleepState(init: Partial<SleepState> = {}): SleepState {
     lastCalled: 0,
     wakeAt: 0,
     scheduled: [],
+    scheduleUnheard: [],
     digest: [],
     digestLeftOut: 0,
     wokenBecause: [],
@@ -356,6 +380,7 @@ export const SleepStateSchema: ObjSchema<SleepState> = obj("SleepState", newSlee
   lastCalled: I,
   wakeAt: I,
   scheduled: list(() => PlannedOrderSchema),
+  scheduleUnheard: list(() => ScheduleUnheardSchema),
   digest: list(S),
   digestLeftOut: I,
   wokenBecause: list(S),
