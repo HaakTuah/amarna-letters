@@ -24,14 +24,14 @@ export function PeoplePanel({ state, viewer, onPerson, onHistory }: { state: Gam
         </h3>
         {view.court.length === 0 && <p className="muted">Nobody serves you.</p>}
         {view.court.map((c) => (
-          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} onHistory={onHistory} learn={<LearnMore state={state} kind="person" id={c.id} />} />
+          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} onHistory={onHistory} learn={<LearnMore state={state} kind="person" id={c.id} knownAs={c.name} />} />
         ))}
         <h3 style={{ marginTop: "1rem" }}>
           Others you know of <small className="muted">{view.known.length}</small>
         </h3>
         {view.known.length === 0 && <p className="muted">Nobody else has come to your notice.</p>}
         {view.known.map((c) => (
-          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} onHistory={onHistory} learn={<LearnMore state={state} kind="person" id={c.id} />} />
+          <Person key={c.id} c={c} court={viewer} onFollow={onPerson} onHistory={onHistory} learn={<LearnMore state={state} kind="person" id={c.id} knownAs={c.name} />} />
         ))}
       </>
     );

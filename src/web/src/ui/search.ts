@@ -5,7 +5,7 @@
  * claimed; in god view, and for every seat once the record opens, everything. Counts are of what is known, never the truth.
  */
 import {
-  AllPowers, FamiliarPlaceNames, PeriodRealmNames, Views, WorldMap, alive, changes, claimableNames, describedAs, kingFor, kingOtherNames, modernOf,
+  AllPowers, FamiliarPlaceNames, PeriodRealmNames, Views, WorldMap, alive, changes, claimedName, describedAs, knownName, kingFor, kingOtherNames, modernOf,
   realmNames, type GameState, type HistoryKind, type Power,
 } from "@amarna/engine";
 import type { MapScene } from "../map/scene.ts";
@@ -66,9 +66,11 @@ export function knownTo(state: GameState, viewer: Power | null, scene: MapScene)
       held: null,
     });
   }
-  const titles = new Set([...AllPowers.map((p) => realmNames(p)[0]), ...(view !== null ? view.nameClaims.map((c) => c.name) : claimableNames())]);
+  // Each realm's own name is a title, and every name claimed, as the court knows the claims (the record: as they stand).
+  const claims = (p: Power): string => (viewer === null ? claimedName(p) : knownName(viewer, p));
+  const titles = new Set([...AllPowers.map((p) => realmNames(p)[0]), ...AllPowers.map(claims)]);
   for (const t of titles) {
-    const claimants = AllPowers.filter((p) => realmNames(p)[0] === t || (view?.nameClaims.find((c) => c.name === t)?.claimants.includes(p) ?? false));
+    const claimants = AllPowers.filter((p) => claims(p) === t);
     out.push({
       kind: "title",
       id: t,
@@ -91,7 +93,8 @@ export function knownTo(state: GameState, viewer: Power | null, scene: MapScene)
         what: [c.ours ? "your servant" : c.employer !== null ? `serves ${realmName(c.employer)}` : "serves no one", shown(c.where)].filter((x) => x !== "").join(", "),
         realms: c.employer !== null ? [c.employer] : [],
         place: c.province,
-        alive: c.status !== "Dead",
+        // A seat view writes a status in lower case (`characterView`).
+        alive: c.status.toLowerCase() !== "dead",
         held: null,
       });
   else

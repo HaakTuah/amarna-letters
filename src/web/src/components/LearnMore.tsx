@@ -5,7 +5,7 @@ import { PersonLinks, PlaceLinks, RealmLinks, ownLand, AllPowers, king, type Fix
  * about it outside the game, under the name players know, with the line where the game takes a side the page does not;
  * or, for what the game made up, the mark that says so, so a player always knows what is history and what is fiction.
  */
-export function learnOf(state: GameState, kind: HistoryKind, id: string): { link: Link } | { invented: string } | null {
+export function learnOf(state: GameState, kind: HistoryKind, id: string, knownAs?: string): { link: Link } | { invented: string } | null {
   const realm = (p: Power): { link: Link } | { invented: string } | null => {
     const l = RealmLinks.get(p as FixedPower);
     return l !== undefined ? { link: l } : AllPowers.includes(p) ? { invented: "A realm risen in play: invented for this game." } : null;
@@ -23,16 +23,17 @@ export function learnOf(state: GameState, kind: HistoryKind, id: string): { link
     }
     case "person": {
       const c = state.characters.find((x) => x.id === id);
-      if (c === undefined) return null;
+      // A court that knows them by a false name learns nothing of the true one here: neither link nor mark.
+      if (c === undefined || (knownAs !== undefined && knownAs !== c.name)) return null;
       const l = c.attested ? PersonLinks.get(c.name) : undefined;
       return l !== undefined ? { link: l } : { invented: "Invented for the game: no one of the period by this name and place." };
     }
   }
 }
 
-/** The link or the mark, as a card shows it. */
-export function LearnMore({ state, kind, id }: { state: GameState; kind: HistoryKind; id: string }) {
-  const l = learnOf(state, kind, id);
+/** The link or the mark, as a card shows it; `knownAs`, a person's name as the seat knows it (none: the record). */
+export function LearnMore({ state, kind, id, knownAs }: { state: GameState; kind: HistoryKind; id: string; knownAs?: string }) {
+  const l = learnOf(state, kind, id, knownAs);
   // A realm's card also links its ruler of 1346, where the sources name him.
   const ruler = kind === "realm" ? PersonLinks.get(king(id)) : undefined;
   if (l === null && ruler === undefined) return null;

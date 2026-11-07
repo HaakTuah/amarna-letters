@@ -56,7 +56,8 @@ window "History of Byblos, also Gubla"; no page error.
 - **A title is a realm's name**, which any power may claim ("A power's name is a claim"): its history is every claim,
   recognition, crowning, fall and rising that names it. The realm is the court, wherever it goes and whatever it is
   called. Principle: the game's own split of names and courts (item 17+).
-- **What a seat learned**: the events its court saw, how its own land changed hands, its own realm's rise and fall; dated
+- **What a seat learned**: the events its court saw, as word reached it, even of its own land's changes of hand (Codex's
+  review found the first version told a court of its own loss before the news came); a person by the name it knows; dated
   by the season of the event, as the events panel dates them. The whole record shows in god view and once the game ends.
   Principle: hidden information (the canary reads every history window for every seat).
 - **A person's history is their legend**, as the follow view's "In the record" reads it, so the two never differ.

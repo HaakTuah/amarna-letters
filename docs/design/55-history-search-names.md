@@ -17,8 +17,10 @@ of items 14 and 17a:
   crowning, fall and rising that names it;
 - a **person**: their legend (`characterLegend`).
 
-A seat reads only what its court learned: the events it saw (`GameEvent.visibleTo`), how its own land changed hands, its
-own realm's rise and fall; never another court's. The whole record shows in god view, and to every seat once the game
+A seat reads only what its court learned: the events it saw (`GameEvent.visibleTo`), each as word of it reached the
+court, its own land's changes of hand included (the holders' log and the falls are the record's, read only when it opens,
+as the seat view's map waits for the news); and a person by the name it knows them by, a false one it has not seen through
+included, with no link to the true one's page. The whole record shows in god view, and to every seat once the game
 ends and the record opens. Each window says which, and how many events it knows.
 
 **One search** (`ui/search.ts`, the web's `SearchPanel`; the window "Search", with no key by default since neither of

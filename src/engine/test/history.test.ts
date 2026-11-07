@@ -22,21 +22,25 @@ describe("HistoryTests", () => {
     Assert.equal(texts(s, "province", "tuwanuwa", null).length, 2);
   });
 
-  test("A court knows how its own land changed hands; another court learns it only as news", () => {
+  test("A court learns how land changed hands only as news, its own land too; the record knows it at once", () => {
     const s = game();
     s.ownerLog.push(newOwnerChange({ province: "tuwanuwa", turn: 4, owner: "Mitanni" }));
-    Assert.equal(texts(s, "province", "tuwanuwa", "Hatti"), ["Taken by Mitanni from Hatti."]);
-    Assert.equal(texts(s, "province", "tuwanuwa", "Mitanni"), ["Taken by Mitanni from Hatti."]);
-    Assert.equal(texts(s, "province", "tuwanuwa", "Egypt"), []);
     Assert.equal(texts(s, "province", "tuwanuwa", null), ["Taken by Mitanni from Hatti."]);
+    Assert.equal(texts(s, "province", "tuwanuwa", "Hatti"), []);
+    Assert.equal(texts(s, "realm", "Hatti", "Hatti"), []);
+    s.turn = 5;
+    logEvent(s, "fall", "Word came that Tuwanuwa was lost to Mitanni.", ["Hatti"]);
+    Assert.equal(texts(s, "province", "tuwanuwa", "Hatti"), ["Word came that Tuwanuwa was lost to Mitanni."]);
+    Assert.equal(texts(s, "province", "tuwanuwa", "Mitanni"), []);
   });
 
-  test("A realm's history: its own court reads its rise and fall, another court only what it heard of it", () => {
+  test("A realm's history: the record reads its rise and fall, a court only what it heard of it", () => {
     const s = game();
     s.turn = 2;
     logEvent(s, "letter", "Assyria wrote to Egypt as a brother.", ["Egypt", "Assyria"]);
     s.ownerLog.push(newOwnerChange({ province: "tuwanuwa", turn: 3, owner: "Assyria" }));
-    Assert.true(texts(s, "realm", "Assyria", "Assyria").includes("Took Tuwanuwa from Hatti."));
+    Assert.true(texts(s, "realm", "Assyria", null).includes("Took Tuwanuwa from Hatti."));
+    Assert.equal(texts(s, "realm", "Assyria", "Assyria"), ["Assyria wrote to Egypt as a brother."]);
     Assert.equal(texts(s, "realm", "Assyria", "Egypt"), ["Assyria wrote to Egypt as a brother."]);
     Assert.equal(texts(s, "realm", "Assyria", "Mitanni"), []);
   });

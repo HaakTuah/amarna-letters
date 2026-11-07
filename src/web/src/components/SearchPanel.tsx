@@ -2,6 +2,7 @@ import { AllPowers, WorldMap, type GameState, type HistoryKind, type Power } fro
 import { useMemo, useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import { provinceName, powerName } from "../ui/format.ts";
+import { useNames } from "../ui/names.ts";
 import { knownTo, scoreOf, type Known } from "../ui/search.ts";
 import { Emblem } from "./Emblem.tsx";
 import type { HistoryOf } from "./HistoryPanel.tsx";
@@ -34,7 +35,9 @@ export function SearchPanel({ state, viewer, record, scene, onHistory, onProvinc
   const [place, setPlace] = useState("");
   const [life, setLife] = useState<"" | "alive" | "dead">("");
   const [held, setHeld] = useState<"" | "held" | "lost">("");
-  const known = useMemo(() => knownTo(state, record ? null : viewer, scene), [state, viewer, record, scene]);
+  // The names in each row follow the player's name settings, so a changed setting reads them anew.
+  const names = useNames();
+  const known = useMemo(() => knownTo(state, record ? null : viewer, scene), [state, viewer, record, scene, names]);
   const found = known
     .filter(
       (k) =>

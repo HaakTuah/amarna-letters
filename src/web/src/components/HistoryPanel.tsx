@@ -1,4 +1,4 @@
-import { WorldMap, historyOf, powerName, shortDate, type GameState, type HistoryKind, type Power } from "@amarna/engine";
+import { Views, WorldMap, historyOf, powerName, shortDate, type GameState, type HistoryKind, type Power } from "@amarna/engine";
 import { dated, provinceName, when } from "../ui/format.ts";
 import { otherName, realmName } from "../ui/names.ts";
 import { titleName } from "../ui/search.ts";
@@ -10,8 +10,11 @@ export interface HistoryOf {
   id: string;
 }
 
-/** The name a history window, a search row and a card's button give a thing, as the player's settings show it. */
-export function nameOf(state: GameState, h: HistoryOf): string {
+/**
+ * The name a history window gives a thing, as the player's settings show it; a person by the name `viewer`'s court knows
+ * them by (a false name it has not seen through stays false: `characterView`), the true one in the open record.
+ */
+export function nameOf(state: GameState, h: HistoryOf, viewer: Power | null): string {
   switch (h.kind) {
     case "province":
       return provinceName(h.id);
@@ -20,8 +23,15 @@ export function nameOf(state: GameState, h: HistoryOf): string {
     case "title":
       return `the throne of ${titleName(h.id)}`;
     case "person":
-      return state.characters.find((c) => c.id === h.id)?.name ?? "someone";
+      return knownAs(state, h.id, viewer) ?? "someone";
   }
+}
+
+/** A person's name as `viewer`'s court knows it (null: the record, their true name); null if the court does not know them. */
+export function knownAs(state: GameState, id: string, viewer: Power | null): string | null {
+  if (viewer === null) return state.characters.find((c) => c.id === id)?.name ?? null;
+  const v = Views.for(state, viewer);
+  return [...v.court, ...v.known].find((c) => c.id === id)?.name ?? null;
 }
 
 /** The engine's own name of a place or realm, whose other name the window's second line gives; null for a person. */
@@ -46,7 +56,8 @@ export function HistoryPanel({ state, of, viewer, record, onProvince, onClose }:
   onClose: () => void;
 }) {
   const lines = historyOf(state, of.kind, of.id, record ? null : viewer);
-  const name = nameOf(state, of);
+  const seen = record ? null : viewer;
+  const name = nameOf(state, of, seen);
   const raw = rawName(of);
   const other = raw !== null ? otherName(raw) : null;
   return (
@@ -58,7 +69,7 @@ export function HistoryPanel({ state, of, viewer, record, onProvince, onClose }:
         </button>
       </div>
       {other !== null && <p className="muted small">also {other}</p>}
-      <LearnMore state={state} kind={of.kind} id={of.id} />
+      <LearnMore state={state} kind={of.kind} id={of.id} knownAs={of.kind === "person" ? (knownAs(state, of.id, seen) ?? "") : undefined} />
       <p className="muted small">
         {record ? "The whole record" : "As your court learned it"}: {lines.length} event{lines.length === 1 ? "" : "s"}
         {record ? "" : " known"}.
