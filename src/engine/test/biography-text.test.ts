@@ -15,7 +15,7 @@ describe("The cast's biographies", () => {
         Assert.doesNotContain(lines, (t) => t.includes("("));
         // "a Ashkelonite trader".
         Assert.doesNotContain(lines, (t) => /\ba [AEIOU]/.test(t));
-        Assert.equal(new Set(lines).size, lines.length, `${c.name}: ${lines.join(" | ")}`);
+        Assert.true(new Set(lines).size === lines.length, `${c.name}: ${lines.join(" | ")}`);
         const calling = c.facts.find((f) => f.tag === "calling")?.text.toLowerCase().replace(/^(a|an|the) /, "").replace(/\.$/, "");
         const source = c.facts.find((f) => f.tag === "source")?.text.toLowerCase();
         if (calling !== undefined && source !== undefined) Assert.false(source.startsWith(calling), `${c.name}: ${calling}`);
