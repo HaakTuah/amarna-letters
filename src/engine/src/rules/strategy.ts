@@ -78,5 +78,5 @@ export const RoadWords = {
 export function strategyText(c: Character): string {
   const ways = strategiesOf(c.traits);
   const way = ways.length === 2 ? `${StrategyWords[ways[0]]}; or else ${StrategyWords[ways[1]]}` : StrategyWords[ways[0]];
-  return `Your goal is wealth: gold is your safety and your victory, for when the age ends the richest are counted, and every living man ranks above the dead. Your way to it: ${way}. ${c.bold ? RoadWords.bold : RoadWords.careful}`;
+  return `Your goal is wealth: gold is your safety and your victory, for when the age ends every person, kings and characters alike, is counted on one scoreboard, you by the gold you hold and what you gained since you came into play, and every living man ranks above the dead. Your way to it: ${way}. ${c.bold ? RoadWords.bold : RoadWords.careful}`;
 }

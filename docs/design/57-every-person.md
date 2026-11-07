@@ -35,7 +35,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   still call him by his title), his person's traits from his traits as a king (ambition from his appetite for war,
   courage from his want of caution, loyalty from his honesty, greed from his greed) and a competence of 60
   (`KingData.competence`), from which his skills are drawn. His reign (`GameState.reigns`) names him (`character`), and
-  holds his realm's strength as he came to it (`strength`), from which part D scores him. He is nobody's servant: no
+  his realm's growth is measured from his accession (part D: `GameState.startStrength`, set again at each accession). He is nobody's servant: no
   order of his own court may name him (the validator). The pool's baseline counts the kings.
 - **Taken, not fallen.** A king taken where he stands (the province changed hands) or stopped on the road is his taker's
   captive (`kingTaken`; a king walking home elsewhere is not taken with it), brought to the taker's court under guard as a captive handed over is, so troops of his own may
@@ -138,3 +138,34 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
 - **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
   his fallen realm that king holds, by the same sum as any grant, keeping it reckoned as risky land (its people take an heir
   of their own house better than a stranger).
+
+## Part D: one scoreboard for every person (`turn/scoreboard.ts`)
+
+- **Every person on one board** (`TurnEngine.scoreboard`): every character, kings included, each with what he holds
+  (`holding`), his size (his holding as a share of the largest living person's), his performance and his score, the
+  two blended by `GameConfig.sizeWeight` percent for size (`finalScore`, as for the realms). The living rank by score,
+  the dead below them all by what they held when they died, ties by id.
+- **A king** (reigning over a living realm, `realmOfKing`) holds his realm (`strength`) and is measured from his
+  accession: his growth is its strength over what he inherited (`GameState.startStrength`, set again at each
+  accession, so his seat, his script and Standings measure what the board does), ranked among par for his realm's
+  start (`standingOf` / 2). The same baseline measures a realm's weakness for its provinces and a lender's "shrunk
+  below its start" ([47](47-whom-a-province-obeys.md), `MoneyData`), so an heir is judged from what he inherited by
+  everyone. A king who dies held his realm as it stood (`kingDied` sets `Character.diedWith`).
+- **Anyone else** (a character, a fallen realm's king or heir in exile) holds his purse and hoard (`Wealth.of`) and is
+  measured from what he brought into play (`characterResult`, from his savings brought in, `Earnings.savings`: 1 for as
+  much as he brought, 1 more for every shekel gained, below 1 in proportion to what he lost of it; 0 for the dead),
+  ranked among what characters gained in the script games
+  (`CharacterPar` in `rules/par-results.ts`, every hundredth of the pooled results of seeds 101-150, written by
+  `scripts/sim.sh --par-out`, with `rankAmong`, which ranks a result tied with several recorded ones at the middle of
+  their run, so a character who gained nothing, as most do, stands at about the middle).
+- **The realms' final scores are their kings' rows** (`finalScores`): a realm whose king is dead and whose heir has not
+  yet risen has none. **The winner** (`decideWinners`) is the first person on the board: a king's realm, or a character
+  by his name and where he is from (`nameFrom`) (`GameState.winners` holds names, `winnerName` in the web app), so no seat wins when a character
+  stands first; a shared victory's pair must beat every other living person's score.
+- **Where it is shown**: the end event names the first ten (`placing`); the web app's Standings shows the whole board
+  once the age has ended, to every viewer, and the season's end notice points to it; the batch prints the top three
+  after each game's result line (the whole with `--detail`, `boardLine`), and its summary how often a king and a
+  character stood first, how rich the richest character was and where all characters' gold came from. During play a
+  character knows its own wealth, never the board. Kings read how they are scored in their rulebook (HOW YOU WIN), and
+  characters their goal (`strategyText`).
+

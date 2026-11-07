@@ -57,8 +57,8 @@ Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true 
 
 - **Par** for each starting position: since item 11e the results a power that started there reaches in the script
   games, each ranked ([31](31-cities-defended.md)); before, the mean growth over all games, a fall counted as 0 (item
-  11d, [29](29-answers-to-11plus.md)). The winner is the living power with the highest final score, size blended with
-  performance. The scripts weigh rivals by performance (`Board.growth`) and size by strength; playing for place is item
+  11d, [29](29-answers-to-11plus.md)). The winner is the first on the one scoreboard of every person
+  ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)). The scripts weigh rivals by performance (`Board.growth`) and size by strength; playing for place is item
   18's ([31](31-cities-defended.md)).
 - **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth); the alternative
   (the gold a land can still produce in the seasons likely left) is the report's reading, for item 18.

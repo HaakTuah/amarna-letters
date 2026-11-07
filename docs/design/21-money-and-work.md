@@ -68,9 +68,9 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
 - **What is taken** (`goldAndTabletsTaken`): a captive's purse and the tablets on its person go to its captor; a dead
   person's tablets pass to the court where it died (missing on the road), its hoard and the tablets in it to the court
   that kept it, and its own debts die with it. A fallen kingdom's debts die, and its claims pass to whoever took its capital.
-- **The score** (`rules/scoring.ts`): what each side holds, never what it owes or is owed. The characters' ranking
-  (`rules/wealth.ts`) is purse and hoard; the dead rank below every living character, by what they held when they died
-  (`Character.diedWith`).
+- **The score** (`rules/scoring.ts`): what each side holds, never what it owes or is owed. A character's holding
+  (`Wealth.of`) is purse and hoard, and the dead's what they held when they died (`Character.diedWith`); how it ranks on
+  the one scoreboard of every person: [57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts).
 
 ### A life of their own
 
