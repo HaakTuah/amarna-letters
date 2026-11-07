@@ -667,7 +667,7 @@ P.wordArrives = function (j) {
       break;
     case "Succession":
       // Item 17b: word that a king has died, and who reigns now: the court knows him by his name from here.
-      this.heirHeard(j.from, j.to);
+      this.heirHeard(j.from, j.to, j.gold);
       notify(S, j.to, "Rumor", "A king is dead", j.text ?? "");
       break;
     case "KingDead":

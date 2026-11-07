@@ -59,6 +59,7 @@ export interface Journey {
   cargo: HomeCargo | null;
   report: SpyReport | null;
   text: string | null;
+  /** The gold it carries; for word of a succession (item 17b), how many heirs the realm has had by then. */
   gold: number;
   /** For a rumour about one of the receiving court's own people ({@link CharacterId}): what it tells. */
   news: NewsKind | null;

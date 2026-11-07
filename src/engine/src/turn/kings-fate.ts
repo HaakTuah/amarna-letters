@@ -48,8 +48,8 @@ declare module "./core.ts" {
     kingDied(c: Character, how: string, where: string): void;
     /** Word of the king's death has reached his court (`text`): his heir reigns. */
     heirReigns(p: Power, text: string): void;
-    /** Word of a realm's new king has reached court `by`, which knows him by his name from now. */
-    heirHeard(p: Power, by: Power): void;
+    /** Word of a realm's new king, its `count`th heir, has reached court `by`, which knows him by his name from now. */
+    heirHeard(p: Power, by: Power, count: number): void;
   }
 }
 
@@ -198,14 +198,19 @@ P.heirReigns = function (p, text) {
   const coming = heir.duty === "Ruling" ? "" : " You are on your way to your court, and it rules in your name until you are there.";
   notify(S, p, "Notice", "The king is dead", `${news} You are ${heir.name} now, and you reign from this season: the people and the soldiers remember a third of what they owed your father, his love and his hate alike, and his debts and promises are yours to honour or not.${coming}`, heir.id);
   logEvent(S, "king-heir", `${heir.name} reigns over ${p}.`, [p], "king-heir");
-  for (const other of alive(S).filter((x) => x !== p)) this.word(p, other, "Succession", `Word comes that ${news}`);
+  // The word carries how many heirs there have been, so a slow word names no later one.
+  const count = heirsHeard(null, p);
+  for (const other of alive(S).filter((x) => x !== p)) {
+    this.word(p, other, "Succession", `Word comes that ${news}`);
+    S.journeys[S.journeys.length - 1].gold = count;
+  }
 };
 
-P.heirHeard = function (p, by) {
+P.heirHeard = function (p, by, count) {
   const S = this.s;
   let book = S.reignsHeard.tryGet(p);
   if (book === undefined) S.reignsHeard.set(p, (book = new Dict()));
-  book.set(by, heirsHeard(null, p));
+  book.set(by, Math.max(book.getOrDefault(by, 0), count));
   setCrowned(crownedIn(S));
 };
 

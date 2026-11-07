@@ -558,7 +558,7 @@ export class LlmCharacterMind implements ICharacterMind {
     // A false envoy (item 10+b): nobody sent it; it has only its own words.
     if (d.pretended) {
       user.appendLine(
-        `You stand before the king at ${courtOf(ctx.host)}, saying you are the envoy of ${kingOf(ctx.sender)}, whom you do not serve. You bring no letter, no sealed greeting and no seal; you came for the gifts a host gives an envoy, and whatever he gives you, or sends with you for that king, is yours to keep.`,
+        `You stand before the king at ${courtOf(ctx.host, ctx.sender)}, saying you are the envoy of ${kingOf(ctx.sender, ctx.sender)}, whom you do not serve. You bring no letter, no sealed greeting and no seal; you came for the gifts a host gives an envoy, and whatever he gives you, or sends with you for that king, is yours to keep.`,
       );
       user.appendLine("Speak to the king now.");
       const json = await this.ask(`t${ctx.turn}/aud/present/${ctx.self.id}`, ctx.turn, `envoy:${ctx.self.id}`, ctx.self, user.toString(), Replies.text("speech", "What you say to the king, in a few sentences."), signal, null, null, {
@@ -568,7 +568,7 @@ export class LlmCharacterMind implements ICharacterMind {
       });
       return Parse.present(json);
     }
-    user.appendLine(`You have arrived at ${courtOf(ctx.host)}, as the envoy of ${kingOf(ctx.sender)}.`);
+    user.appendLine(`You have arrived at ${courtOf(ctx.host, ctx.sender)}, as the envoy of ${kingOf(ctx.sender, ctx.sender)}.`);
     user.appendLine(d.greetingText.length > 0 ? `The sealed greeting will be read out exactly as written: "${d.greetingText}"` : "The tablet carries no greeting at all; the king will notice.");
     user.appendLine(`Your lord's message, which you must now deliver, word for word or in your own words: "${d.letter}"`);
     user.appendLine(d.mandate.length > 0 ? `Your mandate (what you may agree to): "${d.mandate}"` : "You were given no mandate to agree to anything.");
@@ -605,7 +605,7 @@ export class LlmCharacterMind implements ICharacterMind {
     );
     const r = Parse.present(json);
     // Passed on as written: the lord's own words, read out; the envoy wrote nothing but that choice.
-    if (json.as_written === true) r.speech = `Thus says ${kingOf(ctx.sender)}: "${d.letter}"`;
+    if (json.as_written === true) r.speech = `Thus says ${kingOf(ctx.sender, ctx.sender)}: "${d.letter}"`;
     r.skim = clamp(r.skim, 0, d.gold);
     // The clauses it recites (item 11a+): as written, unless it chose to change them as any envoy may.
     // Passed on as written, the clauses go as written too.
@@ -619,8 +619,8 @@ export class LlmCharacterMind implements ICharacterMind {
     const user = new Sb();
     user.appendLine(
       ctx.dispatch.pretended
-        ? `You stand before ${kingOf(ctx.host)}, saying you are the envoy of ${land(ctx.sender)}, whom you do not serve. You said: "${ctx.delivered}"`
-        : `You stand before ${kingOf(ctx.host)} as envoy of ${land(ctx.sender)}. You said: "${ctx.delivered}"`,
+        ? `You stand before ${kingOf(ctx.host, ctx.sender)}, saying you are the envoy of ${land(ctx.sender)}, whom you do not serve. You said: "${ctx.delivered}"`
+        : `You stand before ${kingOf(ctx.host, ctx.sender)} as envoy of ${land(ctx.sender)}. You said: "${ctx.delivered}"`,
     );
     for (const x of ctx.soFar) user.appendLine(`The king said: "${x.host}" You answered: "${x.envoy}"`);
     user.appendLine(`The king now says: "${host.speech}"`);
@@ -736,7 +736,7 @@ export class LlmCharacterMind implements ICharacterMind {
       case "Pitch": {
         const court = requestFor(req);
         const user =
-          `${Views.capitalized(courtOf(court))} is looking for envoys and agents, and you have come before the king. ` +
+          `${Views.capitalized(courtOf(court, court))} is looking for envoys and agents, and you have come before the king. ` +
           `Present yourself in a few sentences and name what you ask a season of a job's term (the king offers a whole fee for a term, part of it now and the rest when the job is done). Someone like you usually asks about ${ctx.basePrice} shekels a season at the going rate; ` +
           `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.` +
           // Item 11a, "Hiring as a negotiation": real offers it may cite, or not; a claimed offer is words, true or false.
@@ -779,7 +779,7 @@ export class LlmCharacterMind implements ICharacterMind {
         const was = c.employer ?? c.formerEmployer;
         const lord = was !== null && ctx.alive.includes(was) ? was : null;
         const user = new Sb();
-        user.appendLine(`You are a captive at the court of ${kingOf(host)}, and its questioners have pressed you until you gave way.`);
+        user.appendLine(`You are a captive at the court of ${kingOf(host, host)}, and its questioners have pressed you until you gave way.`);
         user.appendLine("They will have from you what you know of these tablets, which passed through your hands:");
         for (const id of req.copyIds) {
           const t = ctx.tablets.get(id);

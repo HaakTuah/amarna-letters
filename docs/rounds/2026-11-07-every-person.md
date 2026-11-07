@@ -109,10 +109,11 @@ Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md)
   are.
 - **His player is out where he dies; his realm learns of it by word** (the design check's first round): the court rules
   in the dead king's name until the word comes, then the heir reigns; each court names the realm's king by the one it
-  last heard of. A character's own lines (an envoy's request naming a king) still use the world's name: for item 18's
-  polish, since characters' knowledge of kings is not a court's.
+  last heard of. A character names a king as his lord's court knows him (the design check's second round).
 - **The heir's seat keeps the court's notes** (pillar: every seat replaceable): a model seat's notes and ledger are its
   court's records, which pass to the heir with the archive; his own nature comes with his traits in every request.
+- **Word of a king's death goes to his court where it stood when he died**: if the court flees while the word is on
+  the road, it arrives as if it had not moved; part C, which makes the court a place of its own, sends such words on.
 - **Death in battle and in a stormed city wait for part C**, when the king travels without his court and can stand in a
   battle; in part B a king's city taken takes him alive.
 - **The record's heirs by one name each** ("Ramesses the Second" where a name repeats), and the line linear: the record's
