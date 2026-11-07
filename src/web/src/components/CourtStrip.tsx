@@ -56,7 +56,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
             <Emblem power={open} /> {powerName(open)}
           </strong>{" "}
           · {kingFor(scene.viewer, open)} · {heldBy(open)} provinces
-          {god || scene.viewer === open ? `, ${f.units.filter((u) => u.power === open).length} units` : ""}
+          {god ? `, ${f.units.filter((u) => u.power === open).length} units` : scene.viewer === open ? `, ${(f.knownUnits?.get(open) ?? f.units.filter((u) => u.power === open)).length} units` : ""}
           {f.eliminated.has(open) ? " · fallen" : ""}
           {/* His other names, on his card only (item 17+). */}
           {otherNames.length > 0 && <div className="small muted">Also known as {otherNames.join("; ")}</div>}

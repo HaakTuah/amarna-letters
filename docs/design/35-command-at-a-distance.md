@@ -125,8 +125,22 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   "Word of your troops" notice, with the place and season it is from (`farMovements`), a loss there waking a sleeping seat by the same word. An order for
   a gone unit rides out and its failure comes home by the road (`orderMissed`); a scheduled or standing order given for
   it is kept, bound to it (`ownNamed` in `bind`), as for one that stands; its commander stays in command as his
-  king believes (`coverFor`) until word of the army's end tells of his leaving. What a far unit
-  carries, eats and is paid is still as it is: bug #615. Save version 69.
+  king believes (`coverFor`) until word of the army's end tells of his leaving. Save version 69.
+- **A far unit, the rest of it as reported** (bug #615; `rules/units-known.ts`): its king believes each of his units stands
+  where his view shows it (`placesKnown`, by `ownPlaces`), and everything he is told of his own doings with it names that
+  place: his scheduled and standing orders as his view shows them (`asShown` with a place; they run on the unit itself), a
+  standing order's "when your army in X is attacked", the command, recall and mandate notices, whose seasons are reckoned
+  from it (the man or the word sets out for where he named it), the word on its food and the gold for it, pay or food
+  held back in a province (`setUpkeep` and its check), a commander's duty and his record of battles at court
+  (`commanderKnown`, the record from the unit's report, `unitReport`), and the map (`Views.ownUnitsShown`, a frame's
+  `knownUnits`). What befalls it out there comes home by the road (`tell`, events by `nearOf`): hunger, a winter
+  crossing, a march held up or ended (its seat's view keeps the schedule as it was until then:
+  `SleepState.scheduleUnheard`, `scheduleKnown`), troops joined, walls stormed, colonists settled, a commander's
+  defection or victory, the land's men holding it off; its missing pay, pay held back, food bought or taken stay its
+  own report's. A part that stays its king's when the rest leaves him is a new unit known once word of their parting
+  could come (`Unit.raisedAt`, `since`), and gold sent with word on an army's food that finds it gone comes home with the
+  courier, as word from there does (`Remittance.food`). Loose men robbing a far province of the king's are told by the
+  word from there too. Save version 72.
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
   pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that
   reach a court the king has left are sent on after him (`ForwardedKinds`). He is taken, and his kingdom falls, where the

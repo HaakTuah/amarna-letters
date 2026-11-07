@@ -71,13 +71,18 @@ export interface Remittance {
    * changes when word comes, never when the gold arrives far off (Codex, #635).
    */
   landed: boolean;
+  /**
+   * Bug #615: gold sent with word on an army's food that found the army gone, coming home with its courier: not among the
+   * gold its court sent to coffers.
+   */
+  food: boolean;
 }
 
 export function newRemittance(init: Partial<Remittance> = {}): Remittance {
-  return { power: "Egypt", province: "", gold: 0, due: 0, home: false, landed: false, ...init };
+  return { power: "Egypt", province: "", gold: 0, due: 0, home: false, landed: false, food: false, ...init };
 }
 
-export const RemittanceSchema: ObjSchema<Remittance> = obj("Remittance", newRemittance, { power: S, province: S, gold: I, due: I, home: B, landed: B });
+export const RemittanceSchema: ObjSchema<Remittance> = obj("Remittance", newRemittance, { power: S, province: S, gold: I, due: I, home: B, landed: B, food: B });
 
 /** A bill's whole sum. */
 export const billTotal = (b: Bill): number => b.works + b.units.reduce((a, x) => a + x.gold, 0);

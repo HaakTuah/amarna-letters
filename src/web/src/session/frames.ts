@@ -236,6 +236,8 @@ export interface SeasonFrame {
   /** The sieges as each court knows them (bug #517: `Views.siegesKnown`), with the walls it knows. */
   knownSieges: Map<Power, FrameSiege[]>;
   units: FrameUnit[];
+  /** Bug #615: each court's own units as it knows them (`Views.ownUnitsShown`): a far one where, and as, its last report has it. */
+  knownUnits?: Map<Power, FrameUnit[]>;
   /** Every order of the season just resolved (the union of what each court saw). */
   moves: FrameMove[];
   /** What each court saw resolve: indexes into moves. */
@@ -431,6 +433,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     sieges: s.sieges.map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: wallsOf(s, x.province), since: x.since })),
     knownSieges,
     units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province, men: u.men })),
+    knownUnits: new Map<Power, FrameUnit[]>(AllPowers.filter((p) => isAlive(s, p)).map((p) => [p, Views.ownUnitsShown(s, p, map).map((x) => ({ id: x.unit.id, power: p, kind: x.unit.kind, province: x.province, men: x.men }))] as const)),
     moves,
     seenBy,
     sight,

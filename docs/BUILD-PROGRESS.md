@@ -118,8 +118,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
   standing) by the road. Save version 69. Left to #615: the rest of a far unit as it truly is. Report:
   `docs/rounds/2026-11-03-far-unit-known.md`.
-- **A far unit of a king's own, the rest of it as reported (bug #615): next, for a fresh session.** Its brief: the
-  issue's last comment (what #612 built to build on, what is left, files and lines, how to test).
+- ~~**A far unit of a king's own, the rest of it as reported (bug #615)**~~ (done, branch `fix/615-far-units`): where its
+  king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
+  road. Save version 72. Left to #759: a far unit's other orders still checked or timed by its true place. Report:
+  `docs/rounds/2026-11-06-far-unit-reported.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes

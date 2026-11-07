@@ -565,9 +565,73 @@ const farUnitRelieved: Twin = {
 /** As `farUnitRelieved`, but the king's only order gives the army a mandate. */
 const farUnitMandated: Twin = { ...farUnitRelieved, name: "a far army lost out of sight, given a mandate", orders: (turn) => (turn === 2 ? [mandateOrder("nubia", newMandate({ task: "guard" }))] : []) };
 
+/**
+ * As `farUnitRelieved`, but the army stands, and none in Thebes: in the twin where the fact is true, it marches down to
+ * Thebes, out of its king's sight, as the second season begins (on its commander's word), while that season its king takes
+ * back its command, gives it a mandate and orders its food where his reports place it (bug #615).
+ */
+const farUnitMoved: Twin = {
+  ...farUnitRelieved,
+  name: "a far army moved out of sight",
+  make() {
+    const s = farUnitRelieved.make(true);
+    s.units = s.units.filter((u) => u.province !== "thebes");
+    return s;
+  },
+  later: { at: 2, happen: (s) => void (s.units.find((u) => u.id === "u990")!.province = "thebes") },
+  orders: (turn) => (turn === 2 ? [relieve("nubia"), mandateOrder("nubia", newMandate({ task: "guard" })), supply("nubia", true)] : []),
+};
+
+/**
+ * As `farUnitRelieved`, but the army stands, and a fleet of Egypt's lies in the Red Sea, far from its court: in the twin
+ * where the fact is true, the fleet's food and gold spoil out of sight as the second season begins, and at sea, with
+ * nothing to take and its king's stores kept from it, it goes hungry (bug #615).
+ */
+const farUnitHungry: Twin = {
+  ...farUnitRelieved,
+  name: "a far fleet gone hungry out of sight",
+  make() {
+    const s = farUnitRelieved.make(true);
+    s.units = s.units.filter((u) => u.province !== "redsea");
+    s.units.push(newUnit({ id: "u989", power: "Egypt", kind: "Fleet", province: "redsea", home: "thebes", men: 400, food: 40, savings: 40, chest: 20 }));
+    // Its king's standing order keeps his stores from it: it eats what it carries.
+    s.upkeep.set("Egypt", { pay: true, feed: true, payExcept: [], feedExcept: ["u989"] });
+    return s;
+  },
+  later: {
+    at: 2,
+    happen: (s) => {
+      const u = s.units.find((x) => x.id === "u989")!;
+      [u.food, u.chest, u.savings] = [0, 0, 0];
+    },
+  },
+  orders: [],
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "redsea"),
+};
+
+/**
+ * As `farUnitRelieved`, but the army stands, under a march its king scheduled in the first season (to Thebes in the third):
+ * in the twin where the fact is true, Babylonian troops stand in Thebes, out of his sight, as the march is due, and stop it
+ * (bug #615).
+ */
+const farMarchStopped: Twin = {
+  ...farUnitRelieved,
+  name: "a far army's scheduled march stopped out of sight",
+  make() {
+    const s = farUnitRelieved.make(true);
+    s.units = s.units.filter((u) => u.province !== "thebes");
+    s.sleep.tryAdd("Egypt", newSleepState());
+    return s;
+  },
+  later: { at: 3, happen: (s) => void s.units.push(newUnit({ id: "u995", power: "Babylonia", kind: "Army", province: "thebes", home: "babylon", men: 6000 })) },
+  orders: [],
+  scheduled: [newScheduledOrders({ turn: 3, orders: [move("nubia", "thebes")] }), newScheduledOrders({ turn: 5, orders: [hold("thebes")] })],
+  heard: (s) => s.turn >= 3 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
+};
+
 /** The twins bound to a far place, each played at every one of {@link Places}. */
 const AtPlaces = [farLoss, farSiege, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, cofferAfterLoss, cofferAfterSiege, levyUnraised, rideBeforeLoss];
-const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated];
+const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated, farUnitMoved, farUnitHungry, farMarchStopped];
 
 describe("TwinCanaryTests", () => {
   const named = Twins.map((t) => ({ ...t, where: t.at === undefined ? "" : `, at ${t.at.province}` }));

@@ -446,7 +446,8 @@ the land's new holder.
 Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
 harvest as its officials last reported them, your caravans there as their last word has them, your troops there as
 their last report has them (an army raised far off is counted once word of its levy comes, and one lost far off until
-word of its end does), and your strength reckoned from what you know. To know sooner, hire a rider at your court to
+word of its end does; what befalls them there, hunger, a winter crossing, a march held up, comes to you by the road),
+and your strength reckoned from what you know. To know sooner, hire a rider at your court to
 fetch one far province's report this season: he names his price by what he has heard a ride pays and how badly you
 want him, and takes less if you haggle, up to a point. Click such a city and its card gives only what your stewards
 last reported and how many seasons ago, never its new holder's affairs; a band your people last told of there is drawn

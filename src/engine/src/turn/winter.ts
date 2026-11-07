@@ -11,7 +11,7 @@ import { distinct } from "../core/seq.ts";
 import { crossingBetween } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { logEvent, notify, unitLabel, type Unit, loseUnit } from "../model/state.ts";
+import { logEvent, unitLabel, type Unit, loseUnit } from "../model/state.ts";
 import { idiv } from "../core/num.ts";
 import { LandData, shareOfFull, unitCarried, unitFood, WinterData } from "../model/land.ts";
 import { CommandData } from "../model/command.ts";
@@ -104,7 +104,7 @@ P.loseToWinter = function (crossings, sightBefore) {
     const what = u.kind === "Army" ? "army" : "fleet";
     const crossing = x.how === "pass" ? (crossingBetween(x.from, x.to)?.name ?? "the pass") : "the open sea";
     if (lost <= 0) {
-      logEvent(S, "winter", `${u.power}'s ${what} crossed ${x.how === "pass" ? crossing : "the open sea"} into ${Map.get(x.to).name} in winter.`, [u.power], "winter-crossed");
+      logEvent(S, "winter", `${u.power}'s ${what} crossed ${x.how === "pass" ? crossing : "the open sea"} into ${Map.get(x.to).name} in winter.`, this.nearOf(x.to, u.power), "winter-crossed");
       continue;
     }
     const whole = u.men - lost < LandData.levyLeast;
@@ -116,9 +116,11 @@ P.loseToWinter = function (crossings, sightBefore) {
     if (whole) loseUnit(S, u);
     const why = x.how === "pass" ? "cold, hunger and desertion" : "the storms";
     const where = x.how === "pass" ? `crossing ${crossing} into ${Map.get(x.to).name} in winter` : `crossing the open sea to ${Map.get(x.to).name} in winter`;
-    notify(
-      S,
+    // Bug #615: its king hears of it by the road, from where it came through or where it was lost.
+    const at = whole ? x.from : x.to;
+    this.tell(
       u.power,
+      at,
       "Battle",
       WinterLossTitle,
       whole
@@ -131,7 +133,7 @@ P.loseToWinter = function (crossings, sightBefore) {
       whole
         ? `${u.power}'s ${unitLabel({ ...u, province: x.from })} was lost ${where}, to ${why}.`
         : `${u.power}'s ${unitLabel({ ...u, province: x.from })} lost ${gone} ${gone === 1 ? "man" : "men"} to ${why}, ${where}.`,
-      distinct([...AllPowers.filter((p) => sightBefore.get(p)?.has(x.from) || sightBefore.get(p)?.has(x.to)), u.power]),
+      distinct([...AllPowers.filter((p) => sightBefore.get(p)?.has(x.from) || sightBefore.get(p)?.has(x.to)), ...this.nearOf(at, u.power)]),
       "winter-loss",
     );
   }

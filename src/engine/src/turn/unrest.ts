@@ -294,7 +294,7 @@ P.turnsWith = function (province, c) {
     const going = idiv(u.men * this.follows(u, c.id), 100);
     if (going <= 0) continue;
     if (going < u.men) {
-      const stay = newUnit({ id: newId(S, "u"), since: u.since, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
+      const stay = newUnit({ id: newId(S, "u"), since: S.turn, raisedAt: u.province, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
       u.food -= stay.food;
       u.men = going;
       S.units.push(stay);

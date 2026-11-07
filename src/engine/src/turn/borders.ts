@@ -22,6 +22,7 @@ import { cheapestRoute, fastestPoints, legPoints, PointsPerDay } from "../model/
 import { TurnEngine } from "./core.ts";
 import { people, share, shift } from "./people.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
+import { EconomyTitle } from "./economy.ts";
 
 /** The notice title for what happens to people across borders and in a king's hands. */
 export const PeopleTitle = "People";
@@ -203,11 +204,11 @@ P.robbing = function () {
       S.loot.set(prov.id, loot - spent);
       this.spendAt(prov.id, spent);
     }
-    if (holder !== null && isAlive(S, holder) && gold + grainWorth(grain + country) >= 5)
-      lines.set(
-        holder,
-        [...lines.getOrDefault(holder, []), country > 0 ? `${prov.name} (${measures(country)} from the farmers' granaries outside the walls)` : `${prov.name} (${formatMoney(gold)} from its people's purse${grain > 0 ? `, ${measures(grain)} from your stores` : ""})`],
-      );
+    if (holder === null || !isAlive(S, holder) || gold + grainWorth(grain + country) < 5) continue;
+    const line = country > 0 ? `${prov.name} (${measures(country)} from the farmers' granaries outside the walls)` : `${prov.name} (${formatMoney(gold)} from its people's purse${grain > 0 ? `, ${measures(grain)} from your stores` : ""})`;
+    // Of a far province, by the word from there (bug #615, as troops standing there change what is taken).
+    if (this.isFar(holder, prov.id)) this.tell(holder, prov.id, "Notice", EconomyTitle, `Loose men robbed ${line}.`);
+    else lines.set(holder, [...lines.getOrDefault(holder, []), line]);
   }
   for (const [p, l] of lines.entries()) logEvent(S, "robbed", `Loose men robbed ${p}'s land: ${l.join("; ")}.`, [p], "robbed");
   return lines;

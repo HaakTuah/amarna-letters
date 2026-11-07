@@ -168,7 +168,7 @@ P.goldArrives = function () {
     }
     if (x.home) {
       this.receiveAt(x.power, this.courtAt(x.power), x.gold, false);
-      say(x.power, `The ${formatMoney(x.gold)} you sent to ${name} came back with your couriers, into the treasury.`);
+      say(x.power, x.food ? `The ${formatMoney(x.gold)} you sent for your troops' food in ${name} came back with your couriers, into the treasury: they found none of yours there.` : `The ${formatMoney(x.gold)} you sent to ${name} came back with your couriers, into the treasury.`);
       continue;
     }
     const held = S.owner.getOrDefault(x.province, null) === x.power;

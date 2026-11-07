@@ -295,7 +295,7 @@ P.menHome = function (u, settle) {
   if (settle) {
     shift(this.peopleOf(u.province), men, men);
     this.spendAt(u.province, savings);
-    logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
+    logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, this.nearOf(u.province, u.power), "colonists");
     return `its men settled in ${where.name} as colonists, ${people(men)} of them`;
   }
   if (u.province === u.home) {
