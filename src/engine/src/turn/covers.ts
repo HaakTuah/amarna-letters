@@ -47,6 +47,8 @@ P.coverFor = function (c, master, believed, duty = null, where = null, seen = nu
       dutyText: duty ?? view.duty,
       whereText: where ?? view.where,
       province: where === null ? view.province : null,
+      // Bug #797: the court by its id, for whoever must place it; the lines name it only as words.
+      court: [c.at, c.missionTarget, this.trail(c.currentTrail)?.to ?? null].find((x): x is Power => x !== null && x !== master) ?? null,
       timingText: timing ?? (duty === null ? view.timing : ""),
       fee: view.fee ?? c.contract?.fee ?? 0,
       advance: view.advance ?? c.contract?.advance ?? 0,
