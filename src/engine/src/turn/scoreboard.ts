@@ -119,7 +119,7 @@ P.decideWinners = function () {
     S.winners = [];
     return;
   }
-  // One true winner, the highest score on the board: a king's realm, or a character by his own name.
+  // One true winner, the highest score on the board: a king's realm, or a character by his name and where he is from.
   const best = living[0];
 
   if (S.config.sharedVictory) {

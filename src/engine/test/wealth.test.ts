@@ -27,7 +27,7 @@ import {
 } from "@amarna/engine";
 import { Assert, last, orderBy, smallWorld } from "./support.ts";
 
-// <summary>The richest characters: what a character gains, by source, and the ranking by wealth.</summary>
+// <summary>The richest characters: what a character gains, by source, and what its standing reads at the end.</summary>
 describe("WealthTests", () => {
   function begin(s: GameState): TurnEngine {
     let e = new TurnEngine(s);
