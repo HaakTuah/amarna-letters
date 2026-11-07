@@ -18,8 +18,8 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
   left out. Kings, queens and princes are seats or their households, never characters. `Character.attested` marks them.
 - **Nubians in Egypt's service** (`NubianCast`): Hekanefer, prince of Miam and a child of the royal nursery (attested; his
   career spans 1346), and two captains of Nubian troops, generated with Egyptian names as many of them bore. They stand at
-  Pharaoh's court and carry the public fact "A Nubian in Egypt's service, who speaks a Nubian tongue as well as
-  Egyptian" (languages come with item 12).
+  Pharaoh's court and carry the public fact "A Nubian in Egypt's service"; their tongues, a Nubian one and Egyptian, are in what they
+  say they speak (item 12).
 - **Everyone else** is generated in its region's name style (`Styles`), with competence the lower of two draws (15-95):
   mostly ordinary people, few excellent ones ("Enough people, not enough good ones").
 
