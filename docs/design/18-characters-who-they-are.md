@@ -19,7 +19,9 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
 - **Nubians in Egypt's service** (`NubianCast`): Hekanefer, prince of Miam and a child of the royal nursery (attested; his
   career spans 1346), and two captains of Nubian troops, generated with Egyptian names as many of them bore. They stand at
   Pharaoh's court and carry the public fact "A Nubian in Egypt's service"; their tongues, a Nubian one and Egyptian, are in what they
-  say they speak (item 12).
+  say they speak (item 12). The cast's lines were rewritten in the period's voice by the slop audit (#764; report
+  `docs/rounds/2026-11-07-slop-audit-biographies.md`): the calling's line says what a person is, the sources' lines
+  lose their bracketed citations, and the first draw's attested envoys are royal envoys. Save version 71.
 - **Everyone else** is generated in its region's name style (`Styles`), with competence the lower of two draws (15-95):
   mostly ordinary people, few excellent ones ("Enough people, not enough good ones").
 
