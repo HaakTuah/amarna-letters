@@ -29,7 +29,8 @@ export interface Beyond {
    * its raiders are named ("Aegean raiders of Ahhiyawa"); none where the land sends no raiders. Only the raids the
    * dossiers attest: Attarissiya "of Ahhiya" raiding Alashiya (`docs/history/15-pirates-bandits-tolls.md`,
    * `15-madduwatta`) [A], and the Zagros highlanders, raiders in Mesopotamian memory (`docs/history/08-beyond-the-edges.md`,
-   * `08-elam`) [A]; the later Sea Peoples rarely, as their arrivals are (`08-sea-peoples`). Not the Sherden, who appear in
+   * `08-elam`) [A]; the later Sea Peoples rarely, as their arrivals are: the dossier has them come as adventurers and
+   * soldiers for hire (`08-sea-peoples`), and their raiding is an estimate from that line [G]. Not the Sherden, who appear in
    * 1346 only as soldiers (`15-sherden`), nor the Medjay, Egypt's police (`08-kush-irem-medjay`), nor Kush, whose raids no
    * source of the period records. The weights and the doors' `raids` are first guesses [G].
    */

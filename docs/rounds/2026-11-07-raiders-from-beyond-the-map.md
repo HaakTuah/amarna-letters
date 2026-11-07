@@ -25,8 +25,8 @@ was read again by its diff before the pull request.
   captives and spoils (a crew from any coast, a band over land through its door), or melts away into the land's loose
   men, its captives going free. A chief who went home may lead the next raid through his door.
 - **Paying a band off** (order `pay_off_band`): carried as an enlistment is; the chief takes the fee if it pays what he
-  gives up, and leaves the payer's land for the term (a raider goes home). A script chief keeps his word; a model chief
-  chooses.
+  gives up, and leaves the payer's land for the term (a raider goes home). A script chief keeps his word, turning home
+  or keeping out and robbing none of the payer's land, if he is more loyal than greedy; a model chief chooses.
 - **Script kings** hunt raiders where their armies stand with them and hire them as any band, and pay off those they
   cannot break; they march no army after raiders and keep no police at the doors (both measured, below). **Script chiefs** go home before the winter, with their fill of spoils, after a few seasons over land, or
   when paid. **Model chiefs** see their home, captives and whether they can go home, and may choose to.

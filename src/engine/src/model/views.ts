@@ -397,7 +397,7 @@ export interface BandSeen {
   men: number;
   chief: string;
   ship: boolean;
-  /** Item 17++++a: raiders from beyond the map, by who they are ("Sherden raiders"); "" for the land's own outlaws. */
+  /** Item 17++++a: raiders from beyond the map, by who they are ("Aegean raiders of Ahhiyawa"); "" for the land's own outlaws. */
   raiders: string;
   /** Item 17++++a: the people it holds, carried off where it robbed. */
   captives: number;

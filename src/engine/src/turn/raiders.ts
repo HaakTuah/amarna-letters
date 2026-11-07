@@ -45,6 +45,11 @@ declare module "./core.ts" {
      * a raider within reach of home.
      */
     bandMayGo(b: Band, to: string): boolean;
+    /**
+     * Whether a script chief keeps his word to the king who paid him off, while its term holds: if he is more loyal than
+     * greedy (a first guess). While he keeps it, he turns home or keeps out of that king's land, and robs none of it.
+     */
+    keepsWord(b: Band): boolean;
     /** A king's offer to the chief of a band to leave his land (`pay_off`): taken by the chief's own formula, or refused. */
     payOffBand(p: Power, o: PayOffOrder): void;
   }
@@ -176,7 +181,7 @@ P.raiderChooses = function (b, chief) {
   if (home === null) return false;
   const content = chief.purse >= bandCost(b.men) * RaiderData.spoils;
   // A crew sails home before the winter closes the sea; a band over land turns home when it has its fill or has stayed long.
-  const paid = b.paidBy !== "";
+  const paid = this.keepsWord(b);
   const turn = paid || (b.ship ? seasonOfTurn(S.turn + 1) === WinterSeason || content : content || S.turn - b.since >= RaiderData.stay || b.short > 0);
   if (!turn) return false;
   if (this.canGoHome(b)) {
@@ -195,12 +200,14 @@ P.raiderChooses = function (b, chief) {
   return true;
 };
 
+P.keepsWord = function (b) {
+  const chief = findCharacter(this.s, b.leaderId);
+  return b.paidBy !== "" && this.s.turn <= b.paidUntil && chief !== null && chief.traits.loyalty >= chief.traits.greed;
+};
+
 P.bandMayGo = function (b, to) {
   const S = this.s;
-  // A script chief keeps his word to a king who paid him off if he is more loyal than greedy (a first guess).
-  const chief = findCharacter(S, b.leaderId);
-  const keeps = chief !== null && chief.traits.loyalty >= chief.traits.greed;
-  if (keeps && b.paidBy !== "" && S.turn <= b.paidUntil && S.owner.getOrDefault(to, null) === b.paidBy) return false;
+  if (this.keepsWord(b) && S.owner.getOrDefault(to, null) === b.paidBy) return false;
   const home = raidersHome(b.from);
   if (home === null) return true;
   // A crew keeps to the coasts where its ship is; a band over land keeps within reach of its door.

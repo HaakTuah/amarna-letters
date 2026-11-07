@@ -384,9 +384,11 @@ P.bandsSeason = function () {
     const m = this.market(b.province);
     const rate = (of: number): number => bandRobs(b.men, of, policedShare(S, b.province));
     const besieged = siegeOf(S, b.province) !== null;
-    const gold = besieged ? 0 : rate(m.purse);
-    const grain = besieged ? 0 : rate(this.stores(b.province));
-    const country = besieged ? rate(S.granary.getOrDefault(b.province, 0)) : 0;
+    // A script chief who keeps his word to the king who paid him off spares that king's land (item 17++++a).
+    const spared = !own && holder !== null && holder === b.paidBy && this.keepsWord(b);
+    const gold = besieged || spared ? 0 : rate(m.purse);
+    const grain = besieged || spared ? 0 : rate(this.stores(b.province));
+    const country = besieged && !spared ? rate(S.granary.getOrDefault(b.province, 0)) : 0;
     // Item 17++: its people remember what the chief's men took from them ("a chief whose men robbed them is fought"): by the
     // share of their purse and stores taken, as a sack is, and at least a point a season he robs them.
     const stores = this.stores(b.province);
