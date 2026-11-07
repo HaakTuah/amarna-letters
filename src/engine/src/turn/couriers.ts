@@ -18,7 +18,7 @@ import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify, unitAt } from "../model/state.ts";
 import { unitReport, type Unit } from "../model/units.ts";
-import { courierSeasons, courtOf, wordHomeAt } from "../rules/court.ts";
+import { courierSeasons, seatOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
@@ -90,11 +90,11 @@ const P = TurnEngine.prototype;
 const TrailKept = 4;
 
 P.wordTo = function (p, province) {
-  return courierSeasons(this.s, this.map, courtOf(this.s, this.map, p), province);
+  return courierSeasons(this.s, this.map, seatOf(this.s, this.map, p), province);
 };
 
 P.wordFrom = function (p, province) {
-  return courierSeasons(this.s, this.map, province, courtOf(this.s, this.map, p));
+  return courierSeasons(this.s, this.map, province, seatOf(this.s, this.map, p));
 };
 
 P.unitShownAt = function (p, province) {
@@ -260,7 +260,7 @@ declare module "./core.ts" {
 P.courierStopped = function (p, to, rng) {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
-  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
+  const route = cheapestRoute(this.map, seatOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
   for (const x of route) {
     const holder = S.owner.getOrDefault(x, null);
     if (holder === null || holder === p) continue;
@@ -274,7 +274,7 @@ P.courierStopped = function (p, to, rng) {
 P.courierRead = function (p, to, o) {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
-  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
+  const route = cheapestRoute(this.map, seatOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
   const read = new Set<Power>();
   for (const x of route) {
     const holder = S.owner.getOrDefault(x, null);
@@ -329,7 +329,7 @@ P.nearOf = function (province, ...ps) {
 function setOutHeard(e: TurnEngine, c: Caravan): number {
   const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
   // The road home as it was in that season, by the one clock (wordHomeAt, as `wordCame`).
-  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
+  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, seatOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
   return at === first.turn || !Number.isFinite(at) ? first.turn + e.s.deliveryOffset : at;
 }
 

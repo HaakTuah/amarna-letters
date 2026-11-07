@@ -78,21 +78,22 @@ export function knownWays(v: SeatView): Ways {
 }
 const waysKnown = new WeakMap<SeatView, Ways>();
 
-/** The seasons beyond the first a courier takes from the court to each province, by the ways the king knows. */
+/** The seasons beyond the first a courier takes from the king, wherever he commands, to each province, by the ways the king knows. */
 export function courierSeasonsFrom(v: SeatView, ways: Ways): Map<string, { seasons: number; route: string[] }> {
   const out = new Map<string, { seasons: number; route: string[] }>();
+  const seat = v.kingAt ?? v.courtAt;
   for (const [id, holder] of v.owner) {
-    if (holder !== v.power || id === v.courtAt) continue;
+    if (holder !== v.power || id === seat) continue;
     const r = courierRoute(v, ways, id);
     if (r !== null) out.set(id, r);
   }
   return out;
 }
 
-/** The courier's road from the court to `to` this season, in whole seasons, or null where none is known. */
-export function courierRoute(v: SeatView, ways: Ways, to: string): { seasons: number; route: string[] } | null {
+/** The courier's road to `to` this season from `from` (by default the king, wherever he commands), in whole seasons, or null where none is known. */
+export function courierRoute(v: SeatView, ways: Ways, to: string, from: string = v.kingAt ?? v.courtAt): { seasons: number; route: string[] } | null {
   const season = seasonOfTurn(v.turn);
-  const r = cheapestRoute(Board.Map, v.courtAt, to, (a, c) => legPoints(Board.Map, a, c, season, { sneaking: false, ways }));
+  const r = cheapestRoute(Board.Map, from, to, (a, c) => legPoints(Board.Map, a, c, season, { sneaking: false, ways }));
   return r === null ? null : { seasons: Math.floor(r.cost / SeasonPoints), route: r.route };
 }
 

@@ -70,8 +70,10 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 
 ## Distance inside the realm (`turn/couriers.ts`, `rules/court.ts`)
 
-- **The court is wherever the king is** (`GameState.court`, `courtOf`, `TurnEngine.courtAt`): travel, envoys, reports,
-  archives and the fall read it where they read the map's capital before. 
+- **The court is the capital** (`GameState.court`, `courtOf`, `TurnEngine.courtAt`): travel, envoys, letters, archives
+  and the fall read it where they read the map's capital before. **The king commands from where he is** (item 17b, part C,
+  [57](57-every-person.md)): his orders to his land and armies, their reports, what he sees and the units he stands with
+  read his seat (`seatOf`, `TurnEngine.seatAt`, `wordFromKing`), his court unless he stands apart from it.
 - **Couriers** (`courierSeasons`): a lone traveller's pace on the fastest road; 0 where a courier makes it within the season
   (45 days of road). `sendOrders`: an order for a unit or place beyond that sets out with a courier (`GameState.couriers`),
   bound to its unit as a scheduled order is, and is carried out in the season it arrives; orders arriving join the season's
@@ -144,11 +146,9 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   comes home by the road from there, the unit named where its king's view shows it, and a scheduled order's road
   (`notYetReached`) is reckoned to that place (#759). Save version 73.
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
-  pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that
-  reach a court the king has left are sent on after him (`ForwardedKinds`). He is taken, and his kingdom falls, where the
-  province he stands in is taken from him (`kingsTaken`, by the season's changes of holder), or on the road through the
-  besiegers of a city of his or where a king who closed his roads to him has troops (40 in a hundred each such place); a
-  king who has moved is not taken with his old seat. The archive moves with him.
+  pace of a company of 300, with the king if he is with it. Each season it goes on, the court where it got to. Envoys,
+  servants and reports that reach a court that has left are sent on after it (`ForwardedKinds`). The archive moves with
+  it. The king alone (`alone`, `travel_alone`) and what befalls him where he stands: [57](57-every-person.md), "Part C".
 
 ## Governors (`turn/governors.ts`)
 

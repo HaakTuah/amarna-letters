@@ -13,7 +13,8 @@ describe("KingsFateTests", () => {
     const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
     const e = new TurnEngine(s);
     s.owner.set("akhetaten", "Hatti");
-    e.kingTaken("Egypt", "Hatti");
+    e.kingTaken("Egypt", "Hatti", false);
+    e.courtFlees("Egypt", "Hatti");
     const c = kingOf(s, "Egypt");
     s.journeys = s.journeys.filter((j) => j.characterId !== c.id);
     c.duty = "None";
@@ -43,7 +44,9 @@ describe("KingsFateTests", () => {
   test("A king taken is his captor's captive, who may not turn him; his court flees", () => {
     const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
     s.owner.set("akhetaten", "Hatti");
-    new TurnEngine(s).kingTaken("Egypt", "Hatti");
+    const e = new TurnEngine(s);
+    e.kingTaken("Egypt", "Hatti", false);
+    e.courtFlees("Egypt", "Hatti");
     const c = kingOf(s, "Egypt");
     Assert.equal(["Captured", "Hatti", "UnderGuard", true], [c.status, c.heldBy, c.duty, c.intercepted]);
     Assert.notEqual("akhetaten", s.court.get("Egypt"));
@@ -150,7 +153,8 @@ describe("KingsFateTests", () => {
     e.kingGoesHome(c, "Egypt", e.courtAt("Hatti"));
     const seat = s.court.get("Egypt");
     s.owner.set(seat, "Hatti");
-    e.kingTaken("Egypt", "Hatti");
+    e.kingTaken("Egypt", "Hatti", true);
+    e.courtFlees("Egypt", "Hatti");
     Assert.equal(["Employed", "Travelling"], [c.status, c.duty]);
     Assert.notEqual(seat, s.court.get("Egypt"));
   });

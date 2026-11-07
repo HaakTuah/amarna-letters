@@ -147,7 +147,7 @@ P.resolveSeason = function (submissions) {
   // Item 13: kings on the road with their courts go on (setting out from next season).
   this.kingsTravel();
   for (const [p, o] of all((o): o is CourtOrder => o.type === "court")) this.setOutCourt(p, o);
-  // Item 17b: kings taken where they stand are captives, their courts flee; a realm that holds nothing falls.
+  // Item 17b: kings taken where they stand are captives, courts lost flee; a realm that holds nothing falls.
   this.capitalsTaken();
   // Item 13+: the parts of fallen kingdoms that word of the fall has reached come apart.
   this.fallsSpread();
@@ -296,6 +296,8 @@ P.resolveMovement = function (unitOrders) {
 
   // What the battles cost (item 13): men on both sides; a unit beaten from its place falls back, or is destroyed.
   const gone = this.battles(result, sightBefore);
+  // Item 17b, part C: a king where his side lost a battle may die in it, be taken, or get away with his men.
+  this.kingsInBattle(result);
   this.marchesDone(result, byProvince, marching);
   for (const id of result.dislodgedUnitIds) {
     const u = S.units.find((x) => x.id === id)!;
@@ -518,13 +520,16 @@ P.raise = function (p, r) {
 };
 
 /**
- * Item 17b, part B: a king taken where he stands, or stopped on the road, is his taker's captive, and his court flees to the
- * nearest city his realm still holds (`TurnEngine.kingTaken`); only a realm that holds nothing falls.
+ * Item 17b, part B: a king taken where he stands, or stopped on the road, is his taker's captive, or dies in a city's fall
+ * (part C), and a court lost flees to the nearest city its realm still holds (`TurnEngine.kingTaken`, `courtFlees`); only a
+ * realm that holds nothing falls.
  */
 P.capitalsTaken = function () {
   const S = this.s;
   const taken = this.kingsTaken();
-  for (const p of alive(S).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p) ?? null);
+  const lost = this.courtsLost();
+  for (const p of alive(S).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p)!.by, taken.get(p)!.city);
+  for (const p of alive(S).filter((x) => lost.has(x))) this.courtFlees(p, lost.get(p) ?? null);
   // A realm left holding nothing falls, wherever its king is (one whose court stood abroad among them).
   for (const p of alive(S).filter((x) => ownedBy(S, x).length === 0)) this.fall(p, S.owner.getOrDefault(this.courtAt(p), null));
 };

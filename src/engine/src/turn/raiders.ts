@@ -242,7 +242,7 @@ P.payOffBand = function (p, o) {
   if (b === undefined) return;
   // The offer needs its carrier there once the season's moves are done: an army of the payer's, with its commander or the king.
   const here = S.units.filter((u) => u.province === o.province && u.power === p && u.kind === "Army");
-  if (!here.some((u) => this.courtAt(p) === o.province || (u.commander !== null && S.turn >= u.commandFrom))) {
+  if (!here.some((u) => this.seatAt(p) === o.province || (u.commander !== null && S.turn >= u.commandFrom))) {
     this.tell(p, o.province, "Rejected", "Offer not carried", `No army of yours stood in ${this.map.get(o.province).name} with its commander or with you once the season's moves were done, so nobody carried your offer to the band there. No gold was paid.`);
     return;
   }

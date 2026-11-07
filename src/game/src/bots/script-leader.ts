@@ -5,6 +5,7 @@
  * sees exactly what any seat sees: the SeatView. The same bot stands in for a model seat whenever a model call fails,
  * playing in that king's character.
  */
+import { kingAfield } from "./afield.ts";
 import { vassalSeason } from "./vassals.ts";
 import { huntBands, huntOrders, worthHunting } from "./outlaws.ts";
 import { payOffOrders } from "./raiders.ts";
@@ -155,6 +156,8 @@ export class ScriptLeader implements ISeat {
     commandOrders(board, brain, orders, busy);
     enlistOrders(board, brain, orders);
     courtMove(board, brain, orders);
+    // Item 17b, part C: the king to the front without his court, or back to it.
+    kingAfield(board, orders);
     // Item 17+: a realm's name claimed, by the capital held.
     nameClaims(board, orders);
     // The owner's answers to item 11b: armies fall on bands only by the king's order.

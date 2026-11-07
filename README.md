@@ -188,9 +188,11 @@ Any season may be the last. Early on the end is very unlikely; it grows likelier
 are over by 1320 BCE, about season 80. The last season is drawn in secret when the game begins: nobody can read it, and
 your court's omens darken as it nears. A table can change how long games run, or play on with no end at all.
 
-A king is a person. Taken in the city where he stands, or on the road, he is his captor's captive, to be put to death,
-ransomed, released or handed over, and he may get away by his own skill; his court flees to the nearest city his realm
-still holds and rules in his name. He dies only by a cause where he is, never of age, and then his player is out: his
+A king is a person. He may travel without his court, commanding from where he is, near the front and at the risk of his
+life. Taken in the city where he stands, in a battle or on the road, he is his captor's captive, to be put to death,
+ransomed, released or handed over, and he may get away by his own skill; a court taken flees to the nearest city its
+realm still holds and rules in his name. He dies only by a cause where he is (in battle, in a city's fall, put to death
+or on the road), never of age, and then his player is out: his
 heir reigns from that season, the next name on the record of the kings who followed (or past it a son or brother), with
 a third of his father's standing among the people and the soldiers. A realm that holds nothing has fallen; its armies
 with a commander become his band, and the others disband or follow a captain of their own. A player who is out watches

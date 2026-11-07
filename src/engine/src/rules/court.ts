@@ -1,9 +1,11 @@
 /**
- * Where each king is (build order item 13, "The capital is wherever the king is"): his court, from where his orders travel
- * and to where his people's reports and foreign envoys come. A king never moved is at his map capital.
+ * Where each king and his court are (build order item 13, "The capital is wherever the king is"; item 17b, part C, "A realm
+ * holds by its ledger"): his court, his capital, where foreign envoys and letters come and his treasury and archive are
+ * kept, and where he commands from, the court or, apart from it, wherever he stands. A court never moved is at its map
+ * capital.
  */
 import { idiv } from "../core/num.ts";
-import { CourtData } from "../model/command.ts";
+import { CourtData, KingAloneData } from "../model/command.ts";
 import { seasonOfTurn, type WorldMap } from "../model/map.ts";
 import type { CourtOrder } from "../model/orders.ts";
 import type { Crowned, Power } from "../model/power.ts";
@@ -12,36 +14,52 @@ import { PointsPerDay, cheapestRoute, legPoints } from "../model/travel.ts";
 import type { Checking } from "./validator-context.ts";
 import { type Ways, waysOf } from "../model/works.ts";
 
-/** The province where the king is: his capital, wherever that is. */
+/** The province where the king's court is: his capital, wherever that is. */
 export function courtOf(s: GameState, map: WorldMap, p: Power): string {
   return s.court.tryGet(p) ?? map.capital(p).id;
 }
 
-/** Whether the king is on the road with his court. */
-export function onTheRoad(s: GameState, p: Power): boolean {
-  return s.kingRoads.some((r) => r.power === p);
+/**
+ * The province the king commands from (item 17b, part C, "the king commands from where he is"): where he stands apart from
+ * his court, else his court. His orders to his land and armies go out from here, and their reports come here.
+ */
+export function seatOf(s: GameState, map: WorldMap, p: Power): string {
+  return s.kingAt.tryGet(p) ?? courtOf(s, map, p);
 }
 
-/** The king's road from where he is to `to`, at his court's pace this season, or null where none leads. */
-export function kingRoute(s: GameState, map: WorldMap, p: Power, to: string): { route: string[]; cost: number } | null {
+/** Whether the court is on the road (`alone`: whether the king is, without it). */
+export function onTheRoad(s: GameState, p: Power, alone = false): boolean {
+  return s.kingRoads.some((r) => r.power === p && r.alone === alone);
+}
+
+/** The road to `to` of the court from where it is, or (`alone`) of the king from where he is, at its pace this season, or null where none leads. */
+export function kingRoute(s: GameState, map: WorldMap, p: Power, to: string, alone = false): { route: string[]; cost: number } | null {
   const season = seasonOfTurn(s.turn);
-  return cheapestRoute(map, courtOf(s, map, p), to, (a, b) => legPoints(map, a, b, season, { sneaking: false, size: CourtData.companyMen, ways: waysOf(s) }));
+  const size = alone ? KingAloneData.companyMen : CourtData.companyMen;
+  return cheapestRoute(map, alone ? seatOf(s, map, p) : courtOf(s, map, p), to, (a, b) => legPoints(map, a, b, season, { sneaking: false, size, ways: waysOf(s) }));
 }
 
-/** What moving the court to a province costs, by the days of road to it. */
-export function courtMoveCost(days: number): number {
-  return CourtData.moveBase + idiv(Math.max(0, days) * CourtData.movePer, 10);
+/** What moving the court to a province costs, by the days of road to it (`alone`: the king's own journey with his guard). */
+export function courtMoveCost(days: number, alone = false): number {
+  const [base, per] = alone ? [KingAloneData.base, KingAloneData.per] : [CourtData.moveBase, CourtData.movePer];
+  return base + idiv(Math.max(0, days) * per, 10);
 }
 
-/** Why the king cannot set out with his court for `to` now, or null; reserves its cost when it can. */
+/** Why the court, or the king alone, cannot set out for `to` now, or null; reserves its cost when it can. */
 export function courtMoveRefusal(v: Checking, order: CourtOrder): string | null {
   const to = order.to;
+  const alone = order.alone === true;
   if (!v.Map.exists(to) || v.Map.get(to).isSea) return `there is no land province called '${to}'`;
-  if (to === courtOf(v.S, v.Map, v.power) && !onTheRoad(v.S, v.power)) return `your court is already in ${to}`;
-  if (v.orders.find((o) => o.type === "court") !== order) return "you already set out for another place by an earlier order";
-  const r = kingRoute(v.S, v.Map, v.power, to);
-  if (r === null) return `no road leads from your court to ${to}`;
-  return v.spend(courtMoveCost(idiv(r.cost, PointsPerDay)));
+  if (v.orders.find((o) => o.type === "court" && (o.alone === true) === alone) !== order) return `you already sent ${alone ? "yourself" : "your court"} to another place by an earlier order`;
+  if (alone) {
+    // Only a king free and reigning goes anywhere: one held is in his captor's hands.
+    const king = findCharacter(v.S, v.S.reigns.tryGet(v.power)?.character ?? "");
+    if (king === null || king.status !== "Employed" || king.duty !== "Ruling") return "you are not free to travel";
+    if (to === seatOf(v.S, v.Map, v.power) && !onTheRoad(v.S, v.power, true)) return `you are already in ${to}`;
+  } else if (to === courtOf(v.S, v.Map, v.power) && !onTheRoad(v.S, v.power)) return `your court is already in ${to}`;
+  const r = kingRoute(v.S, v.Map, v.power, to, alone);
+  if (r === null) return `no road leads from ${alone ? "where you are" : "your court"} to ${to}`;
+  return v.spend(courtMoveCost(idiv(r.cost, PointsPerDay), alone));
 }
 
 /**
@@ -100,9 +118,9 @@ function courierPoints(map: WorldMap, ways: Ways, from: string, season: number):
   return dist;
 }
 
-/** The seasons word from the king takes to reach a province: from his court, wherever he is. */
+/** The seasons word from the king takes to reach a province: from wherever he commands. */
 export function wordFromKing(s: GameState, map: WorldMap, p: Power, to: string): number {
-  return courierSeasons(s, map, courtOf(s, map, p), to);
+  return courierSeasons(s, map, seatOf(s, map, p), to);
 }
 
 /** Item 17b, part B: the realm whose reigning king the character is, or null (a realm that has fallen has no reigning king). */

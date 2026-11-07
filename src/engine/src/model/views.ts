@@ -833,11 +833,17 @@ export interface SeatView {
   power: Power;
   king: string;
   /**
-   * Item 13 ("The capital is wherever the king is"): the province where the king is, his court and capital, from where his
-   * orders travel; and, while he is on the road with his court, where he goes (else null).
+   * Item 13 ("The capital is wherever the king is"): the province where the court is, the capital, where envoys and letters
+   * come and the treasury and archive are kept; and, while it is on the road, where it goes (else null).
    */
   courtAt: string;
   courtTo: string | null;
+  /**
+   * Item 17b, part C: the province where the king stands apart from his court, from where his orders travel (null: with
+   * it); and, while he is on the road without it, where he goes (else null).
+   */
+  kingAt: string | null;
+  kingTo: string | null;
   /** Item 17b: the king's own traits as this game drew them (0 to 100, in `KingTraitValues`' order): who he is. */
   traits: number[];
   /** Item 13: the court's own governorships: the province, its governor's id, when he governs from, and his levies. */
@@ -1071,6 +1077,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     power: "Egypt",
     courtAt: "",
     courtTo: null,
+    kingAt: null,
+    kingTo: null,
     traits: [],
     governors: [],
     king: "",
@@ -1168,6 +1176,8 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   power: S,
   courtAt: S,
   courtTo: opt(S),
+  kingAt: opt(S),
+  kingTo: opt(S),
   traits: list(I),
   governors: list(() => GovernorViewSchema),
   king: S,

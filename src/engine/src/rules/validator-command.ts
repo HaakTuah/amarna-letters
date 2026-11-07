@@ -9,7 +9,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { findCharacter, unitAt } from "../model/state.ts";
 import { type Unit } from "../model/units.ts";
 import type { Checking } from "./validator-context.ts";
-import { courtMoveRefusal, courtOf } from "./court.ts";
+import { courtMoveRefusal, courtOf, seatOf } from "./court.ts";
 
 /** Why a person cannot be granted command or a governorship by this court now, or null. */
 function grantee(v: Checking, id: string, what: string): string | null {
@@ -160,7 +160,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (!v.Map.exists(order.province) || v.Map.get(order.province).isSea) return `there is no land province called '${order.province}'`;
       const u = S.units.find((x) => x.province === order.province && x.power === v.power && x.kind === "Army") ?? null;
       if (u === null) return `no army of yours stands in ${order.province} to carry the offer`;
-      const carried = courtOf(S, v.Map, v.power) === order.province || (u.commander !== null && S.turn >= u.commandFrom);
+      const carried = seatOf(S, v.Map, v.power) === order.province || (u.commander !== null && S.turn >= u.commandFrom);
       if (!carried) return `nobody carries the offer; your army in ${order.province} has no commander with it, and you are not there`;
       if (!S.bands.some((b) => b.province === order.province)) return `no band works in ${order.province} that you can see`;
       if (order.term < 1 || order.term > 12) return "a term of 1 to 12 seasons";

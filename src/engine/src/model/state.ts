@@ -378,7 +378,12 @@ export interface GameState {
    * court sits and from where his orders travel; a king never moved is at his map capital and left out.
    */
   court: Dict<Power, string>;
-  /** Item 13: the kings on the road with their courts. */
+  /**
+   * Item 17b, part C ("A realm holds by its ledger"): the province where each king stands apart from his court, from where
+   * he commands; a king with his court is left out.
+   */
+  kingAt: Dict<Power, string>;
+  /** Item 13: the courts on the road, with their kings or without them; item 17b, part C: kings on the road alone. */
   kingRoads: KingRoad[];
   /** Item 13: orders on the road with the realm's couriers, from a king's court to where they are carried out. */
   couriers: Courier[];
@@ -562,6 +567,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     governorsGone: [],
     crowns: [],
     court: new Dict(),
+    kingAt: new Dict(),
     kingRoads: [],
     couriers: [],
     lettersCarried: new Dict(),
@@ -700,6 +706,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   governorsGone: list(() => GovernorGoneSchema),
   crowns: list(() => CrownSchema),
   court: dict(S),
+  kingAt: dict(S),
   kingRoads: list(() => KingRoadSchema),
   couriers: list(() => CourierSchema),
   lettersCarried: dict(I),
