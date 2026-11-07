@@ -217,10 +217,15 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
 }
 
 /**
- * A fallen player's game is over: once every human seat at the table has fallen, and the table's setting allows it (on by
+ * A fallen player's game is over, and so is one whose king has died (item 17b): once every human seat at the table is out, and the table's setting allows it (on by
  * default), the players watch the rest in god view. While one of them still plays, a fallen player on the same screen
  * would see what the other cannot, so nobody does. With the setting off, a fallen player keeps his own view.
  */
 export function fallenSeesAll(s: GameState, humans: readonly Power[]): boolean {
-  return s.config.fallenSeeAll && humans.length > 0 && humans.every((p) => s.eliminated.includes(p));
+  return s.config.fallenSeeAll && humans.length > 0 && humans.every((p) => playerOut(s, p));
+}
+
+/** Item 17b: a player is out when his kingdom has fallen or his king has died, his heir's seat played by a script. */
+export function playerOut(s: GameState, p: Power): boolean {
+  return s.eliminated.includes(p) || s.reignsEnded.some((x) => x.power === p);
 }

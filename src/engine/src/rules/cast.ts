@@ -2,9 +2,11 @@
  * The cast beyond the first eighteen (build order item 10): the attested people of 1346 who can serve as characters, the
  * Nubians in Egypt's service, and the name styles of each region for the ordinary people the pool needs. From the people
  * dossier, `docs/history/06-attested-people.md` ("Attested characters", "Nubians in Egypt's service", "Name styles for
- * everyone else"). Kings, queens and princes are seats or their households, never characters.
+ * everyone else"). Kings are persons too since item 17b (`turn/kings-fate.ts`); queens and princes are their households, never characters.
  */
-import type { Power } from "../model/power.ts";
+import { cmpNum, sortBy } from "../core/seq.ts";
+import { WorldMap } from "../model/map.ts";
+import { AllPowers, type Power } from "../model/power.ts";
 
 /** What the sources tell of a person, as traits on the 0–100 scale; each game varies them a little ("Attested characters"). */
 export interface Core {
@@ -337,3 +339,11 @@ export const Residents1346: readonly { name: string | null; province: string; gr
  * 136-138) [A]. A man's own share comes from his stake (`CastSeed.stake`).
  */
 export const Leanings1346: readonly { province: string; to: Power; grade: string }[] = [{ province: "byblos", to: "Amurru", grade: "A: EA 74-91, 136-138" }];
+
+/** A court's name style, or the nearest court's if it has none of its own. */
+export function styleOf(p: Power): (typeof Styles)[number] {
+  const map = WorldMap.default;
+  const capital = map.capital(p).id;
+  const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => map.hops(map.capital(x).id, capital), cmpNum])[0];
+  return Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
+}

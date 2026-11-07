@@ -78,6 +78,8 @@ export interface Live {
   config: GameConfig | null;
   /** The powers risen in play (item 13+), as the engine registers them: sent with every update, so the map knows a new power the season it rises, before the state is read. */
   risen: RisenPower[];
+  /** The heirs reigning (item 17b), by their own names: [power, name, what the record shows of him], sent likewise. */
+  crowned: [string, string, string][];
   /** The names claimed and given (item 17+, "A power's name is a claim"), and the fallen, who claim nothing: sent likewise. */
   names: { claims: [string, string][]; given: [string, [string, string][]][]; heard: [string, [string, { name: string }][]][]; fallen: string[]; falls: [string, string[]][] };
   seats: Record<string, string>;

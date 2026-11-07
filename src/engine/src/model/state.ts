@@ -27,7 +27,7 @@ import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, ty
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 import { type Bill, BillSchema, type Coffer, CofferSchema, type Remittance, RemittanceSchema } from "./coffers.ts";
 import { type Unit, UnitSchema } from "./units.ts";
-import { type Reign, ReignSchema } from "./kings.ts";
+import { type Reign, type ReignEnded, ReignEndedSchema, ReignSchema } from "./kings.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -426,6 +426,8 @@ export interface GameState {
   risen: RisenPower[];
   /** Item 17b: each power's king as a person, his traits as this game drew them. */
   reigns: Dict<Power, Reign>;
+  /** Item 17b, part B: the reigns ended by a king's death, as they ended. */
+  reignsEnded: ReignEnded[];
   /**
    * Item 17: each held province's unrest as last reckoned, from item 17++ how far its holder's lead in its people's eyes
    * falls short of a firm hold (its holder never sees the number: his governor, spies and the people's complaints tell
@@ -578,6 +580,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     eliminated: [],
     risen: [],
     reigns: new Dict(),
+    reignsEnded: [],
     restless: new Dict(),
     takenAt: new Dict(),
     breached: new Dict(),
@@ -714,6 +717,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   eliminated: list(S),
   risen: list(() => RisenPowerSchema),
   reigns: dict(() => ReignSchema),
+  reignsEnded: list(() => ReignEndedSchema),
   restless: dict(I),
   takenAt: dict(I),
   breached: dict(S),

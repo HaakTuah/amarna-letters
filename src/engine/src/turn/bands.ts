@@ -29,6 +29,7 @@ import { chooseStrategy } from "../rules/strategy.ts";
 import { TurnEngine, idNumber } from "./core.ts";
 import { killsByChoice } from "./own-choices.ts";
 import { paidOffBy } from "./raiders.ts";
+import { realmOfKing } from "../rules/court.ts";
 
 /** How a head rose ("How he rose shapes who he is"): the circumstance leans his traits, since it picks the man. */
 export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw" | "captain" | "elder";
@@ -276,7 +277,9 @@ P.chiefLeaves = function (c, province, why) {
 P.dies = function (c, where, how) {
   const S = this.s;
   const employer = c.status === "Employed" ? c.employer : null;
-  if (employer !== null) this.coverFor(c, employer, c.duty === "Travelling" || c.duty === "Leading" ? "None" : c.duty);
+  // A king's realm knows at once, for his heir reigns from this season (item 17b).
+  const realm = realmOfKing(S, c.id);
+  if (employer !== null && realm === null) this.coverFor(c, employer, c.duty === "Travelling" || c.duty === "Leading" ? "None" : c.duty);
   c.diedWith ??= c.purse + (c.hoard?.gold ?? 0);
   c.status = "Dead";
   c.duty = "None";
@@ -290,7 +293,8 @@ P.dies = function (c, where, how) {
   const band = this.bandOf(c);
   if (band !== null) this.leaderLost(band, "he is dead");
   const from = S.owner.getOrDefault(where, null) ?? employer;
-  if (from !== null) for (const heard of AllPowers.filter((p) => p === employer || coverOf(c, p) !== null)) this.rumor(heard, from, `It is said that ${c.name} died ${how} in ${name}.`, c.id, "Death");
+  if (from !== null) for (const heard of AllPowers.filter((p) => p !== realm && (p === employer || coverOf(c, p) !== null))) this.rumor(heard, from, `It is said that ${c.name} died ${how} in ${name}.`, c.id, "Death");
+  if (realm !== null) this.kingDied(c, `${how} in ${name}`);
 };
 
 /**
@@ -556,8 +560,10 @@ P.naturalLosses = function () {
     S.characters.filter((c) => c.status !== "Dead"),
     [(c: Character) => idNumber(c.id), cmpNum],
   )) {
-    // Envoys at an audience, travellers and captives under guard are left to their own perils.
+    // Envoys at an audience, travellers and captives under guard are left to their own perils; a king dies only by a
+    // cause where he is, never by the dice of plague or famine (item 17b).
     if (c.duty !== "None" && c.duty !== "Leading" && c.duty !== "SpyPosted") continue;
+    if (realmOfKing(S, c.id) !== null) continue;
     const where = c.at !== null ? this.courtAt(c.at) : c.watchProvince;
     if (where === null) continue;
     const plague = S.catastrophes.some((x) => x.kind === "Plague" && x.startTurn <= S.turn && x.endTurn >= S.turn && (x.province === where || (x.province === null && S.owner.getOrDefault(where, null) === x.power)));

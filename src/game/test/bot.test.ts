@@ -66,7 +66,7 @@ describe("BotTests", () => {
     brain.learn(v, new Board(v));
     Assert.equal(temperament("Egypt", 1), brain.p);
     // Another man on the throne: the seat plays as him from the season it sees him.
-    s.reigns.set("Egypt", { traits: [90, 10, 20, 50, 50, 50, 50, 90, 50, 50], since: 2 });
+    Object.assign(s.reigns.get("Egypt"), { traits: [90, 10, 20, 50, 50, 50, 50, 90, 50, 50], since: 2 });
     s.turn = 2;
     v = Views.for(s, "Egypt");
     brain.learn(v, new Board(v));

@@ -7,26 +7,18 @@
  * The ruler lives on as a free character standing at his old city, with nothing in his purse that was not his. Granting
  * him his city back is a governorship, a privilege, which comes with item 13 ("Governors").
  */
-import { clamp } from "../core/num.ts";
-import { cmpNum, sortBy } from "../core/seq.ts";
 import { cessionAgreed } from "../model/cession.ts";
 import type { CedeProvinceOrder } from "../model/orders.ts";
-import { newCharacter, newFact, newTraits, type Character } from "../model/people.ts";
-import { AllPowers, king, land, rulerNamed, type Power, powerName, whose } from "../model/power.ts";
-import { isAlive, logEvent, newId, unitAt } from "../model/state.ts";
+import { newFact } from "../model/people.ts";
+import { land, type Power, powerName, whose } from "../model/power.ts";
+import { findCharacter, isAlive, logEvent, newId, unitAt } from "../model/state.ts";
 import { seasonWords } from "../rules/clauses.ts";
-import { personaTemplate } from "../rules/personas.ts";
-import { drawSkills } from "../rules/skills.ts";
-import { chooseStrategy } from "../rules/strategy.ts";
-import { Styles } from "../rules/cast.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
     /** A king's capital ceded by agreement: his realm passes whole, and he lives on as a character. */
     realmCeded(p: Power, c: CedeProvinceOrder): void;
-    /** The ruler of a realm he ceded, put on the map as a free man at his old city. */
-    formerRuler(p: Power, to: Power): Character;
   }
 }
 
@@ -56,49 +48,10 @@ P.realmCeded = function (p, c) {
     return;
   }
   logEvent(S, "cession", `${p} ceded ${name}, its capital, and with it the whole realm, to ${c.to}.`, [p, c.to]);
-  this.fall(p, c.to, c.to, true);
+  this.fall(p, c.to, true);
   // A capital ceded is a capital taken: its archive lies in the city.
   this.takeArchive(c.to, c.province);
-  this.formerRuler(p, c.to);
-};
-
-P.formerRuler = function (p, to) {
-  const S = this.s;
-  const capital = this.map.capital(p);
-  const rng = this.r("ceded", p);
-  // His own name where the sources give one; else one in his land's style (or the nearest court's that has one).
-  const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => this.map.hops(this.map.capital(x).id, capital.id), cmpNum])[0];
-  const style = Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
-  const base = rulerNamed(p) ? king(p) : rng.pick(style.names);
-  const c = newCharacter({
-    id: newId(S, "c"),
-    name: S.characters.some((x) => x.name === base) ? `${base} of ${capital.name}` : base,
-    origin: capital.name,
-    calling: `former ruler of ${land(p)}`,
-    // A man who held a throne: able and ambitious, his loyalty his own (first guesses, item 18).
-    traits: newTraits({
-      loyalty: rng.range(20, 80),
-      greed: rng.range(20, 90),
-      competence: Math.min(rng.range(30, 95), rng.range(30, 95)),
-      ambition: clamp(rng.range(40, 95), 0, 100),
-      courage: rng.range(20, 90),
-    }),
-  });
-  const add = (text: string): void => {
-    c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
-  };
-  add(`Ruled ${land(p)} from ${capital.name}.`);
-  add(`Ceded ${capital.name}, and with it the whole of ${land(p)}, to ${powerName(to)} by a sealed tablet, in ${seasonWords(S.turn)}.`);
-  c.traits.sympathy = null;
-  c.traits.sympathyStrength = 0;
-  c.arrived = S.turn;
-  c.status = "Free";
-  c.seeking = true;
-  // He stands where his court stood, at his old city, now the receiver's.
-  c.at = p;
-  drawSkills(S.seed, c);
-  chooseStrategy(c);
-  c.persona = personaTemplate(c);
-  S.characters.push(c);
-  return c;
+  // Its king lives on, a free man at his old city (item 17b: he was a person all along).
+  const k = findCharacter(S, S.reigns.get(p).character);
+  if (k !== null) k.facts.push(newFact({ id: newId(S, "f"), text: `Ceded ${name}, and with it the whole of ${land(p)}, to ${powerName(c.to)} by a sealed tablet, in ${seasonWords(S.turn)}.`, secrecy: "Public", tag: "origin" }));
 };

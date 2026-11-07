@@ -23,9 +23,9 @@ import { type UnitKind, WorldMap } from "../model/map.ts";
 import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
-import { courtOf } from "../rules/court.ts";
+import { courtOf, crownedIn } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
-import { powerName, setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { powerName, setCrowned, setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
 import { type Unit } from "../model/units.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
@@ -48,6 +48,8 @@ export class TurnEngine {
     setRisen(state.risen);
     // And the names they claim (item 17+), which the functions naming a power read.
     setNameClaims(state.names, state.eliminated, state.nameGiven, state.namesHeard, state.fallsHeard);
+    // And the heirs reigning (item 17b), who go by their own names.
+    setCrowned(crownedIn(state));
   }
 
   /** The stream for a roll this season. */
@@ -137,6 +139,8 @@ export class TurnEngine {
     // Item 11b: news travels with people.
     this.newsSeason();
     this.naturalLosses();
+    // Item 17b: a king held at his captor's court may get away.
+    this.kingsHeld();
     this.newcomers();
     // Item 12: the dice of who understands whom fall before any model is called.
     this.settleSpeech();

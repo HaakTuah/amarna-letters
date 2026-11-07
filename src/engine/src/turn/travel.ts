@@ -462,7 +462,7 @@ P.convoyStopped = function (j, c, province, stop) {
     notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, was taken from the guards in ${name} by ${whose(taker)} men.`, c.id);
     if (taker === lord) {
       c.duty = "None";
-      this.releaseCaptive(taker, c);
+      this.releaseCaptive(taker, c, province);
       remember(c, S.turn, `My own king's men freed me from ${land(giver)}'s guards in ${name}.`);
       logEvent(S, "captive", `${taker}'s men freed ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-freed");
       return;
@@ -479,7 +479,7 @@ P.convoyStopped = function (j, c, province, stop) {
   // Outlaws, or anything else on the road: the guards scattered, the captive slips away.
   c.duty = "None";
   c.at = null;
-  this.releaseCaptive(meant, c);
+  this.releaseCaptive(meant, c, province);
   remember(c, S.turn, `Outlaws fell on ${land(giver)}'s guards in ${name}, and I slipped away in the confusion.`);
   notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, escaped in ${name} when outlaws fell on the guards.`, c.id);
   logEvent(S, "captive", `${c.name} escaped ${giver}'s guards in ${name} when outlaws fell on them.`, [giver], "captive-escaped");
@@ -505,7 +505,7 @@ P.captiveArrives = function (j) {
     j.to,
     "Notice",
     "A captive given to you",
-    `${whose(j.from)} guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
+    `${j.from === j.to ? "Your" : whose(j.from)} guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
     c.id,
   );
   logEvent(S, "captive-handed", `${c.name}, handed over by ${j.from}, reached ${j.to} under guard.`, [j.from, j.to], "captive-arrived");
@@ -664,6 +664,10 @@ P.wordArrives = function (j) {
     case "Foiled":
       // Bug #467: a scheduled order foiled on land lost far away wakes its seat as the word of it comes (TurnEngine.lostOrder).
       S.sleep.tryGet(j.to)?.pendingWake.push(j.text ?? "");
+      break;
+    case "Succession":
+      // Item 17b: word that a king has died, and who reigns now.
+      notify(S, j.to, "Rumor", "A king is dead", j.text ?? "");
       break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);

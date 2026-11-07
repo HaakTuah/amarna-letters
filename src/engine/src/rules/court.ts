@@ -104,3 +104,14 @@ function courierPoints(map: WorldMap, ways: Ways, from: string, season: number):
 export function wordFromKing(s: GameState, map: WorldMap, p: Power, to: string): number {
   return courierSeasons(s, map, courtOf(s, map, p), to);
 }
+
+/** Item 17b, part B: the realm whose reigning king the character is, or null (a realm that has fallen has no reigning king). */
+export function realmOfKing(s: GameState, id: string): Power | null {
+  for (const [p, r] of s.reigns) if (r.character === id && !s.eliminated.includes(p)) return p;
+  return null;
+}
+
+/** The reigning heirs, by their reigns, for the names every page and the engine use (`setCrowned`). */
+export function crownedIn(s: GameState): [Power, string, string][] {
+  return [...s.reigns].filter(([, r]) => r.name !== "").map(([p, r]) => [p, r.name, r.about]);
+}

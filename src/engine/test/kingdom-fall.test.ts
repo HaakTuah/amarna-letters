@@ -12,6 +12,7 @@ import {
   EconomyData,
   cede,
   inboxOf,
+  ownedBy,
   land,
   move,
   newGame,
@@ -20,31 +21,25 @@ import {
   newSiege,
   newTurnSubmission,
   newUnit,
-  raise,
   single,
   support,
-  unitAt,
   wallsOf,
 } from "@amarna/engine";
 import { removeAll, Assert, subs, oldWorld, smallWorld } from "./support.ts";
 
-// A kingdom falls with its capital (the design document's rule, built with the siege package, Build order item 5): its orders
-// lapse for the rest of the season. Since item 13 its realm comes apart: the capital and the land where the taker's troops
-// stand are his, the rest falls lawless, and its troops are their commanders' or disband; since item 13+ each part as word
-// of the fall reaches it (`fall-as-news.test.ts`).
+// Item 17b, part B: a king taken where he stands is his taker's captive and his court flees to the nearest city his realm
+// still holds; only a realm that holds nothing falls, its orders lapsing for the rest of the season and its armies their
+// commanders' or disbanded as word reaches them (`fall-as-news.test.ts`). (From the siege package, Build order item 5, to
+// then a kingdom fell with its capital.)
 describe("KingdomFallTests", () => {
   function season(s: GameState, orders: Dict<Power, TurnSubmission>): void {
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(orders);
   }
-  // Item 13+: seasons pass until word of the season's falls has reached all their land.
-  function wordSpreads(s: GameState): void {
-    const fallen = (): boolean => WorldMap.default.landProvinces.some((x) => s.eliminated.includes(s.owner.getOrDefault(x.id, null) ?? ""));
-    for (let i = 0; i < 8 && fallen(); i++) season(s, new Dict());
-  }
+  const kingOf = (s: GameState, p: Power) => s.characters.find((c) => c.id === s.reigns.get(p).character)!;
 
-  test("A capital stormed and then obeying its stormers brings down its kingdom, and the rest of its land falls lawless", () => {
+  test("A capital stormed and then obeying its stormers takes its king, and his court flees to a city his realm still holds", () => {
     let s = smallWorld(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "Arzawa", "Hatti", "Egypt");
     // Apasa's walls thrown down to level 1, its troops gone; Hatti's armies in Lukka and Mira.
     s.walls.set("apasa", 1);
@@ -52,126 +47,77 @@ describe("KingdomFallTests", () => {
     s.owner.set("mira", "Hatti");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "lukka" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "mira" }));
-    season(
-      s,
-      subs({
-        Hatti: { orders: [move("lukka", "apasa"), support("mira", "lukka", "apasa")] },
-        // The levy comes after the fall: it is not raised, and nothing is paid.
-        Arzawa: { orders: [raise("seha", "Army")] },
-      }),
-    );
+    season(s, subs({ Hatti: { orders: [move("lukka", "apasa"), support("mira", "lukka", "apasa")] } }));
     // Item 17++: Hatti's men stand within its walls; Apasa, its people turned from their king for the test, answers to
-    // Hatti as the next season begins, and the kingdom falls then.
+    // Hatti as the next season begins, and its king is taken then.
     Assert.equal("Arzawa", s.owner.get("apasa"));
     s.ledger.get("apasa").set("Arzawa", 0);
-    season(s, subs({ Arzawa: { orders: [raise("seha", "Army")] } }));
-
-    Assert.contains("Arzawa", s.eliminated);
+    season(s, subs({}));
     Assert.equal("Hatti", s.owner.get("apasa"));
-    // Item 13: no troop of Hatti's stands in Seha, nor a governor of Arzawa's: it falls lawless, once word of the fall
-    // reaches it (item 13+).
-    Assert.equal("Arzawa", s.owner.get("seha"));
-    Assert.doesNotContain(s.units, (u) => u.power === "Arzawa");
-    Assert.null(unitAt(s, "seha"));
-    Assert.doesNotContain(inboxOf(s, "Arzawa"), (i) => i.title === "Levy raised" || i.title === "Not enough gold");
-    let fall = Assert.single(s.falls);
-    Assert.equal(["Arzawa", "Hatti", "apasa", 2], [fall.power, fall.conqueror!, fall.capital, fall.turn]);
-    Assert.equal([], fall.land);
-    Assert.equal(
-      "With Apasa you took the kingdom of Arzawa: its king has fallen, his armies are their own commanders' or disband as word reaches them, and none of his other land is yours; the rest, Seha River Land, comes apart as word of the fall reaches it by road: where your troops stand then it is yours, held by force; a governor there rules his province in his own name, and the rest falls lawless.",
-      single(inboxOf(s, "Hatti"), (i) => i.title === KingdomFallsTitle).body,
-    );
-    // Word of the fall travels (item 7b): Egypt, far away, hears it when the word arrives, and sees Arzawa fallen then.
-    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls");
-    Assert.doesNotContain(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
-    // Word of this fall (since item 17 other words travel too: a new ruler risen elsewhere, a governor's report).
-    let word = single(s.journeys, (j) => j.kind === "Word" && j.to === "Egypt" && j.news === "KingdomFalls");
-    while (s.turn < word.arriveTurn) season(s, subs({}));
-    new TurnEngine(s).beginTurn();
-    Assert.contains("Word spreads that Hatti has taken Apasa, and the kingdom of Arzawa is no more.", single(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls").body);
-    Assert.contains(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
-    Assert.contains(
-      s.events,
-      (e) => e.kind === "fall" && e.text === "The kingdom of Arzawa has fallen: Hatti took its capital, Apasa, and Hatti holds it; the rest of it comes apart as word of the fall reaches it.",
-    );
-    wordSpreads(s);
-    Assert.null(s.owner.get("seha"));
+    Assert.doesNotContain(s.eliminated, (p) => p === "Arzawa");
+    const king = kingOf(s, "Arzawa");
+    Assert.equal(["Captured", "Hatti", "UnderGuard", true], [king.status, king.heldBy, king.duty, king.intercepted]);
+    Assert.contains(s.journeys, (j) => j.kind === "CaptiveConvoy" && j.characterId === king.id && j.to === "Hatti");
+    Assert.contains("His fate is yours", single(inboxOf(s, "Hatti"), (i) => i.title === "A king taken").body);
+    // The court rules from a city Arzawa still holds, in his name.
+    const court = s.court.get("Arzawa");
+    Assert.equal("Arzawa", s.owner.get(court));
+    Assert.contains("rules in his name until he is back", single(inboxOf(s, "Arzawa"), (i) => i.title === "The court flees").body);
+    Assert.empty(s.falls);
   });
 
-  test("A capital that surrenders to a siege brings down its kingdom", () => {
-    let s = smallWorld(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "Babylonia", "Assyria");
+  test("A realm that holds nothing falls with its last city, and word of it travels", () => {
+    let s = smallWorld(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "Babylonia", "Assyria", "Egypt");
+    // Ashur is all Assyria holds, its other land Babylonia's, its people indifferent, its troops gone.
+    removeAll(s.units, (u) => u.power === "Assyria");
+    for (const id of ownedBy(s, "Assyria"))
+      if (id !== "ashur") {
+        s.owner.set(id, "Babylonia");
+        s.ledger.set(id, new Dict());
+      }
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 3 * EconomyData.breachPerLevel - 1, since: 1 }));
     season(s, new Dict());
     Assert.contains("Assyria", s.eliminated);
-    // Item 13: the capital is Babylonia's; the rest of Assyria, with no Babylonian troops, falls lawless (once word reaches it).
     Assert.equal("Babylonia", s.owner.get("ashur"));
-    wordSpreads(s);
-    Assert.all(WorldMap.default.homeOf("Assyria").filter((p) => p.id !== "ashur"), (p) => Assert.null(s.owner.get(p.id)));
     Assert.equal(2, wallsOf(s, "ashur"));
     Assert.empty(s.sieges);
-    Assert.equal("Babylonia", Assert.single(s.falls).conqueror);
+    let fall = Assert.single(s.falls);
+    Assert.equal(["Assyria", "Babylonia", "ashur"], [fall.power, fall.conqueror!, fall.capital]);
+    // Its king is Babylonia's captive still, his realm gone: a former ruler.
+    Assert.equal(["Captured", "Babylonia", null], [kingOf(s, "Assyria").status, kingOf(s, "Assyria").heldBy, kingOf(s, "Assyria").employer]);
+    Assert.equal(
+      "With Ashur you took the last land of Assyria: the kingdom has fallen, and its armies are their own commanders' or disband as word reaches them.",
+      single(inboxOf(s, "Babylonia"), (i) => i.title === KingdomFallsTitle).body,
+    );
+    Assert.contains(s.events, (e) => e.kind === "fall" && e.text === "The kingdom of Assyria has fallen: Babylonia took Ashur, the last it held.");
+    // Word of the fall travels (item 7b): Egypt, far away, hears it when the word arrives, and sees Assyria fallen then.
+    Assert.doesNotContain(Views.for(s, "Egypt").fallen, (p) => p === "Assyria");
+    let word = single(s.journeys, (j) => j.kind === "Word" && j.to === "Egypt" && j.news === "KingdomFalls");
+    while (s.turn < word.arriveTurn) season(s, subs({}));
+    new TurnEngine(s).beginTurn();
+    Assert.contains("Word spreads that Babylonia has taken Ashur, the last land of Assyria, and its kingdom is no more.", single(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls").body);
+    Assert.contains(Views.for(s, "Egypt").fallen, (p) => p === "Assyria");
   });
 
-  // <summary>Seed 1, no catastrophes: each pair's army stands in the other's capital, one season from its surrender.</summary>
-  function sieges(...sieges: [Power, Power][]): GameState {
+  test("Kings who take each other's capitals in one season each hold the other, and neither realm falls", () => {
     let s = smallWorld(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "Babylonia", "Assyria", "Mitanni");
-    for (const [by, of] of sieges) {
+    for (const [by, of] of [
+      ["Assyria", "Mitanni"],
+      ["Mitanni", "Assyria"],
+    ] as const) {
       let capital = WorldMap.default.capital(of).id;
       removeAll(s.units, (u) => u.province === capital);
       let army = newUnit({ id: newId(s, "u"), power: by, kind: "Army", province: capital });
       s.units.push(army);
       s.sieges.push(newSiege({ province: capital, power: by, unitId: army.id, progress: wallsOf(s, capital) * EconomyData.breachPerLevel - 1, since: 1 }));
     }
-    return s;
-  }
-
-  // Babylonia takes Ashur while Assyria takes Washukanni: Mitanni is reckoned before Assyria.
-  // Babylonia takes Washukanni while Mitanni takes Ashur: Mitanni is reckoned before Assyria.
-  test.each([
-    ["Babylonia", "Assyria", "Mitanni"],
-    ["Babylonia", "Mitanni", "Assyria"],
-  ] as const)("A kingdom whose taker falls in the same season passes on with his land in any order %s", (first: Power, second: Power, third: Power) => {
-    let s = sieges([first, second], [second, third]);
     season(s, new Dict());
-    Assert.contains(second, s.eliminated);
-    Assert.contains(third, s.eliminated);
-    Assert.doesNotContain(first, s.eliminated);
-    // Item 13: both capitals pass down the chain to the first, the rest of both kingdoms falls lawless.
-    for (const p of [second, third]) Assert.equal(first, s.owner.get(WorldMap.default.capital(p).id));
-    wordSpreads(s);
-    Assert.all(
-      WorldMap.default.homeOf(second).concat(WorldMap.default.homeOf(third)).filter((p) => !p.capital),
-      (p) => Assert.null(s.owner.get(p.id)),
-    );
-    Assert.equal(first, single(s.falls, (f) => f.power === third).conqueror);
-    Assert.contains(
-      s.events,
-      (e) =>
-        e.kind === "fall" &&
-        e.text ===
-          `The kingdom of ${land(third)} has fallen: ${second} took its capital, ${WorldMap.default.capital(third).name}, and ${first} holds it; the rest of it comes apart as word of the fall reaches it.`,
-    );
-    Assert.contains(
-      inboxOf(s, first),
-      (i) =>
-        i.title === KingdomFallsTitle &&
-        i.body.startsWith(
-          `${second} took ${WorldMap.default.capital(third).name}, the capital of ${land(third)}, but fell himself in the same season, and the kingdom of ${land(third)} passes to you with his`,
-        ),
-    );
-  });
-
-  test("Kings who take each other s capitals in one season leave their land free", () => {
-    let s = sieges(["Assyria", "Mitanni"], ["Mitanni", "Assyria"]);
-    season(s, new Dict());
-    Assert.contains("Assyria", s.eliminated);
-    Assert.contains("Mitanni", s.eliminated);
-    wordSpreads(s);
-    Assert.all(WorldMap.default.homeOf("Mitanni").concat(WorldMap.default.homeOf("Assyria")), (p) => Assert.null(s.owner.get(p.id)));
-    Assert.all(s.falls, (f) => Assert.null(f.conqueror));
+    Assert.doesNotContain(s.eliminated, (p) => p === "Assyria" || p === "Mitanni");
+    Assert.equal(["Captured", "Mitanni"], [kingOf(s, "Assyria").status, kingOf(s, "Assyria").heldBy]);
+    Assert.equal(["Captured", "Assyria"], [kingOf(s, "Mitanni").status, kingOf(s, "Mitanni").heldBy]);
   });
 
   test("A king cannot cede his own capital without a sealed tablet that gives it", () => {

@@ -29,7 +29,7 @@ import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtV
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { courtOf } from "./court.ts";
+import { courtOf, realmOfKing } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -478,6 +478,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
   const alias = falseNameAt(c, viewer);
   const borrowed = alias?.as != null ? (s.characters.find((x) => x.id === alias.as) ?? null) : null;
   const facts = [...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []), ...factsKnownTo(c, viewer)].map((f) => f.text);
+  const kingOf = realmOfKing(s, c.id);
   return newCharacterView({
     id: c.id,
     name: alias?.name ?? c.name,
@@ -485,7 +486,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     ours,
     status: c.status === "Captured" && c.heldBy === viewer ? "your captive" : c.status.toLowerCase(),
     // A spy you caught: whom it confessed to serving, if it did.
-    employer: ours || (c.status === "Employed" && here) ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
+    employer: ours || (c.status === "Employed" && here) || kingOf !== null ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
     duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
     where: ours || here ? whereText(c, viewer) : "",
     province: ours && !captive ? landPlace(c) : null,
@@ -516,6 +517,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
+    kingOf,
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
     ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,

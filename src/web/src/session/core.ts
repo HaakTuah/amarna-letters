@@ -6,6 +6,7 @@ import {
 
   AudienceViewSchema,
   canPlayOn,
+  crownedIn,
   Dict,
   HostReplySchema,
   SeatViewSchema,
@@ -26,30 +27,42 @@ import {
   type GameConfig,
   ownLand,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, threadsFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
+import { GameLog, GameRunner, ReplayExhaustedError, ScriptLeader, exportJsonl, pressFor, realNames, threadsFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
 import { PageGate } from "./page-gate.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
-import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
+import { choicesOf, fallenSeesAll, playerOut, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog, savedBatches } from "./storage.ts";
 
 /** A human seat whose decisions the page makes: the worker asks, the page answers by message. */
 class PageSeat implements ISeat {
   readonly label = "Human";
+  /**
+   * Item 17b: the player's king is dead, and his game with him; his heir's seat is played by a script from then on, as any
+   * seat the player did not take.
+   */
+  out = false;
   /** A human may sleep too (item 9+a): ending a turn with a sleep, he is woken by the same triggers as any seat, or by himself. */
-  readonly canSleep = true;
+  get canSleep(): boolean {
+    return !this.out;
+  }
   /** Item 16: a human hears the royal council, on by default; he may turn it off. */
-  readonly hearsCouncil = true;
+  get hearsCouncil(): boolean {
+    return !this.out;
+  }
   /** Set when the player asks to wake: read once, by the runner's next season. */
   wakeNow = false;
   orders: { view: SeatView; resolve: (s: TurnSubmission) => void } | null = null;
   audience: { view: AudienceView; court: SeatView; resolve: (r: HostReply) => void } | null = null;
   private readonly changed: () => void;
-  constructor(changed: () => void) {
+  private readonly heir: ISeat;
+  constructor(changed: () => void, heir: ISeat) {
     this.changed = changed;
+    this.heir = heir;
   }
   decide(view: SeatView): Promise<TurnSubmission> {
+    if (this.out) return this.heir.decide(view);
     // Asked for orders, it is awake: a wish to wake made in the same season is spent.
     this.wakeNow = false;
     return new Promise((resolve) => {
@@ -58,6 +71,7 @@ class PageSeat implements ISeat {
     });
   }
   hostAudience(view: AudienceView, court: SeatView): Promise<HostReply> {
+    if (this.out) return this.heir.hostAudience(view, court);
     return new Promise((resolve) => {
       this.audience = { view, court, resolve };
       this.changed();
@@ -182,6 +196,7 @@ export class SessionCore {
       settings: this.settings,
       config: r?.state.config ?? null,
       risen: r === null ? [] : r.state.risen,
+      crowned: r === null ? [] : crownedIn(r.state),
       names:
         r === null
           ? { claims: [], given: [], heard: [], fallen: [], falls: [] }
@@ -249,13 +264,16 @@ export class SessionCore {
     const r = this.runner;
     if (this.fallTold || r === null || this.humans.size === 0) return;
     const humans = [...this.humans.keys()];
-    if (!humans.every((p) => r.state.eliminated.includes(p))) return;
+    // Item 17b: a player whose king has died is out, his heir's seat played by a script.
+    for (const [p, seat] of this.humans) if (!seat.out && playerOut(r.state, p) && !r.state.eliminated.includes(p)) seat.out = true;
+    if (!humans.every((p) => playerOut(r.state, p))) return;
     this.fallTold = true;
     const who = humans.map(land).join(" and ");
+    const how = humans.every((p) => r.state.eliminated.includes(p)) ? `The kingdom of ${who} has fallen` : `The king of ${who} is dead`;
     if (fallenSeesAll(r.state, humans)) {
       this.fallenToGod = true;
-      this.notice = `The kingdom of ${who} has fallen with its capital: your game is over. You watch the rest of the game in god view, seeing everything.`;
-    } else this.notice = `The kingdom of ${who} has fallen with its capital: your game is over. You watch the rest of the game with what your kingdom knew when it fell.`;
+      this.notice = `${how}: your game is over. You watch the rest of the game in god view, seeing everything.`;
+    } else this.notice = `${how}: your game is over. You watch the rest of the game with what your court knew when it ended.`;
   }
 
   // ---------------------------------------------------------------- building a game
@@ -282,7 +300,7 @@ export class SessionCore {
     const seats = new Dict<Power, ISeat>();
     for (const [p, seat] of set.seats) {
       if (seat.label === "Human") {
-        const h = new PageSeat(() => this.changed());
+        const h = new PageSeat(() => this.changed(), new ScriptLeader(state.seed));
         this.humans.set(p, h);
         seats.set(p, h);
       } else seats.set(p, seat);

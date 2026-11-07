@@ -229,13 +229,36 @@ export function tier(p: Power): Tier {
   return dataOf(p).tier;
 }
 
-/** A power's names: a fixed power's from the table, a risen one's from its rising (its land's name, its ruler's). */
-function dataOf(p: Power): PowerData {
+/** A power's names as it began: a fixed power's from the table, a risen one's from its rising (its land's name, its ruler's). */
+function firstOf(p: Power): PowerData {
   const fixed = (Data as Record<string, PowerData | undefined>)[p];
   if (fixed !== undefined) return fixed;
   const r = risenData.get(p);
   // A risen power is named by its land, so a page that has not seen it rise still names it.
   return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p, "City");
+}
+
+/** A power's names now: its first king's, or its reigning heir's (item 17b, part B), who goes by one name. */
+function dataOf(p: Power): PowerData {
+  const first = firstOf(p);
+  const heir = crowned.get(p);
+  return heir === undefined ? first : { ...first, king: heir.name, home: null, others: [] };
+}
+
+/** Item 17b, part B: each realm whose king has died, its reigning heir's name and what the record shows of him (the game state keeps them in its reigns). */
+const crowned = new Map<Power, { name: string; about: string }>();
+
+/** Sets the reigning heirs to a game's (its reigns with a name): a new game's none. */
+export function setCrowned(list: readonly (readonly [Power, string, string])[]): void {
+  crowned.clear();
+  for (const [p, name, about] of list) crowned.set(p, { name, about });
+  byName.clear();
+  renaming.clear();
+}
+
+/** A realm's reigning heir, or null while the king it began with (or its risen ruler) reigns. */
+export function heirOf(p: Power): { name: string; about: string } | null {
+  return crowned.get(p) ?? null;
 }
 
 /** Every name a fixed power's table gives it: its id, its land's, its king's, his own court's and his others. */
@@ -375,8 +398,8 @@ export function nameKnown(name: string): string | null {
 
 /** A power's house (item 17+): Bit- and its first king's name (Bit-Biryawaza), or Bit- and its land where he is unnamed. */
 export function house(p: Power): string {
-  const x = dataOf(p);
-  return `Bit-${rulerNamed(p) ? x.king : x.land.replace(/^the land of the |^the /, "")}`;
+  const x = firstOf(p);
+  return `Bit-${!x.king.toLowerCase().startsWith("the ") ? x.king : x.land.replace(/^the land of the |^the /, "")}`;
 }
 
 /**

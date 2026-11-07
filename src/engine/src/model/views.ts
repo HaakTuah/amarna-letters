@@ -367,6 +367,8 @@ export interface CharacterView {
    * Your captive is an envoy your besiegers caught at a city you besiege (it can be executed, ransomed or released, not turned).
    */
   intercepted: boolean;
+  /** Item 17b: the realm whose reigning king this is, which every court knows; null for anyone else. */
+  kingOf: Power | null;
   /**
    * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.
    */
@@ -456,6 +458,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     ready: false,
     heldByYou: false,
     intercepted: false,
+    kingOf: null,
     ransomDemand: null,
     ransomCarrier: null,
     owed: null,
@@ -499,6 +502,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   ready: B,
   heldByYou: B,
   intercepted: B,
+  kingOf: opt(S),
   ransomDemand: opt(I),
   ransomCarrier: opt(I),
   owed: opt(I),
