@@ -197,6 +197,12 @@ export const ReignEndedSchema: ObjSchema<ReignEnded> = obj("ReignEnded", (init: 
 });
 
 /** A king's traits for a game: his nature's, each moved by a seeded amount within `ReignData.vary`. */
+/** Item 18: a king's nature rolled for the game, each trait from 15 to 85, in place of the sources' (`GameConfig.rolledTraits`). */
+export function rolledNature(seed: number, p: Power): number[] {
+  const r = Rng.for(seed, 0, "rolled-nature", p);
+  return KingTraitValues.map(() => r.range(15, 85));
+}
+
 export function drawTraits(seed: number, p: Power, nature: readonly number[]): number[] {
   const r = Rng.for(seed, 0, "reign", p);
   return nature.map((v) => Math.max(0, Math.min(100, v + r.range(-ReignData.vary, ReignData.vary))));

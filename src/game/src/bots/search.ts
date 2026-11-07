@@ -36,7 +36,7 @@ import {
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { Brain } from "./brain.ts";
-import { archetype, type Personality } from "./personality.ts";
+import { archetype, unknownKing, type Personality } from "./personality.ts";
 import { Statecraft } from "./statecraft.ts";
 import { picturedHeld } from "./occupy.ts";
 import { joints as tacticsJoints, makePlan, relief, willing as tacticsWilling, type Joint, type MilitaryPlan } from "./tactics.ts";
@@ -300,9 +300,10 @@ function foresee(b: Board, brain: Brain, x: Power): [Plan, Plan] {
     prices: v.prices,
   });
   const their = new Board(view, null, brain.treasury);
-  // A pictured rival plays the archetype, and every roll in picturing him comes from our own seat's stream.
+  // A pictured rival plays the archetype (a middling king when traits were rolled, item 18), and every roll in picturing
+  // him comes from our own seat's stream.
   let model = brain.models.tryGet(x);
-  if (model === undefined) brain.models.set(x, (model = new Brain(x, brain.seed, archetype(x))));
+  if (model === undefined) brain.models.set(x, (model = new Brain(x, brain.seed, v.rolledTraits ? unknownKing(x) : archetype(x))));
 
   // What we know of how they see us: the mirror of our own dealings with them.
   const ours = brain.rel.get(x);

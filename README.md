@@ -206,7 +206,8 @@ There is one winner. Shared victory for sworn allies is a house rule, off by def
 ## The seven Great Kings
 
 Every king reads every power's opening position. The script kings each play the king on their throne, as the sources show the man (from item 17b), his
-traits varied a little in every game.
+traits varied a little in every game; a table can roll every king's temperament for the game instead (under Customize),
+and then no court knows a rival by his history.
 
 | Power | Capital | Tier | Starts with | How the script king plays |
 |---|---|---|---|---|

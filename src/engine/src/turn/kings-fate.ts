@@ -400,7 +400,9 @@ function nextHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): { at: n
   while (at < line.length && living(line[at]) === undefined) at++;
   const h: Heir | null = at < line.length ? line[at] : null;
   const kin = h?.kin ?? (rng.chance(HeirData.son / 100) ? "son" : "brother");
-  const traits = KingTraitValues.map((k) => clamp((h?.traits?.[k] ?? 50 + rng.range(-HeirData.spread, HeirData.spread)) + rng.range(-ReignData.vary, ReignData.vary), 0, 100));
+  // Item 18: with rolled traits, the record names him but does not set his nature.
+  const known = S.config.rolledTraits ? undefined : h?.traits;
+  const traits = KingTraitValues.map((k) => clamp((known?.[k] ?? 50 + rng.range(-HeirData.spread, HeirData.spread)) + rng.range(-ReignData.vary, ReignData.vary), 0, 100));
   const name = h?.name ?? drawnName(e, p, rng);
   const kinLine = kin.startsWith("of ") ? `Followed ${dead.name}, ${kin}.` : kin.startsWith("a ") || kin.startsWith("an ") || kin.startsWith("the ") ? `${upper(kin)}, who followed ${dead.name}.` : `${upper(kin)} of ${dead.name}.`;
   const about = h === null || h.about === "" ? kinLine : `${kinLine} ${h.about}`;

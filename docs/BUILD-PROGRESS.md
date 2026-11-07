@@ -207,7 +207,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | not started | | |
+| 18 | The balance pass | in progress, in six parts (the report lists them): **part A** (no rule names a power; temperament a setting, kings rolled per game) on `item/balance-a`; then B (the scoreboard: par, the weight of size, #825), C (length and war), D (money and characters), E (script spending as investment), F (the audit), then stop for review | `item/balance-a` | `docs/rounds/2026-11-07-balance-pass.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |

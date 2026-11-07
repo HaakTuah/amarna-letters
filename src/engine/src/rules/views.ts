@@ -169,6 +169,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     debtsHeld: claimViews(s, p),
     startStrength: s.startStrength.getOrDefault(p, 0),
     provinceWeight: s.config.provinceWeight,
+    rolledTraits: s.config.rolledTraits,
     owner: new Dict([...known.entries()].map(([k, x]) => [k, x.owner] as const)),
     // Dated where the news is older than this season, and newer than the start, which every court knows as it was.
     ownerAsOf: new Dict([...known.entries()].filter(([, x]) => x.turn < s.turn && x.turn > 0).map(([k, x]) => [k, x.turn] as const)),
