@@ -277,7 +277,8 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling"] as const;
+/** "Abroad" (item 17++++a): gone home beyond the map, a raider chief with his spoils, until he comes back through his door. */
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling", "Abroad"] as const;
 export type Duty = (typeof DutyValues)[number];
 
 /**
@@ -435,6 +436,12 @@ export interface Character {
   heard: string[];
   /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
   leftRoad: number | null;
+  /**
+   * Item 17++++a: the king who paid this chief to take his band out of his land (`pay_off`), and the last season of the
+   * term; "" if none. The word is the chief's, not his band's: it goes home and comes back with him.
+   */
+  paidOffBy: string;
+  paidOffUntil: number;
   /** Item 13: the battles it won and lost commanding an army, a record its master and anyone who hears of them can weigh. */
   won: number;
   lost: number;
@@ -674,6 +681,8 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     news: [],
     heard: [],
     leftRoad: null,
+    paidOffBy: "",
+    paidOffUntil: 0,
     won: 0,
     lost: 0,
     grantedBy: null,
@@ -755,6 +764,8 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   news: list(() => NewsHeldSchema),
   heard: list(S),
   leftRoad: opt(I),
+  paidOffBy: S,
+  paidOffUntil: I,
   won: I,
   lost: I,
   grantedBy: opt(S),

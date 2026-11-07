@@ -509,5 +509,5 @@ P.travellerArrives = function (j) {
   }
 };
 
-/** How many characters are alive, which the pool keeps near its baseline. */
-export const living = (e: TurnEngine): number => count(e.s.characters, (c) => c.status !== "Dead");
+/** How many characters are alive on the map, which the pool keeps near its baseline. */
+export const living = (e: TurnEngine): number => count(e.s.characters, (c) => c.status !== "Dead" && c.duty !== "Abroad");

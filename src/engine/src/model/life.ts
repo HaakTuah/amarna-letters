@@ -406,10 +406,20 @@ export interface ChiefView {
   /** Whom his band kills now, as he last chose; null if he has not chosen. */
   kill: Kill | null;
   ending: string;
+  /**
+   * Item 17++++a: for a band based beyond the map, its home in words ("the western isles, beyond the western sea"), else
+   * null; whether it can go home from here now; and the people it carried off, to sell at home.
+   */
+  home: string | null;
+  canGoHome: boolean;
+  captives: number;
+  /** Item 17++++a: the king who paid him to keep out of his land, and until when; null if none holds. */
+  paidBy: string | null;
+  paidUntil: number;
 }
 
 export function newChiefView(init: Partial<ChiefView> = {}): ChiefView {
-  return { turn: 0, men: 0, ship: false, purse: 0, cost: 0, short: 0, here: LandSeenSchema.make(), next: [], shipCost: null, shipMen: 0, kill: null, ending: "", ...init };
+  return { turn: 0, men: 0, ship: false, purse: 0, cost: 0, short: 0, here: LandSeenSchema.make(), next: [], shipCost: null, shipMen: 0, kill: null, ending: "", home: null, canGoHome: false, captives: 0, paidBy: null, paidUntil: 0, ...init };
 }
 
 export const ChiefViewSchema: ObjSchema<ChiefView> = obj("ChiefView", newChiefView, {
@@ -425,6 +435,11 @@ export const ChiefViewSchema: ObjSchema<ChiefView> = obj("ChiefView", newChiefVi
   shipMen: I,
   kill: opt(S),
   ending: S,
+  home: opt(S),
+  canGoHome: B,
+  captives: I,
+  paidBy: opt(S),
+  paidUntil: I,
 });
 
 /** What a chief decides for his band's next season, taken at its start; `turn` is the season he decided it. */
@@ -436,13 +451,15 @@ export interface ChiefChoice {
   /** Give up the road (the way back): the band goes back to the loose men and he to seeking service. */
   giveUp: boolean;
   kill: Kill;
+  /** Item 17++++a: a band based beyond the map goes home now, if it can from where it stands. */
+  home: boolean;
 }
 
 export function newChiefChoice(init: Partial<ChiefChoice> = {}): ChiefChoice {
-  return { turn: 0, go: null, ship: false, giveUp: false, kill: "none", ...init };
+  return { turn: 0, go: null, ship: false, giveUp: false, kill: "none", home: false, ...init };
 }
 
-export const ChiefChoiceSchema: ObjSchema<ChiefChoice> = obj("ChiefChoice", newChiefChoice, { turn: I, go: opt(S), ship: B, giveUp: B, kill: S });
+export const ChiefChoiceSchema: ObjSchema<ChiefChoice> = obj("ChiefChoice", newChiefChoice, { turn: I, go: opt(S), ship: B, giveUp: B, kill: S, home: B });
 
 /** What a posted spy knows when its reports wait for a carrier (the owner's answers to item 11b: the spy decides). */
 export interface ReportsView {

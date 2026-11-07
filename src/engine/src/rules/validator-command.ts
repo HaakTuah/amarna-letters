@@ -153,7 +153,9 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
     }
     case "court":
       return courtMoveRefusal(v, order);
-    case "enlist": {
+    // Item 17++++a: paying a band off is carried as an enlistment is.
+    case "enlist":
+    case "payOff": {
       if (!v.Map.exists(order.province) || v.Map.get(order.province).isSea) return `there is no land province called '${order.province}'`;
       const u = S.units.find((x) => x.province === order.province && x.power === v.power && x.kind === "Army") ?? null;
       if (u === null) return `no army of yours stands in ${order.province} to carry the offer`;
