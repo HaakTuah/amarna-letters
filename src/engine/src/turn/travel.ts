@@ -628,6 +628,11 @@ P.word = function (from, to, news, text) {
 
 P.wordArrives = function (j) {
   const S = this.s;
+  // Item 17b, part C2: word of a king's death reaches his realm even if it has fallen meanwhile, for his heir in exile.
+  if (j.news === "KingDead") {
+    this.kingDeadHeard(j);
+    return;
+  }
   if (!isAlive(S, j.to)) return;
   switch (j.news) {
     case "RoadsClosed":
@@ -669,11 +674,6 @@ P.wordArrives = function (j) {
       // Item 17b: word that a king has died, and who reigns now: the court knows him by his name from here.
       this.heirHeard(j.from, j.to, j.gold);
       notify(S, j.to, "Rumor", "A king is dead", j.text ?? "");
-      break;
-    case "KingDead":
-      // Item 17b: word of the king's death reaches his own court, and his heir reigns; it no longer believes him afield.
-      S.kingHeard.delete(j.to);
-      this.heirReigns(j.to, j.text ?? "");
       break;
     case "KingTaken":
       // Item 17b, part C: word that the king was taken away from his court reaches it.
