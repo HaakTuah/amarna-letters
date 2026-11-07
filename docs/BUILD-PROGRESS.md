@@ -190,6 +190,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**Loot with no road home, sent by courier (bug #740)**~~ (done, #750): where no road takes a load home, `lootHome`
   sends gold and tablets by courier, to reach the court with word from where they were taken. Save version 68. Report:
   `docs/rounds/2026-11-06-loot-by-courier.md`.
+- **The realms' name setting names every realm** (the owner, 7 November 2026, #768; archive item 233): the realms'
+  setting, apart from the places', names the city-states' and edge lands' realms too (Gubla or Byblos, Tjehenu or
+  Libya), so by default (known realms) Gubla's realm reads Byblos while the city reads Gubla. Requests to models stay as
+  they are. The design document's live text: Interface, "History, search and names".
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
