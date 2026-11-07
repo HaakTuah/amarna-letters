@@ -47,17 +47,34 @@ describe("FileSeatTests", () => {
 
   const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
-  function game(config: GameConfig | null = null, timeoutSeconds: number = 30, powers: readonly Power[] = [...Near, "Alashiya"], seed: number = 8): [GameRunner, string] {
+  function game(config: GameConfig | null = null, timeoutSeconds: number = 30, powers: readonly Power[] = [...Near, "Alashiya"], seed: number = 8, seat: Power = "Alashiya"): [GameRunner, string] {
     let folder = newFolder();
     let state = newGame(seed, config ?? newGameConfig({ catastropheChance: 0 }));
     let bot = new ScriptLeader(seed);
     let runner: GameRunner | null = null;
     let exchange = new FileExchange(folder, timeoutSeconds * 1000, (call) => runner!.log.addCall(call));
     // The small world (small-world.ts) by default: the file seat among the default few script kings, every other power idle.
-    let seats = smallSeats((p) => (p === "Alashiya" ? new LlmLeaderSeat(p, exchange, "file", "medium", state.config.customsPrimer, state.config, "File seat") : bot), powers);
+    let seats = smallSeats((p) => (p === seat ? new LlmLeaderSeat(p, exchange, "file", "medium", state.config.customsPrimer, state.config, "File seat") : bot), powers);
     runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     return [runner, folder];
   }
+
+  // Item 17++++: a small state's seat, taken by a model as any Great King's is, by the same rules: styled as the king of
+  // his city, never a Great King, and its reply played.
+  test("A small state's seat is played as any king's: Rib-Hadda of Gubla, king of his city", async () => {
+    let [runner, folder] = game(null, 30, [...Near, "Byblos"], 8, "Byblos");
+    const stop = new AbortController();
+    let seen: string[] = [];
+    let answering = answer(folder, (stem, text) => (seen.push(text), stem.includes("orders") ? HoldEverything : welcomeCourt(text)), stop.signal);
+    await runner.playTurn();
+    stop.abort();
+    await answering;
+    let request = first(seen, (t) => t.includes("t1_orders_Byblos.reply.json"));
+    Assert.contains("You are Rib-Hadda, king of Gubla (Byblos).", request);
+    Assert.doesNotContain("Great King of Gubla", request);
+    Assert.contains("TREASURY:", request);
+    Assert.empty(runner.errors);
+  });
 
   test("A file seat writes what a model king sees and plays the reply", async () => {
     let [runner, folder] = game();

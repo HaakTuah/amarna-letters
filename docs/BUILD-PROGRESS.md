@@ -305,8 +305,8 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 | 17+++ | The season plays out | done: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight; the world acting on them) merged, #728 | `item/season-plays-out`, `item/season-plays-out-e` | `docs/rounds/2026-11-03-season-plays-out.md` |
 | 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
 | 17+++b | History, search and names | done, #767 (bug #769 fixed with it) | `item/history-search-names` | `docs/rounds/2026-11-07-history-search-names.md` |
-| 17++++ | A small state as a seat | not started | | |
-| 17++++a | Raiders from beyond the map | not started | | |
+| 17++++ | A small state as a seat | done, #774 (bug #777 filed: a small state's claim to the rank is never recorded in play) | `item/small-state-seat` | `docs/rounds/2026-11-07-small-state-seat.md` |
+| 17++++a | Raiders from beyond the map | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17++++a"), its section "Pirates are bands at sea" (War); the 17++++ session ended at its context mark after merging #774 | | |
 | 17b | Every person on one scoreboard | not started | | |
 | 18 | The balance pass | not started | | |
 | 18a | The world in graphs | not started | | |

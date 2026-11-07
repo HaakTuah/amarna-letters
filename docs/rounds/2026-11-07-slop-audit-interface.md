@@ -27,8 +27,6 @@ this branch, gives the "after" column below.
     script kings read the same list, so they no longer treat a city's king as modest for it.
   - The answer's hint no longer says "structured press".
 - **The orders:**
-  - Envoy travel is one sentence ("two seasons each way to Babylonia, …; one season each way to every other court"),
-    from the seat view's own `travelLine`, given the screen's names.
   - The servants' fees read as fees, not "your people's jobs".
   - Debts lose their ids and give their due date as a date.
   - The roads read "Bar the roads to …" and "Open the roads to …".
@@ -59,7 +57,7 @@ this branch, gives the "after" column below.
 | `… so they can be confidently wrong … Where all four agree, the move is almost certainly sound.` | `… so they can be wrong and sure of it … Where all four agree, the move is usually sound.` |
 | `stands where up to 1 foreign troop could strike it` | `within reach of one foreign army or fleet` |
 | `Departs from the custom: no "brother"; the sender does not claim to be a Great King.` (a city's king) | (not shown: that is his custom) |
-| `Envoys take, each way: Hatti: 1 season; Babylonia: 2 seasons; …` (46 courts) | `Envoys take two seasons each way to Babylonia, Assyria, Kaska, Isuwa, Hayasa, Arrapha and Elam; one season each way to every other court.` |
+| `Pay Ashur-nadin the rest of the fee when the job is done` (sixteen lines, one per servant) | `The rest of the fee, paid when the errand is done (16)`, folded |
 | `a job whose first errand you name when you send them, for 156 shekels (78 handed over, 78 paid when it is done, as you ordered), by Akhet, 1342 BCE (turn 13); the job ends once it is done at your court` | `a job, its errand named when you send them: 156 shekels, 78 paid, 78 when it is done; term to Akhet, 1342 BCE (turn 13)` |
 | `Debt d1: 3 minas 20 shekels left to repay by turn 4` | `3 minas 20 shekels still owed, due by Akhet, 1345 BCE (turn 4)` |
 | `Close to Hatti` | `Bar the roads to Hatti` |

@@ -2,9 +2,10 @@ import {
   AllPowers,
   authenticate,
   forge,
+  journeyGroups,
   type GameState,
+  type JourneyGroup,
 } from "@amarna/engine";
-import { travelLine } from "@amarna/llm";
 import { describeOrder, powerName, shekels, when } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { withKey } from "../ui/keys.ts";
@@ -17,6 +18,21 @@ import { TreasurySection } from "./orders/TreasurySection.tsx";
 import { EnvoysSection } from "./orders/EnvoysSection.tsx";
 import { CourtSection } from "./orders/CourtSection.tsx";
 import { CouncilSection } from "./orders/CouncilSection.tsx";
+
+/**
+ * Every court's journey in the orders (item 17++++), grouped by its length as the model's request groups it
+ * (`journeyGroups`, shared): a few courts one by one; a long list, forty-six courts for any seat, as the most common length
+ * once ("1 season to every court but these") and the others by name.
+ */
+export function travelTimes(lines: readonly string[]): string {
+  const { most, others, odd } = journeyGroups(lines);
+  const seasons = (n: number): string => `${n} ${n === 1 ? "season" : "seasons"}`;
+  const named = (g: JourneyGroup): string => `${g.courts.map(powerName).join(", ")}: ${seasons(g.seasons)}`;
+  if (most === null) return odd.join("; ");
+  if (lines.length <= 8)
+    return [...[most, ...others].sort((a, b) => a.seasons - b.seasons).flatMap((g) => g.courts.map((c) => `${powerName(c)}: ${seasons(g.seasons)}`)), ...odd].join("; ");
+  return [`${seasons(most.seasons)} to every court${others.length === 0 ? ` (${most.courts.length})` : " but these"}`, ...others.map(named), ...odd].join("; ");
+}
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
 export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: (sleep: boolean) => void }) {
@@ -34,7 +50,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         </p>
         <p className="muted">
           <small>
-            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take {travelLine(v, powerName)}.
+            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {travelTimes(v.travelTimes)}.
           </small>
         </p>
       </div>
