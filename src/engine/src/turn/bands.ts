@@ -294,7 +294,7 @@ P.dies = function (c, where, how) {
   if (band !== null) this.leaderLost(band, "he is dead");
   const from = S.owner.getOrDefault(where, null) ?? employer;
   if (from !== null) for (const heard of AllPowers.filter((p) => p !== realm && (p === employer || coverOf(c, p) !== null))) this.rumor(heard, from, `It is said that ${c.name} died ${how} in ${name}.`, c.id, "Death");
-  if (realm !== null) this.kingDied(c, `${how} in ${name}`);
+  if (realm !== null) this.kingDied(c, `${how} in ${name}`, where);
 };
 
 /**

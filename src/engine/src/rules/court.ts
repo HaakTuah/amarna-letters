@@ -6,8 +6,8 @@ import { idiv } from "../core/num.ts";
 import { CourtData } from "../model/command.ts";
 import { seasonOfTurn, type WorldMap } from "../model/map.ts";
 import type { CourtOrder } from "../model/orders.ts";
-import type { Power } from "../model/power.ts";
-import type { GameState } from "../model/state.ts";
+import type { Crowned, Power } from "../model/power.ts";
+import { findCharacter, type GameState } from "../model/state.ts";
 import { PointsPerDay, cheapestRoute, legPoints } from "../model/travel.ts";
 import type { Checking } from "./validator-context.ts";
 import { type Ways, waysOf } from "../model/works.ts";
@@ -111,7 +111,19 @@ export function realmOfKing(s: GameState, id: string): Power | null {
   return null;
 }
 
-/** The reigning heirs, by their reigns, for the names every page and the engine use (`setCrowned`). */
-export function crownedIn(s: GameState): [Power, string, string][] {
-  return [...s.reigns].filter(([, r]) => r.name !== "").map(([p, r]) => [p, r.name, r.about]);
+/**
+ * The heirs who have reigned, by realm, for the names every page and the engine use (`setCrowned`): each realm's heirs in
+ * order (every king after the first is one: the kings of the reigns that ended, but the first, and the one reigning).
+ */
+export function crownedIn(s: GameState): Crowned[] {
+  const out: Crowned[] = [];
+  for (const [p, r] of s.reigns) {
+    if (r.name === "") continue;
+    const ended = s.reignsEnded.filter((x) => x.power === p);
+    // The kings after the first: those whose reigns ended, and the one reigning unless he is dead and his heir not yet risen.
+    const names = ended.slice(1).map((x) => findCharacter(s, x.character)?.name ?? "");
+    if (!ended.some((x) => x.character === r.character)) names.push(r.name);
+    out.push({ power: p, names, about: r.about, heard: [...(s.reignsHeard.tryGet(p) ?? [])] });
+  }
+  return out;
 }

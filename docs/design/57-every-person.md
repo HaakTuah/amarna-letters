@@ -38,7 +38,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   holds his realm's strength as he came to it (`strength`), from which part D scores him. He is nobody's servant: no
   order of his own court may name him (the validator). The pool's baseline counts the kings.
 - **Taken, not fallen.** A king taken where he stands (the province changed hands) or stopped on the road is his taker's
-  captive (`kingTaken`), brought to the taker's court under guard as a captive handed over is, so troops of his own may
+  captive (`kingTaken`; a king walking home elsewhere is not taken with it), brought to the taker's court under guard as a captive handed over is, so troops of his own may
   free him on the road. He was no spy at a post: his captor may put him to death, ransom him (his realm pays), question,
   hand over or release him, never turn him. Script captors ask a king's ransom (300 shekels and 300 more by greed, a first
   guess) or, vengeful (above 0.7) against a foe, put him to death; a script king ransoms its own whatever it costs.
@@ -49,10 +49,14 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   (`KingData.escape`; about one season in seventeen for a king of middling skill). Set free or escaped, he walks home like
   any traveller and reigns again at his court.
 - **He dies only by a cause where he is**: put to death, or on the road (outlaws); never of plague or famine, which are
-  dice. His realm knows at once, as its heir reigns from that season; other courts hear by word.
+  dice. His reign, and his player's game, end where he dies; his court hears of it by word from there (at once if he died
+  at it) and his heir reigns from then (`heirReigns`), the court ruling in the dead king's name meanwhile. Other courts
+  hear of the heir by word too, and each names the realm's king by the one it last heard of (`reignsHeard`, `kingFor`;
+  a captive's view tells that he is a king only to a court that knows he reigns). Death in battle and in a stormed city
+  come with part C, when the king travels without his court.
 - **The heir** (`raiseHeir`) is the next name on his realm's line in the record (`Lines`, from dossier 16), skipping a man
   of the record already dead or held; one already on the map (Ay, Akit-Teshup, Yapahu) takes the throne himself, his
-  service and roads ended. Past the record, a son (three in four) or brother is drawn, named in his land's style. His
+  service and errands ended, and reigns from where he is, walking to his court. Past the record, a son (three in four) or brother is drawn, named in his land's style. His
   traits are what the record shows of him, each varied as every king's (`ReignData.vary`); the rest drawn up to 25 points
   either side of the middle (`HeirData`). He reigns from that season, by his own name (`Reign.name`, read by every name a
   power's king goes by) and with what the record shows of him (`Reign.about`, his card).

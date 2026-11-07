@@ -1,5 +1,5 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
-import type { GameConfig, Power, RisenPower } from "@amarna/engine";
+import type { Crowned, GameConfig, Power, RisenPower } from "@amarna/engine";
 import type { ExportParts, MindPage, SeasonFallbacks, SnapshotDelta, Thread, TrailAuthors } from "@amarna/game";
 import type { WireFrame } from "./frames.ts";
 import type { GameSettings, TableSettings } from "./settings.ts";
@@ -79,7 +79,7 @@ export interface Live {
   /** The powers risen in play (item 13+), as the engine registers them: sent with every update, so the map knows a new power the season it rises, before the state is read. */
   risen: RisenPower[];
   /** The heirs reigning (item 17b), by their own names: [power, name, what the record shows of him], sent likewise. */
-  crowned: [string, string, string][];
+  crowned: Crowned[];
   /** The names claimed and given (item 17+, "A power's name is a claim"), and the fallen, who claim nothing: sent likewise. */
   names: { claims: [string, string][]; given: [string, [string, string][]][]; heard: [string, [string, { name: string }][]][]; fallen: string[]; falls: [string, string[]][] };
   seats: Record<string, string>;

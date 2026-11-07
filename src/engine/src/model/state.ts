@@ -428,6 +428,8 @@ export interface GameState {
   reigns: Dict<Power, Reign>;
   /** Item 17b, part B: the reigns ended by a king's death, as they ended. */
   reignsEnded: ReignEnded[];
+  /** Item 17b, part B: by realm, how many of its heirs each other court has heard of, as word of each reaches it. */
+  reignsHeard: Dict<Power, Dict<Power, number>>;
   /**
    * Item 17: each held province's unrest as last reckoned, from item 17++ how far its holder's lead in its people's eyes
    * falls short of a firm hold (its holder never sees the number: his governor, spies and the people's complaints tell
@@ -581,6 +583,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     risen: [],
     reigns: new Dict(),
     reignsEnded: [],
+    reignsHeard: new Dict(),
     restless: new Dict(),
     takenAt: new Dict(),
     breached: new Dict(),
@@ -718,6 +721,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   risen: list(() => RisenPowerSchema),
   reigns: dict(() => ReignSchema),
   reignsEnded: list(() => ReignEndedSchema),
+  reignsHeard: dict(dict(I)),
   restless: dict(I),
   takenAt: dict(I),
   breached: dict(S),

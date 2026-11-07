@@ -367,7 +367,7 @@ export interface CharacterView {
    * Your captive is an envoy your besiegers caught at a city you besiege (it can be executed, ransomed or released, not turned).
    */
   intercepted: boolean;
-  /** Item 17b: the realm whose reigning king this is, which every court knows; null for anyone else. */
+  /** Item 17b: the realm whose reigning king this is, as the viewer knows (an heir once word of him has come); null for anyone else. */
   kingOf: Power | null;
   /**
    * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.

@@ -242,23 +242,48 @@ function firstOf(p: Power): PowerData {
 function dataOf(p: Power): PowerData {
   const first = firstOf(p);
   const heir = crowned.get(p);
-  return heir === undefined ? first : { ...first, king: heir.name, home: null, others: [] };
+  return heir === undefined ? first : { ...first, king: heir.names[heir.names.length - 1], home: null, others: [] };
 }
 
-/** Item 17b, part B: each realm whose king has died, its reigning heir's name and what the record shows of him (the game state keeps them in its reigns). */
-const crowned = new Map<Power, { name: string; about: string }>();
+/**
+ * Item 17b, part B: a realm whose king has died, its heirs in the order they reigned (the last reigns now), what the
+ * record shows of the one reigning, and how many of them each other court has heard of (none: it knows the first king
+ * still). The game state keeps them, in its reigns and `reignsHeard`.
+ */
+export interface Crowned {
+  power: Power;
+  names: string[];
+  about: string;
+  heard: [Power, number][];
+}
 
-/** Sets the reigning heirs to a game's (its reigns with a name): a new game's none. */
-export function setCrowned(list: readonly (readonly [Power, string, string])[]): void {
+const crowned = new Map<Power, Crowned>();
+
+/** Sets the reigning heirs to a game's: a new game's none. */
+export function setCrowned(list: readonly Crowned[]): void {
   crowned.clear();
-  for (const [p, name, about] of list) crowned.set(p, { name, about });
+  for (const x of list) crowned.set(x.power, x);
   byName.clear();
   renaming.clear();
 }
 
 /** A realm's reigning heir, or null while the king it began with (or its risen ruler) reigns. */
 export function heirOf(p: Power): { name: string; about: string } | null {
-  return crowned.get(p) ?? null;
+  const x = crowned.get(p);
+  return x === undefined ? null : { name: x.names[x.names.length - 1], about: x.about };
+}
+
+/** Whether a court knows who reigns over a realm now (item 17b): it has heard of every heir there has been. */
+export function reignKnown(viewer: Power | null, p: Power): boolean {
+  return heirsHeard(viewer, p) >= (crowned.get(p)?.names.length ?? 0);
+}
+
+/** How many of a realm's heirs a court has heard of (item 17b): all, for the realm itself and the world's record. */
+export function heirsHeard(viewer: Power | null, p: Power): number {
+  const x = crowned.get(p);
+  if (x === undefined) return 0;
+  if (viewer === null || viewer === p) return x.names.length;
+  return Math.min(x.names.length, x.heard.find(([v]) => v === viewer)?.[1] ?? 0);
 }
 
 /** Every name a fixed power's table gives it: its id, its land's, its king's, his own court's and his others. */
@@ -560,6 +585,10 @@ export function king(p: Power): string {
  */
 export function kingFor(viewer: Power | null, p: Power): string {
   const x = dataOf(p);
+  // Item 17b: a court knows the king it last heard of, until word of his heir reaches it.
+  const heard = heirsHeard(viewer, p);
+  const h = crowned.get(p);
+  if (h !== undefined && heard < h.names.length) return heard === 0 ? firstOf(p).king : h.names[heard - 1];
   return viewer === p && x.home !== null ? x.home : x.king;
 }
 
@@ -569,7 +598,8 @@ export function kingFor(viewer: Power | null, p: Power): string {
  * foreign court, the letters' name for his own. Names from the sources, the same in every game, not a court's knowledge of the game.
  */
 export function kingOtherNames(viewer: Power | null, p: Power): readonly string[] {
-  const x = dataOf(p);
+  // A court that has not heard of his heir knows the first king's names.
+  const x = heirsHeard(viewer, p) < (crowned.get(p)?.names.length ?? 0) ? firstOf(p) : dataOf(p);
   const shown = kingFor(viewer, p);
   return [x.home, x.king, ...x.others].filter((n): n is string => n !== null && n !== shown);
 }

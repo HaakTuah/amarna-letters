@@ -9,11 +9,12 @@
  */
 import { clamp } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
+import { Dict } from "../core/collections.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { HeirData, Lines, type Heir } from "../model/heirs.ts";
 import { KingTraitValues, ReignData, type Reign } from "../model/kings.ts";
 import { newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
-import { AllPowers, king, land, powerName, rulerNamed, rulerStyle, setCrowned, type Power } from "../model/power.ts";
+import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, setCrowned, type Power } from "../model/power.ts";
 import { newJourney } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
@@ -40,8 +41,15 @@ declare module "./core.ts" {
     kingsHeld(): void;
     /** A king walks home, set free or escaped, from the province where he is. */
     kingGoesHome(c: Character, p: Power, from: string): void;
-    /** A reigning king has died (`how`, in words: "put to death by Hatti"): his reign ends and his heir reigns. */
-    kingDied(c: Character, how: string): void;
+    /**
+     * A reigning king has died (`how`, in words: "put to death by Hatti") in province `where`: his reign ends, and his
+     * heir reigns once word of it reaches his court.
+     */
+    kingDied(c: Character, how: string, where: string): void;
+    /** Word of the king's death has reached his court (`text`): his heir reigns. */
+    heirReigns(p: Power, text: string): void;
+    /** Word of a realm's new king has reached court `by`, which knows him by his name from now. */
+    heirHeard(p: Power, by: Power): void;
   }
 }
 
@@ -100,7 +108,8 @@ P.kingTaken = function (p, by) {
   const S = this.s;
   const where = this.courtAt(p);
   const c = findCharacter(S, S.reigns.get(p).character);
-  if (c !== null && c.status === "Employed" && by !== null && isAlive(S, by)) {
+  // Only a king at his court, or with it on the road, is taken with it: one walking home elsewhere is not.
+  if (c !== null && c.status === "Employed" && c.duty === "Ruling" && by !== null && isAlive(S, by)) {
     // Taken alive: under his captor's guard to his court, like any captive given over, so he may be freed on the road.
     c.status = "Captured";
     c.heldBy = by;
@@ -154,22 +163,48 @@ P.kingGoesHome = function (c, p, from) {
   this.startTravel(c, p, null, from);
 };
 
-P.kingDied = function (c, how) {
+P.kingDied = function (c, how, where) {
   const S = this.s;
   const p = realmOfKing(S, c.id);
   if (p === null) return;
   const r = S.reigns.get(p);
+  // His reign, and his player's game, end where he dies.
   S.reignsEnded.push({ power: p, character: c.id, since: r.since, until: S.turn, how });
+  logEvent(S, "king-dies", `${c.name}, king of ${p}, died ${how}.`, [], "king-dies");
+  // His court learns of it as word comes from where he died (at once, if he died there), and his heir reigns from then.
+  const seat = this.courtAt(p);
+  const text = `${c.name}, ${rulerStyle(p)} of ${powerName(p)}, is dead, ${how}.`;
+  if (where === seat) {
+    this.heirReigns(p, text);
+    return;
+  }
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(where, seat), from: p, to: p, news: "KingDead", text }));
+};
+
+P.heirReigns = function (p, text) {
+  const S = this.s;
+  const r = S.reigns.get(p);
+  const dead = findCharacter(S, r.character);
+  if (dead === null || dead.status !== "Dead" || !isAlive(S, p)) return;
   // The heir inherits a third of his father's standing, love and hate alike, with the people and the soldiers.
   for (const book of [...S.ledger.values(), ...S.armies.values()]) {
     const v = book.tryGet(p);
     if (v !== undefined) book.set(p, Math.trunc(v / 3));
   }
-  const heir = raiseHeir(this, p, c, r);
-  const text = `${c.name}, ${rulerStyle(p)} of ${powerName(p)}, is dead, ${how}. ${heir.name} reigns in his place: ${S.reigns.get(p).about}`;
-  notify(S, p, "Notice", "The king is dead", `${text} You are ${heir.name} now, and you reign from this season: the people and the soldiers remember a third of what they owed your father, his love and his hate alike, and his debts and promises are yours to honour or not.`, heir.id);
-  logEvent(S, "king-dies", `${c.name}, king of ${p}, died ${how}; ${heir.name} reigns.`, [p], "king-dies");
-  for (const other of alive(S).filter((x) => x !== p)) this.word(p, other, "Succession", `Word comes that ${text}`);
+  const heir = raiseHeir(this, p, dead, r);
+  const news = `${text} ${heir.name} reigns in his place: ${S.reigns.get(p).about}`;
+  const coming = heir.duty === "Ruling" ? "" : " You are on your way to your court, and it rules in your name until you are there.";
+  notify(S, p, "Notice", "The king is dead", `${news} You are ${heir.name} now, and you reign from this season: the people and the soldiers remember a third of what they owed your father, his love and his hate alike, and his debts and promises are yours to honour or not.${coming}`, heir.id);
+  logEvent(S, "king-heir", `${heir.name} reigns over ${p}.`, [p], "king-heir");
+  for (const other of alive(S).filter((x) => x !== p)) this.word(p, other, "Succession", `Word comes that ${news}`);
+};
+
+P.heirHeard = function (p, by) {
+  const S = this.s;
+  let book = S.reignsHeard.tryGet(p);
+  if (book === undefined) S.reignsHeard.set(p, (book = new Dict()));
+  book.set(by, heirsHeard(null, p));
+  setCrowned(crownedIn(S));
 };
 
 /** The heir's reign as the record or the draw gives him: his place on the line, his traits, his name and what is known of him. */
@@ -205,16 +240,22 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
 /** One already on the map comes to the throne: his service, errands and roads end, and he is at his court. */
 function crownPerson(e: TurnEngine, c: Character, p: Power, about: string): void {
   const S = e.s;
+  const seat = e.courtAt(p);
+  // Where he is: at a court, on a road (where his journey has brought him), or out in a province.
+  const road = S.journeys.find((j) => j.characterId === c.id && j.route.length > 0);
+  const where = c.at !== null ? e.courtAt(c.at) : road !== undefined ? road.route[road.leg] : (c.watchProvince ?? seat);
   for (const g of S.governors.filter((x) => x.character === c.id)) e.dropGovernor(g);
   S.journeys = S.journeys.filter((j) => j.characterId !== c.id);
   c.employer = p;
   c.status = "Employed";
   c.contract = null;
   c.duty = "Ruling";
-  c.at = p;
   c.watchProvince = null;
   c.missionTarget = null;
   c.seeking = false;
   c.calling = `${rulerStyle(p)} of ${land(p)}`;
-  for (const text of [`Rules ${land(p)} from ${e.map.get(e.courtAt(p)).name}.`, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
+  for (const text of [`Rules ${land(p)} from ${e.map.get(seat).name}.`, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
+  // He reigns from where he is, and walks to his court like any traveller.
+  if (where === seat) c.at = p;
+  else e.kingGoesHome(c, p, where);
 }

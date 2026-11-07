@@ -9,7 +9,7 @@ import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, reignKnown, type Power } from "../model/power.ts";
 import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -478,7 +478,9 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
   const alias = falseNameAt(c, viewer);
   const borrowed = alias?.as != null ? (s.characters.find((x) => x.id === alias.as) ?? null) : null;
   const facts = [...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []), ...factsKnownTo(c, viewer)].map((f) => f.text);
-  const kingOf = realmOfKing(s, c.id);
+  // Item 17b: a king the viewer knows reigns (an heir, once word of him has come).
+  const realm = realmOfKing(s, c.id);
+  const kingOf = realm !== null && reignKnown(viewer, realm) ? realm : null;
   return newCharacterView({
     id: c.id,
     name: alias?.name ?? c.name,

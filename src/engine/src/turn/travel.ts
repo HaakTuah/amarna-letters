@@ -666,8 +666,13 @@ P.wordArrives = function (j) {
       S.sleep.tryGet(j.to)?.pendingWake.push(j.text ?? "");
       break;
     case "Succession":
-      // Item 17b: word that a king has died, and who reigns now.
+      // Item 17b: word that a king has died, and who reigns now: the court knows him by his name from here.
+      this.heirHeard(j.from, j.to);
       notify(S, j.to, "Rumor", "A king is dead", j.text ?? "");
+      break;
+    case "KingDead":
+      // Item 17b: word of the king's death reaches his own court, and his heir reigns.
+      this.heirReigns(j.to, j.text ?? "");
       break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);
