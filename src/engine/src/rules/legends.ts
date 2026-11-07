@@ -8,7 +8,7 @@
 import { listed } from "./wording.ts";
 import { cmpNum, cmpStr, desc, sortBy } from "../core/seq.ts";
 import { nameKnownAt, type Character } from "../model/people.ts";
-import { AllPowers, type Power, type RisenPower } from "../model/power.ts";
+import { AllPowers, powerName, type Power, type RisenPower } from "../model/power.ts";
 import type { GameEvent, Tablet } from "../model/records.ts";
 import type { GameState } from "../model/state.ts";
 import { WorldMap } from "../model/map.ts";
@@ -92,15 +92,18 @@ export function characterLegend(s: GameState, id: string, viewer: Power | null):
     for (const t of s.tablets) {
       if (t.inventory) continue;
       if (t.byHand === c.name && t.byHandOf !== null && t.sealedTurn !== null && unique)
-        out.push(line(t.sealedTurn, `Set the seal of ${t.byHandOf} on a tablet with ${listed(t.seals.filter((p) => p !== t.byHandOf))}${t.within === false ? ", beyond their authority" : ""}.`));
+        out.push(line(t.sealedTurn, `Set the seal of ${powerName(t.byHandOf)} on a tablet with ${names(t.seals.filter((p) => p !== t.byHandOf))}${t.within === false ? ", beyond their authority" : ""}.`));
     }
-    for (const l of s.losses) if (l.characterId === id) out.push(line(l.turn, `${l.kind === "PutToDeath" ? "Put to death" : l.kind === "Seized" ? "Seized" : "Caught"} at the court of ${l.court}.`));
+    for (const l of s.losses) if (l.characterId === id) out.push(line(l.turn, `${l.kind === "PutToDeath" ? "Put to death" : l.kind === "Seized" ? "Seized" : "Caught"} at the court of ${powerName(l.court)}.`));
   }
   // Events already say most of it: drop a line the same season says word for word.
   const seen = new Set<string>();
   return byTurn(out).filter((l) => (seen.has(`${l.turn}|${l.text}`) ? false : (seen.add(`${l.turn}|${l.text}`), true)));
 }
 
+
+/** Powers by the names the game shows them by, listed. */
+const names = (ps: readonly Power[]): string => listed(ps.map(powerName));
 
 /** Whether a text holds a name as a whole word, anywhere in it. */
 export function wordIn(text: string, name: string): boolean {
@@ -130,26 +133,26 @@ export function tabletLegends(s: GameState): TabletLegend[] {
     if (t.inventory || (t.sealedTurn === null && !t.forged)) continue;
     const lines: LegendLine[] = [];
     const turn = t.sealedTurn ?? t.createdTurn;
-    lines.push(line(t.createdTurn, `Proposed by ${t.proposedBy}${t.partner !== null ? ` to ${t.partner}` : ""}.`));
-    if (t.forged) lines.push(line(t.createdTurn, `Forged${forgerOf(s, t)}: it bears the seal${t.seals.length > 1 ? "s" : ""} of ${listed(t.seals)}, who never set ${t.seals.length > 1 ? "them" : "it"} there.`));
+    lines.push(line(t.createdTurn, `Proposed by ${powerName(t.proposedBy)}${t.partner !== null ? ` to ${powerName(t.partner)}` : ""}.`));
+    if (t.forged) lines.push(line(t.createdTurn, `Forged${forgerOf(s, t)}: it bears the seal${t.seals.length > 1 ? "s" : ""} of ${names(t.seals)}, who never set ${t.seals.length > 1 ? "them" : "it"} there.`));
     else if (t.sealedTurn !== null)
       lines.push(
         line(
           t.sealedTurn,
-          `Sealed by ${listed(t.seals)}` +
-            (t.byHandOf !== null && t.byHand !== null ? `, ${t.byHandOf}'s seal set by the hand of its envoy ${t.byHand}${t.within === false ? ", beyond his authority" : ""}` : "") +
+          `Sealed by ${names(t.seals)}` +
+            (t.byHandOf !== null && t.byHand !== null ? `, ${powerName(t.byHandOf)}'s seal set by the hand of its envoy ${t.byHand}${t.within === false ? ", beyond his authority" : ""}` : "") +
             ".",
         ),
       );
     const says = t.clauses.length > 0 && t.partner !== null ? renderClauses(t.clauses, t.proposedBy, t.partner) : t.text;
     if (says.length > 0) lines.push(line(0, `It says: ${says.length > 300 ? says.slice(0, 297) + "..." : says}`));
-    if (t.repudiatedTurn !== null && t.byHandOf !== null) lines.push(line(t.repudiatedTurn, `${t.byHandOf} repudiated it, as beyond its envoy's authority.`));
+    if (t.repudiatedTurn !== null && t.byHandOf !== null) lines.push(line(t.repudiatedTurn, `${powerName(t.byHandOf)} repudiated it, as beyond its envoy's authority.`));
     // Broken: a king of a sealed peace taking land from the other afterwards.
     // Land ceded between them is agreed, not taken; a tablet its king repudiated never stood.
     if (!t.forged && t.sealedTurn !== null && t.repudiatedTurn === null && t.seals.length === 2 && t.clauses.some((c) => PeaceKinds.has(c.kind))) {
       const [a, b] = t.seals;
       const breach = moved.find((m) => !m.ceded && m.turn >= t.sealedTurn! && ((m.from === a && m.to === b) || (m.from === b && m.to === a)));
-      if (breach !== undefined) lines.push(line(breach.turn, `Broken: ${breach.to} took ${provinceName(breach.province)} from ${breach.from}.`, breach.province));
+      if (breach !== undefined) lines.push(line(breach.turn, `Broken: ${powerName(breach.to!)} took ${provinceName(breach.province)} from ${powerName(breach.from!)}.`, breach.province));
     }
     // Its copies: who came to hold one, how, and whether its seals were found false.
     for (const c of sortBy(
@@ -159,9 +162,9 @@ export function tabletLegends(s: GameState): TabletLegend[] {
     )) {
       if (t.seals.includes(c.holder) && c.source.startsWith("sealed")) continue;
       const found = c.authResult !== null && c.authResult.length > 0 ? ` (examined: ${c.authResult})` : "";
-      lines.push(line(c.acquiredTurn, `A copy came to ${c.holder}, ${c.source}${found}.`));
+      lines.push(line(c.acquiredTurn, `A copy came to ${powerName(c.holder)}, ${c.source}${found}.`));
     }
-    const title = `${t.forged ? "A forged tablet" : t.allianceOath ? "An oath of alliance" : t.vassal !== null ? "A vassal treaty" : "A tablet"} of ${listed(t.seals)}`;
+    const title = `${t.forged ? "A forged tablet" : t.allianceOath ? "An oath of alliance" : t.vassal !== null ? "A vassal treaty" : "A tablet"} of ${names(t.seals)}`;
     out.push({ id: t.id, title, turn, lines: byTurn(lines) });
   }
   return sortBy(out, [(x: TabletLegend) => x.turn, cmpNum], [(x: TabletLegend) => x.id, cmpStr]);
@@ -169,8 +172,8 @@ export function tabletLegends(s: GameState): TabletLegend[] {
 
 function forgerOf(s: GameState, t: Tablet): string {
   const c = t.forgerId !== null ? s.characters.find((x) => x.id === t.forgerId) : undefined;
-  if (c === undefined) return t.forgerEmployer !== null ? ` for ${t.forgerEmployer}` : "";
-  return ` by ${c.name}${t.forgerEmployer !== null ? ` for ${t.forgerEmployer}` : ""}`;
+  if (c === undefined) return t.forgerEmployer !== null ? ` for ${powerName(t.forgerEmployer)}` : "";
+  return ` by ${c.name}${t.forgerEmployer !== null ? ` for ${powerName(t.forgerEmployer)}` : ""}`;
 }
 
 // ---------------------------------------------------------------- courts
@@ -190,29 +193,29 @@ export function courtLegend(s: GameState, p: Power): LegendLine[] {
     if (peak.provinces > start) out.push(line(peak.turn, `At its height, held ${peak.provinces} provinces.`));
   }
   for (const m of changes(s)) {
-    if (m.ceded && m.to === p) out.push(line(m.turn, `Was ceded ${provinceName(m.province)} by ${m.from}.`, m.province));
-    else if (m.ceded && m.from === p) out.push(line(m.turn, `Ceded ${provinceName(m.province)} to ${m.to}.`, m.province));
-    else if (m.to === p) out.push(line(m.turn, `Took ${provinceName(m.province)}${m.from !== null ? ` from ${m.from}` : ", which no one held"}.`, m.province));
-    else if (m.from === p) out.push(line(m.turn, `Lost ${provinceName(m.province)}${m.to !== null ? ` to ${m.to}` : ", which fell lawless"}.`, m.province));
+    if (m.ceded && m.to === p) out.push(line(m.turn, `Was ceded ${provinceName(m.province)} by ${powerName(m.from!)}.`, m.province));
+    else if (m.ceded && m.from === p) out.push(line(m.turn, `Ceded ${provinceName(m.province)} to ${powerName(m.to!)}.`, m.province));
+    else if (m.to === p) out.push(line(m.turn, `Took ${provinceName(m.province)}${m.from !== null ? ` from ${powerName(m.from)}` : ", which no one held"}.`, m.province));
+    else if (m.from === p) out.push(line(m.turn, `Lost ${provinceName(m.province)}${m.to !== null ? ` to ${powerName(m.to)}` : ", which fell lawless"}.`, m.province));
   }
   for (const q of AllPowers) {
     const by = s.invaded.tryGet(q)?.tryGet(p);
-    if (by !== undefined) out.push(line(by, `Its troops first entered land of ${q}.`));
+    if (by !== undefined) out.push(line(by, `Its troops first entered land of ${powerName(q)}.`));
     const of = s.invaded.tryGet(p)?.tryGet(q);
-    if (of !== undefined) out.push(line(of, `Troops of ${q} first entered its land.`));
+    if (of !== undefined) out.push(line(of, `Troops of ${powerName(q)} first entered its land.`));
   }
   // The bonds sealed before the age began are where a court starts, not deeds of the age: one line for them all.
   const before: string[] = [];
   for (const t of s.tablets)
     if (!t.inventory && !t.forged && t.sealedTurn !== null && t.seals.includes(p)) {
-      const others = listed(t.seals.filter((x) => x !== p));
+      const others = names(t.seals.filter((x) => x !== p));
       if (t.sealedTurn === 0) before.push(others);
       else out.push(line(t.sealedTurn, `Sealed ${t.allianceOath ? "an oath of alliance" : t.vassal !== null ? "a vassal treaty" : "a tablet"} with ${others}.`));
     }
   if (before.length > 0) out.push(line(0, `Bound from before the age began by ${before.length === 1 ? "a vassal treaty" : "vassal treaties"} with ${listed(before)}.`));
   for (const f of s.falls) {
-    if (f.power === p) out.push(line(f.turn, `Fell: ${provinceName(f.capital)} taken${f.conqueror !== null ? ` by ${f.conqueror}` : ""}.`, f.capital));
-    else if (f.conqueror === p) out.push(line(f.turn, `Brought down ${f.power}, taking ${provinceName(f.capital)}.`, f.capital));
+    if (f.power === p) out.push(line(f.turn, `Fell: ${provinceName(f.capital)} taken${f.conqueror !== null ? ` by ${powerName(f.conqueror)}` : ""}.`, f.capital));
+    else if (f.conqueror === p) out.push(line(f.turn, `Brought down ${powerName(f.power)}, taking ${provinceName(f.capital)}.`, f.capital));
   }
   for (const e of s.events) if (ChronicleKinds.has(e.kind) && wordIn(e.text, p)) out.push(line(e.turn, e.text));
   for (const r of s.risen) if (r.power === p || r.from === p) out.push(newIdrimi(r));
@@ -231,16 +234,17 @@ export function courtLegend(s: GameState, p: Power): LegendLine[] {
  */
 export function newIdrimi(r: RisenPower): LegendLine {
   const city = provinceName(r.capital);
+  const from = r.from !== null ? powerName(r.from) : null;
   const how =
     r.how === "turned"
-      ? `who governed ${city} for ${r.from}, refused his recall and rose to rule it in his own name with the levies he raised.`
+      ? `who governed ${city} for ${from}, refused his recall and rose to rule it in his own name with the levies he raised.`
       : r.how === "revolt"
-        ? `led ${city} in revolt against ${r.from} and rose to rule it in his own name.`
+        ? `led ${city} in revolt against ${from} and rose to rule it in his own name.`
         : r.how === "chief"
           ? `whose band held ${city}, a land without a ruler, rose to rule it in his own name.`
           : r.how === "elder"
             ? `was raised by the people of ${city}, a land without a ruler, to rule them in his own name.`
-            : `who governed ${city} for ${r.from}, rose to rule it in his own name when ${r.from} fell.`;
+            : `who governed ${city} for ${from}, rose to rule it in his own name when ${from} fell.`;
   return line(r.turn, `A new Idrimi: ${r.king}, ${how}`, r.capital);
 }
 
@@ -276,7 +280,7 @@ export function revelations(s: GameState): Revelation[] {
   const secret = sortBy(
     s.characters.filter((c) => c.secretMaster !== null),
     [(c: Character) => c.id, cmpStr],
-  ).map((c) => line(0, `${c.name}${c.employer !== null ? `, in the service of ${c.employer},` : ""} served ${c.secretMaster} in secret.`));
+  ).map((c) => line(0, `${c.name}${c.employer !== null ? `, in the service of ${powerName(c.employer)},` : ""} served ${powerName(c.secretMaster!)} in secret.`));
   if (secret.length > 0) out.push({ title: "Who served another king in secret", lines: secret });
   // The drawn season is secret while the age runs: nothing shown reads it until it has ended.
   if (s.ended || s.ageEndedTurn !== null) out.push({ title: "The season the end was drawn for", lines: [endDrawn(s)] });
