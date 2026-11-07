@@ -40,10 +40,10 @@ export type Advisor = (typeof AdvisorValues)[number];
 
 /** Each advisor's known tilt, as the king is told it. */
 export const Tilts: Record<Advisor, string> = {
-  General: "high aggression: looks for where a strike wins now and for enemy armies left exposed; urging attack is expected of him",
-  Steward: "high caution, the treasury first: protects the capital, avoids overreach, keeps a reserve; when he agrees to attack, it is a strong sign",
-  Tjaty: "cunning and cheap gains: land left unguarded, a neighbour busy elsewhere, a province weakly held",
-  Diviner: "the race to win: who is growing fastest, and where pressure keeps a rival from pulling ahead; speaks in signs, computed from the same estimates",
+  General: "eager for war: he looks for where a strike wins now and for enemy armies left exposed, and is expected to urge attack",
+  Steward: "careful of the treasury: he guards the capital, shuns overreach and keeps a reserve; when he too says attack, heed it",
+  Tjaty: "after cheap gains: land left unguarded, a neighbour busy elsewhere, a province weakly held",
+  Diviner: "watches who is winning: who grows fastest, and where pressure keeps a rival from pulling ahead; he speaks in signs, read from the same estimates",
 };
 
 /**
@@ -262,7 +262,7 @@ function reason(b: Board, o: Order, role: string, danger: Dict<string, [number, 
   const of8 = (n: number): string => `${n} of ${pic.seasons} pictured seasons`;
   const threat = (p: string): string => {
     const d = danger.tryGet(p);
-    return d === undefined ? "" : `up to ${d[0]} foreign troop${d[0] === 1 ? "" : "s"} could strike it`;
+    return d === undefined ? "" : `within reach of ${d[0] === 1 ? "one foreign army" : `up to ${d[0]} foreign armies`}`;
   };
   switch (o.type) {
     case "move": {

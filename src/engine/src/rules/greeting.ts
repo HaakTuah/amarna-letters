@@ -4,7 +4,7 @@
  * travels sealed, the envoy cannot alter it.
  */
 import { isBlank, trim, trimEnd } from "../core/text.ts";
-import { claimantsOf, claimedName, house, king, knownName, ownLand, rulerNamed, type Power } from "../model/power.ts";
+import { claimantsOf, claimedName, house, isGreatKing, king, knownName, ownLand, rulerNamed, type Power } from "../model/power.ts";
 import { newGreetingOptions, type GreetingOptions } from "../model/records.ts";
 
 export function renderGreeting(from: Power, to: Power, options: GreetingOptions | null): string {
@@ -45,8 +45,12 @@ export function stopped(s: string): string {
   return t.length > 0 && ".!?…".includes(t[t.length - 1]) ? t : t + ".";
 }
 
-/** Plain-language list of how a greeting departs from the standard formula. */
-export function deviations(options: GreetingOptions | null): string[] {
+/**
+ * Plain-language list of how a greeting departs from the standard formula. A sender who is not a Great King keeps the
+ * custom without "brother" and without the title, so neither is listed for him.
+ */
+export function deviations(options: GreetingOptions | null, sender: Power | null = null): string[] {
+  const great = sender === null || isGreatKing(sender);
   const o = options ?? newGreetingOptions();
   const list: string[] = [];
   if (!isBlank(o.custom)) {
@@ -58,8 +62,8 @@ export function deviations(options: GreetingOptions | null): string[] {
     return list;
   }
   if (o.senderFirst) list.push("the sender's name first");
-  if (!o.callBrother) list.push('no "brother"');
-  if (!o.claimGreatKing) list.push("the sender does not claim to be a Great King");
+  if (!o.callBrother && great) list.push('no "brother"');
+  if (!o.claimGreatKing && great) list.push("the sender does not claim to be a Great King");
   if (!o.grantGreatKing) list.push("the recipient is not called Great King");
   if (o.byHouse === true) list.push("the recipient is called by his house, not the name he claims");
   return list;

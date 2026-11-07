@@ -610,15 +610,15 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
 function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
   if (fee === null) return "";
   const e = k?.errand ?? null;
-  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${e.where} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const errand = e === null ? "a job, its errand named when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${e.where} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
   const rest = Math.max(0, fee - (advance ?? 0));
-  const due = k === null ? `${rest} due when it is done` : k.payOnDone ? `${rest} paid when it is done, as you ordered` : `${rest} due when it is done, paid only if you order it (pay_fee)`;
-  const serves = `${errand}, for ${fee} shekels (${advance ?? 0} handed over, ${due})`;
+  const due = k === null || k.payOnDone ? `${rest} when it is done` : `${rest} owed when it is done, paid only if you order it (pay_fee)`;
+  const serves = `${errand}: ${fee} shekels, ${advance ?? 0} paid, ${due}`;
   const again = k !== null && k.offerAgain ? "; the same job is offered again when it is done" : "";
   if (until === null) return serves + again;
   return until >= turn
-    ? `${serves}, by turn ${until}${again}; the job ends once it is done at your court`
-    : `${serves}; its term ended with turn ${until}: the job is done when they are next at your court with no task${again}`;
+    ? `${serves}; term to turn ${until}${again}`
+    : `${serves}; its term ended with turn ${until}, and the job ends when they are next at your court with nothing to do${again}`;
 }
 
 /**

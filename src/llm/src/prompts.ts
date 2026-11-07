@@ -171,13 +171,13 @@ const Journey = /^(?<court>.+): (?<n>\d+) season\(s\) each way$/;
  * How long an envoy takes to each court, by the length of the journey: the courts most journeys reach in the same time are
  * "every other court", the rest named. A journey the view words otherwise stands as it is.
  */
-function travelLine(v: SeatView): string {
+export function travelLine(v: SeatView, name: (court: string) => string = (c) => c): string {
   const journeys = v.travelTimes.map((t) => Journey.exec(t)?.groups);
   const odd = v.travelTimes.filter((_, i) => journeys[i] === undefined);
   const groups = sortBy(groupBy(journeys.filter((j) => j !== undefined), (j) => Number(j.n)), [g => g[0], cmpNum]);
   const most = groups.reduce<(typeof groups)[number] | null>((a, g) => (a === null || g[1].length > a[1].length ? g : a), null);
   const seasons = (n: number): string => `${counted(n)} season${n === 1 ? `` : `s`} each way`;
-  const parts = [...groups.filter((g) => g !== most).map(([n, js]) => `${seasons(n)} to ${andList(js.map((j) => j.court))}`), ...odd];
+  const parts = [...groups.filter((g) => g !== most).map(([n, js]) => `${seasons(n)} to ${andList(js.map((j) => name(j.court)))}`), ...odd];
   if (most !== null) parts.push(`${seasons(most[0])} to every ${parts.length === 0 ? `` : `other `}court`);
   return joinS(`; `, parts);
 }

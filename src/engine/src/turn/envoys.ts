@@ -361,7 +361,7 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
     host: a.host,
     envoy: Views.character(S, c, a.host),
     greeting: a.dispatch.greetingText,
-    greetingDeviations: deviations(a.dispatch.greeting),
+    greetingDeviations: deviations(a.dispatch.greeting, a.from),
     spoken,
     clauses: [...(recited ?? a.dispatch.clauses)],
     inventory: a.dispatch.inventory,
