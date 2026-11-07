@@ -13,9 +13,10 @@ Found by the design check of #774, as older than that item. `scripts/usage.sh` r
   name). A seat view's `claims` shows only the claims its court knows of, and not who else knows them. A claim the game
   starts with, or one established (which every court is told of), is known to all (`heardBy` null).
 - **Established by the same test as Assyria's**, and once established the claimant counts among the Great Kings whose
-  greetings establish others' claims (`ofTheRank`).
+  greetings establish others' claims (`ofTheRank`), from the next season: the rank is read once at the season's start,
+  so two claims settled in one season never depend on which is settled first (Codex's review).
 - **Tests:** `src/engine/test/press.test.ts`, "A king outside the seven who names himself Great King makes a claim, known
-  where his greeting is read (bug #777)".
+  where his greeting is read (bug #777)", on a small world, with two claims established in one season.
 - **Docs:** design note `14-structured-press.md` ("Recognition is earned"); the rulebook (`src/llm/src/rules.ts`).
   **Save version 76** (a new rule, and `Claim` gains a field).
 

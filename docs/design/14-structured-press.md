@@ -134,7 +134,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 - **Claims made in play** (`recordGreeting`, bug #777): a king outside the seven whose greeting in the formula names
   him Great King claims the rank; the claim enters `GameState.claims`, new, the first time, with no overlord. A court
   knows of it (`Claim.heardBy`, its seat view's `claims`) once it has read such a greeting at an audience (`rankHeard`);
-  the claimant's own court at once. Once established, the claimant counts among the Great Kings for others' claims.
+  the claimant's own court at once. Once established, the claimant counts among the Great Kings for others' claims, from the next season (the rank is read once a season, so the order the claims are settled in never decides).
 - **Established** (`recognise`, each season): once more than half of the other living Great Kings have called the
   claimant brother for `recognitionSeasons` (9, three years) without a greeting since that withheld it (the others of
   the rank: the seven and any whose claim is established). Every court gets

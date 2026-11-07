@@ -115,10 +115,12 @@ P.claimName = function (p, o) {
  */
 P.recognise = function () {
   const S = this.s;
+  // The rank as it stood at the season's start: the city-states (item 11+) do not make a Great King, unless their claim
+  // is established, and one established this season does not count toward another's, so the order never decides.
+  const rank = alive(S).filter((x) => ofTheRank(S.claims, x));
   for (const c of S.claims) {
     if (c.established !== null || !alive(S).includes(c.power)) continue;
-    // The others of the rank: the city-states (item 11+) do not make a Great King, unless their claim is established.
-    const others = alive(S).filter((x) => x !== c.power && ofTheRank(S.claims, x));
+    const others = rank.filter((x) => x !== c.power);
     const long = S.recognition.filter((r) => r.to === c.power && others.includes(r.from) && r.brotherSince !== null && S.turn - r.brotherSince >= S.config.recognitionSeasons);
     if (others.length === 0 || long.length * 2 <= others.length) continue;
     c.established = S.turn;
