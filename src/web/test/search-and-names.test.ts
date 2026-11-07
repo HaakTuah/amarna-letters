@@ -4,7 +4,7 @@ import { Assert, smallWorld } from "../../engine/test/support.ts";
 import { buildScene } from "../src/map/scene.ts";
 import { dated, powerName, provinceName } from "../src/ui/format.ts";
 import { otherName, otherRealmName, setNames, shown } from "../src/ui/names.ts";
-import { knownTo, matchScore, scoreOf } from "../src/ui/search.ts";
+import { knownTo, matchScore, otherTitleName, scoreOf, titleName } from "../src/ui/search.ts";
 import { knownAs } from "../src/components/HistoryPanel.tsx";
 import { learnOf } from "../src/components/LearnMore.tsx";
 import { frameFrom } from "../src/session/frames.ts";
@@ -25,6 +25,11 @@ describe("Search and names", () => {
     Assert.equal(shown("Rib-Hadda wrote from Gubla to the court of Gubla."), "Rib-Hadda wrote from Gubla to the court of Byblos.");
     // A realm named for no place keeps its name.
     Assert.equal(powerName("Damascus"), "Upe");
+    // The people of a province are the province's, whoever rules it.
+    Assert.equal(shown("The people of Gubla complain."), "The people of Gubla complain.");
+    // A title's other name is its realm's.
+    Assert.equal(otherTitleName("Gubla"), "Gubla");
+    Assert.equal(titleName("Gubla"), "Byblos");
   });
 
   test("Modern places rename every place, in text too, and nothing inside another word; the realms keep their own setting", () => {

@@ -75,16 +75,19 @@ function familiar(): Map<string, string> {
 }
 
 /** The words before a name that make it a realm's, not a place's: "the court of Gubla", "the king of Gubla". */
-const RealmBefore = "(?:court|courts|king|kings|queen|envoy|envoys|ruler|chief|lord|realm|throne|house|army|armies|fleet|people) of ";
+// Never words a province's own things take too ("the people of Gubla", the province's; an army is named by its place).
+const RealmBefore = "(?:court|courts|king|kings|queen|envoy|envoys|ruler|chief|lord|realm|throne|house) of ";
 
 /**
  * Each name the settings change and what it becomes, longest first so "the Ways of Horus" goes before a shorter name in
  * it. A name both a realm's and a place's (Gubla) is a realm's only after words that say so; elsewhere it is the place's.
  */
-let swaps: { find: RegExp; place: Map<string, string>; realm: Map<string, string> } | null = null;
+let swaps: { find: RegExp; place: Map<string, string>; realm: Map<string, string>; realms: string } | null = null;
 
-function table(): { find: RegExp; place: Map<string, string>; realm: Map<string, string> } {
-  if (swaps !== null) return swaps;
+function table(): { find: RegExp; place: Map<string, string>; realm: Map<string, string>; realms: string } {
+  // Built again when a realm rises or a name is claimed: its key is every realm's name as the engine gives it now.
+  const realms = AllPowers.map(powerName).join("|");
+  if (swaps !== null && swaps.realms === realms) return swaps;
   const place = new Map<string, string>();
   if (settings.places === "modern") for (const [name, known] of familiar()) place.set(name, known);
   // Every realm's name as the realms' setting shows it, where it differs from the engine's.
@@ -101,7 +104,7 @@ function table(): { find: RegExp; place: Map<string, string>; realm: Map<string,
     [...names].sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") || "$^";
   // A name as a whole word: no letter before it, and no letter or hyphen after it (Ashur is not Ashur-uballit).
   const word = (names: string): string => `(?<![\\p{L}])(${names})(?![\\p{L}-])`;
-  swaps = { find: new RegExp(`(?<![\\p{L}])(${RealmBefore})${word(alt(realm.keys()))}|${word(alt(place.keys()))}`, "gu"), place, realm };
+  swaps = { find: new RegExp(`(?<![\\p{L}])(${RealmBefore})${word(alt(realm.keys()))}|${word(alt(place.keys()))}`, "gu"), place, realm, realms };
   return swaps;
 }
 
