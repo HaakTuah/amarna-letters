@@ -224,8 +224,10 @@ the workshop check): among them the history check's lines still unclear for a re
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
   `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
   below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
-  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766). **Next:** the rest in the order above,
-  from the interface, the council and the help. **Still open, one game-wide decision:** one
+  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766); the interface, the council and the help,
+  #772 (report `docs/rounds/2026-11-07-slop-audit-interface.md`; save version 74; season against turn and minas
+  against shekels: #775; realm names beside place names: #768). **Next:** the README's player text, then the requests
+  that make models write. **Still open, one game-wide decision:** one
   place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
   "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
   and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
