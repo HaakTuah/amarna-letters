@@ -867,8 +867,8 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
  * Item 13: a unit's report of one season, as its trail keeps it (`Unit.trail`; read by `trailEntry`), with its commander's
  * record of battles won and lost, if it has one (bug #615).
  */
-export const unitReport = (u: Unit, commander: { won: number; lost: number } | null = null): string =>
-  `${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}|${u.savings}` + (commander === null ? "" : `|${commander.won}|${commander.lost}`);
+export const unitReport = (u: Unit, commander: { id: string; won: number; lost: number } | null = null): string =>
+  `${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}|${u.savings}` + (commander === null ? "" : `|${commander.won}|${commander.lost}|${commander.id}`);
 
 /** Bug #600: how many seasons a unit that left the game is kept among those gone: longer than any word takes. */
 export const UnitsGoneKept = 8;

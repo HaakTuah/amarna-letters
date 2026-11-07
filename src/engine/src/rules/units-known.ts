@@ -75,10 +75,10 @@ export function trailEntry(t: string): {
   return savings === undefined ? chested : { ...chested, savings: Number(savings) };
 }
 
-/** A report's record of its unit's commander, battles won and lost (bug #615), or null if it gave none. */
-function commanderReported(t: string): { won: number; lost: number } | null {
-  const [won, lost] = t.split("|").slice(8);
-  return won === undefined ? null : { won: Number(won), lost: Number(lost) };
+/** A report's record of its unit's commander `id`, battles won and lost (bug #615), or null if it gave none of his. */
+function commanderReported(t: string, id: string): { won: number; lost: number } | null {
+  const [won, lost, of] = t.split("|").slice(8);
+  return won === undefined || of !== id ? null : { won: Number(won), lost: Number(lost) };
 }
 
 /**
@@ -159,7 +159,7 @@ export function commanderKnown(engine: TurnEngine, p: Power, c: Character, place
   if (u === undefined) return c;
   // His battles as far as its reports have come: farther off, as its newest report gives his record.
   const i = reportIndex(engine, u);
-  const record = i === null ? null : commanderReported(u.trail[i]);
+  const record = i === null ? null : commanderReported(u.trail[i], c.id);
   return { ...c, watchProvince: place(u), ...(record ?? {}) };
 }
 

@@ -149,14 +149,12 @@ P.planSeason = function (p, sub) {
           .join("; ") +
         ".",
     );
-  // Each unit named where its king believes it stands (bug #615).
-  const place = placesKnown(this, p);
   const due: [Order | null, PlannedOrder][] =
     replacement !== null
       ? []
       : sl.scheduled
           .filter((x) => x.turn === S.turn && !held.includes(x))
-          .map((x) => [asItStands(S, p, x, [], place), x] as [Order | null, PlannedOrder])
+          .map((x) => [asItStands(S, p, x), x] as [Order | null, PlannedOrder])
           .filter(([o, x]) => {
             if (o === null) this.orderMissed(p, x);
             return o !== null;
@@ -183,23 +181,21 @@ P.compose = function (p, plan, fired) {
   // Bug #600: the orders for a unit lost out of sight, its end unheard, each with that unit's copy. Its king's word goes
   // as for one that stands: it replaces what it would, and is checked on the copy; it rides out and finds the unit gone.
   const goneFor = new Map<Order, Unit>();
-  // Each unit named where its king believes it stands (bug #615).
-  const place = placesKnown(this, p);
   for (const [f, cause] of fired) {
     const plans = firedOrders.get(f) ?? f.orders;
     const orders: Order[] = [];
     for (const x of plans) {
-      const o = asItStands(S, p, x, [], place);
+      const o = asItStands(S, p, x);
       // Its own unit gone: it rides out. Only the unit it supports or carries gone: it runs, and finds nothing there.
       const gone = o !== null ? undefined : goneUnheard(this, p, x.unitId);
-      const shown = o ?? asItStands(S, p, x, [...S.unitsGone.filter((u) => u.power === p && goneUnheard(this, p, u.id) === u)], place);
+      const shown = o ?? asItStands(S, p, x, [...S.unitsGone.filter((u) => u.power === p && goneUnheard(this, p, u.id) === u)]);
       if (shown === null) continue;
       orders.push(shown);
       if (gone !== undefined) goneFor.set(shown, gone);
       // An order of command, recall, mandate or food names its unit by province only: the copy where none stands now.
       if (shown.type === "command" || shown.type === "relieve" || shown.type === "mandate" || shown.type === "supply") {
         const here = unitAt(S, shown.unit);
-        const copy = here !== null && here.power === p ? undefined : S.unitsGone.find((u) => u.power === p && place(u) === shown.unit && goneUnheard(this, p, u.id) === u);
+        const copy = here !== null && here.power === p ? undefined : S.unitsGone.find((u) => u.power === p && u.province === shown.unit && goneUnheard(this, p, u.id) === u);
         if (copy !== undefined) goneFor.set(shown, copy);
       }
     }
@@ -740,6 +736,8 @@ P.keepScheduled = function (p, sl, plans, accepted) {
     // A season after the game's last is kept like any other, under the same limits: its orders never run, because the
     // game ends first, and nothing the king reads depends on when the game must end.
     removeAll(sl.scheduled, (x) => x.turn === turn);
+    // So does what its view still shows of that season for a far unit (bug #615).
+    for (const x of sl.scheduleUnheard) removeAll(x.orders, (y) => y.turn === turn);
     let room = MaxScheduledPerSeason;
     const keepEntry = (plan: ScheduledOrders): void => {
       if (plan.orders.length === 0) return;

@@ -20,7 +20,7 @@ at Nippur, each failing on `develop` before the fix:
 ## What changed
 
 - **Where its king believes it stands** (`placesKnown`, `placeKnown` in `rules/units-known.ts`, by `ownPlaces`): his
-  scheduled and standing orders as shown and as given at court (`asShown`, `asItStands` take a place), a standing order's
+  scheduled and standing orders as his view shows them (`asShown` takes a place; they run on the unit itself), a standing order's
   "when your army in X is attacked", "Command granted", "Command taken back", "Mandate sent", the word on its food and
   the gold for it (`setSupply`), pay or food held back in a province (`setUpkeep` and its check), a march's notices, and
   his commander's duty at court (`commanderKnown`).
@@ -59,7 +59,9 @@ at Nippur, each failing on `develop` before the fix:
 
 - Orders that ride with a far unit's province in a season a standing order fires for a gone one (enlisting a band,
   shipping by a gone fleet) are still checked on the true state where they run; and a scheduled order not yet reached
-  is reckoned from the unit's true place (`notYetReached`). Filed as #759.
+  is reckoned from the unit's true place (`notYetReached`). A scheduled or standing order that comes due runs on the
+  unit itself, from where it truly stands (Codex's review: naming it by its report broke it), so one refused names that
+  place in the court's notice at once. Filed as #759.
 - No twin for a winter crossing (the change is the notice and events above, by the road); the far-fleet twin covers the
   same path for hunger.
 

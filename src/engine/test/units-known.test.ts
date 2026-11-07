@@ -423,6 +423,16 @@ describe("FarUnitToldTests", () => {
     Assert.equal([home.due], back().map((i) => i.turn));
   });
 
+  test("A far unit's scheduled order runs on the unit where it truly stands, though its king's view shows it elsewhere", () => {
+    const { s, u } = reported();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn, order: hold("nippur"), unitId: "u990" }));
+    // It marched on to Ur out of its king's sight: his view still shows it in Nippur.
+    u.province = "ur";
+    new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "Orders that could not be carried out"));
+  });
+
   test("Pay held back in a province holds the troops its king's view shows there, not those that truly stand there", () => {
     const { s, u } = reported();
     // It marched on to Ur out of its king's sight: his view still shows it in Nippur.

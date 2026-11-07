@@ -128,7 +128,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   king believes (`coverFor`) until word of the army's end tells of his leaving. Save version 69.
 - **A far unit, the rest of it as reported** (bug #615; `rules/units-known.ts`): its king believes each of his units stands
   where his view shows it (`placesKnown`, by `ownPlaces`), and everything he is told of his own doings with it names that
-  place: his scheduled and standing orders as shown and as given at court (`asShown`, `asItStands` with a place), a
+  place: his scheduled and standing orders as his view shows them (`asShown` with a place; they run on the unit itself), a
   standing order's "when your army in X is attacked", the command, recall and mandate notices, whose seasons are reckoned
   from it (the man or the word sets out for where he named it), the word on its food and the gold for it, pay or food
   held back in a province (`setUpkeep` and its check), a commander's duty and his record of battles at court
