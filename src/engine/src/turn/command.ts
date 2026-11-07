@@ -10,7 +10,7 @@
  */
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
-import { BandData, bandCost, newBand, type Band } from "../model/bands.ts";
+import { BandData, chiefAsks, newBand, type Band } from "../model/bands.ts";
 import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../model/command.ts";
 import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
@@ -186,7 +186,8 @@ P.commandSeason = function () {
     chief.duty = "Leading";
     chief.grantedBy = null;
     chief.watchProvince = land;
-    S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw" }));
+    // A raider chief's band is still based beyond the map, and may go home (item 17++++a).
+    S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw", from: chief.calling === "raider" ? chief.origin : "" }));
     this.tell(u.power, land, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`);
     if (u.men <= 0) loseUnit(S, u);
   }
@@ -272,9 +273,8 @@ P.enlistBand = function (p, o) {
   if (u === null || b === undefined) return;
   const chief = findCharacter(S, b.leaderId);
   if (chief === null || chief.status !== "Free" || chief.duty !== "Leading") return;
-  // The chief takes it if it pays at least what his men cost him and what they take on the roads, for the term, and his
-  // own cut by his greed (a script chief's formula; a model chief's own choice of it is not built).
-  const want = Math.max(bandCost(b.men), b.take) * o.term + Math.floor((bandCost(b.men) * o.term * chief.traits.greed) / 100);
+  // The chief takes it if it pays what he asks (a script chief's formula; a model chief's own choice of it is not built).
+  const want = chiefAsks(b, chief.traits.greed, o.term);
   const name = this.map.get(o.province).name;
   if (o.fee < want) {
     this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${formatMoney(o.fee)} over ${o.term === 1 ? "a season" : `${o.term} seasons`}. No gold was paid.`);
@@ -283,6 +283,8 @@ P.enlistBand = function (p, o) {
   if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it did not join you")) return;
   gain(chief, o.fee, "Fees");
   S.bands = S.bands.filter((x) => x !== b);
+  // An army keeps no captives: a raider band's go free where it enlists (item 17++++a).
+  this.freeCaptives(b);
   u.men += b.men;
   u.hiredMen += b.men;
   u.hiredUntil = S.turn + o.term;

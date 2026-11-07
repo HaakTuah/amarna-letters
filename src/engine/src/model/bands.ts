@@ -14,9 +14,11 @@ export interface Band {
   men: number;
   /** A ship, bought in a port: a band with one is a pirate crew ("Pirates are bands at sea"). */
   ship: boolean;
-  /** What it took last season, in shekels' worth, and what its men cost: the share its men weigh against the roads alone. */
+  /** What it took on the roads and at sea since its last season, in shekels' worth, and what its men cost a season. */
   take: number;
   cost: number;
+  /** Item 17++++a: what it took in all last season, in shekels' worth: what its chief gives up to serve or to leave. */
+  took: number;
   /** Seasons in a row it could not pay and feed its men. */
   short: number;
   /** The season it was gathered. */
@@ -26,13 +28,20 @@ export interface Band {
   /** Item 17: the seasons it has stood in `heldAt`, land without a ruler, with its chief wanting it (the new Idrimi). */
   held: number;
   heldAt: string;
+  /**
+   * Item 17++++a: the land beyond the map it is based in, by its name in the doors' data (`Doors`), or "" for a band of
+   * the map's own loose men. A band based beyond the map came through that land's door and may go home through it.
+   */
+  from: string;
+  /** Item 17++++a: the people it carried off where it robbed, kept until it goes home with them or they go free. */
+  captives: number;
 }
 
 export function newBand(init: Partial<Band> = {}): Band {
-  return { id: "", leaderId: "", province: "", men: 0, ship: false, take: 0, cost: 0, short: 0, since: 0, rose: "crowd", held: 0, heldAt: "", ...init };
+  return { id: "", leaderId: "", province: "", men: 0, ship: false, take: 0, cost: 0, took: 0, short: 0, since: 0, rose: "crowd", held: 0, heldAt: "", from: "", captives: 0, ...init };
 }
 
-export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderId: S, province: S, men: I, ship: B, take: I, cost: I, short: I, since: I, rose: S, held: I, heldAt: S });
+export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderId: S, province: S, men: I, ship: B, take: I, cost: I, took: I, short: I, since: I, rose: S, held: I, heldAt: S, from: S, captives: I });
 
 /**
  * First guesses (item 18 tunes them).
@@ -93,4 +102,20 @@ export const BandData = {
 /** What a band's men cost a season, in shekels: their food and their share. */
 export function bandCost(men: number): number {
   return Math.ceil((men * BandData.menCost) / 1000);
+}
+
+/**
+ * What a band of `men` robs a season of `of` (a purse, or stores), where the land is policed down to `policed` in a hundred:
+ * organised men take more than the same number loose.
+ */
+export function bandRobs(men: number, of: number, policed: number): number {
+  return Math.floor((Math.floor((of * BandData.robPermille * men) / (1000 * (men + BandData.robHalf))) * policed) / 100);
+}
+
+/**
+ * What a script chief asks to give up his band's work for `term` seasons, to serve a king (item 13) or to leave his land
+ * (item 17++++a): what his men cost him and take on the roads over the term, whichever is more, and his own cut by his greed.
+ */
+export function chiefAsks(b: Band, greed: number, term: number): number {
+  return Math.max(bandCost(b.men), b.took) * term + Math.floor((bandCost(b.men) * term * greed) / 100);
 }

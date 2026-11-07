@@ -5,6 +5,7 @@
  * to his besieged walls, and an army in a foe's land razing the relay stations his couriers ride by. Walls themselves are
  * the strategy's (`fortification` in statecraft-strategy.ts). Every figure it reckons with is the engine's own.
  */
+import { heeded } from "./raiders.ts";
 import {
   BandData,
   build,
@@ -147,7 +148,7 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     if (policed >= 2) break;
     const loose = v.provinces.find((p) => p.province === id)?.loose ?? 0;
     const bands = sum(
-      v.bands.filter((x) => x.province === id),
+      heeded(b.me, v.bands).filter((x) => x.province === id),
       (x) => x.men,
     );
     if (loose < BandData.crowd / 2 && bands === 0) continue;

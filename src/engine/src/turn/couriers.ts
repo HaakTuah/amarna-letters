@@ -148,6 +148,7 @@ function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: U
     case "cede":
     case "hunt":
     case "enlist":
+    case "payOff":
       return { province: o.province, unit: null };
     case "caravan":
     case "trade":

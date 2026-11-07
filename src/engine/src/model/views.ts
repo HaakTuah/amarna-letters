@@ -397,13 +397,19 @@ export interface BandSeen {
   men: number;
   chief: string;
   ship: boolean;
+  /** Item 17++++a: raiders from beyond the map, by who they are ("Aegean raiders of Ahhiyawa"); "" for the land's own outlaws. */
+  raiders: string;
+  /** Item 17++++a: the people it holds, carried off where it robbed, where the viewer has the band in sight (else 0). */
+  captives: number;
+  /** Item 17++++a: the last season it keeps out of your land, if you paid it off, that still holds and it is in sight; else 0. */
+  paidUntil: number;
 }
 
 export function newBandSeen(init: Partial<BandSeen> = {}): BandSeen {
-  return { province: "", men: 0, chief: "", ship: false, ...init };
+  return { province: "", men: 0, chief: "", ship: false, raiders: "", captives: 0, paidUntil: 0, ...init };
 }
 
-export const BandSeenSchema: ObjSchema<BandSeen> = obj("BandSeen", newBandSeen, { province: S, men: I, chief: S, ship: B });
+export const BandSeenSchema: ObjSchema<BandSeen> = obj("BandSeen", newBandSeen, { province: S, men: I, chief: S, ship: B, raiders: S, captives: I, paidUntil: I });
 
 /** Item 11b: news a person at your court offers of another court: as of when, how many reports, and its price. */
 export interface NewsOffer {

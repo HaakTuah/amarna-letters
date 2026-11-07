@@ -304,6 +304,7 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 | #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
 | #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
 | #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
+| 17++++a | Heeding raiders from beyond the map: hunting where an army stands, hiring, paying off (`--raider-play-half`) | First 0.77 growth to 0.80, 21 wins to 29 (with police at the doors and marches after raiders, both since dropped); then 0.75 to 0.79, 26 wins to 24; with only the sourced raiders, 0.78 to 0.78, 25 wins to 25, in 50 games; about 12 raids a game, 6 to 15 pay-offs in 50 games | Even: raids are small against a realm; re-measure in item 18 |
 | #592 | Heeding talk, with caught offers sent on to friends, sold to the land's king, and bought (`--talk-play-half`) | 0.78 growth to 0.73, 26 wins to 24, in 50 games; 1,628 offers sent, 152 arrived (107 by caravan); 1 offer caught and held | Too rare to tell: one catch in 50 games; for item 18 |
 
 ## Items
@@ -318,8 +319,8 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 | 17+++a | Keys for everything | done, #753 | `item/keys-for-everything` | `docs/rounds/2026-11-06-keys-for-everything.md` |
 | 17+++b | History, search and names | done, #767 (bug #769 fixed with it) | `item/history-search-names` | `docs/rounds/2026-11-07-history-search-names.md` |
 | 17++++ | A small state as a seat | done, #774 (bug #777 filed: a small state's claim to the rank is never recorded in play) | `item/small-state-seat` | `docs/rounds/2026-11-07-small-state-seat.md` |
-| 17++++a | Raiders from beyond the map | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17++++a"), its section "Pirates are bands at sea" (War); the 17++++ session ended at its context mark after merging #774 | | |
-| 17b | Every person on one scoreboard | not started | | |
+| 17++++a | Raiders from beyond the map | done, #786 (idea #792 filed: a Libyan door) | `item/raiders` | `docs/rounds/2026-11-07-raiders-from-beyond-the-map.md` |
+| 17b | Every person on one scoreboard | not started: pick up here, on a fresh branch from `develop`; its text is `docs/intent/build-order/item-17.md` ("17b"); the 17++++a session ended at its context mark after merging #786 | | |
 | 18 | The balance pass | not started | | |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |

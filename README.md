@@ -117,7 +117,9 @@ rumours, and those can be late, shaded or false.
 
   A levy may be asked as a share of the men at home, and the province hides some of them in the same way.
   The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
-  roads may raise bands of their own.
+  roads may raise bands of their own. Raiders from beyond the map come too, by sea in the sailing season and over the
+  edge lands, to rob your coasts and carry off your people, less often where you keep police, troops or a fleet; hunt
+  them, hire them or pay them to go home.
 - You know your provinces' people only as your scribes last counted them, and the older the count the rounder the
   figure. Egypt starts with recent counts, the other courts with counts two years old. Send scribes to count a province
   afresh (a census, paid when they set out): their count comes home a season or more later, and being counted stirs the
