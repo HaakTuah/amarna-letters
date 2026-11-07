@@ -55,8 +55,8 @@ got that text and the audit's brief, and nothing else, and listed its 25 worst l
   - A new band's chief no longer reads "Your men cost about 0 shekels' worth a season". Until its first season it is
     given what its men cost by their number.
 
-No rule, number or engine outcome changed. Script games do not read these texts, so no seed moves and no save
-version is needed.
+No rule, number or engine outcome changed, and script games do not read these texts. But a template persona is
+written into a new game's people, so their fingerprint moved: **save version 77**.
 
 ## Ten lines, before and after
 
