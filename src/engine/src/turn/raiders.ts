@@ -254,6 +254,8 @@ P.payOffBand = function (p, o) {
   const raider = b.from !== "";
   const out = raider ? null : this.map.movesFrom("Army", b.province).filter((n) => !this.map.get(n).isSea && S.owner.getOrDefault(n, null) !== p).sort((a, c) => worth(this, c) - worth(this, a) || (a < c ? -1 : 1))[0];
   if (!raider && out === undefined) return refuse(": he has nowhere to go outside it");
+  // A chief who has taken one king's gold to leave takes no other's while that term holds: the best offer, heard first, binds him.
+  if (chief.paidOffBy !== "" && S.turn <= chief.paidOffUntil) return refuse(": he has taken another king's gold already");
   // He takes it if it pays what he asks for the seasons he gives up here (a script chief's formula, as for an enlistment);
   // a raider weighs at least the rest of his raid: to the winter for a crew, to the end of his stay for a band over land.
   const left = !raider ? 0 : b.ship ? 1 + ((WinterSeason - seasonOfTurn(S.turn + 1) + 3) % 3) : Math.max(1, RaiderData.stay - (S.turn - b.since));

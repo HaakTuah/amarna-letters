@@ -142,6 +142,11 @@ describe("RaiderTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: prov, men: 500, commander: "a commander", commandFrom: 0 }));
     e.payOffBand("Egypt", payOff(prov, 100, 3));
     Assert.true(s.owner.getOrDefault(b.province, null) !== "Egypt");
+    // Bound by Egypt's gold, he takes no other offer while the term holds, even a better one.
+    const gold = s.treasuries.get("Egypt").gold;
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: b.province, men: 500, commander: "another", commandFrom: 0 }));
+    e.payOffBand("Egypt", payOff(b.province, 1000, 3));
+    Assert.equal(gold, s.treasuries.get("Egypt").gold);
     Assert.equal(s.turn + 3, chief.paidOffUntil);
     Assert.false(e.bandMayGo(b, prov));
   });
