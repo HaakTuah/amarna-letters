@@ -41,7 +41,7 @@ at Nippur, each failing on `develop` before the fix:
 - **Tests:** the four twins; `src/engine/test/units-known.test.ts`, "FarUnitToldTests" (a part left behind, food gold coming home, pay held
   where the view shows the troops).
 - **Docs:** design note `35-command-at-a-distance.md` ("A far unit, the rest of it as reported"), the README's map
-  paragraph, the rulebook's commanders line. **Save version 70.**
+  paragraph, the rulebook's commanders line. **Save version 72** (70 on the branch until it was merged with `develop`, which had reached 71).
 
 ## Readings taken
 

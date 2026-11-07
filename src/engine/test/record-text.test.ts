@@ -362,14 +362,14 @@ describe("RecordTextTests", () => {
   });
 
   test("A calling takes the article its sound asks for", () => {
-    // The follow-up's review: "Served as a interpreter".
+    // The follow-up's review: "Served as a interpreter" (the calling's line is now "An interpreter.").
     let interpreter = newCharacter({ name: "Keliya", origin: "Washukanni", calling: "interpreter" });
     Assert.equal("an interpreter", Personas.calling(interpreter));
     Assert.equal("a merchant", Personas.calling(newCharacter({ calling: "merchant" })));
     Assert.contains("once an interpreter. You are ", Personas.template(interpreter));
     for (const seed of range(1, 20).map((n) => n))
       for (const c of oldWorld(newGame(seed)).characters) {
-        Assert.doesNotContain(c.facts, (f) => f.text.startsWith("Served as a interpreter"));
+        Assert.doesNotContain(c.facts, (f) => f.text.startsWith("A interpreter"));
         Assert.doesNotContain("once a interpreter", c.persona);
       }
   });
@@ -380,10 +380,10 @@ describe("RecordTextTests", () => {
     Assert.equal("King's Son of Kush", Personas.calling(newCharacter({ calling: "King's Son of Kush" })));
     Assert.equal("a prince of Miam", Personas.calling(newCharacter({ calling: "prince of Miam" })));
     Assert.contains("once the ruler's brother. You are ", Personas.template(newCharacter({ calling: "the ruler's brother" })));
-    // No starting character of a whole game is "once a the …" or "Served as an a …".
+    // No starting character of a whole game is "once a the …" or "An a …".
     for (const c of newGame(1).characters) {
       Assert.false(/\b(a|an) (a|an|the) /.test(c.persona), c.persona);
-      Assert.doesNotContain(c.facts, (f) => /^Served as (a|an) (a|an|the|[A-Z])/.test(f.text));
+      Assert.doesNotContain(c.facts, (f) => f.tag === "calling" && /^(A|An) (a|an|the|[A-Z])/.test(f.text));
     }
   });
 });

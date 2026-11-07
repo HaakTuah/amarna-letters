@@ -120,7 +120,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `docs/rounds/2026-11-03-far-unit-known.md`.
 - ~~**A far unit of a king's own, the rest of it as reported (bug #615)**~~ (done, branch `fix/615-far-units`): where its
   king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
-  road. Save version 70. Left to #759: a far unit's other orders still checked or timed by its true place. Report:
+  road. Save version 72. Left to #759: a far unit's other orders still checked or timed by its true place. Report:
   `docs/rounds/2026-11-06-far-unit-reported.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
@@ -223,12 +223,9 @@ the workshop check): among them the history check's lines still unclear for a re
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
   `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
-  below). **Next:** the rest in the order above, from the cast's biographies, which take with them the three stock
-  lines the seat view's review left (`src/engine/src/rules/factory.ts`; the bots read some fact texts, so check
-  `src/game/src/bots/` before rewording one): "Known by name at more than one royal court."; "Holds a stake in the
-  love of the people of …"; and the commissioner's doubled line ("Pharaoh's commissioner, resident in … : known to
-  all as his man, reporting home. Spent three years and more at the court of …"), with the doubled tongue sentence
-  ("Speaks the tongue of the land he rose in" beside "says they speak …"). **Still open, one game-wide decision:** one
+  below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
+  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766). **Next:** the rest in the order above,
+  from the interface, the council and the help. **Still open, one game-wide decision:** one
   place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
   "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
   and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included

@@ -140,7 +140,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   own report's. A part that stays its king's when the rest leaves him is a new unit known once word of their parting
   could come (`Unit.raisedAt`, `since`), and gold sent with word on an army's food that finds it gone comes home with the
   courier, as word from there does (`Remittance.food`). Loose men robbing a far province of the king's are told by the
-  word from there too. Save version 70.
+  word from there too. Save version 72.
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
   pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that
   reach a court the king has left are sent on after him (`ForwardedKinds`). He is taken, and his kingdom falls, where the

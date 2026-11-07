@@ -690,7 +690,8 @@ P.endOfTurn = function () {
   for (const c of S.characters.filter((c) => c.at !== null && c.employer !== null && c.at !== c.employer)) {
     c.turnsAbroad++;
     // Long years abroad become part of a character's past (item 10, "a past made in play"), known to both courts.
-    if (c.turnsAbroad === LongAbroad && c.status !== "Dead")
+    // Not of Pharaoh's open residents, whose post already says where they sit.
+    if (c.turnsAbroad === LongAbroad && c.status !== "Dead" && !c.openly)
       c.facts.push(newFact({ id: newId(S, "f"), text: `Spent three years and more at the court of ${land(c.at!)}.`, secrecy: "Hidden", tag: "abroad", knownBy: [c.employer!, c.at!] }));
   }
 
