@@ -9,7 +9,7 @@ import {
   realmNames, type GameState, type HistoryKind, type Power,
 } from "@amarna/engine";
 import type { MapScene } from "../map/scene.ts";
-import { placeName, realmName, shown } from "./names.ts";
+import { otherName, otherRealmName, placeName, realmName, shown } from "./names.ts";
 
 /** One thing a seat knows, as the search and its filters read it. */
 export interface Known {
@@ -58,7 +58,7 @@ export function knownTo(state: GameState, viewer: Power | null, scene: MapScene)
       kind: "realm",
       id: p,
       name: realmName(p),
-      names: [...realmNames(p), PeriodRealmNames.get(p as never)?.name ?? "", kingFor(viewer, p), ...kingOtherNames(viewer, p)].filter((n) => n !== ""),
+      names: [...realmNames(p), PeriodRealmNames.get(p as never)?.name ?? "", realmName(p), otherRealmName(p) ?? "", kingFor(viewer, p), ...kingOtherNames(viewer, p)].filter((n) => n !== ""),
       what: `a realm, under ${kingFor(viewer, p)}${capital !== undefined ? `, from ${placeName(capital.id)}` : ""}`,
       realms: [p],
       place: capital?.id ?? null,
@@ -119,6 +119,12 @@ export function knownTo(state: GameState, viewer: Power | null, scene: MapScene)
 export function titleName(t: string): string {
   const own = AllPowers.find((p) => realmNames(p)[0] === t);
   return own !== undefined ? realmName(own) : shown(t);
+}
+
+/** A title's other name, for a card's second line: its realm's, by the realms' setting (#768), else as for any name. */
+export function otherTitleName(t: string): string | null {
+  const own = AllPowers.find((p) => realmNames(p)[0] === t);
+  return own !== undefined ? otherRealmName(own) : otherName(t);
 }
 
 /** A name as the search compares it: no diacritics, no ʿ or ', any case. */

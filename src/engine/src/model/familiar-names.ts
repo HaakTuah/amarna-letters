@@ -1,9 +1,10 @@
 /**
  * The other names a player may choose to see ("History, search and names" under Interface, "Places by their own names"
- * under World; build order item 17+++b). By default places take their period names and the Great Kings' realms the names
- * people know; two settings in the web app show places by the names a modern reader knows them by, and the realms by the
- * names their own letters used. Every other realm is named by its land or city, a place, so its name follows the places'
- * setting. Presentation only: requests to models, seat views and the engine's logs keep the names as they are.
+ * under World; build order item 17+++b). By default places take their period names and every realm the name people
+ * know; two settings in the web app, one for places and one for realms (#768), show places by the names a modern reader
+ * knows them by, and the realms by the names their own letters used. A realm other than the Great Kings' is named by its
+ * land or city, so its known name is that place's familiar name (Byblos for Gubla). Presentation only: requests to
+ * models, seat views and the engine's logs keep the names as they are.
  */
 import { ModernNames, WorldMap } from "./map.ts";
 import type { FixedPower } from "./power.ts";
