@@ -26,7 +26,8 @@ account until its usage is spent; on the main account the usage brake closes it 
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
   the camera to the play area's edges (#396), a seal's tap to its own city (#398), the tabs and the courts scrolled
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
-  shown names (#790) and a city-state's capital said once in the threads to watch (#791).
+  shown names (#790) and a city-state's capital said once in the threads to watch (#791), and "tap" in the orders tab's
+  help as everywhere else (the lane's report).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
