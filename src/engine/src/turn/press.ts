@@ -6,7 +6,7 @@ import { listed } from "../rules/wording.ts";
 import { Dict } from "../core/collections.ts";
 import type { ClaimNameOrder, SupportOrder } from "../model/orders.ts";
 import { claimantsOf, claimedName, house, isGreatKing, knownName, land, nameKnown, ownLand, setNameClaims, type Power, powerName } from "../model/power.ts";
-import { type HeardName, newRecognition } from "../model/recognition.ts";
+import { type Claim, type HeardName, newClaim, newRecognition } from "../model/recognition.ts";
 import type { GreetingOptions } from "../model/records.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
@@ -17,6 +17,7 @@ declare module "./core.ts" {
     claimName(p: Power, o: ClaimNameOrder): void;
     syncNames(): void;
     claimHeard(court: Power, claimant: Power, name: string | null, sealed: number): void;
+    rankHeard(court: Power, claimant: Power, g: GreetingOptions | null): void;
     recognise(): void;
     promisesKept(supports: readonly [Power, SupportOrder][]): void;
   }
@@ -45,6 +46,9 @@ P.recordGreeting = function (from, to, g) {
   r.brotherSince = brother ? (r.brotherSince ?? S.turn) : null;
   r.titleSince = title ? (r.titleSince ?? S.turn) : null;
   r.lastTurn = S.turn;
+  // A king outside the seven who names himself Great King in a greeting claims the rank ("Recognition is earned"): his
+  // claim enters the record, new, the first time, and is established by the same test as Assyria's.
+  if (claimsRank(g) && !ofTheRank(S.claims, from) && !S.claims.some((c) => c.power === from)) S.claims.push(newClaim({ power: from, heardBy: [from] }));
   // Item 17+ ("A power's name is a claim"): a greeting gives the recipient the name he claims, where another claims it
   // too, unless it calls him by his house; one calling him by his house takes back a name given him before.
   // As the sender knows the claims: those he has read in the claimants' own greetings.
@@ -111,19 +115,39 @@ P.claimName = function (p, o) {
  */
 P.recognise = function () {
   const S = this.s;
+  // The rank as it stood at the season's start: the city-states (item 11+) do not make a Great King, unless their claim
+  // is established, and one established this season does not count toward another's, so the order never decides.
+  const rank = alive(S).filter((x) => ofTheRank(S.claims, x));
   for (const c of S.claims) {
     if (c.established !== null || !alive(S).includes(c.power)) continue;
-    // The others of the rank: the city-states (item 11+) do not make a Great King.
-    const others = alive(S).filter((x) => x !== c.power && isGreatKing(x));
+    const others = rank.filter((x) => x !== c.power);
     const long = S.recognition.filter((r) => r.to === c.power && others.includes(r.from) && r.brotherSince !== null && S.turn - r.brotherSince >= S.config.recognitionSeasons);
     if (others.length === 0 || long.length * 2 <= others.length) continue;
     c.established = S.turn;
+    c.heardBy = null;
     const by = long.map((r) => r.from);
     for (const p of alive(S))
       notify(S, p, "Notice", ClaimEstablishedTitle, `The claim of the king of ${powerName(c.power)} to be a Great King is no longer new: ${listed(by.map(powerName))} have called him brother for years.${c.overlord !== null && c.overlord !== c.power ? ` ${powerName(c.overlord)} once held him a vassal.` : ""}`);
     logEvent(S, "recognition", `${c.power}'s claim to be a Great King is established: ${by.join(", ")} have called its king brother for years.`, null, "claim-established");
   }
 };
+
+/** Whether a greeting in the formula names its sender Great King (no greeting at all, or one in his own words, does not). */
+function claimsRank(g: GreetingOptions | null): boolean {
+  return g === null || (g.omit !== true && (g.custom === null || g.custom.trim().length === 0) && g.claimGreatKing);
+}
+
+/** A court reads a claimant's greeting (at its audience): if it names him Great King, the court now knows his claim. */
+P.rankHeard = function (court, claimant, g) {
+  const c = this.s.claims.find((x) => x.power === claimant);
+  if (c === undefined || c.heardBy === null || c.heardBy.includes(court) || !claimsRank(g)) return;
+  c.heardBy.push(court);
+};
+
+/** Whether a power is of the Great Kings' rank: one of the seven, or one whose claim to it is established. */
+function ofTheRank(claims: readonly Claim[], p: Power): boolean {
+  return isGreatKing(p) || claims.some((c) => c.power === p && c.established !== null);
+}
 
 /**
  * Supports given this season that keep a promise made in clauses: a letter's offer of support for that move in this season,
