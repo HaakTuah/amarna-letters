@@ -27,7 +27,7 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), the 
 
 - **Powers risen in play.** `Power` is a power the map starts with (`FixedPower`, `FixedPowers`) or one risen in play,
   named by its land: the governor's province's name (with his own after it if a power already goes by that name).
-  `GameState.risen` keeps each (`RisenPower`: names, ruler, capital, the season and kingdom it rose from, and his temper),
+  `GameState.risen` keeps each (`RisenPower`: names, ruler, capital, the season and kingdom it rose from; since item 17b his traits are his reign's, [57](57-every-person.md)),
   and a registry in `model/power.ts` mirrors it for what names a power without the state (`setRisen`, called by every
   new game, every `TurnEngine` and the web page as a state arrives). `AllPowers` is every power in play's order, the
   fixed ones and then the risen as they rose; `cmpPower` sorts risen powers after the fixed. A risen power's capital is
@@ -40,9 +40,8 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), the 
   he may do (keep silent, or send envoys with any terms), and the state of his realm; courts that see his city learn at
   once, the rest when word of it travels from there (`word`, "Realm").
 - **The seat.** A script seat plays a risen power (`GameRunner.seatOf`: the table's seats are the map's powers; a
-  risen one takes the runner's script king, or the log's decisions on replay), with a personality from its ruler's
-  traits (`personalityFor`: aggression from ambition, caution from fear, honesty from loyalty, greed from greed, the rest
-  a city's middling weights). From then on it is a power like any city-state: it falls with its capital, its envoys,
+  risen one takes the runner's script king, or the log's decisions on replay), playing its ruler's traits as a king
+  (since item 17b his reign's, `risenTraits` in `model/kings.ts`: [57](57-every-person.md)). From then on it is a power like any city-state: it falls with its capital, its envoys,
   tablets, vassalage and wars are the ordinary rules, and the conqueror may treat with it, ignore it or march in.
 - **On the board** risen powers share one colour and a city's tower (`glyphId` "risen", `city-states.css`); their names
   are on the board.

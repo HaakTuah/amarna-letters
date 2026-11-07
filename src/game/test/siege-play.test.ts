@@ -42,7 +42,7 @@ import {
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
 import { removeAll, Assert, holds, orderBy, walled, oldWorld, unruled, speaksAll } from "../../engine/test/support.ts";
-import { move as moveOrder } from "@amarna/engine";
+import { Natures, move as moveOrder } from "@amarna/engine";
 
 // The script players' audit of the siege package (Build order item 5, "Every feature is every seat's"): weaknesses found in
 // script games on the new rules, each patched and tested here.
@@ -218,6 +218,8 @@ describe("SiegePlayTests", () => {
     // Since item 7a free Gaza and Jerusalem lie between Egypt and every great king: Babylonia's Jerusalem makes a neighbour.
     treaty(s, "Egypt", "Hatti", false);
     s.owner.set("jerusalem", "Babylonia");
+    // Item 17b: a king who sends gifts and tablets (Tushratta's nature on Egypt's throne), since Akhenaten seldom does.
+    s.reigns.set("Egypt", { traits: [...Natures.Mitanni.traits], since: 1 });
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Egypt"));
     let trusted = sub.orders.filter((o): o is DispatchOrder => o.type === "dispatch").filter((d) => d.proposal !== null || d.gold > 0);
     Assert.notEmpty(trusted);

@@ -41,7 +41,7 @@ the vizier, the chamberlain and the commissioners, and the vassals worked throug
 stop in a king's life it undid after it: the Restoration Stela reopens Amun's temples under the boy Tutankhamun [A], steered,
 most think, by Ay and Horemheb [B].
 
-**Succession** [C]: after Akhenaten (about 1336) came a short, disputed time of Smenkhkare and of a female king
+<a id="14-egypt-succession"></a>**Succession** [C]: after Akhenaten (about 1336) came a short, disputed time of Smenkhkare and of a female king
 Neferneferuaten (Nefertiti or Meritaten, scholars divide), then Tutankhamun (about 1332), then Ay, then Horemheb, the
 general: the last two of these rulers (Smenkhkare and Neferneferuaten may be one) rose from his court's offices, not his blood [A]. A widowed queen of Egypt
 asked Suppiluliuma for a son to marry, since "I will never take a servant of mine as husband"; the prince Zannanza was
@@ -72,7 +72,7 @@ first-rank daughter [A].
 - **Suppiluliuma's own rise** [A, C his part]: the princes, lords and officers had sworn to Tudhaliya the Younger, then
   "wronged" and killed him, and Suppiluliuma reigned; his son Mursili II later blamed the plague on that broken oath
   (Mursili's first Plague Prayer, CTH 378). Whether Suppiluliuma was Tudhaliya's brother or rival is C.
-- **After him** [A]: Arnuwanda II reigned about a year and died of the plague; the boy Mursili II opens his *Annals*
+- <a id="14-hatti-after"></a>**After him** [A]: Arnuwanda II reigned about a year and died of the plague; the boy Mursili II opens his *Annals*
   with the enemies who mocked a child king.
 
 ### Mitanni
@@ -110,7 +110,7 @@ first-rank daughter [A].
 | Diviner (*bārû*) | Unnamed | Read omens from livers; Babylon's learning, sent abroad | A (the office) | Omen series; Van De Mieroop |
 
 **Intrigue and succession on record:**
-- **A king who refused another king's vassals** [A]: Burna-Buriash tells Pharaoh that in Kurigalzu's day ("my father" in
+- <a id="14-kurigalzu-refusal"></a>**A king who refused another king's vassals** [A]: Burna-Buriash tells Pharaoh that in Kurigalzu's day ("my father" in
   Rainey, "my ancestor" in Moran) Pharaoh's Canaanite vassals asked Babylon to join them against Egypt, and Kurigalzu
   refused (EA 9; Rainey: "all the Canaanites wrote to him, saying: 'Come to the border of the land; let us revolt'"). A king could turn
   away a revolt offered to him.

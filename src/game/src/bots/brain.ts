@@ -36,7 +36,7 @@ import {
   FullWeight,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
-import { personalityFor, type Personality } from "./personality.ts";
+import { archetype, personalityOf, type Personality } from "./personality.ts";
 import type { Landing } from "./seas.ts";
 import { againstIn, readReport, type SupportPromise } from "./statecraft-clauses.ts";
 
@@ -81,7 +81,13 @@ class Book<V> extends Dict<Power, V> {
 
 export class Brain {
   readonly me: Power;
-  readonly p: Personality;
+  /**
+   * How this king plays: given (a test's, a rival's picture), or his own king's traits as his view shows them (item 17b),
+   * read each season so a new king plays as himself; `tilt` shapes them (a council advisor's).
+   */
+  p: Personality;
+  private readonly given: boolean;
+  private readonly tilt: (x: Personality) => Personality;
   readonly seed: number;
   readonly rel: Dict<Power, Relation> = new Book(() => new Relation());
   lastOwner = new Dict<string, Power | null>();
@@ -209,10 +215,12 @@ export class Brain {
   private swornFor: Board | null = null;
   private sworn = new HSet<Power>();
 
-  constructor(me: Power, seed: number, p: Personality | null = null) {
+  constructor(me: Power, seed: number, p: Personality | null = null, tilt: (x: Personality) => Personality = (x) => x) {
     this.me = me;
     this.seed = seed;
-    this.p = p ?? personalityFor(me, seed);
+    this.given = p !== null;
+    this.tilt = tilt;
+    this.p = p ?? tilt(archetype(me));
     for (const x of AllPowers.filter((x) => x !== me)) this.rel.set(x, new Relation());
     // Every court knows how many troops and how much gold each king started with.
     for (const [k, g] of groupBy(
@@ -234,6 +242,7 @@ export class Brain {
   learn(v: SeatView, b: Board): void {
     if (v.turn === this.turn) return;
     this.turn = v.turn;
+    if (!this.given && v.traits.length > 0) this.p = this.tilt(personalityOf(this.me, v.traits));
     const P = this.p;
     // Item 17++, part D: talk that a rival's land leans toward someone: we court him ("his enemies by courting the claimant").
     for (const x of claimantsTalkedOf(b)) if (this.rel.has(x)) this.rel.get(x).trust = Math.min(1, this.rel.get(x).trust + CourtTrust);

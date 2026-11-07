@@ -1,5 +1,5 @@
 import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
-import { highlights, temperament } from "@amarna/game";
+import { highlights, personalityOf } from "@amarna/game";
 import { color, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import type { HistoryOf } from "./HistoryPanel.tsx";
@@ -202,14 +202,14 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
         <>
           <h4 style={{ marginTop: "1rem" }}>The kings</h4>
           <p className="muted">
-            Script kings play by temperament: each power has its own, varied a little in every game. A model king falls back on the same script temperament
+            Script kings play as the king on their throne: each ruler has traits of his own, set from what the sources show of him and varied a little in every game. A model king falls back on the same script temperament
             whenever a call to the model fails.
           </p>
           <ul className="kings">
             {AllPowers.map((p) => {
               const seat = seats?.[p] ?? "";
-              // The script seat's temperament, drawn from its own seat seed, derived from the game's seed as the seat derives it.
-              const t = temperament(p, state.seed);
+              // Item 17b: the king on the throne, his traits as this game drew them, which a script seat plays by.
+              const t = personalityOf(p, state.reigns.tryGet(p)?.traits ?? []);
               const sleep = state.config.sleepingSeats ? state.sleep.tryGet(p) : undefined;
               return (
                 <li key={p}>

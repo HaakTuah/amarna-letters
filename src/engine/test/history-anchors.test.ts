@@ -5,7 +5,7 @@ import {
   AllPowers, ArmyAnchors, AttestedCast, AttestedKm, CityWaters, CrossedRivers, CrossingAnchors, Crossings, DistanceAnchors,
   DoorAnchors, Doors, FirstCores, LandAnchors, FleetAnchors, HarbourAnchors, Invented, LanguageAnchors, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors,
   PeriodRealmNames, RiverAnchors, Rivers, RulerAnchors, StartUnits, StartWalls, TongueAnchors, WallAnchors, WaterAnchors, WorldMap, beyondTongue, isGreatKing, king,
-  land, modernOf, peopleSpeak, rulerNamed, startHarbour,
+  land, modernOf, peopleSpeak, rulerNamed, startHarbour, Natures, PowerValues,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -79,6 +79,11 @@ describe("HistoryAnchorTests", () => {
     Assert.equal("", rulers.filter((n) => !RulerAnchors.has(n)).join(", "));
     const wrong = [...RulerAnchors].filter(([name, id]) => !names(subject(id, id.startsWith("01-") ? 1 : 0), name));
     Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
+  });
+
+  test("Every Great King's nature names the dossier lines its deeds rest on, and a grade (item 17b)", () => {
+    const wrong = PowerValues.filter(isGreatKing).filter((p) => Natures[p].grade === undefined || (Natures[p].anchors ?? []).length === 0 || (Natures[p].anchors ?? []).some((a) => !lines.has(a)));
+    Assert.equal("", wrong.join(", "));
   });
 
   test("Every Great King's realm named by its period name names an anchor, and its line names it (item 17+++b)", () => {
