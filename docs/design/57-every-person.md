@@ -160,7 +160,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   their run, so a character who gained nothing, as most do, stands at about the middle).
 - **The realms' final scores are their kings' rows** (`finalScores`): a realm whose king is dead and whose heir has not
   yet risen has none. **The winner** (`decideWinners`) is the first person on the board: a king's realm, or a character
-  by his own name (`GameState.winners` holds names, `winnerName` in the web app), so no seat wins when a character
+  by his name and where he is from (`nameFrom`) (`GameState.winners` holds names, `winnerName` in the web app), so no seat wins when a character
   stands first; a shared victory's pair must beat every other living person's score.
 - **Where it is shown**: the end event names the first ten (`placing`); the web app's Standings shows the whole board
   once the age has ended, to every viewer, and the season's end notice points to it; the batch prints the top three

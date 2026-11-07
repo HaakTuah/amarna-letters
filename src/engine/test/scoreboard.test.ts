@@ -63,7 +63,7 @@ describe("ScoreboardTests", () => {
     Assert.equal(0.5, rankAmong([1, 1, 1, 1], 1));
   });
 
-  test("The winner is the first person on the board, a character by his own name", () => {
+  test("The winner is the first person on the board, a character by his name and where he is from", () => {
     const s = world();
     const e = new TurnEngine(s);
     e.decideWinners();
