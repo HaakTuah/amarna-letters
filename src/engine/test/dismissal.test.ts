@@ -249,7 +249,7 @@ describe("DismissalTests", () => {
 
   test("A dismissed spy is free where it watched and a province watcher walks back to the old court", () => {
     let s = smallWorld(newGame(5), "Egypt", "Babylonia");
-    let [court, field] = [first(s.characters, (c) => c.employer === "Egypt"), last(s.characters, (c) => c.employer === "Egypt")];
+    let [court, field] = [first(s.characters, (c) => c.employer === "Egypt"), last(s.characters, (c) => c.employer === "Egypt" && c.duty !== "Ruling")];
     begin(s).resolve(orders("Egypt", placeSpy(court.id, "Babylonia"), placeSpy(field.id, null, "sinai")));
     while (court.duty !== "SpyPosted" || field.duty !== "SpyPosted") begin(s).resolve(none());
 
