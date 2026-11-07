@@ -35,6 +35,10 @@ audit's brief and nothing else, and listed its worst lines. Most of what it foun
   stay in the data and never reach a king, who could seal them into a tablet ("Requests are rules too"). Their hedges
   ("most take him for", "kin or not no letter says") read as men at court would say them, and Tahmaya's and Hatip's
   lines are about Tahmaya and Hatip.
+- **Lines a person gains in play,** the two the seat view's review named: Pharaoh's open residents no longer gain
+  "Spent three years and more at the court of …" beside the line of their post, and a band's chief no longer has
+  "Speaks the tongue of the land he rose in" beside what he says he speaks (one who led a fallen court's refugees
+  "Knows the ways of the court of …").
 - **A guard:** `src/engine/test/biography-text.test.ts` fails on a bracket, a wrong article, a line said twice in one
   biography, or a calling the sources' line repeats.
 
