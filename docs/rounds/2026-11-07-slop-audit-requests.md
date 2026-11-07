@@ -56,7 +56,7 @@ got that text and the audit's brief, and nothing else, and listed its 25 worst l
     given what its men cost by their number.
 
 No rule, number or engine outcome changed, and script games do not read these texts. But a template persona is
-written into a new game's people, so their fingerprint moved: **save version 77**.
+written into a new game's people, so their fingerprint moved: **save version 78**.
 
 ## Ten lines, before and after
 

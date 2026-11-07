@@ -62,7 +62,7 @@ describe("StartingTermTests", () => {
   // audit's biographies (#764: the cast's lines rewritten, the letters' envoys royal envoys, governors of their court's style),
   // and for its interface (#772: a calling said once beside the sources' line, the residents' line reworded), and for #765 (a
   // post of 1346 with none of its court's style free given a man made one of its people), and for the audit of the requests
-  // (save version 77: a template persona's voice by its temper, its facts beside it rather than in it).
+  // (save version 78: a template persona's voice by its temper, its facts beside it rather than in it).
   //
   test.each([
     [1, "5c6662753319a54c"],
