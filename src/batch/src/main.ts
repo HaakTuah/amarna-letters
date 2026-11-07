@@ -769,7 +769,7 @@ if (o.caravanPlayHalf && results.length > 0)
 if (o.outlawPlayHalf && results.length > 0)
   console.log("\nScript kings that hunt the bands in their land and buy news of their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.raiderPlayHalf && results.length > 0)
-  console.log("\nScript kings that police their coasts where raiders come in, and hunt, hire and pay off the raiders from beyond the map (\"current\") against those that ignore them (\"baseline\"):" + versusReport(results, sides));
+  console.log("\nScript kings that hunt, hire and pay off the raiders from beyond the map (\"current\") against those that ignore them (\"baseline\"):" + versusReport(results, sides));
 if (o.vassalPlayHalf && results.length > 0)
   console.log("\nScript players that pay their tribute while it is worth it, demand it of vassals in arrears, and offer vassalage either way (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.commandPlayHalf && results.length > 0)
