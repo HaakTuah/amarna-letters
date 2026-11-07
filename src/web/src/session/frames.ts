@@ -98,7 +98,7 @@ export interface FrameCover {
   since: number;
 }
 
-/** A character as it stood at the end of a season. `confessed`: for a captive, whom it confessed to serving, or null. */
+/** A character as it stood at the end of a season. `confessed`: for a captive, whom its captor knows it serves (a king's realm, or whom it confessed to serving), or null. */
 export interface FramePerson {
   id: string;
   name: string;
@@ -392,7 +392,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       currentTrail: c.currentTrail,
       formerEmployer: c.formerEmployer,
       covers: c.covers.map((k) => ({ for: k.for, believed: k.believed, heldAt: k.heldAt, whereText: k.whereText, province: k.province, court: k.court, timingText: k.timingText, since: k.since })),
-      confessed: c.status === "Captured" && c.heldBy !== null ? Views.confessedMaster(s, c.id, c.heldBy) : null,
+      confessed: c.status === "Captured" && c.heldBy !== null ? Views.captiveMaster(s, c.id, c.heldBy) : null,
     });
 
   const sight = new Map<Power, Set<string>>(AllPowers.map((p) => [p, isAlive(s, p) ? new Set(Views.sight(s, map, p)) : new Set<string>()] as const));

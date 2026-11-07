@@ -452,6 +452,12 @@ function unheardHire(s: GameState, c: Character, viewer: Power): boolean {
  * Whom a spy `court` caught confessed to serving when it was caught there (its latest capture there), or null if it would
  * not say: all the court learned of its master.
  */
+/** Whom a captive held by `court` is known there to serve: a king's realm, to a court that knows he reigns (item 17b), else whom it confessed to serving. */
+function captiveMaster(s: GameState, id: string, court: Power): Power | null {
+  const realm = realmOfKing(s, id);
+  return realm !== null && reignKnown(court, realm) ? realm : confessedMaster(s, id, court);
+}
+
 function confessedMaster(s: GameState, id: string, court: Power): Power | null {
   let found: Power | null = null;
   let any = false;
@@ -858,6 +864,7 @@ export const Views = {
   seenAtCourt,
   knows,
   confessedMaster,
+  captiveMaster,
   // Bug #797: as the court it is for names every power.
   character: (s: GameState, c: Character, viewer: Power): CharacterView => asSeenBy(viewer, () => characterView(s, c, viewer)),
   termText,

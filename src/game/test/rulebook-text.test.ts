@@ -232,7 +232,9 @@ describe("SeasonRulebookTests", () => {
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
-      "You are a person, like every character: you die only by a cause where you are (put to death by a king who holds you, or on the road), never of age. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you are his captive and your fate is his to decide;",
+      "You are a person, like every character: you die only by a cause where you are (put to death by a king who holds you, in a battle your side loses where you stand, in the fall of the city where you are, or on the road), never of age",
+      "If another king takes you, by taking the city where you are (storming its walls or by a siege), in a battle or on the road, you are his captive and your fate is his to decide;",
+      "Travelling without your court (other order travel_alone",
     ],
   ] as const)("The rulebook states each rule %s", (rule: string) => {
     Assert.contains(rule, Rules);
