@@ -31,7 +31,8 @@ const BandHunt = { loss: BandData.huntLoss, least: BandData.least };
  */
 export function huntBands(b: Board, plan: MilitaryPlan): void {
   if (!OutlawPlay.on(b.me)) return;
-  const bands = heeded(b.me, b.v.bands).filter((x) => x.men >= HuntMen && b.isMine(x.province) && worthHunting(b, x, sum(b.mine.filter((u) => u.kind === "Army"), (u) => u.men) / Math.max(1, b.mine.filter((u) => u.kind === "Army").length)));
+  // Item 17++++a: no army marches after raiders from beyond the map, who go home within a few seasons by themselves.
+  const bands = b.v.bands.filter((x) => x.raiders === "" && x.men >= HuntMen && b.isMine(x.province) && worthHunting(b, x, sum(b.mine.filter((u) => u.kind === "Army"), (u) => u.men) / Math.max(1, b.mine.filter((u) => u.kind === "Army").length)));
   if (bands.length === 0) return;
   const target = new Set(bands.map((x) => x.province));
   for (const u of sortBy([...b.mine], [(u) => u.province, cmpStr])) {

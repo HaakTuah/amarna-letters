@@ -1,11 +1,12 @@
 /**
- * A script king and the raiders from beyond the map (build order item 17++++a): it keeps police on its coasts where the
- * doors open that raiders press through, hunts the raiders it can break as it hunts any band (`outlaws.ts`), hires them
- * at war as it hires any band (`generals.ts`), and pays off those it cannot break when its treasury can spare it.
- * `--no-raider-play` makes kings ignore raiders altogether (no police against them, no hunt, hire or pay-off), and
+ * A script king and the raiders from beyond the map (build order item 17++++a): it hunts the raiders it can break where
+ * an army of its own stands with them, as it hunts any band (`outlaws.ts`), but marches no army after them, since they go
+ * home within a few seasons; it hires them at war as it hires any band (`generals.ts`), and pays off those it cannot
+ * break when its treasury can spare it. Police at the doors, measured, did not pay: raids are rare on any one coast and
+ * police hold them down little. `--no-raider-play` makes kings ignore raiders altogether (no hunt, hire or pay-off), and
  * `--raider-play-half` half of them, for the measure against kings that ignore them.
  */
-import { BandData, Doors, LandData, bandCost, bandRobs, cmpNum, cmpStr, grainWorth, payOff, sortBy, type BandSeen, type Order, type SeatView } from "@amarna/engine";
+import { LandData, bandCost, bandRobs, cmpNum, cmpStr, grainWorth, payOff, sortBy, type BandSeen, type Order, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 
 export const RaiderPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -57,12 +58,3 @@ export function payOffOrders(b: Board, orders: Order[], breaks: (x: BandSeen, ar
     return;
   }
 }
-
-/** The police a king keeps on a coast of his where a door opens that raiders press through, in men, by how hard they press. */
-export function doorPolice(province: string): number {
-  const door = Doors.find((d) => d.raids > 0 && d.provinces.includes(province));
-  return door === undefined ? 0 : Math.ceil((RaiderPolice * door.raids) / 100);
-}
-
-/** The police a king keeps on the coast raiders press hardest on: a band's worth of a crew's men, first guess. */
-const RaiderPolice = BandData.shipMen * 4;
