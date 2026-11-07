@@ -143,3 +143,48 @@ Started from `develop` at ec6ee602. As built: [57](../design/57-every-person.md)
 ### Questions for the owner
 
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806): while a king is held captive, should his court keep giving orders in his name (the reading taken), or should his realm be limited until he is back?
+
+## Part C1: the king apart from his court
+
+Started from `develop` at b9099627. As built: [57](../design/57-every-person.md), "Part C1". Part C is built in two pull
+requests, since it holds two things a reader looks up apart: (C1) the king apart from his court, commanding from where he
+stands and dying where he stands; (C2) the court as a place that can be taken, its treasury and archive lost, fleeing
+abroad, the heir an exile with a claim, and word of a death sent on to a court that fled.
+
+### What was built
+
+- The court is the capital (treasury, archive, officials, envoys and letters); the king may stand apart from it
+  (`GameState.kingAt`) and commands from where he stands (`seatOf`): his orders to his land and armies, their reports,
+  what he sees and the units he stands with read his seat.
+- The order `court` with `alone` (`travel_alone` for a model king, "Go alone" on the Play page): the king sets out with
+  his guard, without his court; named where his court is, he goes back to it.
+- Where he stands, with his court or apart from it, a battle his side loses may kill or take him, or he gets away with
+  his men; a city taken there may kill him, else takes him. The king and his court are lost apart: the court's city taken
+  sends the court fleeing without a king who is elsewhere.
+- Script kings go to the front alone when their largest army fights where the court's couriers come a season late, and
+  go back when the fight ends or foes come near them (`bots/afield.ts`).
+- The rulebook (COMMAND AT A DISTANCE, HOW YOU WIN, steps 7 and 10), the seat view (COURT), the Play page, the About page,
+  the README and the design notes say so.
+- A mismatch the new captures showed: the map drew a captive king held at a court as nobody's man, though the court's
+  view names his realm; the map now reads the view's rule (`Views.captiveMaster`).
+
+### First guesses (item 18 tunes them)
+
+- The king alone: 5 shekels and 2 more for every ten days of road, a company of 60 (`KingAloneData`).
+- A battle lost where he stands: dies 20 in a hundred, taken 30, else gets away; a city taken where he stands: dies 30 in
+  a hundred, else taken (`KingAloneData`).
+- A script king this cautious (0.75) or more never goes to the front (`StaysHome`).
+
+### Readings taken
+
+- **What reaches his court, his officials carry on in his name while he is away** (pillar 7, every seat replaceable;
+  part B's reading for a held king, which does not wait on question #806): envoys, letters and foreign news come to the
+  court, and the seat answers them there; only his orders to his land and armies, and their reports, go by where he
+  stands. The court's own couriers to an absent king are not modelled.
+- **Death where he stands applies with his court too** ("a king dies only by a cause where he is": battle, a fallen
+  city): a king taken in his court's city may now die in its fall, as part B left for part C.
+- **A court without its king is not stopped on the road** in this part: a court taken on the road is part C2's.
+- **Only the defender's side risks the king in a battle**: a battle is fought where the defender stands, and the king
+  stands where he is, not with an army that marches out of his province.
+- **Planning done by the builder**, not by the planning-design helper the rule file names, to spare the week's usage the
+  orchestrator warned of; the design check reviews it.
