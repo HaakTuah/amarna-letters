@@ -11,7 +11,8 @@ describe("Envoys' journeys in the orders", () => {
 
   test("Many courts read as the common length once and the others by name", () => {
     const many = ["Egypt", "Hatti", "Babylonia", "Mitanni", "Assyria", "Arzawa", "Alashiya", "Kaska", "Lukka"].map((c) => line(c, 1));
-    Assert.equal(travelTimes([...many, line("Arrapha", 2), line("Elam", 2)]), "1 season to every court but these; Arrapha, Elam: 2 seasons");
+    // Every realm by the name people know (#768): Arrapha's realm reads Kirkuk.
+    Assert.equal(travelTimes([...many, line("Arrapha", 2), line("Elam", 2)]), "1 season to every court but these; Kirkuk, Elam: 2 seasons");
     Assert.equal(travelTimes(many), "1 season to every court (9)");
   });
 });

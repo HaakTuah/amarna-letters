@@ -17,7 +17,8 @@ for provinces and modern for realms", item 134). `scripts/usage.sh` reads "unkno
 - The card's second line and the "Learn more" link name a realm's other name by the realms' setting
   (`otherRealmName`).
 - The menu's tooltip, the README and design note `55-history-search-names.md` say so.
-- **Tests:** `src/web/test/search-and-names.test.ts`, the three name-setting tests rewritten for the new default.
+- **Tests:** `src/web/test/search-and-names.test.ts`, the three name-setting tests rewritten for the new default; the
+  orders' travel line (`travel-times.test.ts`) now reads Arrapha's realm as Kirkuk, its familiar name (#768, point 2).
 - Requests to models, seat views and the engine's text are unchanged, so no save version.
 
 ## Readings taken
