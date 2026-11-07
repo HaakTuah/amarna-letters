@@ -50,7 +50,7 @@ describe("ContractTextTests", () => {
       return person(single(Views.for(s, "Mitanni").court, (x) => x.id === c.id));
     }
     Assert.contains(
-      "; at court, ready for a mission; a job whose first errand you name when you send them, for 108 shekels, 54 handed over and 54 due when it is done, by turn 10; the rest is paid only if you order it (pay_fee). When it is done at your court, the job ends",
+      "; at court, ready for a mission; a job whose first errand you name when you send them, for 108 shekels (54 handed over, 54 due when it is done, paid only if you order it (pay_fee)), by turn 10; the job ends once it is done at your court",
       line(),
     );
     Assert.doesNotContain("until turn", line());
@@ -60,7 +60,7 @@ describe("ContractTextTests", () => {
 
     c.contract.errand = newJobErrand({ what: "envoy", where: "Hatti" });
     c.contract.payOnDone = true;
-    Assert.contains("; a job as envoy to Hatti, for 108 shekels, 54 handed over and 54 due when it is done, by turn 10; you ordered the rest paid when it is done.", line());
+    Assert.contains("; a job as envoy to Hatti, for 108 shekels (54 handed over, 54 paid when it is done, as you ordered), by turn 10;", line());
 
     let free = first(s.characters, (x) => x.status === "Free");
     free.at = "Mitanni";

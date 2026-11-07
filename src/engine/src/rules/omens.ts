@@ -85,7 +85,7 @@ const lines: Record<Voice, Record<OmenTier, string[]>> = {
   },
   Oracle: {
     Quiet: [
-      "The augurs asked the gods whether the age will hold: the birds flew on the favourable side. Favourable.",
+      "The augurs asked the gods whether the age will hold: the birds flew on the favourable side.",
       "The Old Woman drew the lots on the age: favourable.",
     ],
     Troubled: [

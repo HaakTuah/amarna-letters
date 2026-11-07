@@ -115,11 +115,11 @@ describe("SleepTests", () => {
 
     let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${due}/court/`)).user.replaceAll("\r\n", "\n");
     Assert.contains("WHILE YOU SLEPT (since you gave orders in turn 1):", host);
-    Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", host);
+    Assert.contains("[turn 2] Rumour: Word spreads that Hatti is restless.", host);
     // Before the season's news, as in the orders request.
     Assert.true(host.indexOf("WHILE YOU SLEPT") < host.indexOf("NEWS THIS SEASON"));
     let orders = single(recorder.specs, (x) => x.key === `t${due}/orders/Alashiya`).user.replaceAll("\r\n", "\n");
-    Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", orders);
+    Assert.contains("[turn 2] Rumour: Word spreads that Hatti is restless.", orders);
   });
 
   test("With sleeping off an orders request says nothing of sleep", async () => {

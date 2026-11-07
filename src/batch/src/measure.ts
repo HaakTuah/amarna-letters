@@ -45,7 +45,7 @@ const filler = (n: number, seed: string): string => {
 const Heads: [string, RegExp][] = [
   ["sleep line", /^You (slept|gave orders|were woken|have not slept)/],
   ["map, treasury", /^(SEASON|TREASURY|LAND STANDINGS|LANDS|Lands now|YOUR LAND)/],
-  ["people", /^(YOUR PEOPLE|OTHER PEOPLE)/],
+  ["people", /^(YOUR SERVANTS|YOUR PEOPLE|OTHER PEOPLE)/],
   ["letters", /^YOUR LETTERS/],
   ["tablets", /^(YOUR ARCHIVE|Tablets you hold)/],
   ["standing, scheduled", /^(ENVOY TRAVEL|YOUR STANDING ORDERS|ORDERS YOU HAVE SCHEDULED|LETTERS YOU SENT FROM)/],

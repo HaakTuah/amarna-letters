@@ -5,7 +5,7 @@ import { GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/ga
 import { TextKit } from "../src/bots/textkit.ts";
 import { Audience, Letter, type LetterParts, closing, pleaHeard } from "../src/bots/voices.ts";
 import { Assert } from "../../engine/test/support.ts";
-import { reading as readingOf } from "./readings.ts";
+import { ModernShare, reading as readingOf } from "./readings.ts";
 
 /** A script king's seat that keeps what it writes: its letters, and its words to the envoys it hears. */
 class Kept implements ISeat {
@@ -64,6 +64,8 @@ describe("LetterShapeTests", () => {
       for (const [what, texts] of [["letters", k.letters], ["audiences", k.speeches]] as const) {
         if (texts.length < 6) continue;
         checked++;
+        // A share in a king's own words is said as the age said it, "a fifth", never "%" (archive item 232).
+        for (const t of texts) Assert.false(ModernShare.test(t), `${p}'s ${what} give a share as a percentage: ${t}`);
         const [s, share] = commonest(texts);
         Assert.true(share <= 0.5, `${p}'s ${what}: "${s}" in ${Math.round(share * 100)}% of ${texts.length}`);
       }

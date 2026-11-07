@@ -30,25 +30,40 @@ export function person(c: CharacterView): string
             if (c.where.length > 0) parts.push(c.where);
         }
         // Item 13: battles won and lost commanding an army, which anyone who saw them can count.
-        if (c.won + c.lost > 0) parts.push(`commanded in ${c.won + c.lost} battles: won ${c.won}, lost ${c.lost}`);
+        if (c.won + c.lost > 0) parts.push(`commanded in ${c.won + c.lost} battle${c.won + c.lost === 1 ? `` : `s`}: won ${c.won}, lost ${c.lost}`);
         if (c.term.length > 0) parts.push(c.term);
         if (c.owed !== null) parts.push(`you let ${c.owed} shekels of their fee fall due unpaid`);
         if (c.ransomCarrier !== null) parts.push(`a ransom demand for them, with nobody going that way, would hire a carrier at your court for ${c.ransomCarrier} shekels from your treasury`);
         if (c.lends !== null) parts.push(`offers to lend you up to ${c.lends.amount} shekels, asking ${c.lends.perHundred}% more back after ${c.lends.seasons} seasons`);
-        for (const n of c.news) parts.push(`offers news of ${n.court} as they saw it in turn ${n.turn} (${n.lines} ${n.lines === 1 ? "report" : "reports"}) for ${n.price} shekels (order buy_news)`);
-        if (c.knownFacts.length > 0) parts.push(`known: ` + joinS(` `, c.knownFacts));
+        for (const n of c.news) parts.push(`offers news of ${n.court} as they saw it in turn ${n.turn} (${n.lines} ${n.lines === 1 ? "report" : "reports"}) for ${n.price} ${n.price === 1 ? "shekel" : "shekels"}`);
         if (c.pitch !== null) parts.push(`pitch: "${c.pitch}"`);
         // Item 12: what they say they speak, never their skill.
         if (c.speaks.length > 0) parts.push(`says they speak ${joinS(`, `, c.speaks)}`);
         if (c.askingPrice !== null) parts.push(`asks ${c.askingPrice} a season of a job's term`);
-        return joinS(`; `, parts);
+        // What is known of them is in sentences of its own, so it closes the line.
+        const line = joinS(`; `, parts);
+        const closed = line.endsWith(`.`) ? line : `${line}.`;
+        return c.knownFacts.length > 0 ? `${closed} Known: ${known(c.knownFacts)}` : closed;
+    }
+
+/** The engine's fact for a mission carried home, which script kings also read: "Carried a mission to Sutu and came home with the answer (season 3)." */
+const Mission = /^Carried a mission to (?<to>.+) and came home with the answer \(season (?<season>\d+)\)(?<slipped>, slipping in through the siege lines)?\.$/;
+
+/** What is known of a person, with two or more missions carried home said in one sentence where the first stood. */
+function known(facts: readonly string[]): string
+    {
+        const missions = facts.map((f) => Mission.exec(f)?.groups).filter((g) => g !== undefined);
+        if (missions.length < 2) return joinS(` `, facts);
+        const merged = `Carried missions and came home with the answers: ${joinS(`, `, missions.map((g) => `${g.to} (season ${g.season}${g.slipped ?? ``})`))}.`;
+        const first = facts.findIndex((f) => Mission.test(f));
+        return joinS(` `, facts.flatMap((f, i) => (i === first ? [merged] : Mission.test(f) ? [] : [f])));
     }
 
 export function audience(a: AudienceView, inCourt = false): string
     {
         const sb = new Sb();
         sb.appendLine(`AN AUDIENCE (round ${a.round} of at most ${a.maxRounds}). ${a.envoy.name} (${a.envoy.id}), envoy of ${a.from}, stands before you.`);
-        if (a.envoy.knownFacts.length > 0) sb.appendLine(`What you know of ${a.envoy.name}: ${joinS(` `, a.envoy.knownFacts)}`);
+        if (a.envoy.knownFacts.length > 0) sb.appendLine(`What you know of ${a.envoy.name}: ${known(a.envoy.knownFacts)}`);
         sb.appendLine(a.greeting.length > 0 ? `The sealed greeting reads: "${a.greeting}"` : `The tablet bears no greeting at all.`);
         if (a.greetingDeviations.length > 0) sb.appendLine(`It departs from the custom: ${joinS(`; `, a.greetingDeviations)}.`);
         if (a.presented > 0) sb.appendLine(`While nobody at your court understood ${a.envoy.name}, he presented gifts weighing ${a.presented} shekels, which are in your treasury.`);
