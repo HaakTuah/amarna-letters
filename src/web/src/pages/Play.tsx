@@ -40,6 +40,13 @@ import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
 import { authorKind, type Thread } from "@amarna/game";
 
+/** The keys handled with the page's tabs and cards (`windowKeys`), set after the page's early returns. */
+const WindowActions = [
+  "endSeason", "escape", "stepBack", "stepOn", "toNow",
+  "winSeat", "winProvinces", "winStandings", "winPeople", "winInbox", "winThreads", "winEvents", "winRules", "winChronicles",
+  "winMind", "winTrail", "winFollow", "winLegends",
+] as const;
+
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
 const PhaseWords: Record<string, string> = {
   "income and arrivals": "Income and arrivals",
@@ -86,12 +93,13 @@ export function Play() {
   useLayoutEffect(() => {
     performance.measure("page:play", { start: renderStart });
   });
-  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 4 set the pace, + and − step it.
+  // The keys (ui/keys.ts). Space does what the play button shows, 1 to 4 set the pace, + and − step it; the rest are below.
+  const windowKeys = useRef<Partial<Record<(typeof WindowActions)[number], () => void>>>({});
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
       if (!live.hasRunner || s.frames.length === 0) return;
-      if (live.auto) s.setAuto(false);
+      if (s.autoPlaying) s.setAuto(false);
       else if (s.replaying) s.toggleReplay();
       else if (s.historyTurn !== null || live.readOnly || live.ended) {
         if (s.frames.length > 1) s.toggleReplay();
@@ -106,6 +114,9 @@ export function Play() {
       if (speedIndex(s.delayMs) < 2) setSpeed(speedIndex(s.delayMs) + 1);
     },
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
+    // The keys whose handlers need the page's tabs and cards, set where those are (below, `windowKeys`): each read at the
+    // moment of the key press, so it sees the page as it is.
+    ...Object.fromEntries(WindowActions.map((a) => [a, () => windowKeys.current[a]?.()])),
   });
   const [mark, setMark] = useState<string | null>(null);
   const [theme, setThemeState] = useState(getTheme);
@@ -165,12 +176,12 @@ export function Play() {
   const tellings = wantThreads && threads?.key === threadsAt ? threads.tellings : null;
   const playout = s.playoutAt(s.shownIndex, viewerOf());
   useEffect(() => {
-    if (!director || playout === null || tellings === null || tracking) return;
+    if (!director || playout === null || tellings === null || tracking || s.playoutHeld) return;
     const shot = directorShot(playout.play.timeline, tellings[0] ?? []);
     if (shot === null) return;
     const timer = window.setTimeout(() => map.current?.focus(shot.at, 2.2, true), Math.max(0, shot.time - (performance.now() - playout.began)));
     return () => window.clearTimeout(timer);
-  }, [director, playout?.began, tellings, tracking]);
+  }, [director, playout?.began, tellings, tracking, s.playoutHeld]);
 
   // Simulate draws nothing while it runs (item 17+++): a progress bar and the count of seasons, and the way back to watching.
   if (live.hasRunner && s.simulating)
@@ -320,6 +331,50 @@ export function Play() {
     setTracking(false);
     setTab("season");
   };
+  /** The season's orders sealed (item 19+++ plays the seal): by the orders' own button, or Enter. */
+  const seal = (sleep: boolean): void => {
+    if (pendingOrders === null || draft === null) return;
+    player.play("seal");
+    s.submitOrders(pendingOrders.power, { ...draft.build(), stayAwake: !sleep });
+  };
+  /** A window opened by its key: shown when the page offers it now (a tab it hides is left alone), never toggled. */
+  const open = (t: string, offered: boolean): (() => void) => () => {
+    if (!offered) return;
+    setTab(t);
+    setSheet(false);
+  };
+  windowKeys.current = {
+    endSeason: () => seal(false),
+    stepBack: () => {
+      if (index > 0) s.stepBack();
+    },
+    stepOn: () => s.stepForward(),
+    toNow: () => {
+      if (history) s.showTurn(null);
+    },
+    // Escape: the card or window in front (a card over the map closes itself: MapCard), the menu, the enlarged panel; else
+    // the menu opens.
+    escape: () => {
+      if (document.querySelector(".mapcard") !== null) return;
+      const menu = document.querySelector<HTMLDetailsElement>("details.menu");
+      if (menu?.open === true) menu.open = false;
+      else if (sheet) setSheet(false);
+      else if (menu !== null) menu.open = true;
+    },
+    winSeat: open(pendingAudience !== null ? "audience" : pendingOrders !== null ? "orders" : "season", true),
+    winProvinces: open("provinces", true),
+    winStandings: open("standings", true),
+    winPeople: open("people", true),
+    winInbox: open("inbox", viewer !== null),
+    winThreads: open("threads", s.canSeeAll),
+    winEvents: open("events", true),
+    winRules: open("rules", true),
+    winChronicles: open("chronicle", state.ended && Object.keys(live.chronicles).length > 0),
+    winMind: open("mind", minded),
+    winTrail: open("trail", s.godView),
+    winFollow: open("follow", followId !== null),
+    winLegends: open("legends", s.godView),
+  };
 
   // The last season's frame still shows the age's end until the next season is played, after the table played on.
   const playedOn = !history && frame.ended && !live.ended;
@@ -420,7 +475,7 @@ export function Play() {
             </span>
           )}
           <details className="menu">
-            <summary aria-label="More" title="More">
+            <summary aria-label="More" title={withKey("More", "escape")}>
               ⋯
             </summary>
             <div className="menu-body">
@@ -441,6 +496,15 @@ export function Play() {
                 }}
               >
                 How it works
+              </a>
+              <a
+                href="keys"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("keys");
+                }}
+              >
+                Keys
               </a>
               {/* The export is the whole record: offered only when the god view is (Engine and models, "Logging and replay"). */}
               {s.canSeeAll && <ExportLog onExport={(parts) => void s.export(parts)} />}
@@ -500,6 +564,7 @@ export function Play() {
             followId,
             followPath,
             playout: s.playoutAt(index, viewer),
+            held: s.playoutHeld,
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}
@@ -528,65 +593,65 @@ export function Play() {
         </button>
         <div className="tabs" role="tablist" ref={sideScroll}>
           {pendingAudience !== null && (
-            <button className={tabClass("audience", true)} onClick={() => pick("audience")}>
+            <button className={tabClass("audience", true)} onClick={() => pick("audience")} title={withKey("Audience!", "winSeat")}>
               Audience!
             </button>
           )}
           {pendingOrders !== null && (
-            <button className={tabClass("orders", true)} onClick={() => pick("orders")}>
+            <button className={tabClass("orders", true)} onClick={() => pick("orders")} title={withKey("Your orders", "winSeat")}>
               Your orders
             </button>
           )}
-          <button className={tabClass("season")} onClick={() => pick("season")}>
+          <button className={tabClass("season")} onClick={() => pick("season")} title={withKey("Season", "winSeat")}>
             Season
           </button>
           {viewer !== null && (
-            <button className={tabClass("inbox")} onClick={() => pick("inbox")}>
+            <button className={tabClass("inbox")} onClick={() => pick("inbox")} title={withKey("Inbox", "winInbox")}>
               Inbox
             </button>
           )}
           {minded && (
-            <button className={tabClass("mind")} onClick={() => pick("mind")}>
+            <button className={tabClass("mind")} onClick={() => pick("mind")} title={withKey("Own words", "winMind")}>
               Own words
             </button>
           )}
           {s.canSeeAll && (
-            <button className={tabClass("threads")} onClick={() => pick("threads")}>
+            <button className={tabClass("threads")} onClick={() => pick("threads")} title={withKey("Threads", "winThreads")}>
               Threads
             </button>
           )}
           {s.godView && (
-            <button className={tabClass("trail")} onClick={() => pick("trail")}>
+            <button className={tabClass("trail")} onClick={() => pick("trail")} title={withKey("Trail", "winTrail")}>
               Trail
             </button>
           )}
-          <button className={tabClass("people")} onClick={() => pick("people")}>
+          <button className={tabClass("people")} onClick={() => pick("people")} title={withKey("People", "winPeople")}>
             People
           </button>
           {followId !== null && (
-            <button className={tabClass("follow")} onClick={() => pick("follow")}>
+            <button className={tabClass("follow")} onClick={() => pick("follow")} title={withKey("Follow", "winFollow")}>
               Follow
             </button>
           )}
-          <button className={tabClass("provinces")} onClick={() => pick("provinces")}>
+          <button className={tabClass("provinces")} onClick={() => pick("provinces")} title={withKey("Provinces", "winProvinces")}>
             Provinces
           </button>
-          <button className={tabClass("standings")} onClick={() => pick("standings")}>
+          <button className={tabClass("standings")} onClick={() => pick("standings")} title={withKey("Standings", "winStandings")}>
             Standings
           </button>
-          <button className={tabClass("events")} onClick={() => pick("events")}>
+          <button className={tabClass("events")} onClick={() => pick("events")} title={withKey("Events", "winEvents")}>
             Events
           </button>
           {s.godView && (
-            <button className={tabClass("legends")} onClick={() => pick("legends")}>
+            <button className={tabClass("legends")} onClick={() => pick("legends")} title={withKey("Legends", "winLegends")}>
               Legends
             </button>
           )}
-          <button className={tabClass("rules")} onClick={() => pick("rules")}>
+          <button className={tabClass("rules")} onClick={() => pick("rules")} title={withKey("Rules", "winRules")}>
             Rules
           </button>
           {state.ended && Object.keys(live.chronicles).length > 0 && (
-            <button className={tabClass("chronicle")} onClick={() => pick("chronicle")}>
+            <button className={tabClass("chronicle")} onClick={() => pick("chronicle")} title={withKey("Chronicles", "winChronicles")}>
               Chronicles
             </button>
           )}
@@ -636,10 +701,10 @@ export function Play() {
       </aside>
 
       <footer className="timebar">
-        <button className="tb" disabled={index <= 0} onClick={() => s.stepBack()} title="One season back" aria-label="One season back">
+        <button className="tb" disabled={index <= 0} onClick={() => s.stepBack()} title={withKey("One season back", "stepBack")} aria-label="One season back">
           ◀
         </button>
-        {live.auto ? (
+        {s.autoPlaying ? (
           <button className="tb play on" onClick={() => s.setAuto(false)} title={withKey("Pause", "pause")} aria-label="Pause">
             ❚❚
           </button>
@@ -660,7 +725,7 @@ export function Play() {
           className="tb"
           disabled={!history && !s.canPlay}
           onClick={() => s.stepForward()}
-          title={history ? "One season on" : "Play one season"}
+          title={withKey(history ? "One season on" : "Play one season", "stepOn")}
           aria-label={history ? "One season on" : "Play one season"}
         >
           {history ? "▶︎|" : "+1"}
@@ -682,7 +747,7 @@ export function Play() {
           {!history && <span className="hide-sm"> · now</span>}
         </span>
         {history && (
-          <button className="tb now" onClick={() => s.showTurn(null)} title="Back to now">
+          <button className="tb now" onClick={() => s.showTurn(null)} title={withKey("Back to now", "toNow")}>
             Now
           </button>
         )}
@@ -715,11 +780,7 @@ export function Play() {
             draft={draft!}
             state={state}
             onChanged={() => bump((x) => x + 1)}
-            onSubmit={(sleep) => {
-              // The season's orders sealed (item 19+++).
-              player.play("seal");
-              s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep });
-            }}
+            onSubmit={seal}
           />
         );
       case "inbox":

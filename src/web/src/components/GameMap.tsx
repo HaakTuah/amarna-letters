@@ -3,6 +3,7 @@ import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type 
 import type { Pt } from "../map/art.ts";
 import type { MapInput, MapRenderer } from "../map/renderer.ts";
 import { SvgMapRenderer } from "../map/svg-renderer.ts";
+import { useKeys, withKey } from "../ui/keys.ts";
 
 export interface MapHandle {
   /** Brings a point of the board into view (following a character, or a province chosen from the list); `centre` puts it
@@ -77,6 +78,25 @@ export function GameMap({
   const [back, setBack] = useState<MapView | null>(null);
   // Item 17++, part C: the realms view (who holds what) or the mood of the land, one tap away.
   const [mode, setMode] = useState<MapMode>("realms");
+  // The map's keys (ui/keys.ts): its views by letter, and W, A, S, D with the arrows moving it a fifth of the view a step.
+  // Moving or zooming the camera by key takes it, as a drag does: a follow no longer keeps it on its person.
+  const Step = 0.2;
+  const camera = (move: (r: MapRenderer) => void) => (): void => {
+    if (renderer.current === null) return;
+    handlers.current.onCamera?.();
+    move(renderer.current);
+  };
+  useKeys({
+    viewRealms: () => setMode("realms"),
+    viewMood: () => setMode("mood"),
+    panUp: camera((r) => r.panBy(0, -Step)),
+    panDown: camera((r) => r.panBy(0, Step)),
+    panLeft: camera((r) => r.panBy(-Step, 0)),
+    panRight: camera((r) => r.panBy(Step, 0)),
+    zoomIn: camera((r) => r.zoomBy(1.6)),
+    zoomOut: camera((r) => r.zoomBy(1 / 1.6)),
+    wholeMap: () => whole(),
+  });
   const key = useRef(viewKey);
   key.current = viewKey;
 
@@ -137,15 +157,15 @@ export function GameMap({
   return (
     <div className="mapview lod1" ref={view}>
       <div className="map-ui zoombtns">
-        <button className="zb" title="Zoom in" aria-label="Zoom in" onClick={() => renderer.current?.zoomBy(1.6)}>
+        <button className="zb" title={withKey("Zoom in", "zoomIn")} aria-label="Zoom in" onClick={() => renderer.current?.zoomBy(1.6)}>
           +
         </button>
-        <button className="zb" title="Zoom out" aria-label="Zoom out" onClick={() => renderer.current?.zoomBy(1 / 1.6)}>
+        <button className="zb" title={withKey("Zoom out", "zoomOut")} aria-label="Zoom out" onClick={() => renderer.current?.zoomBy(1 / 1.6)}>
           −
         </button>
         <button
           className={`zb${mode === "mood" ? " on" : ""}`}
-          title={mode === "mood" ? "Back to who holds what" : "The mood of the land"}
+          title={mode === "mood" ? withKey("Back to who holds what", "viewRealms") : withKey("The mood of the land", "viewMood")}
           aria-label={mode === "mood" ? "Back to who holds what" : "The mood of the land"}
           aria-pressed={mode === "mood"}
           onClick={() => setMode(mode === "mood" ? "realms" : "mood")}
@@ -153,11 +173,11 @@ export function GameMap({
           ◐
         </button>
         {back !== null ? (
-          <button className="zb fit back" title="Back to where you were" aria-label="Back to where you were" onClick={whole}>
+          <button className="zb fit back" title={withKey("Back to where you were", "wholeMap")} aria-label="Back to where you were" onClick={whole}>
             ↩
           </button>
         ) : (
-          <button className="zb fit" title="Show the whole map" aria-label="Show the whole map" onClick={whole}>
+          <button className="zb fit" title={withKey("Show the whole map", "wholeMap")} aria-label="Show the whole map" onClick={whole}>
             ⤢
           </button>
         )}

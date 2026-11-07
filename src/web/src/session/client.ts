@@ -277,6 +277,7 @@ export class Session {
 
   private startPlayout(): void {
     const index = this.frames.length - 1;
+    this.heldAt = null;
     this.playout = { index, viewer: this.viewer, play: this.playOf(index), began: performance.now(), live: true };
     this.schedulePlayout();
   }
@@ -294,6 +295,7 @@ export class Session {
     const p = this.playout;
     if (p === null || !p.live) return;
     this.playout = null;
+    this.heldAt = null;
     this.tellPlayed(p.index);
     while (this.held.length > 0 && this.playout === null) this.apply(this.held.shift()!, false);
     this.notify();
@@ -302,6 +304,7 @@ export class Session {
   private endPlayout(): void {
     clearTimeout(this.playTimer);
     this.playout = null;
+    this.heldAt = null;
   }
 
   private tellPlayed(index: number): void {
@@ -377,9 +380,17 @@ export class Session {
   get shownIndex(): number {
     return this.historyTurn ?? Math.max(0, this.frames.length - 1);
   }
+  /**
+   * Whether auto-play can start: not while the worker is busy or still playing, unless a season held still is waiting to
+   * play on (the worker tells that auto-play stopped only once it has computed the season it was on).
+   */
   get canPlay(): boolean {
     const l = this.live;
-    return l.hasRunner && !l.busy && !l.readOnly && !l.ended && !l.auto;
+    return l.hasRunner && (this.playoutHeld || (!l.busy && !l.auto)) && !l.readOnly && !l.ended;
+  }
+  /** Whether auto-play runs as the page shows it: on, and its season not held still. */
+  get autoPlaying(): boolean {
+    return this.live.auto && !this.playoutHeld;
   }
 
   /** The map's scene for a season and a pair of eyes, built once and kept while the frames stand. */
@@ -435,8 +446,34 @@ export class Session {
     this.notify();
     this.send({ type: "step" });
   }
+  /**
+   * Auto-play on or off. Off holds the season playing out where it stands, and on lets it play on from there (item
+   * 17+++a: "Space pauses and unpauses, even while a season plays out"), as the play button and Space both do.
+   */
   setAuto(on: boolean): void {
+    this.holdPlayout(!on);
     this.send({ type: "auto", on });
+  }
+
+  /** When the season playing out was held still (null: it plays), so its timeline goes on from where it stood. */
+  private heldAt: number | null = null;
+  /** Whether the season playing out is held still: the map holds its pieces where they are. */
+  get playoutHeld(): boolean {
+    return this.heldAt !== null && this.playout !== null;
+  }
+  private holdPlayout(hold: boolean): void {
+    const p = this.playout;
+    if (hold) {
+      if (p === null || !p.live || this.heldAt !== null) return;
+      this.heldAt = performance.now();
+      clearTimeout(this.playTimer);
+    } else {
+      if (this.heldAt === null) return;
+      if (p !== null) p.began += performance.now() - this.heldAt;
+      this.heldAt = null;
+      this.schedulePlayout();
+    }
+    this.notify();
   }
   /**
    * The speed (item 17+++): it paces the seasons from the next one on; the season playing keeps the pace the map lays it
@@ -535,7 +572,9 @@ export class Session {
       this.showTurn(this.historyTurn + 1);
       return;
     }
-    if (this.canPlay) this.step();
+    // A season held still plays on, by itself: auto-play stays off.
+    if (this.playoutHeld) this.holdPlayout(false);
+    else if (this.canPlay) this.step();
   }
 
   /** Starts or stops stepping through the recorded seasons, from the start if already at the newest. */

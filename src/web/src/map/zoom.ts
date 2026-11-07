@@ -136,6 +136,19 @@ export function setView(view, mx, my, zoom, animated) {
   else { change(); apply(st); settle(st, true); }
 }
 
+/// Moves the view a step, as the keys W, A, S, D and the arrows do (item 17+++a): `dx`, `dy` in fractions of the view's
+/// width and height, the map gliding there.
+export function panBy(view, dx, dy) {
+  const st = states.get(view);
+  if (!st) return;
+  const r = view.getBoundingClientRect();
+  animate(st, () => {
+    st.x -= dx * r.width;
+    st.y -= dy * r.height;
+    clamp(st);
+  });
+}
+
 /// Brings a map point into view, zooming in to at least the given zoom (used to follow a character or a province);
 /// `centre`, to put it in the middle of the view however far in it already is (a follow keeping its person in view).
 export function focus(view, mx, my, minZoom, centre) {

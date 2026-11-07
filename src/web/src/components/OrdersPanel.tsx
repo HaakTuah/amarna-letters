@@ -6,6 +6,7 @@ import {
 } from "@amarna/engine";
 import { describeOrder, powerName, shekels, when } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
+import { withKey } from "../ui/keys.ts";
 import { num } from "./orders/form.ts";
 import { useOrders } from "./orders/use-orders.ts";
 import { TroopsSection } from "./orders/TroopsSection.tsx";
@@ -151,7 +152,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             }}
           />
         </div>
-        <button className="primary" onClick={() => onSubmit(false)}>
+        <button className="primary" onClick={() => onSubmit(false)} title={withKey("Seal the orders for this season", "endSeason")}>
           Seal the orders for this season
         </button>
         {/* Sleep is for every seat (item 9+a): the seasons pass by themselves until something concerns you, or you wake. */}
