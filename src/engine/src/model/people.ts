@@ -868,6 +868,11 @@ export interface Cover {
   /** The province the master believes the servant stands in out in the land (`CharacterView.province`, bug #734). */
   province: string | null;
   /**
+   * The foreign court the master believes the servant stands at, or set out for or from (bug #797): its id, kept apart
+   * from the lines' words, which name it as that master gives it. Null if none.
+   */
+  court: Power | null;
+  /**
    * When the master believes the servant set out and is due back, as its view read then (see {@link Views.TimingText}).
    */
   timingText: string;
@@ -898,6 +903,7 @@ export function newCover(init: Partial<Cover> = {}): Cover {
     dutyText: "",
     whereText: "",
     province: null,
+    court: null,
     timingText: "",
     fee: 0,
     advance: 0,
@@ -920,6 +926,7 @@ export const CoverSchema: ObjSchema<Cover> = obj("Cover", newCover, {
   dutyText: S,
   whereText: S,
   province: opt(S),
+  court: opt(S),
   timingText: S,
   fee: I,
   advance: I,
