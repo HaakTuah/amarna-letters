@@ -24,7 +24,7 @@ what comes before it:
 
 ## Part A: before tuning
 
-Started from `develop` at e081ca6 (17b's milestone merged, #827).
+Started from `develop` at 4a7be3d (17b's milestone merged, #827).
 
 ### What was built
 
