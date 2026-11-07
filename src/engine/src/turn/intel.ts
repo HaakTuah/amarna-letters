@@ -10,7 +10,8 @@ import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, Fo
 import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, powerName, type Power, quoteWords, courtHead } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
-import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy, type Unit } from "../model/state.ts";
+import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { counted, listed, notTaken, pick, seasonsWords, upper } from "../rules/wording.ts";
 import { cap } from "../rules/greeting.ts";

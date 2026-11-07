@@ -6,7 +6,8 @@ import { EngageValues, MandateTaskValues, governorsKnown, MostGovernorLevies, se
 import type { Order } from "../model/orders.ts";
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { findCharacter, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, unitAt } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import type { Checking } from "./validator-context.ts";
 import { courtMoveRefusal, courtOf } from "./court.ts";
 
