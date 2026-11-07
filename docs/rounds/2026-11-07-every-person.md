@@ -253,7 +253,8 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   fell still finds his heir.
 - **An heir in exile with a claim** (`exileHeir`): when word of the death of a fallen realm's last king reaches where it
   fell (or word of a king's death comes after his realm fell), the record's next heir (or a drawn one) lives on as a free
-  man among its refugees, setting out from there to the court nearest it, with a public fact that he claims its throne, seeking service. His seat sees whose throne he claims
+  man among its refugees, setting out from there to the court nearest it (a man of the record already elsewhere stays as he is, with no new
+  fact: Codex's third round), with a public fact that he claims its throne, seeking service. His seat sees whose throne he claims
   (`CharacterView.heirOf`). Any king may make him king again by granting him land (order `crown`, item 17++).
 - **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
   his fallen realm that king holds, by the same sum as any grant, the land kept reckoned as risky.

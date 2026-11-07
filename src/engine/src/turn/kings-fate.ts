@@ -437,17 +437,20 @@ function exileHeir(e: TurnEngine, p: Power, dead: Character): void {
     c = newCharacter({ id: newId(S, "c"), name: S.characters.some((x) => x.name === name) ? `${name} of ${land(p)}` : name, origin: e.map.get(fell).name, calling: `heir of ${land(p)}, in exile`, traits: newTraits(personTraits(traits)) });
     c.status = "Free";
     c.at = null;
+    c.seeking = true;
     drawSkills(S.seed, c);
     chooseStrategy(c);
     c.persona = personaTemplate(c);
     S.characters.push(c);
     // He sets out among its refugees from where it fell, as a free man walks to a court (C2's design check).
     if (host !== null) e.startTravel(c, host, null, fell);
-  } else c.calling = `heir of ${land(p)}, in exile`;
-  c.seeking = true;
-  for (const text of [claim, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
+    // A new man, he carries his claim from where it fell: whoever meets him on the road or at a court hears it from him.
+    for (const text of [claim, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
+    remember(c, S.turn, `${dead.name} is dead, and ${land(p)} has fallen: I am the heir of its kings, in exile.`);
+  }
+  // A man of the record already elsewhere gains no fact and no memory now: word of the death and the fall has not reached
+  // him, nor those who know him (Codex's third round); a seat sees his claim once it has heard of the fall (`heirOf`).
   S.reigns.set(p, { ...was, traits, character: c.id, name: c.name, about, line: at });
-  remember(c, S.turn, `${dead.name} is dead, and ${land(p)} has fallen: I am the heir of its kings, in exile.`);
   logEvent(S, "king-exile", `${c.name}, heir of ${land(p)}, lives on in exile.`, [], "king-exile");
 }
 
