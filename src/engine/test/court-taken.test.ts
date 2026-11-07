@@ -22,6 +22,7 @@ describe("CourtTakenTests", () => {
     const road = Assert.single(s.kingRoads.filter((r) => r.power === "Egypt"));
     Assert.false(road.alone);
     Assert.equal("Egypt", s.owner.get(courtGoing(s, "Egypt")));
+    Assert.contains(s.events, (x) => x.signal === "court-treasury" && x.visibleTo.length === 1 && x.visibleTo[0] === "Hatti");
   });
 
   test("A court taken on the road loses its archive with it", () => {
@@ -31,6 +32,7 @@ describe("CourtTakenTests", () => {
     e.courtFlees("Egypt", "Hatti", true);
     Assert.empty(s.copies.filter((k) => k.holder === "Egypt"));
     Assert.true(had === 0 || s.events.some((x) => x.kind === "archive-taken"));
+    Assert.contains(s.events, (x) => x.signal === "court-taken-road");
   });
 
   test("Word of a king's death is sent on to a court that has moved since", () => {

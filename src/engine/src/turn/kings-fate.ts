@@ -201,6 +201,7 @@ P.courtFlees = function (p, by, road) {
     notify(S, taker, "Notice", "A treasury taken", `With the court of ${powerName(p)} in ${this.map.get(where).name} your men took its treasury: ${formatMoney(gold)}, ${this.isFar(taker, where) ? "kept there in your own coffer" : "into your treasury"}.`);
   } else if (gold > 0) this.spendAt(where, gold);
   if (road && taker !== null) this.takeArchive(taker, where);
+  if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");
   // Its people flee to the nearest city the realm still holds, a real journey; a realm that holds nothing has fallen.
   const held = ownedBy(S, p);
   if (held.length === 0) {
