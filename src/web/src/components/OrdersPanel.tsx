@@ -2,7 +2,9 @@ import {
   AllPowers,
   authenticate,
   forge,
+  journeyGroups,
   type GameState,
+  type JourneyGroup,
 } from "@amarna/engine";
 import { describeOrder, powerName, shekels, when } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
@@ -18,16 +20,18 @@ import { CourtSection } from "./orders/CourtSection.tsx";
 import { CouncilSection } from "./orders/CouncilSection.tsx";
 
 /**
- * An envoy's journey as the engine words it for kings ("Terqa: 2 season(s) each way"), read for a person: the court by the
- * name the game shows, "1 season" or "2 seasons" rather than "season(s)". Models read the same line rewritten by their seat view
- * (`llm/src/prompts.ts`).
+ * Every court's journey in the orders (item 17++++), grouped by its length as the model's request groups it
+ * (`journeyGroups`, shared): a few courts one by one; a long list, forty-six courts for any seat, as the most common length
+ * once ("1 season to every court but these") and the others by name.
  */
-const TravelTime = /^(?<court>.+?): (?<n>\d+) season\(s\) each way$/;
-function travelTime(t: string): string {
-  const m = TravelTime.exec(t);
-  if (m?.groups === undefined) return t;
-  const n = Number(m.groups.n);
-  return `${powerName(m.groups.court)}: ${n} ${n === 1 ? "season" : "seasons"}`;
+export function travelTimes(lines: readonly string[]): string {
+  const { most, others, odd } = journeyGroups(lines);
+  const seasons = (n: number): string => `${n} ${n === 1 ? "season" : "seasons"}`;
+  const named = (g: JourneyGroup): string => `${g.courts.map(powerName).join(", ")}: ${seasons(g.seasons)}`;
+  if (most === null) return odd.join("; ");
+  if (lines.length <= 8)
+    return [...[most, ...others].sort((a, b) => a.seasons - b.seasons).flatMap((g) => g.courts.map((c) => `${powerName(c)}: ${seasons(g.seasons)}`)), ...odd].join("; ");
+  return [`${seasons(most.seasons)} to every court${others.length === 0 ? ` (${most.courts.length})` : " but these"}`, ...others.map(named), ...odd].join("; ");
 }
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
@@ -46,7 +50,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         </p>
         <p className="muted">
           <small>
-            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {v.travelTimes.map(travelTime).join("; ")}.
+            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {travelTimes(v.travelTimes)}.
           </small>
         </p>
       </div>
