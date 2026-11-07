@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { BandData, Doors, RaiderData, TurnEngine, WorldMap, first, newBand, newCharacter, newChiefChoice, newGame, newId, newTraits, newUnit, payOff, policedShare, type GameState } from "@amarna/engine";
+import { BandData, Doors, RaiderData, TurnEngine, WorldMap, first, newBand, newCharacter, newChiefChoice, newGame, newId, newTraits, newUnit, enlist, payOff, policedShare, type GameState } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Build order item 17++++a, "Raiders from beyond the map": crews and bands from beyond the map's edge come through its
@@ -114,9 +114,13 @@ describe("RaiderTests", () => {
     const s = delta(Summer);
     const b = crew(s, "delta", 60);
     const chief = first(s.characters, (c) => c.id === b.leaderId);
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "delta", men: 500 }));
     const e = new TurnEngine(s);
     const gold = s.treasuries.get("Egypt").gold;
+    // With no army of Egypt's there to carry it, the offer goes nowhere.
+    e.payOffBand("Egypt", payOff("delta", 200, 1));
+    Assert.true(s.bands.includes(b));
+    Assert.equal(gold, s.treasuries.get("Egypt").gold);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "delta", men: 500, commander: "a commander", commandFrom: 0 }));
     e.payOffBand("Egypt", payOff("delta", 1, 1));
     Assert.true(s.bands.includes(b));
     Assert.equal(gold, s.treasuries.get("Egypt").gold);
@@ -135,10 +139,23 @@ describe("RaiderTests", () => {
     const b = newBand({ id: newId(s, "b"), leaderId: chief.id, province: prov, men: 50 });
     e.lead(chief, b);
     s.bands.push(b);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: prov, men: 500, commander: "a commander", commandFrom: 0 }));
     e.payOffBand("Egypt", payOff(prov, 100, 3));
     Assert.true(s.owner.getOrDefault(b.province, null) !== "Egypt");
     Assert.equal(s.turn + 3, b.paidUntil);
     Assert.false(e.bandMayGo(b, prov));
+  });
+
+  test("A raider band enlisted lets its captives go: an army keeps none", () => {
+    const s = delta(Summer);
+    const b = crew(s, "delta", 60);
+    b.captives = 25;
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "delta", men: 500 }));
+    const e = new TurnEngine(s);
+    const loose = e.peopleOf("delta").loose;
+    e.enlistBand("Egypt", enlist("delta", 500, 1));
+    Assert.false(s.bands.includes(b));
+    Assert.equal(loose + 25, e.peopleOf("delta").loose);
   });
 
   test("A model raider chief who chooses to go home does", () => {

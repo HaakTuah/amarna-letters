@@ -283,6 +283,8 @@ P.enlistBand = function (p, o) {
   if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it did not join you")) return;
   gain(chief, o.fee, "Fees");
   S.bands = S.bands.filter((x) => x !== b);
+  // An army keeps no captives: a raider band's go free where it enlists (item 17++++a).
+  this.peopleOf(o.province).loose += b.captives;
   u.men += b.men;
   u.hiredMen += b.men;
   u.hiredUntil = S.turn + o.term;
