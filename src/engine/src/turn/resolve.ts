@@ -186,8 +186,10 @@ P.resolveSeason = function (submissions) {
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
   // Item 13: bands enlisted where an army of their new master stands with them.
   for (const [p, o] of all((o): o is EnlistOrder => o.type === "enlist")) this.enlistBand(p, o);
-  // Item 17++++a: bands paid to leave.
-  for (const [p, o] of all((o): o is PayOffOrder => o.type === "payOff")) this.payOffBand(p, o);
+  // Item 17++++a: bands paid to leave. Where kings offer for the same band, its chief hears the best offer first, the seed
+  // deciding between equal ones ("The order of resolution never decides").
+  const payOffs = this.r("pay-offs").shuffle(all((o): o is PayOffOrder => o.type === "payOff"));
+  for (const [p, o] of payOffs.sort((a, c) => c[1].fee - a[1].fee)) this.payOffBand(p, o);
   // Item 13: governors raise their own levies where foreign troops threaten their provinces.
   this.governorsLevy();
   // The season's trades at the markets, grain handed to towns, and caravans setting out (item 9+a).

@@ -9,26 +9,28 @@ for item 18. Bands themselves are [23](23-roads-and-reputations.md).
 ## Who comes, and through which door
 
 Each door (`Doors`) says how hard raiders press through it (`raids`, in percent of the strongest) and whether its routes
-come by sea (`bySea`); each land beyond it that sends raiders has a weight among them and their name (`Beyond.raids`):
+come by sea (`bySea`); each land beyond it that sends raiders has a weight among them and their name (`Beyond.raids`).
+Only raids the dossiers attest; the numbers are first guesses [G]. Not the Sherden, who appear in 1346 only as soldiers
+(`15-sherden`), nor the Medjay, Egypt's police (`08-kush-irem-medjay`):
 
 | Door | Presses | By | Raiders |
 | --- | --- | --- | --- |
-| The western sea | 100 | sea | Sherden (45), Aegeans of Ahhiyawa, as Attarissiya (40), raiders from the far west, marked "first recorded later" (15) |
-| The eastern road | 50 | land | highlanders of the Zagros, Lullubi and Qutu |
-| The Nile beyond Nubia | 30 | land | raiders of Kush, Medjay of the eastern desert |
-| The Gulf, the Red Sea | 0 | sea | none: their traffic was trade |
+| The western sea | 100 | sea | Aegeans of Ahhiyawa, as Attarissiya raided Alashiya (`15-madduwatta`) (90); raiders from the far west, marked "first recorded later", rarely, as their arrivals (`08-sea-peoples`) (10) |
+| The eastern road | 50 | land | highlanders of the Zagros, Lullubi and Qutu, raiders in Mesopotamian memory (`08-elam`) |
+| The Nile beyond Nubia, the Gulf, the Red Sea | 0 | | none: no source of the period records raids through them |
 
 ## How often (`raidersCome`, `raidChance`; `turn/raiders.ts`)
 
 - Each season, at the start of the bands' season, each door with raiders rolls once (stream `raiders`): its raiders make
-  for one of its provinces, weighted by what it holds (purse and stores), and land with a chance of `most` (20) times the
+  for one of its provinces, weighted by what it holds (purse and stores) times how little it is policed, and land with a chance of `most` (20) times the
   door's `raids` in a hundred, no more. Nobody sails in winter; over land, winter halves it. The coast's policing holds it
   down as it holds bands down (`policedShare`: its holder's troops there, or his police), and his fleet on the waters
   off it halves a crew's chance (`fleetPercent`).
 - A crew comes in 1 to 4 ships of 30 men (`BandData.shipMen`), with a ship; a band over land, 40 to 160 men. Its men
   come from beyond the map. Its chief (`raiderChief`) is a man of the land beyond, named from its names (marked as the
   newcomers' are), bold and greedy, with 5 to 30 shekels; or, half the time when one is there, a chief who went home
-  through that door before, leading the next raid himself (the Lukka "year by year"). The coast's holder is told.
+  through that door before, leading the next raid himself. The coast's holder is told. Chiefs gone home are not in the
+  pool the newcomers keep near its baseline (`living`).
 
 ## As every band, and what is theirs (`Band.from`, `captives`)
 
@@ -53,8 +55,11 @@ come by sea (`bySea`); each land beyond it that sends raiders has a weight among
   now, to take the band out of his land and keep out of it for a term. A script chief takes it if it pays what he asks
   (`chiefAsks`, shared with `enlist`: what his men cost or took last season, `Band.took`, whichever is more, for the
   term, and his cut by greed); a raider weighs at least the rest of his raid. A raider then goes home (or turns home); any
-  other band moves to the richest land next door not the payer's (refusing if there is none), and a script chief keeps
-  out of the payer's land until the term ends (`paidBy`, `paidUntil`). A model chief sees the deal and keeps it or not.
+  other band moves to the richest land next door not the payer's (refusing if there is none). Taking it and leaving are
+  every chief's formula, model chiefs' too, as an enlistment's are; after that, a script chief keeps out of the payer's
+  land until the term ends (`paidBy`, `paidUntil`) if he is more loyal than greedy, and a model chief sees the deal and
+  moves as he chooses. Where kings offer for the same band, its chief hears the best offer first, the seed deciding
+  between equal ones.
 - `Band.took` (what a band took in all last season) fixes the enlistment's ask, which read only the roads' take.
 
 ## Script kings (`src/game/src/bots/raiders.ts`, `--no-raider-play`, `--raider-play-half`)
@@ -68,6 +73,6 @@ come by sea (`bySea`); each land beyond it that sends raiders has a weight among
 
 ## The seat view and the rulebook
 
-- `BandSeen.raiders` ("Sherden raiders"), `captives`, and `paidUntil` for a band the viewer paid off; the prompt and the
+- `BandSeen.raiders` ("Aegean raiders of Ahhiyawa"), `captives`, and `paidUntil` for a band the viewer paid off; the prompt and the
   orders panel show them. The rulebook's ROADS AND OUTLAWS part says who comes through which door and how often, and the
   command part the order `pay_off_band`.

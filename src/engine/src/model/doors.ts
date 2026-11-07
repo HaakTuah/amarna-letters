@@ -26,7 +26,12 @@ export interface Beyond {
   tongue: string;
   /**
    * Item 17++++a ("Pirates are bands at sea": raiders from beyond the map): its weight among the door's raiders, and how
-   * its raiders are named ("Sherden raiders"); none where the land sends no raiders.
+   * its raiders are named ("Aegean raiders of Ahhiyawa"); none where the land sends no raiders. Only the raids the
+   * dossiers attest: Attarissiya "of Ahhiya" raiding Alashiya (`docs/history/15-pirates-bandits-tolls.md`,
+   * `15-madduwatta`) [A], and the Zagros highlanders, raiders in Mesopotamian memory (`docs/history/08-beyond-the-edges.md`,
+   * `08-elam`) [A]; the later Sea Peoples rarely, as their arrivals are (`08-sea-peoples`). Not the Sherden, who appear in
+   * 1346 only as soldiers (`15-sherden`), nor the Medjay, Egypt's police (`08-kush-irem-medjay`), nor Kush, whose raids no
+   * source of the period records. The weights and the doors' `raids` are first guesses [G].
    */
   raids?: { weight: number; who: string };
 }
@@ -58,10 +63,10 @@ export const Doors: readonly Door[] = [
     provinces: ["apasa", "seha", "enkomi", "ugarit", "delta"],
     share: 35,
     beyond: [
-      { land: "Ahhiyawa", people: "an Aegean of Ahhiyawa", weight: 50, names: Aegean, invented: false, tongue: "Mycenaean Greek, which no court reads", raids: { weight: 40, who: "Aegean raiders of Ahhiyawa" } },
+      { land: "Ahhiyawa", people: "an Aegean of Ahhiyawa", weight: 50, names: Aegean, invented: false, tongue: "Mycenaean Greek, which no court reads", raids: { weight: 90, who: "Aegean raiders of Ahhiyawa" } },
       { land: "Keftiu", people: "a Cretan of Keftiu", weight: 35, names: Aegean, invented: false, tongue: "the tongue of Keftiu, which no court reads" },
-      { land: "the western isles", people: "a Sherden seafarer", weight: 10, names: ["Sherdanu", "Tarkhunu", "Shakaru"], invented: true, tongue: "a western tongue nobody on the map knows", raids: { weight: 45, who: "Sherden raiders" } },
-      { land: "the far west", people: "a seafarer of a people later called the Shekelesh, Teresh or Peleset", weight: 5, names: ["Shekelu", "Tursha", "Pelesu"], invented: true, later: true, tongue: "a western tongue nobody on the map knows", raids: { weight: 15, who: "raiders from the far west" } },
+      { land: "the western isles", people: "a Sherden seafarer", weight: 10, names: ["Sherdanu", "Tarkhunu", "Shakaru"], invented: true, tongue: "a western tongue nobody on the map knows" },
+      { land: "the far west", people: "a seafarer of a people later called the Shekelesh, Teresh or Peleset", weight: 5, names: ["Shekelu", "Tursha", "Pelesu"], invented: true, later: true, tongue: "a western tongue nobody on the map knows", raids: { weight: 10, who: "raiders from the far west" } },
     ],
     reasons: { trade: 40, soldiering: 15, flight: 10, feud: 10, wanderlust: 15, home: 10 },
     mapTongue: "Akkadian at Ugarit and Alashiya, Luwian on Arzawa's coast, Egyptian in the Delta",
@@ -104,13 +109,13 @@ export const Doors: readonly Door[] = [
     provinces: ["nubia"],
     share: 25,
     beyond: [
-      { land: "Kush", people: "a Nubian of Kush beyond Egypt's reach", weight: 60, names: ["Nehesy", "Penniut", "Kashta", "Aryamani"], invented: true, tongue: "a Nubian tongue", raids: { weight: 50, who: "raiders of Kush" } },
+      { land: "Kush", people: "a Nubian of Kush beyond Egypt's reach", weight: 60, names: ["Nehesy", "Penniut", "Kashta", "Aryamani"], invented: true, tongue: "a Nubian tongue" },
       { land: "Irem", people: "a man of Irem", weight: 20, names: ["Iremnakht", "Tawiaa"], invented: true, tongue: "a Nubian tongue" },
-      { land: "the eastern desert", people: "a Medjay of the eastern desert", weight: 20, names: ["Medja", "Kherpu"], invented: true, tongue: "the Medjay's tongue", raids: { weight: 50, who: "Medjay raiders of the eastern desert" } },
+      { land: "the eastern desert", people: "a Medjay of the eastern desert", weight: 20, names: ["Medja", "Kherpu"], invented: true, tongue: "the Medjay's tongue" },
     ],
     reasons: { trade: 30, soldiering: 40, flight: 10, feud: 5, wanderlust: 5, home: 10 },
     mapTongue: "Egyptian",
-    raids: 30,
+    raids: 0,
     bySea: false,
   },
   {

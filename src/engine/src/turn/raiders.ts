@@ -40,7 +40,10 @@ declare module "./core.ts" {
     carryOff(b: Band, chief: Character): number;
     /** A script raider chief's own choice, before the formula every chief follows: home, or towards his door. True if he made one. */
     raiderChooses(b: Band, chief: Character): boolean;
-    /** Whether a band may move to `to`: out of land whose king paid it to keep out, and a raider within reach of home. */
+    /**
+     * Whether a script chief's band may move to `to`: out of land whose king paid it to keep out, if he keeps his word, and
+     * a raider within reach of home.
+     */
     bandMayGo(b: Band, to: string): boolean;
     /** A king's offer to the chief of a band to leave his land (`pay_off`): taken by the chief's own formula, or refused. */
     payOffBand(p: Power, o: PayOffOrder): void;
@@ -74,8 +77,9 @@ P.raidersCome = function (say) {
     const peoples = door.beyond.filter((b) => (b.raids?.weight ?? 0) > 0);
     if (door.raids <= 0 || peoples.length === 0) continue;
     const rng = this.r("raiders", door.id);
-    // They make for the richest of the door's coasts, as far as they know them: a raider hears where the pickings are.
-    const landing = rng.weighted(door.provinces, (id) => worth(this, id));
+    // They make for the richest of the door's coasts that are least guarded, as far as they know them: a raider hears where
+    // the pickings are, and where the king's troops and police are not.
+    const landing = rng.weighted(door.provinces, (id) => Math.max(1, Math.floor((worth(this, id) * policedShare(S, id)) / 100)));
     if (!rng.chance(this.raidChance(door, landing) / 100)) continue;
     const beyond = rng.weighted(peoples, (b) => b.raids!.weight);
     const men = door.bySea ? rng.range(1, RaiderData.ships) * BandData.shipMen : rng.range(RaiderData.landMen.least, RaiderData.landMen.most);
@@ -193,7 +197,10 @@ P.raiderChooses = function (b, chief) {
 
 P.bandMayGo = function (b, to) {
   const S = this.s;
-  if (b.paidBy !== "" && S.turn <= b.paidUntil && S.owner.getOrDefault(to, null) === b.paidBy) return false;
+  // A script chief keeps his word to a king who paid him off if he is more loyal than greedy (a first guess).
+  const chief = findCharacter(S, b.leaderId);
+  const keeps = chief !== null && chief.traits.loyalty >= chief.traits.greed;
+  if (keeps && b.paidBy !== "" && S.turn <= b.paidUntil && S.owner.getOrDefault(to, null) === b.paidBy) return false;
   const home = raidersHome(b.from);
   if (home === null) return true;
   // A crew keeps to the coasts where its ship is; a band over land keeps within reach of its door.

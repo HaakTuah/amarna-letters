@@ -13,9 +13,9 @@ was read again by its diff before the pull request.
 ## What was built
 
 - **Who comes, through which door.** Each door says how hard raiders press through it and whether it opens by sea; each
-  land beyond that sends raiders has a weight and a name: Sherden, Aegeans of Ahhiyawa and raiders of the far west by
-  the western sea; Zagros highlanders by the eastern road; Kush and the Medjay by the Nile beyond Nubia; none by the
-  Gulf or the Red Sea.
+  land beyond that sends raiders has a weight and a name, only as the dossiers attest them: Aegeans of Ahhiyawa (as
+  Attarissiya raided Alashiya) and, rarely, raiders of the far west by the western sea; Zagros highlanders by the
+  eastern road; none by the Nile, the Gulf or the Red Sea.
 - **How often.** Each season each door rolls once: its raiders make for one of its provinces by what it holds, and land
   with a chance set by the door, the season (no sailing in winter; over land half as often), the policing of that coast
   (its holder's troops and police, as for bands) and his fleet on its waters (halving a crew's chance). No scripted
@@ -41,13 +41,16 @@ was read again by its diff before the pull request.
 over land 50%; a patrolling fleet 50%; 1 to 4 ships of 30 men, or 40 to 160 men over land; a chief's purse 5 to 30; home
 content at 6 seasons of his men's cost; 4 seasons over land at most; 2 provinces' reach from the door; captives 10 for
 every hundred men a season (at most a hundredth of the settled); a past chief leads again half the time. The doors'
-`raids`: the western sea 100, the eastern road 50, the Nile beyond Nubia 30. The script kings' pay-off: 2 seasons, a
+`raids`: the western sea 100 (Ahhiyawa 90, the far west 10), the eastern road 50, the others 0. The script kings' pay-off: 2 seasons, a
 tenth over their reckoning, with three times the fee in the treasury; a chief's greed reckoned at 80 in a hundred.
 
 ## Readings taken
 
-- **Only the doors that history fills send raiders** (Period first; Different data, same rules): the Gulf and the Red
-  Sea carried trade, and no source shows raiders through them; their `raids` are 0 in the data, not a rule.
+- **Only the raids the dossiers attest** (Period first; Different data, same rules): the design check found the first
+  cut's Sherden raiders against their dossier (in 1346 they appear only as soldiers, `15-sherden`), its Medjay raiders
+  against theirs (Egypt's police, `08-kush-irem-medjay`), and Kush's raids without a source; all three were taken out,
+  their weight given to Ahhiyawa (`15-madduwatta`). The Nile, the Gulf and the Red Sea send none; their `raids` are 0
+  in the data, not a rule. The Libyans (Tjehenu), raiders of Egypt [A], have no door yet: filed as an idea (#792).
 - **The Lukka stay on the map** (the dossier's own reading): `lukka` is a lawless coast whose loose men raise bands by the
   rules of item 11b; the raiders from beyond are those based beyond the edge.
 - **Captives are carried off only by bands based beyond the map** (Nothing appears or vanishes without a cause): they

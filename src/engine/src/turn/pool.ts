@@ -21,6 +21,7 @@ import { doorTongues } from "../rules/tongues.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { Styles } from "../rules/cast.ts";
 import { TurnEngine } from "./core.ts";
+import { living } from "./life.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -41,9 +42,9 @@ export function arrivalChance(baseline: number, living: number): number {
 /** At most one a season, from the stream "arrivals". */
 P.newcomers = function () {
   const S = this.s;
-  const living = count(S.characters, (c) => c.status !== "Dead");
+  // The pool on the map: raider chiefs gone home beyond it are not in it (item 17++++a).
   const rng = this.r("arrivals");
-  if (!rng.chance(arrivalChance(S.baseline, living) / 100)) return;
+  if (!rng.chance(arrivalChance(S.baseline, living(this)) / 100)) return;
   const door = rng.weighted(Doors, (d) => d.share);
   const c = this.newcomer(rng, door);
   logEvent(S, "newcomer", `${c.name} came onto the map through ${door.name}.`, [], "newcomer");

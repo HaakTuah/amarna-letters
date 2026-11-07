@@ -1,6 +1,6 @@
 /**
  * Raiders from beyond the map (build order item 17++++a; War, "Pirates are bands at sea"): crews and bands based beyond
- * the map's edge, as the Lukka who raided Alashiya year by year (EA 38) and the Sherden of the Gubla letters. They come
+ * the map's edge, as Attarissiya "of Ahhiya" raided Alashiya (CTH 147) and the Zagros highlanders raided Mesopotamia. They come
  * through the doors (`Doors`, each with how hard raiders press through it and which lands beyond send them), act by the
  * rules of every band, and go home with their spoils and captives, or melt away. How often they come follows the season,
  * the sea and the policing of the coast they reach, never a scripted event.
