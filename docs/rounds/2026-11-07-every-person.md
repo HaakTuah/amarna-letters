@@ -293,11 +293,11 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   road raises no heir in exile; a court stopped on the road says so ("stopped and taken on the road"), and shelters in
   its own besieged city where that is the nearest it holds; a restored heir is no longer shown as an exile; and the
   claim shows in the People tab and the models' audience lines, not to script kings alone.
-- **A man of the record already elsewhere is not told he is the heir** (no stopgaps; the design check's third round): he
-  learns it only as any news reaches him, from a court that heard of the fall; word of the death sent to him from where
-  the realm fell, with his claim on its arrival, is left for a later item, as is an exile choosing his host by his own
-  stakes (the design check's idea, not filed). Rare: the record's next name must be alive and away when the last king
-  dies after the fall.
+- **A man of the record already elsewhere learns he is the heir by word** (the design escalation after #815 merged,
+  follow-up PR): word goes from where the realm fell to the court he is at, following him if he has moved, and his
+  claim (a public fact, and his memory of the news) is his when it comes; till then no seat sees him as a claimant
+  (`Reign.exiled`, `heirOf`). An exile choosing his host by his own stakes is left for later (the design check's idea,
+  not filed).
 - **#806 left open**: nothing in C2 depends on whether a captive king's court gives orders in his name; parts B and C1's
   reading stands (it rules in his name once word of his capture comes).
 - **Planning done by the builder**, as in C1, to spare the week's usage; the design check reviews it.

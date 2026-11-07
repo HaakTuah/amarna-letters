@@ -545,7 +545,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
     kingOf,
-    heirOf: heirKnown(s, viewer, c.id),
+    heirOf: heirKnown(s, viewer, c),
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
     ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
@@ -904,8 +904,13 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
   return { march: u.march, marchDays: Math.ceil(left / PointsPerDay) };
 }
 
-/** Item 17b, part C2: the fallen realm a character claims, once the viewer has heard of its fall (a fallen court sees all). */
-function heirKnown(s: GameState, viewer: Power, id: string): Power | null {
-  const p = fallenRealmOf(s, id);
-  return p !== null && (!isAlive(s, viewer) || (s.fallsHeard.tryGet(viewer) ?? []).includes(p)) ? p : null;
+/**
+ * Item 17b, part C2: the fallen realm a character claims, once the viewer has heard of its fall (a fallen court sees all),
+ * and, for an heir raised in exile, once his claim is his to tell (his claim fact), which reaches others as he does.
+ */
+function heirKnown(s: GameState, viewer: Power, c: Character): Power | null {
+  const p = fallenRealmOf(s, c.id);
+  if (p === null) return null;
+  if (s.reigns.get(p).exiled && !c.facts.some((f) => f.tag === "claim")) return null;
+  return !isAlive(s, viewer) || (s.fallsHeard.tryGet(viewer) ?? []).includes(p) ? p : null;
 }

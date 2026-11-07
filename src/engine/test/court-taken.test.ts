@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, inboxOf, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, Views, inboxOf, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
 import { fallenRealmOf } from "../src/rules/court.ts";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
 
@@ -133,5 +133,26 @@ describe("CourtTakenTests", () => {
     const n = Assert.single(inboxOf(s, "Egypt").filter((i) => i.title === "The court taken on the road"));
     Assert.contains("stopped and taken on the road", n.body);
     Assert.contains(`shelters in ${e.map.get(where).name}`, n.body);
+  });
+
+  test("A man of the record already elsewhere learns he is the heir as word from where his realm fell reaches him", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const king = kingOf(s, "Egypt");
+    // Egypt's record names its next king, Smenkhkare: here a free man of the sources standing at Hatti's court.
+    const man = s.characters.find((c) => c.at === "Hatti" && c.status === "Free" && c.heldBy === null && c.errand === null)!;
+    Object.assign(man, { name: "Smenkhkare", attested: true, duty: "None" });
+    const before = new Set(s.characters.map((c) => c.id));
+    e.fall("Egypt", "Hatti");
+    e.dies(king, e.courtAt("Hatti"), "on the road");
+    e.kingDeadHeard(s.journeys.find((j) => j.news === "KingDead" && j.to === "Egypt")!);
+    const heir = kingOf(s, "Egypt");
+    Assert.equal(man.id, heir.id);
+    Assert.true(before.has(heir.id));
+    Assert.false(heir.facts.some((f) => f.tag === "claim"));
+    Assert.equal(null, Views.for(s, "Hatti").known.concat(Views.for(s, "Hatti").court).find((c) => c.id === heir.id)?.heirOf ?? null);
+    const word = s.journeys.find((j) => j.news === "HeirClaim" && j.characterId === heir.id)!;
+    e.heirClaimHeard(word);
+    Assert.true(heir.facts.some((f) => f.tag === "claim"));
   });
 });
