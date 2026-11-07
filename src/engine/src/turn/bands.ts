@@ -385,7 +385,9 @@ P.bandsSeason = function () {
     const rate = (of: number): number => bandRobs(b.men, of, policedShare(S, b.province));
     const besieged = siegeOf(S, b.province) !== null;
     // A script chief who keeps his word to the king who paid him off spares that king's land (item 17++++a).
-    const spared = !own && holder !== null && holder === b.paidBy && this.keepsWord(b);
+    // Where it robs now: a hunted band may have fled into other land this season.
+    const robbed = S.owner.getOrDefault(b.province, null);
+    const spared = !own && robbed !== null && robbed === b.paidBy && this.keepsWord(b);
     const gold = besieged || spared ? 0 : rate(m.purse);
     const grain = besieged || spared ? 0 : rate(this.stores(b.province));
     const country = besieged && !spared ? rate(S.granary.getOrDefault(b.province, 0)) : 0;

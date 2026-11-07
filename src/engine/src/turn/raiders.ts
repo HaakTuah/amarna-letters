@@ -15,7 +15,7 @@ import { gain, newCharacter, newFact, newTraits, remember, type Character } from
 import type { Power } from "../model/power.ts";
 import { RaiderData, raidersHome } from "../model/raiders.ts";
 import type { PayOffOrder } from "../model/orders.ts";
-import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { policedShare } from "../model/works.ts";
 import { personaTemplate } from "../rules/personas.ts";
@@ -161,7 +161,8 @@ P.goHome = function (b, why) {
   remember(c, S.turn, `I went home to ${b.from} from ${where} with ${b.men} men${took} and ${c.purse} shekels: ${why}.`);
   logEvent(S, "band", `${c.name}'s ${home.beyond.raids?.who ?? "raiders"} went home from ${where} through ${home.door.name} (${why})${took}.`, [], "raiders-home");
   const holder = S.owner.getOrDefault(b.province, null);
-  if (holder !== null && isAlive(S, holder)) notify(S, holder, "Notice", "Raiders gone home", `The ${home.beyond.raids?.who ?? "raiders"} under ${c.name} have left ${where} for home beyond ${home.door.name}${took}.`, c.id);
+  // Word of it reaches the land's king from where they left, at the pace of his reports from there.
+  if (holder !== null && isAlive(S, holder)) this.tell(holder, b.province, "Notice", "Raiders gone home", `The ${home.beyond.raids?.who ?? "raiders"} under ${c.name} have left ${where} for home beyond ${home.door.name}${took}.`);
 };
 
 P.carryOff = function (b, chief) {
