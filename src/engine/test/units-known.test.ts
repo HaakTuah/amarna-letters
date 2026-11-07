@@ -176,6 +176,7 @@ describe("UnitsKnownTests", () => {
     const cases: [string, (at: string, far: string) => Order, boolean, boolean, string | null][] = [
       ["a hold", (at) => hold(at), false, false, "It gave these orders"],
       ["a move it cannot make", (at, far) => move(at, far), false, false, "Refused"],
+      ["a move it cannot make, its province taken", (at, far) => move(at, far), true, false, "Refused"],
       ["a hold, its province taken", (at) => hold(at), true, false, "It gave these orders"],
       ["food, with gold", (at) => supply(at, true, 50), false, false, "It gave these orders"],
       ["a recall", (at) => relieve(at), false, false, "It gave these orders"],
@@ -431,6 +432,24 @@ describe("FarUnitToldTests", () => {
     u.province = "ur";
     new TurnEngine(s, WorldMap.default).resolve(new Dict());
     Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "Orders that could not be carried out"));
+  });
+
+  test("A far unit's scheduled order refused where it truly stands is told by the road, naming it where its king's view shows it (#759)", () => {
+    const { s, u } = reported();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn, order: move("nippur", "sippar"), unitId: "u990" }));
+    // It marched on to Ur out of its king's sight, from where Sippar is no march.
+    u.province = "ur";
+    const given = s.turn;
+    const heard = new TurnEngine(s, WorldMap.default).heardAt("Egypt", "ur");
+    Assert.true(heard > given);
+    const refusals = () => inboxOf(s, "Egypt").filter((i) => i.title === "Orders that could not be carried out");
+    while (s.turn < heard) {
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.equal([heard], refusals().map((i) => i.turn));
+    Assert.true(refusals()[0].body.startsWith("- The troops in Nippur march to Sippar"));
   });
 
   test("Pay held back in a province holds the troops its king's view shows there, not those that truly stand there", () => {

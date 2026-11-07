@@ -629,9 +629,21 @@ const farMarchStopped: Twin = {
   heard: (s) => s.turn >= 3 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
 };
 
+/**
+ * As `farUnitMoved`, but its king scheduled in the first season a march from Kush to Thebes for the third: in the twin
+ * where the fact is true, the army already stands in Thebes when the order comes due, and it is refused there (#759).
+ */
+const farOrderRefused: Twin = {
+  ...farMarchStopped,
+  name: "a far army's scheduled order refused where it truly stands",
+  later: { at: 2, happen: (s) => void (s.units.find((u) => u.id === "u990")!.province = "thebes") },
+  scheduled: [newScheduledOrders({ turn: 3, orders: [move("nubia", "thebes")] })],
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
+};
+
 /** The twins bound to a far place, each played at every one of {@link Places}. */
 const AtPlaces = [farLoss, farSiege, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, cofferAfterLoss, cofferAfterSiege, levyUnraised, rideBeforeLoss];
-const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated, farUnitMoved, farUnitHungry, farMarchStopped];
+const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated, farUnitMoved, farUnitHungry, farMarchStopped, farOrderRefused];
 
 describe("TwinCanaryTests", () => {
   const named = Twins.map((t) => ({ ...t, where: t.at === undefined ? "" : `, at ${t.at.province}` }));
