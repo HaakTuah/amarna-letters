@@ -192,7 +192,9 @@ describe("LegendsTests", () => {
     let legend = courtLegend(s, "Egypt");
     let bonds = single(legend.filter((l) => l.text.startsWith("Bound from before the age began")));
     Assert.equal(0, bonds.turn);
-    Assert.true(bonds.text.includes("Ugarit") && bonds.text.includes("Jerusalem"));
+    // Each power by the name the game shows it by (Urusalim, Gubla), never its id (Jerusalem, Byblos).
+    Assert.true(bonds.text.includes("Ugarit") && bonds.text.includes("Urusalim") && bonds.text.includes("Gubla"));
+    Assert.false(bonds.text.includes("Jerusalem") || bonds.text.includes("Byblos"));
     Assert.empty(legend.filter((l) => l.text.startsWith("Sealed")));
     Assert.true(single(courtLegend(s, "Byblos").filter((l) => l.text.startsWith("Bound"))).text.endsWith("by a vassal treaty with Egypt."));
   });
