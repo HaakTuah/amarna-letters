@@ -436,6 +436,12 @@ export interface Character {
   heard: string[];
   /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
   leftRoad: number | null;
+  /**
+   * Item 17++++a: the king who paid this chief to take his band out of his land (`pay_off`), and the last season of the
+   * term; "" if none. The word is the chief's, not his band's: it goes home and comes back with him.
+   */
+  paidOffBy: string;
+  paidOffUntil: number;
   /** Item 13: the battles it won and lost commanding an army, a record its master and anyone who hears of them can weigh. */
   won: number;
   lost: number;
@@ -675,6 +681,8 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     news: [],
     heard: [],
     leftRoad: null,
+    paidOffBy: "",
+    paidOffUntil: 0,
     won: 0,
     lost: 0,
     grantedBy: null,
@@ -756,6 +764,8 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   news: list(() => NewsHeldSchema),
   heard: list(S),
   leftRoad: opt(I),
+  paidOffBy: S,
+  paidOffUntil: I,
   won: I,
   lost: I,
   grantedBy: opt(S),

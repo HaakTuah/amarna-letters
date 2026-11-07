@@ -110,8 +110,8 @@ P.chiefView = function (c, b) {
     home: ((h) => (h === null ? null : `${h.beyond.land}, beyond ${h.door.name}`))(raidersHome(b.from)),
     canGoHome: b.from !== "" && this.canGoHome(b),
     captives: b.captives,
-    paidBy: b.paidBy !== "" && S.turn <= b.paidUntil ? b.paidBy : null,
-    paidUntil: b.paidUntil,
+    paidBy: c.paidOffBy !== "" && S.turn <= c.paidOffUntil ? c.paidOffBy : null,
+    paidUntil: c.paidOffUntil,
   });
 };
 

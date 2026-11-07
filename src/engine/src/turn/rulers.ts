@@ -186,6 +186,8 @@ function newUnitFor(e: TurnEngine, p: Power, province: string, men: number): Uni
 P.bandToArmy = function (b, p) {
   const S = this.s;
   S.bands = S.bands.filter((x) => x !== b);
+  // A realm's army keeps no captives: a raider band's go free (item 17++++a).
+  this.freeCaptives(b);
   if (b.men < BandData.least || S.units.some((u) => u.province === b.province)) {
     // Too few to be an army, or another's troops stand there: his men go back to the loose men of the land.
     this.peopleOf(b.province).loose += b.men;

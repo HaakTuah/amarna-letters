@@ -28,8 +28,10 @@ import { share, shift } from "./people.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** Raiders come through the doors this season, each landing told to its holder by `say`. */
-    raidersCome(say: (p: Power | null, text: string) => void): void;
+    /** Raiders come through the doors this season, each landing told to its holder as word from there reaches him. */
+    raidersCome(): void;
+    /** A band's captives go free where it stands, as the land's loose men: when it melts, enlists or becomes a realm's army. */
+    freeCaptives(b: Band): void;
     /** The chance in a hundred that raiders come through `door` onto `landing` this season. */
     raidChance(door: Door, landing: string): number;
     /** A band based beyond the map goes home through its door, with its men, captives and its chief's purse. */
@@ -76,7 +78,7 @@ P.raidChance = function (door, landing) {
   return chance;
 };
 
-P.raidersCome = function (say) {
+P.raidersCome = function () {
   const S = this.s;
   for (const door of Doors) {
     const peoples = door.beyond.filter((b) => (b.raids?.weight ?? 0) > 0);
@@ -94,7 +96,8 @@ P.raidersCome = function (say) {
     S.bands.push(b);
     const where = this.map.get(landing).name;
     logEvent(S, "band", `${men} ${beyond.raids!.who} under ${chief.name} came through ${door.name} to ${where}.`, [], "raiders-came");
-    say(S.owner.getOrDefault(landing, null), `${men} ${beyond.raids!.who} under ${chief.name} have come through ${door.name} to ${where}${door.bySea ? " in their ships" : ""}.`);
+    const holder = S.owner.getOrDefault(landing, null);
+    if (holder !== null && isAlive(S, holder)) this.tell(holder, landing, "Notice", "Raiders", `${men} ${beyond.raids!.who} under ${chief.name} have come through ${door.name} to ${where}${door.bySea ? " in their ships" : ""}.`);
   }
 };
 
@@ -107,7 +110,9 @@ declare module "./core.ts" {
 
 P.raiderChief = function (rng, door, beyond, landing) {
   const S = this.s;
-  const back = S.characters.filter((c) => c.duty === "Abroad" && c.status === "Free" && raidersHome(c.origin)?.door === door);
+  // A chief who keeps his word to the king who paid him off lands nowhere in that king's land while the term holds.
+  const keeps = (c: Character): boolean => c.paidOffBy !== "" && S.turn <= c.paidOffUntil && c.traits.loyalty >= c.traits.greed && S.owner.getOrDefault(landing, null) === c.paidOffBy;
+  const back = S.characters.filter((c) => c.duty === "Abroad" && c.status === "Free" && raidersHome(c.origin)?.door === door && !keeps(c));
   if (back.length > 0 && rng.chance(RaiderData.returnPercent / 100)) {
     const c = rng.pick(back);
     remember(c, S.turn, `I came back through ${door.name} to ${this.map.get(landing).name} at the head of a raid.`);
@@ -138,6 +143,11 @@ P.raiderChief = function (rng, door, beyond, landing) {
   c.persona = personaTemplate(c);
   S.characters.push(c);
   return c;
+};
+
+P.freeCaptives = function (b) {
+  this.peopleOf(b.province).loose += b.captives;
+  b.captives = 0;
 };
 
 P.canGoHome = function (b) {
@@ -182,11 +192,12 @@ P.raiderChooses = function (b, chief) {
   if (home === null) return false;
   const content = chief.purse >= bandCost(b.men) * RaiderData.spoils;
   // A crew sails home before the winter closes the sea; a band over land turns home when it has its fill or has stayed long.
-  const paid = this.keepsWord(b);
+  // Paid off by the king whose land it stands in, a chief who keeps his word turns home.
+  const paid = paidOffBy(this, b) !== null && S.owner.getOrDefault(b.province, null) === paidOffBy(this, b);
   const turn = paid || (b.ship ? seasonOfTurn(S.turn + 1) === WinterSeason || content : content || S.turn - b.since >= RaiderData.stay || b.short > 0);
   if (!turn) return false;
   if (this.canGoHome(b)) {
-    this.goHome(b, paid ? `he was paid to go by ${b.paidBy}` : content ? "his men had their fill of spoils" : b.ship ? "the sailing season was ending" : "it was time to go home");
+    this.goHome(b, paid ? `he was paid to go by ${chief.paidOffBy}` : content ? "his men had their fill of spoils" : b.ship ? "the sailing season was ending" : "it was time to go home");
     return true;
   }
   // Towards the door, by the land next door nearest it, through the land of a king who paid it to go too.
@@ -203,12 +214,18 @@ P.raiderChooses = function (b, chief) {
 
 P.keepsWord = function (b) {
   const chief = findCharacter(this.s, b.leaderId);
-  return b.paidBy !== "" && this.s.turn <= b.paidUntil && chief !== null && chief.traits.loyalty >= chief.traits.greed;
+  return chief !== null && chief.paidOffBy !== "" && this.s.turn <= chief.paidOffUntil && chief.traits.loyalty >= chief.traits.greed;
 };
+
+/** The king whose land a band spares while its chief keeps his word to him, or null. */
+export function paidOffBy(e: TurnEngine, b: Band): string | null {
+  return e.keepsWord(b) ? findCharacter(e.s, b.leaderId)!.paidOffBy : null;
+}
 
 P.bandMayGo = function (b, to) {
   const S = this.s;
-  if (this.keepsWord(b) && S.owner.getOrDefault(to, null) === b.paidBy) return false;
+  const spares = paidOffBy(this, b);
+  if (spares !== null && S.owner.getOrDefault(to, null) === spares) return false;
   const home = raidersHome(b.from);
   if (home === null) return true;
   // A crew keeps to the coasts where its ship is; a band over land keeps within reach of its door.
@@ -243,8 +260,8 @@ P.payOffBand = function (p, o) {
   if (o.fee < chiefAsks(b, chief.traits.greed, Math.max(o.term, left))) return refuse(` over ${o.term === 1 ? "a season" : `${o.term} seasons`}`);
   if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it was not paid off")) return;
   gain(chief, o.fee, "Fees");
-  b.paidBy = p;
-  b.paidUntil = S.turn + o.term;
+  chief.paidOffBy = p;
+  chief.paidOffUntil = S.turn + o.term;
   remember(chief, S.turn, `I took ${o.fee} shekels from the king of ${p} to take my band out of his land for ${o.term} seasons.`);
   logEvent(S, "band", `${chief.name}'s band in ${name} was paid off by ${p}.`, [p], "band-paid-off");
   if (raider && this.canGoHome(b)) {
@@ -257,5 +274,5 @@ P.payOffBand = function (p, o) {
     chief.watchProvince = out;
     if (!this.map.get(out).isCoastal) b.ship = false;
   }
-  this.tell(p, o.province, "Resolution", "A band paid off", `${chief.name} took your ${formatMoney(o.fee)}: his band ${raider ? "says it will turn home" : `left ${name} for ${this.map.get(out!).name}`}, and he says he will keep out of your land until turn ${b.paidUntil}.`);
+  this.tell(p, o.province, "Resolution", "A band paid off", `${chief.name} took your ${formatMoney(o.fee)}: his band ${raider ? "says it will turn home" : `left ${name} for ${this.map.get(out!).name}`}, and he says he will keep out of your land until turn ${chief.paidOffUntil}.`);
 };

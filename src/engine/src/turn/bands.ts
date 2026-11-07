@@ -28,6 +28,7 @@ import { drawSkills } from "../rules/skills.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { TurnEngine, idNumber } from "./core.ts";
 import { killsByChoice } from "./own-choices.ts";
+import { paidOffBy } from "./raiders.ts";
 
 /** How a head rose ("How he rose shapes who he is"): the circumstance leans his traits, since it picks the man. */
 export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw" | "captain" | "elder";
@@ -48,6 +49,8 @@ declare module "./core.ts" {
     robbersNamed(victim: Character, b: Band, province: string): void;
     bandOf(c: Character): Band | null;
     bandsAt(province: string): Band[];
+    /** The bands that rob travellers in a land province: all that work there but those whose chief spares its king's land. */
+    robbersAt(province: string): Band[];
     /** A head rises from `men` men in `province`: a new character leading them as a band. */
     headRises(province: string, men: number, rose: Rose, rng: Rng, court?: Power | null): Band;
     /** The man who rises (`headRises`): a new character of `province`, leaned by how he rose, in the pool, free. */
@@ -75,10 +78,16 @@ P.bandsAt = function (province) {
   return this.s.bands.filter((b) => b.province === province);
 };
 
+P.robbersAt = function (province) {
+  // Item 17++++a: a chief who keeps his word to the king who paid him off robs none of that king's land, roads included.
+  const holder = this.s.owner.getOrDefault(province, null);
+  return this.bandsAt(province).filter((b) => holder === null || paidOffBy(this, b) !== holder);
+};
+
 P.bandOdds = function (province) {
   const Map = this.map;
   const prov = Map.get(province);
-  const working = prov.isSea ? this.s.bands.filter((b) => b.ship && Map.get(b.province).waters === province) : this.bandsAt(province);
+  const working = prov.isSea ? this.s.bands.filter((b) => b.ship && Map.get(b.province).waters === province) : this.robbersAt(province);
   const men = sum(working, (b) => b.men);
   if (men <= 0) return 0;
   const odds = (BandData.roadOdds * men) / (men + BandData.roadHalf);
@@ -92,7 +101,7 @@ P.robbedBy = function (province, gold) {
   const S = this.s;
   const Map = this.map;
   const prov = Map.get(province);
-  const working = prov.isSea ? S.bands.filter((b) => b.ship && Map.get(b.province).waters === province) : this.bandsAt(province);
+  const working = prov.isSea ? S.bands.filter((b) => b.ship && Map.get(b.province).waters === province) : this.robbersAt(province);
   // The largest band there did it, if any: ties to the oldest.
   const b = sortBy(working, [(x: Band) => -x.men, cmpNum], [(x: Band) => idNumber(x.id), cmpNum])[0] ?? null;
   if (b !== null) {
@@ -220,7 +229,8 @@ P.leaderLost = function (b, why) {
     return;
   }
   // Its men are loose men here now, raiders stranded far from home among them, and its captives go free.
-  this.peopleOf(b.province).loose += b.men + b.captives;
+  this.peopleOf(b.province).loose += b.men;
+  this.freeCaptives(b);
   logEvent(S, "band", `The band in ${this.map.get(b.province).name} lost its chief (${why}) and melted back into the loose men.`, [], "band-melted");
 };
 
@@ -233,7 +243,8 @@ P.wayBack = function (b, why) {
   }
   const c = S.characters.find((x) => x.id === b.leaderId)!;
   S.bands.splice(S.bands.indexOf(b), 1);
-  this.peopleOf(b.province).loose += b.men + b.captives;
+  this.peopleOf(b.province).loose += b.men;
+  this.freeCaptives(b);
   logEvent(S, "band", `${c.name} gave up the road in ${this.map.get(b.province).name} (${why}); his men went back to the loose.`, [], "way-back");
   this.chiefLeaves(c, b.province, why);
 };
@@ -302,7 +313,7 @@ P.bandsSeason = function () {
   // Police make a chief's rise rarer, as they make the road poorer (item 15).
   const police = (prov: string): number => policePercent(policeAt(S, prov));
   // Item 17++++a: raiders come through the doors from beyond the map, and are bands from then on.
-  this.raidersCome(say);
+  this.raidersCome();
 
   // A crowd of loose men in land policed too little raises a chief, more readily the larger it is, less where a band works.
   for (const prov of Map.landProvinces) {
@@ -387,7 +398,7 @@ P.bandsSeason = function () {
     // A script chief who keeps his word to the king who paid him off spares that king's land (item 17++++a).
     // Where it robs now: a hunted band may have fled into other land this season.
     const robbed = S.owner.getOrDefault(b.province, null);
-    const spared = !own && robbed !== null && robbed === b.paidBy && this.keepsWord(b);
+    const spared = !own && robbed !== null && robbed === paidOffBy(this, b);
     const gold = besieged || spared ? 0 : rate(m.purse);
     const grain = besieged || spared ? 0 : rate(this.stores(b.province));
     const country = besieged && !spared ? rate(S.granary.getOrDefault(b.province, 0)) : 0;
@@ -401,7 +412,8 @@ P.bandsSeason = function () {
     if (country > 0) S.granary.set(b.province, S.granary.get(b.province) - country);
     // Item 17++++a: a band based beyond the map carries off people where it robs, to sell at home.
     const carried = b.from !== "" && gold + grain + country > 0 ? this.carryOff(b, chief) : 0;
-    if (carried > 0) say(holder, `${chief.name}'s raiders carried off ${carried} of the people of ${here.name}.`);
+    const robbedHolder = S.owner.getOrDefault(b.province, null);
+    if (carried > 0 && robbedHolder !== null && isAlive(S, robbedHolder)) this.tell(robbedHolder, b.province, "Notice", "People carried off", `${chief.name}'s raiders carried off ${carried} of the people of ${here.name}.`);
     const take = gold + grainWorth(grain + country) + b.take;
     if (gold + grain + country > 0) {
       const taken = [gold > 0 ? `${formatMoney(gold)} from its people's purse` : "", grain > 0 ? `${measures(grain)} from your stores` : "", country > 0 ? `${measures(country)} from the farmers' granaries` : ""];

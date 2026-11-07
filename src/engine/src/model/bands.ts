@@ -35,16 +35,13 @@ export interface Band {
   from: string;
   /** Item 17++++a: the people it carried off where it robbed, kept until it goes home with them or they go free. */
   captives: number;
-  /** Item 17++++a: the king who paid it to keep out of his land (`pay_off`), and the last season it keeps out; "" if none. */
-  paidBy: string;
-  paidUntil: number;
 }
 
 export function newBand(init: Partial<Band> = {}): Band {
-  return { id: "", leaderId: "", province: "", men: 0, ship: false, take: 0, cost: 0, took: 0, short: 0, since: 0, rose: "crowd", held: 0, heldAt: "", from: "", captives: 0, paidBy: "", paidUntil: 0, ...init };
+  return { id: "", leaderId: "", province: "", men: 0, ship: false, take: 0, cost: 0, took: 0, short: 0, since: 0, rose: "crowd", held: 0, heldAt: "", from: "", captives: 0, ...init };
 }
 
-export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderId: S, province: S, men: I, ship: B, take: I, cost: I, took: I, short: I, since: I, rose: S, held: I, heldAt: S, from: S, captives: I, paidBy: S, paidUntil: I });
+export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderId: S, province: S, men: I, ship: B, take: I, cost: I, took: I, short: I, since: I, rose: S, held: I, heldAt: S, from: S, captives: I });
 
 /**
  * First guesses (item 18 tunes them).

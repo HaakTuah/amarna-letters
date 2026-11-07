@@ -52,7 +52,7 @@ describe("RaiderTests", () => {
     let found = false;
     for (let i = 0; i < 90 && !found; i++) {
       s.turn = Summer + 3 * i;
-      new TurnEngine(s).raidersCome(() => {});
+      new TurnEngine(s).raidersCome();
       found = s.bands.some((b) => b.from !== "");
     }
     Assert.true(found);
@@ -142,7 +142,7 @@ describe("RaiderTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: prov, men: 500, commander: "a commander", commandFrom: 0 }));
     e.payOffBand("Egypt", payOff(prov, 100, 3));
     Assert.true(s.owner.getOrDefault(b.province, null) !== "Egypt");
-    Assert.equal(s.turn + 3, b.paidUntil);
+    Assert.equal(s.turn + 3, chief.paidOffUntil);
     Assert.false(e.bandMayGo(b, prov));
   });
 
@@ -150,22 +150,24 @@ describe("RaiderTests", () => {
     const s = smallWorld(newGame(1), "Egypt");
     const prov = first(Map.landProvinces, (p) => s.owner.getOrDefault(p.id, null) === "Egypt" && !s.units.some((u) => u.province === p.id)).id;
     const e = new TurnEngine(s);
-    const loyal = newCharacter({ id: newId(s, "c"), name: "Loyal", traits: newTraits({ loyalty: 80, greed: 20 }), status: "Free" });
+    const loyal = newCharacter({ id: newId(s, "c"), name: "Loyal", traits: newTraits({ loyalty: 80, greed: 20 }), status: "Free", paidOffBy: "Egypt", paidOffUntil: s.turn + 5 });
     s.characters.push(loyal);
-    const b = newBand({ id: newId(s, "b"), leaderId: loyal.id, province: prov, men: 80, paidBy: "Egypt", paidUntil: s.turn + 5 });
+    const b = newBand({ id: newId(s, "b"), leaderId: loyal.id, province: prov, men: 80 });
     e.lead(loyal, b);
     s.bands.push(b);
     e.market(prov).purse = 5000;
     const purse = e.market(prov).purse;
     Assert.true(e.keepsWord(b));
     Assert.false(e.bandMayGo(b, prov));
+    // Nor does it rob travellers on that king's roads.
+    Assert.empty(e.robbersAt(prov));
     s.turn++;
     e.bandsSeason();
     Assert.equal(0, loyal.earned.loot);
     Assert.true(e.market(prov).purse >= purse);
-    const greedy = newCharacter({ id: newId(s, "c"), name: "Greedy", traits: newTraits({ loyalty: 10, greed: 90 }), status: "Free" });
+    const greedy = newCharacter({ id: newId(s, "c"), name: "Greedy", traits: newTraits({ loyalty: 10, greed: 90 }), status: "Free", paidOffBy: "Egypt", paidOffUntil: s.turn + 5 });
     s.characters.push(greedy);
-    const g = newBand({ id: newId(s, "b"), leaderId: greedy.id, province: prov, men: 80, paidBy: "Egypt", paidUntil: s.turn + 5 });
+    const g = newBand({ id: newId(s, "b"), leaderId: greedy.id, province: prov, men: 80 });
     Assert.false(e.keepsWord(g));
     Assert.true(e.bandMayGo(g, prov));
   });

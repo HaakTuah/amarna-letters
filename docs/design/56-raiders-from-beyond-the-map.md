@@ -37,8 +37,10 @@ Only raids the dossiers attest; the numbers are first guesses [G]. Not the Sherd
 - A raider band is a band (`Band.from` names its land beyond; `rose` "raider"): it robs, falls on travellers and ships,
   takes ships at sea, is hunted, hired (`enlist`) and paid off (below); men of the land join it while it pays.
 - Where it robs, it carries off people (`carryOff`): 10 in a hundred of its men a season, from the settled, at most a
-  hundredth of them, raising the land's unrest as a levy taken does. They go home with it; if its chief is lost and it
-  melts away, or its men leave it, they go free as loose men, and its stranded men stay as loose men too.
+  hundredth of them, raising the land's unrest as a levy taken does. They go home with it; when it melts away, enlists,
+  or becomes a realm's army under its chief, they go free as loose men (`freeCaptives`), and its stranded men stay as
+  loose men too. The land's king hears of a landing, of people carried off and of raiders gone home as word comes from
+  there (`tell`), never at once.
 - **Home** (`goHome`, `canGoHome`): a crew of a sea door sails home from any coast; a band over land goes home only from a
   province of its door. Gone, its chief is `Abroad` (a duty: off the map, nobody's to deal with), with his purse; the men
   and captives leave the map. The holder is told.
@@ -58,8 +60,10 @@ Only raids the dossiers attest; the numbers are first guesses [G]. Not the Sherd
   other band moves to the richest land next door not the payer's (refusing if there is none). Taking it and leaving are
   every chief's formula, model chiefs' too, as an enlistment's are, but a raider band over land that cannot go home at
   once only says it will turn home. After that, while the term holds, a script chief keeps his word if he is more loyal
-  than greedy (`keepsWord`): a raider turns home, any other band keeps out of the payer's land (`paidBy`, `paidUntil`),
-  and neither robs any of it; a model chief sees the deal and does as he chooses. Offers to a band, to serve or to go,
+  than greedy (`keepsWord`): a raider turns home, any other band keeps out of the payer's land, and neither robs any of
+  it, its roads included (`robbersAt`); a model chief sees the deal and does as he chooses. The word is the chief's
+  (`Character.paidOffBy`, `paidOffUntil`), so it goes home and comes back with him: a chief who keeps it leads no raid
+  onto the payer's land while the term holds. Offers to a band, to serve or to go,
   are heard together, best fee first, the seed deciding between equal ones; the payer hears a refusal, and the record
   counts it (`band-pay-refused`).
 - `Band.took` (what a band took in all last season) fixes the enlistment's ask, which read only the roads' take.

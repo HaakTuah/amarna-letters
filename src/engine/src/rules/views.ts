@@ -227,7 +227,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           ship: b.ship,
           raiders: raidersHome(b.from)?.beyond.raids?.who ?? "",
           captives: b.captives,
-          paidUntil: b.paidBy === p && s.turn <= b.paidUntil ? b.paidUntil : 0,
+          paidUntil: ((c) => (c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
         }),
       ),
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
