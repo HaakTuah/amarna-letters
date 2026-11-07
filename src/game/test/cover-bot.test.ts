@@ -94,7 +94,7 @@ describe("CoverBotTests", () => {
     Assert.contains("held captive at the court of Mitanni;", line);
     Assert.doesNotContain("ready", line);
     // Its job stands while it is held: its line names the job.
-    Assert.contains(`for ${spy.contract!.fee} shekels`, line);
+    Assert.contains(`: ${spy.contract!.fee} shekels`, line);
 
     // A demand shows only once its word has arrived.
     let demand = newPendingTask({ id: "q900", kind: "RansomDemand", requester: "Hatti", other: "Mitanni", characterId: spy.id, spend: 90, dueTurn: 6 });
