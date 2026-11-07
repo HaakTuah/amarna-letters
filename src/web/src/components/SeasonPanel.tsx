@@ -12,6 +12,13 @@ const powerRank = (p: Power): number => powerOrdinal(p);
 const personRank = (k: string): number => ["Envoy", "Spy", "Captive", "Missing"].indexOf(k);
 const ordinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
+/** Lines said word for word more than once (eight unread tablets at one court) as one line and how many times, in order. */
+function alike(lines: readonly string[]): [string, number][] {
+  const count = new Map<string, number>();
+  for (const l of lines) count.set(l, (count.get(l) ?? 0) + 1);
+  return [...count];
+}
+
 /** A sleeping seat's line, with the date labels: asleep since when, woken by when at the latest, and why it last woke. */
 export function sleepLine(s: FrameSleep, court: Power | null): string {
   return (
@@ -154,9 +161,14 @@ export const SeasonPanel = memo(function SeasonPanel({
         <>
           <h4>Also this season</h4>
           <ul className="lines plain">
-            {events.slice(-30).map((e, i) => (
-              <li key={i}>{dated(e.text, v)}</li>
-            ))}
+            {alike(events.map((e) => cap(dated(e.text, v))))
+              .slice(-30)
+              .map(([text, n], i) => (
+                <li key={i}>
+                  {text}
+                  {n > 1 && <small className="muted"> ×{n}</small>}
+                </li>
+              ))}
           </ul>
         </>
       )}
