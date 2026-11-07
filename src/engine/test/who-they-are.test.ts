@@ -39,6 +39,8 @@ import {
   courtReads,
   WorldMap,
   PeopleOf1346,
+  Governors1346,
+  Styles,
 } from "@amarna/engine";
 import { Assert, skilled, smallWorld } from "./support.ts";
 
@@ -59,7 +61,10 @@ describe("WhoTheyAreTests", () => {
       const large = newGame(seed);
       // And since item 11f an Akkadian scribe at every court that reads Akkadian.
       const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
-      Assert.equal(100 + scribes, large.characters.length);
+      // And since #765 a governor or resident of 1346 made for his post where his court had no free man of its own people left.
+      const made = large.characters.slice(100 + scribes);
+      Assert.all(made, (c) => Assert.true(c.duty === "Governing" || c.openly));
+      Assert.equal(100 + scribes + made.length, large.characters.length);
       // Item 17++: the posts of 1346 add facts after the pool is drawn, numbered after it, so facts are compared without ids.
       const first = (g: typeof small): string => JSON.stringify(g.characters.slice(0, FirstPool).map((c) => ({ ...c, facts: c.facts.map((f) => ({ ...f, id: f.tag === "resident" ? "" : f.id })) })));
       Assert.equal(first(small), first(large));
@@ -74,6 +79,16 @@ describe("WhoTheyAreTests", () => {
       Assert.contains(large.characters, (c) => c.name === "Hekanefer" && c.attested && c.at === "Egypt");
       Assert.equal(3, large.characters.filter((c) => c.facts.some((f) => f.tag === "nubian")).length);
       Assert.equal(new Set(large.characters.map((c) => c.name)).size, large.characters.length);
+    }
+  });
+
+  test("Every governor of 1346 whose name the sources lost is a man of his own court's people (#765)", () => {
+    for (let seed = 1; seed <= 12; seed++) {
+      const s = newGame(seed);
+      for (const g of Governors1346.filter((x) => x.name === null && s.owner.getOrDefault(x.province, null) === x.court)) {
+        const c = s.characters.find((x) => x.duty === "Governing" && x.watchProvince === g.province && x.employer === g.court)!;
+        Assert.true(Styles.some((st) => st.court === g.court && (st.names.includes(c.name) || st.names.some((n) => c.name.startsWith(`${n} the `)))), `seed ${seed}: ${c.name} of ${c.origin} governs ${g.province} for ${g.court}`);
+      }
     }
   });
 

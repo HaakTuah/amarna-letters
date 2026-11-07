@@ -122,6 +122,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
   road. Save version 72. Left to #759: a far unit's other orders still checked or timed by its true place. Report:
   `docs/rounds/2026-11-06-far-unit-reported.md`.
+- ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
+  holder's name is lost, with no free man of the court's style left, gets one made for it in that style. Save version 74.
+  Report: `docs/rounds/2026-11-07-own-governors.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
