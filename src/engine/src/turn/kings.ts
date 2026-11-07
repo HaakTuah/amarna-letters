@@ -24,15 +24,15 @@ declare module "./core.ts" {
   interface TurnEngine {
     /** The court sets out, with the king if he is with it, or the king alone (order court): its cost is paid, and it travels from next season. */
     setOutCourt(p: Power, o: CourtOrder): void;
-    /** The courts and kings on the road go on, a season's road each; one stopped by a king's troops on a closed road is taken. */
+    /** The courts and kings on the road go on, a season's road each; a king stopped by a king's troops on a closed road is taken. */
     kingsTravel(): void;
     /**
      * The kings taken this season, by whom, and whether in a city taken (`city`): where they stood was taken, or they were
      * stopped on the road. Call before `courtsLost`.
      */
     kingsTaken(): Map<Power, { by: Power | null; city: boolean }>;
-    /** Item 17b, part C: the courts lost this season, to whom, and whether stopped on the road (`road`) rather than taken where they stood. */
-    courtsLost(): Map<Power, { by: Power | null; road: boolean }>;
+    /** Item 17b, part C: the courts lost this season, and to whom: where they stood was taken, or they were stopped on the road with their kings. */
+    courtsLost(): Map<Power, Power | null>;
     /** Who took `at` from `p` this season, or undefined; `court`: a court never moved counts its map capital lost if it is not his. */
     lostThisSeason(p: Power, at: string, court: boolean): Power | null | undefined;
     /** Who may stop the king on the road in a province: a power besieging a city of his there, or one that closed its roads to him with troops there. */
@@ -42,8 +42,8 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
-/** Kings and courts stopped on the road this season, and by whom (cleared as the season's falls are found). */
-const stopped = new WeakMap<TurnEngine, { kings: Map<Power, Power>; courts: Map<Power, Power> }>();
+/** Kings stopped on the road this season, by whom, and whether alone, without their courts (cleared as the season's falls are found). */
+const stopped = new WeakMap<TurnEngine, Map<Power, { by: Power; alone: boolean }>>();
 
 P.setOutCourt = function (p, o) {
   const S = this.s;
@@ -66,7 +66,7 @@ P.kingsTravel = function () {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
   const budget = S.config.travelDays * PointsPerDay;
-  const taken = { kings: new Map<Power, Power>(), courts: new Map<Power, Power>() };
+  const taken = new Map<Power, { by: Power; alone: boolean }>();
   stopped.set(this, taken);
   const rng = this.r("kings-road");
   for (const road of sortBy([...S.kingRoads], [(x) => x.power, cmpStr], [(x) => (x.alone ? 1 : 0), cmpNum])) {
@@ -91,20 +91,20 @@ P.kingsTravel = function () {
     const at = road.route[road.leg];
     const place = road.alone ? S.kingAt : S.court;
     place.set(p, at);
-    // Through the besiegers of a city of his, or where a king who closed his roads to him has troops, its guard may not
-    // get it through: each such place it passed this season, from where it set out to where it stops. A court stopped is
-    // taken (part C2), and its king with it if he is with it.
+    // Through the besiegers of a city of his, or where a king who closed his roads to him has troops, his guard may not
+    // get him through: each such place he passed this season, from where he set out to where he stops. A court without
+    // its king goes on.
     let stoppedBy: Power | null = null;
-    for (const x of road.route.slice(start, road.leg + 1)) {
-      const q = this.kingStoppedAt(p, x);
-      if (q === null || !rng.chance(RoadOdds.troops / 100)) continue;
-      place.set(p, x);
-      stoppedBy = q;
-      break;
-    }
+    if (road.alone || !S.kingAt.has(p))
+      for (const x of road.route.slice(start, road.leg + 1)) {
+        const q = this.kingStoppedAt(p, x);
+        if (q === null || !rng.chance(RoadOdds.troops / 100)) continue;
+        place.set(p, x);
+        stoppedBy = q;
+        break;
+      }
     if (stoppedBy !== null) {
-      if (!road.alone) taken.courts.set(p, stoppedBy);
-      if (road.alone || !S.kingAt.has(p)) taken.kings.set(p, stoppedBy);
+      taken.set(p, { by: stoppedBy, alone: road.alone });
       continue;
     }
     if (road.leg < road.route.length - 1) continue;
@@ -137,32 +137,32 @@ P.kingStoppedAt = function (p, x) {
 P.kingsTaken = function () {
   const S = this.s;
   const out = new Map<Power, { by: Power | null; city: boolean }>();
-  const onRoad = stopped.get(this)?.kings ?? new Map<Power, Power>();
+  const onRoad = stopped.get(this) ?? new Map<Power, { by: Power; alone: boolean }>();
   for (const p of alive(S)) {
-    const by = onRoad.get(p);
-    if (by !== undefined) {
-      out.set(p, { by, city: false });
+    const road = onRoad.get(p);
+    if (road !== undefined) {
+      out.set(p, { by: road.by, city: false });
       continue;
     }
     // Where he stands changed hands this season to another power: he is taken with it, or dies in its fall.
-    const lost = this.lostThisSeason(p, seatOf(S, this.map, p), !S.kingAt.has(p));
-    if (lost !== undefined) out.set(p, { by: lost, city: true });
+    const by = this.lostThisSeason(p, seatOf(S, this.map, p), !S.kingAt.has(p));
+    if (by !== undefined) out.set(p, { by, city: true });
   }
   return out;
 };
 
 P.courtsLost = function () {
   const S = this.s;
-  const out = new Map<Power, { by: Power | null; road: boolean }>();
-  const onRoad = stopped.get(this)?.courts ?? new Map<Power, Power>();
+  const out = new Map<Power, Power | null>();
+  const onRoad = stopped.get(this) ?? new Map<Power, { by: Power; alone: boolean }>();
   for (const p of alive(S)) {
     const road = onRoad.get(p);
-    if (road !== undefined) {
-      out.set(p, { by: road, road: true });
+    if (road !== undefined && !road.alone) {
+      out.set(p, road.by);
       continue;
     }
     const by = this.lostThisSeason(p, courtOf(S, this.map, p), true);
-    if (by !== undefined) out.set(p, { by, road: false });
+    if (by !== undefined) out.set(p, by);
   }
   stopped.delete(this);
   return out;

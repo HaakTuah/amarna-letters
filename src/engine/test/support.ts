@@ -492,8 +492,3 @@ export function speaksAll<T extends { tongues: Dict<string, number> }>(c: T): T 
   for (const l of ["Egyptian", "Akkadian", "Hittite", "Hurrian", "Luwian", "Canaanite", "Amorite", "Ugaritic", "Alashiyan", "Elamite", "Kaskean"]) c.tongues.set(l, 100);
   return c;
 }
-
-/** Where a power's court is going, if it is on the road (a court fleeing, item 17b, part C2), else where it is. */
-export function courtGoing(s: GameState, p: Power): string {
-  return s.kingRoads.find((r) => r.power === p && !r.alone)?.to ?? s.court.tryGet(p) ?? WorldMap.default.capital(p).id;
-}

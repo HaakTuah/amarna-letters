@@ -88,20 +88,3 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   season late, a king not too cautious (caution under 75) goes alone to a walled city of his own with no foreign troops in
   or beside it, from where his word reaches that army within the season, and goes back when no such fight is left or foes
   come near him (`--no-field-play`, `--field-play-half`).
-
-## Part C2: the court taken, fled, in exile (`turn/kings-fate.ts`, `turn/kings.ts`)
-
-- **A court taken loses its treasury** (`courtFlees`): where its city is taken, or on the road where a court is stopped as
-  a king is (a city of its realm besieged, troops in land closed to it, `RoadOdds.troops`), its treasury's gold goes to
-  whoever took it (`receiveAt`: his treasury, or a coffer of his there), or to the people there if nobody holds it; on the
-  road its archive too (`takeArchive`), which a city taken gives up by item 10's rule. The province's own stores stay
-  with the province.
-- **Its flight is a real journey**: it flees by road (`GameState.kingRoads`, not alone) to the nearest city its realm
-  still holds, at the court's pace, and rules from the road.
-- **Word of a king's death is sent on** (`kingDeadWord`, `kingDeadHeard`, `Journey.toProvince`): it goes to his court as
-  it stood when he died; a court that has moved since has it sent on from there.
-- **An heir in exile** (`exileHeir`): when the last king of a fallen realm dies, or word of a king's death arrives after
-  his realm fell, his heir (the record's next name, or drawn, as `nextHeir` picks him) lives on as a free man among its
-  refugees at the court nearest where it fell, with a public fact that he claims its throne, seeking service. He reigns
-  over nothing (`realmOfKing` counts no fallen realm); the realm's reign names him, so the record goes on through him. Any
-  king may make him king again by granting him land (order `crown`, item 17++), as Suppiluliuma did for Shattiwaza.

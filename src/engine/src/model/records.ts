@@ -105,11 +105,6 @@ export interface Journey {
   caravan: string | null;
   /** #592: an offer its captor sent on to its claimant, or sold him: that court. Null otherwise. */
   sentOnBy: Power | null;
-  /**
-   * Item 17b, part C2: the province word is carried to, for word of a king's death to his court as it stood when he died;
-   * a court that has moved since has it sent on. Null otherwise.
-   */
-  toProvince: string | null;
 }
 
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
@@ -161,7 +156,6 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     fee: 0,
     caravan: null,
     sentOnBy: null,
-    toProvince: null,
     ...init,
   };
 }
@@ -196,7 +190,6 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   fee: I,
   caravan: opt(S),
   sentOnBy: opt(S),
-  toProvince: opt(S),
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */

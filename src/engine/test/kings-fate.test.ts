@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { Dict, type GameState, OrderValidator, type Power, TurnEngine, captive, crownedIn, dismiss, king, kingFor, newGame, newGameConfig, newTurnSubmission, ownedBy, payRansom, realmOfKing, setCrowned } from "@amarna/engine";
 import { Lines } from "../src/model/heirs.ts";
 import { KingData } from "../src/turn/kings-fate.ts";
-import { Assert, smallWorld, subs, courtGoing } from "./support.ts";
+import { Assert, smallWorld, subs } from "./support.ts";
 
 // Item 17b, part B: every king a person, his fate his captor's when he is taken, and his heir from the record when he dies.
 describe("KingsFateTests", () => {
@@ -14,7 +14,7 @@ describe("KingsFateTests", () => {
     const e = new TurnEngine(s);
     s.owner.set("akhetaten", "Hatti");
     e.kingTaken("Egypt", "Hatti", false);
-    e.courtFlees("Egypt", "Hatti", false);
+    e.courtFlees("Egypt", "Hatti");
     const c = kingOf(s, "Egypt");
     s.journeys = s.journeys.filter((j) => j.characterId !== c.id);
     c.duty = "None";
@@ -46,11 +46,11 @@ describe("KingsFateTests", () => {
     s.owner.set("akhetaten", "Hatti");
     const e = new TurnEngine(s);
     e.kingTaken("Egypt", "Hatti", false);
-    e.courtFlees("Egypt", "Hatti", false);
+    e.courtFlees("Egypt", "Hatti");
     const c = kingOf(s, "Egypt");
     Assert.equal(["Captured", "Hatti", "UnderGuard", true], [c.status, c.heldBy, c.duty, c.intercepted]);
-    Assert.notEqual("akhetaten", courtGoing(s, "Egypt"));
-    Assert.equal("Egypt", s.owner.get(courtGoing(s, "Egypt")));
+    Assert.notEqual("akhetaten", s.court.get("Egypt"));
+    Assert.equal("Egypt", s.owner.get(s.court.get("Egypt")));
     Assert.empty(s.eliminated.filter((p) => p === "Egypt"));
   });
 
@@ -151,12 +151,12 @@ describe("KingsFateTests", () => {
     s.characters.find((x) => x.id === c.id)!.status = "Employed";
     c.heldBy = null;
     e.kingGoesHome(c, "Egypt", e.courtAt("Hatti"));
-    const seat = courtGoing(s, "Egypt");
+    const seat = s.court.get("Egypt");
     s.owner.set(seat, "Hatti");
     e.kingTaken("Egypt", "Hatti", true);
-    e.courtFlees("Egypt", "Hatti", false);
+    e.courtFlees("Egypt", "Hatti");
     Assert.equal(["Employed", "Travelling"], [c.status, c.duty]);
-    Assert.notEqual(seat, courtGoing(s, "Egypt"));
+    Assert.notEqual(seat, s.court.get("Egypt"));
   });
 
   test("A king held may get away by his skill at going unseen, and walks home", () => {
