@@ -60,10 +60,11 @@ part A, `state.ts` (at the 50 KB mark) was split by meaning (#800, the unit to `
 - Tests that leaned on the old archetypes were moved to what the new kings do: the letters' slop guard takes five kings
   since Akhenaten writes little; the envoy test puts a giving king on Egypt's throne; the standing-order search starts
   at seed 5. Use against ignore does not apply: traits are who a king is, not a feature to use or leave.
-- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the first cut, Akhenaten's honesty 40): all 50 games ran and replayed exactly. Wins:
-  Babylonia 19, Egypt 18, Hatti 3, Assyria 3, Kaska, Lukka, Mitanni and Azzi one each (17++++a's check: Babylonia 16,
-  Egypt 14, Hatti 8, Assyria 4). Suppiluliuma, patient now where the archetype was impatient, wins less but grows most
-  (mean growth 1.48); Akhenaten, unwarlike, still wins by holding. For item 18, which tunes the chances.
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the code after the design check's first
+  round): all 50 games ran and replayed exactly. Wins: Egypt 24, Babylonia 14, Assyria 4, Hatti 2, Kaska, Lukka and
+  others one each (17++++a's check: Babylonia 16, Egypt 14, Hatti 8, Assyria 4). Suppiluliuma, patient now where the
+  archetype was impatient, wins less but grows most (mean growth 1.47); Akhenaten, unwarlike, wins by holding. For
+  item 18, which tunes the chances.
 - **Each nature's sources:** the Great Kings' natures name the dossier lines their deeds rest on and a grade (B from
   deeds; Ashur-uballit C, his honesty unknown; Arzawa's G, a first guess), checked by the history-anchor test; the
   Kurustama treaty Suppiluliuma broke is a new graded line in the politics dossier (`01-kurustama`).

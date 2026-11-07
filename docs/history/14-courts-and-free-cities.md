@@ -110,7 +110,7 @@ first-rank daughter [A].
 | Diviner (*bārû*) | Unnamed | Read omens from livers; Babylon's learning, sent abroad | A (the office) | Omen series; Van De Mieroop |
 
 **Intrigue and succession on record:**
-- **A king who refused another king's vassals** [A]: Burna-Buriash tells Pharaoh that in Kurigalzu's day ("my father" in
+- <a id="14-kurigalzu-refusal"></a>**A king who refused another king's vassals** [A]: Burna-Buriash tells Pharaoh that in Kurigalzu's day ("my father" in
   Rainey, "my ancestor" in Moran) Pharaoh's Canaanite vassals asked Babylon to join them against Egypt, and Kurigalzu
   refused (EA 9; Rainey: "all the Canaanites wrote to him, saying: 'Come to the border of the land; let us revolt'"). A king could turn
   away a revolt offered to him.

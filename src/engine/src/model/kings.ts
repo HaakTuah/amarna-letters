@@ -26,8 +26,8 @@ export interface KingNature {
   readonly traits: readonly number[];
   /**
    * The Great Kings' (item 17b): the dossier lines each deed rests on (checked by `history-anchors.test.ts`), and how sure
-   * the reading of the man is, by the dossiers' grades: B, an inference from his deeds most would share; G, a first guess
-   * where the sources are silent. The city-states' rulers rest on their rulers' lines (`RulerAnchors`) as item 11+ set them.
+   * the reading of the man is, by the dossiers' grades: B, an inference from his deeds most would share; C, where a part
+   * of it is disputed or unknown (Ashur-uballit's honesty); G, a first guess where the sources are silent. The city-states' rulers rest on their rulers' lines (`RulerAnchors`) as item 11+ set them.
    */
   readonly anchors?: readonly string[];
   readonly grade?: "B" | "C" | "G";
@@ -60,7 +60,7 @@ export const Natures: Record<FixedPower, KingNature> = {
     "keeper of the old order",
     "Proud of his rank, counting every shekel of a gift, refusing to call upstarts brother, and loyal to his treaty with Egypt.",
     [30, 65, 70, 75, 35, 95, 70, 40, 55, 60],
-    ["01-burna-buriash", "01-egypt-babylonia", "01-babylonia-assyria"],
+    ["01-burna-buriash", "01-egypt-babylonia", "01-babylonia-assyria", "14-kurigalzu-refusal"],
     "B",
   ),
   Mitanni: n(
