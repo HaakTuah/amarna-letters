@@ -18,7 +18,7 @@ import type { UnitKind, WorldMap } from "../model/map.ts";
 import type { Order, SallyOrder } from "../model/orders.ts";
 import { newOrderOutcome, type Assault, type GroundFight, type MoveFailure, type MoveResult, type MoveStop, type OrderOutcome, type ReportLine } from "../model/outcomes.ts";
 import type { Power } from "../model/power.ts";
-import type { Unit } from "../model/state.ts";
+import type { Unit } from "../model/units.ts";
 import { menOf } from "../model/land.ts";
 
 export class AdjudicationResult {

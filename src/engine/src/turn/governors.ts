@@ -14,7 +14,8 @@ import { raise } from "../model/order-makers.ts";
 import { type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import { type Power, powerName } from "../model/power.ts";
-import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit, loseUnit } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, notify, unitAt } from "../model/state.ts";
+import { type Unit, loseUnit } from "../model/units.ts";
 import { courierSeasons, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 

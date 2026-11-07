@@ -8,7 +8,8 @@ import { cmpStr } from "../core/text.ts";
 import { land, type Power } from "../model/power.ts";
 import { newCatastrophe } from "../model/records.ts";
 import { LandData } from "../model/land.ts";
-import { alive, logEvent, newId, notify, ownedBy, unitLabel, wallsOf, type Unit, loseUnit } from "../model/state.ts";
+import { alive, logEvent, newId, notify, ownedBy, wallsOf } from "../model/state.ts";
+import { unitLabel, type Unit, loseUnit } from "../model/units.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
 

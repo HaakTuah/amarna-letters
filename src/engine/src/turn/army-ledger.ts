@@ -9,7 +9,7 @@
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import { UnrestData } from "../model/unrest.ts";
-import type { Unit } from "../model/state.ts";
+import type { Unit } from "../model/units.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {

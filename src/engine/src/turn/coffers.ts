@@ -15,7 +15,8 @@ import { type Bill, billTotal, type Coffer, newBill, newCoffer, newRemittance } 
 import { forMen } from "../model/land.ts";
 import type { SendOrder } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
-import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, notify, siegeOf } from "../model/state.ts";
+import { unitLabel, type Unit } from "../model/units.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { buildGold, levelOf, upkeepGold, WorksData } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";

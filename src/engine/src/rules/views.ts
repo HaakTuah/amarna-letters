@@ -14,7 +14,8 @@ import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf } from "../model/works.ts";
-import { huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { PointsPerDay } from "../model/travel.ts";
 import { EconomyData, harvestOf } from "../model/economy.ts";
 import { strength as scoringStrength } from "./scoring.ts";
