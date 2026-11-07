@@ -593,6 +593,8 @@ P.fall = function (p, conqueror, ceded = false) {
   if (ruler !== null && ruler.status !== "Dead") {
     ruler.calling = `former ruler of ${land(p)}`;
     for (const f of ruler.facts) if (f.tag === "origin" && f.text.startsWith("Rules ")) f.text = `Ruled ${f.text.slice("Rules ".length)}`;
+    // Item 17b, part C2: he lives, and is its claimant, as an heir in exile would be.
+    ruler.facts.push(newFact({ id: newId(S, "f"), text: `Last ruler of ${land(p)}, which has fallen; claims its throne.`, secrecy: "Public", tag: "origin" }));
     if (ruler.status === "Free") {
       ruler.seeking = true;
       chooseStrategy(ruler);

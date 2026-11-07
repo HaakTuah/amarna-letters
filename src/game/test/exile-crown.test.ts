@@ -17,6 +17,7 @@ describe("ExileCrownTests", () => {
     e.fall("Mitanni", "Hatti");
     king.status = "Dead";
     e.kingDied(king, "put to death by Hatti", e.courtAt("Hatti"));
+    e.kingDeadHeard(s.journeys[s.journeys.length - 1]);
     const heir = s.characters.find((c) => c.id === s.reigns.get("Mitanni").character)!;
     heir.at = "Hatti";
     const orders: Order[] = [];

@@ -198,7 +198,7 @@ P.courtFlees = function (p, by, road) {
   const taker = by !== null && isAlive(S, by) ? by : null;
   if (gold > 0 && taker !== null) {
     this.receiveAt(taker, where, gold, false);
-    notify(S, taker, "Notice", "A treasury taken", `With the court of ${powerName(p)} in ${this.map.get(where).name} your men took its treasury: ${formatMoney(gold)}, ${this.isFar(taker, where) ? "kept there in your own coffer" : "into your treasury"}.`);
+    this.tell(taker, where, "Notice", "A treasury taken", `With the court of ${powerName(p)} in ${this.map.get(where).name} your men took its treasury: ${formatMoney(gold)}, ${this.isFar(taker, where) ? "kept there in your own coffer" : "into your treasury"}.`);
   } else if (gold > 0) this.spendAt(where, gold);
   if (road && taker !== null) this.takeArchive(taker, where);
   if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");
@@ -293,9 +293,10 @@ P.kingGoesHome = function (c, p, from) {
 P.kingDied = function (c, how, where) {
   const S = this.s;
   const p = realmOfKing(S, c.id);
-  // Part C2: the last king of a realm that has fallen: an heir lives on in exile.
+  // Part C2: the last king of a realm that has fallen: word of his death goes to its refugees where it fell, and his heir
+  // lives on in exile when it comes (`kingDeadHeard`).
   const fallen = p === null ? fallenRealmOf(S, c.id) : null;
-  if (fallen !== null) exileHeir(this, fallen, c);
+  if (fallen !== null) this.kingDeadWord(fallen, where, this.fallOf(fallen)?.capital ?? this.map.capital(fallen).id, `${c.name}, once ${rulerStyle(fallen)} of ${powerName(fallen)}, is dead, ${how}.`);
   if (p === null) return;
   const r = S.reigns.get(p);
   // His reign, and his player's game, end where he dies; his road ends with him. Apart from his court, it believes him
@@ -418,8 +419,8 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
 /**
  * Part C2 ("A realm holds by its ledger": "abroad, and he is an exile with a claim"): the last king of a fallen realm is
  * dead, and its heir, by the record or drawn, lives on among its refugees abroad, at the court nearest where it fell, a free
- * man with a claim to its throne that any king may take up, as Suppiluliuma made Shattiwaza of Mitanni king again by his
- * grant. He reigns over nothing; the record goes on through him if he dies too.
+ * man with a claim to its throne that any king may take up, as Suppiluliuma put Shattiwaza on his father's throne of
+ * Mitanni (`docs/history/14-courts-and-free-cities.md`, "Shattiwaza"). He reigns over nothing; the record goes on through him if he dies too.
  */
 function exileHeir(e: TurnEngine, p: Power, dead: Character): void {
   const S = e.s;
@@ -432,18 +433,19 @@ function exileHeir(e: TurnEngine, p: Power, dead: Character): void {
   if (c === null) {
     c = newCharacter({ id: newId(S, "c"), name: S.characters.some((x) => x.name === name) ? `${name} of ${land(p)}` : name, origin: e.map.get(fell).name, calling: `heir of ${land(p)}, in exile`, traits: newTraits(personTraits(traits)) });
     c.status = "Free";
-    c.at = host;
+    c.at = null;
     drawSkills(S.seed, c);
     chooseStrategy(c);
     c.persona = personaTemplate(c);
     S.characters.push(c);
+    // He sets out among its refugees from where it fell, as a free man walks to a court (C2's design check).
+    if (host !== null) e.startTravel(c, host, null, fell);
   } else c.calling = `heir of ${land(p)}, in exile`;
   c.seeking = true;
   for (const text of [claim, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
   S.reigns.set(p, { ...was, traits, character: c.id, name: c.name, about, line: at });
   remember(c, S.turn, `${dead.name} is dead, and ${land(p)} has fallen: I am the heir of its kings, in exile.`);
-  logEvent(S, "king-exile", `${c.name}, heir of ${land(p)}, lives on in exile.`, host === null ? [] : [host], "king-exile");
-  if (host !== null && c.at === host) notify(S, host, "Notice", "An heir in exile", `${c.name}, heir of the kings of ${powerName(p)}, which has fallen, has come to your court among its refugees: ${about} He claims its throne.`, c.id);
+  logEvent(S, "king-exile", `${c.name}, heir of ${land(p)}, lives on in exile.`, [], "king-exile");
 }
 
 /** One already on the map comes to the throne: his service, errands and roads end, and he is at his court. */

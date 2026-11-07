@@ -251,9 +251,9 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
 - **Word of a king's death is sent on** (`kingDeadWord`, `kingDeadHeard`, `Journey.toProvince`): it goes to his court as
   it stood when he died, and a court that has moved since has it sent on from there. Word that comes after his realm
   fell still finds his heir.
-- **An heir in exile with a claim** (`exileHeir`): when the last king of a fallen realm dies, or word of his death comes
-  after it fell, the record's next heir (or a drawn one) lives on as a free man among its refugees at the court nearest
-  where it fell, with a public fact that he claims its throne, seeking service. His seat sees whose throne he claims
+- **An heir in exile with a claim** (`exileHeir`): when word of the death of a fallen realm's last king reaches where it
+  fell (or word of a king's death comes after his realm fell), the record's next heir (or a drawn one) lives on as a free
+  man among its refugees, setting out from there to the court nearest it, with a public fact that he claims its throne, seeking service. His seat sees whose throne he claims
   (`CharacterView.heirOf`). Any king may make him king again by granting him land (order `crown`, item 17++).
 - **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
   his fallen realm that king holds, by the same sum as any grant, the land kept reckoned as risky.
@@ -274,11 +274,18 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
 - **A court stopped on the road is taken, as its city taken would be** (C1's reading, "a court taken on the road is part
   C2's"): the same odds as a king alone, since both are a guard on a road through hostile troops.
 - **The heir in exile is a person, not a seat** ("A realm holds by its ledger": "abroad, and he is an exile with a
-  claim"): he reigns over nothing and plays as any free character until a king grants him land, as Suppiluliuma made
-  Shattiwaza king of Mitanni again (dossier 16). No new order: the grant (item 17++) is the lever.
-- **A fallen realm's last king who lives is its claimant** (one fact, one place): he is "former ruler" by part B's rule,
-  and the seat sees whose throne he claims by the same `heirOf` as an heir in exile, so a king may make him king again by
-  the same grant. Only a dead last king's heir is drawn from the record into exile.
+  claim"): he reigns over nothing and plays as any free character until a king grants him land, as Suppiluliuma put
+  Shattiwaza on his father's throne of Mitanni (dossier 14, "Shattiwaza"). No new order: the grant (item 17++) is the lever.
+- **A fallen realm's last king who lives is its claimant** (one rule for both): he is "former ruler" by part B's rule,
+  with the same public fact that he claims its throne, and a seat that has heard of the fall sees whose throne he claims
+  by the same `heirOf` as an heir in exile, so a king may make him king again by the same grant. Only a dead last king's
+  heir is drawn from the record into exile.
+- **A treasury nobody takes goes to the people there** (gold stays where it is; nothing vanishes): a court lost where no
+  power holds the place spends its gold into that place's purse (`spendAt`).
+- **Word, not knowledge** (the one-page: "nothing is known or delivered at a distance without someone carrying it"; the
+  design check's first round): the taker hears of a treasury taken as word comes from where he took it (`tell`); a seat
+  sees whose throne a person claims only once it has heard of the fall; an heir in exile is raised when word of the last
+  king's death reaches where his realm fell, and walks from there.
 - **His host is the court nearest where his realm fell** (refugees flee to the nearest court that will take them, as in
   item 17): not one chosen by a rule about which power it is.
 - **#806 left open**: nothing in C2 depends on whether a captive king's court gives orders in his name; parts B and C1's
@@ -300,7 +307,7 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
   (`crown-exile`), beside 44 other kingships taken. The exile of an heir after the fall is covered by its unit tests
   (`court-taken.test.ts`, `exile-crown.test.ts`).
 - **Use against ignore** (`--grant-play-half`, 50 games, same seeds; grants now include restoring a fallen realm's king
-  or heir): script kings that grant won 33 to 17 against those that never grant, mean growth 0.82 to 0.72 (17++ C, before
+  or heir, so this measures granting as a whole, not restoring a claimant apart; no flag sets restoration apart): script kings that grant won 33 to 17 against those that never grant, mean growth 0.82 to 0.72 (17++ C, before
   this part: 28 to 22, 0.94 to 0.86). Pays in wins and growth.
 - **Every feature is every seat's**: script kings take a treasury where they take a court (the engine's), and restore
   claimants at their courts. A weakness found and patched: nothing counted a court's treasury lost or a restoration, so

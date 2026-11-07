@@ -190,8 +190,8 @@ your court's omens darken as it nears. A table can change how long games run, or
 
 A king is a person. He may travel without his court, commanding from where he is, near the front and at the risk of his
 life. Taken in the city where he stands, in a battle or on the road, he is his captor's captive, to be put to death,
-ransomed, released or handed over, and he may get away by his own skill; a court taken loses its treasury and flees by
-road to the nearest city its realm still holds, ruling in his name. He dies only by a cause where he is (in battle, in a city's fall, put to death
+ransomed, released or handed over, and he may get away by his own skill; a court taken, in its city or stopped on the road, loses its
+treasury and flees by road to the nearest city its realm still holds, ruling in his name. He dies only by a cause where he is (in battle, in a city's fall, put to death
 or on the road), never of age, and then his player is out: his
 heir reigns from that season, the next name on the record of the kings who followed (or past it a son or brother), with
 a third of his father's standing among the people and the soldiers. A realm that holds nothing has fallen, and the heir of its last king lives on in exile with a claim to its throne; its armies

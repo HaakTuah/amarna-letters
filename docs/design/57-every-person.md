@@ -117,12 +117,15 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   still holds, at the court's pace, and rules from the road.
 - **Word of a king's death is sent on** (`kingDeadWord`, `kingDeadHeard`, `Journey.toProvince`): it goes to his court as
   it stood when he died; a court that has moved since has it sent on from there.
-- **An heir in exile** (`exileHeir`): when the last king of a fallen realm dies, or word of a king's death arrives after
-  his realm fell, his heir (the record's next name, or drawn, as `nextHeir` picks him) lives on as a free man among its
-  refugees at the court nearest where it fell, with a public fact that he claims its throne, seeking service. He reigns
-  over nothing (`realmOfKing` counts no fallen realm); the realm's reign names him, so the record goes on through him. Any
-  king may make him king again by granting him land (order `crown`, item 17++), as Suppiluliuma did for Shattiwaza. His
-  seat sees whose throne he claims (`CharacterView.heirOf`, `fallenRealmOf`).
+- **An heir in exile** (`exileHeir`): when word of the death of a fallen realm's last king reaches where it fell, or word
+  of a king's death reaches his court after his realm fell, his heir (the record's next name, or drawn, as `nextHeir`
+  picks him) lives on as a free man among its refugees, walking from where it fell to the court nearest it, with a public
+  fact that he claims its throne, seeking service. He reigns over nothing (`realmOfKing` counts no fallen realm); the
+  realm's reign names him, so the record goes on through him. A last king who lives is its claimant the same way, with
+  the same public fact (`fall`). Any king may make either king again by granting him land (order `crown`, item 17++), as
+  Suppiluliuma put Shattiwaza on his father's throne (`docs/history/14-courts-and-free-cities.md`). A seat that has heard
+  of the fall sees whose throne he claims (`CharacterView.heirOf`, `fallenRealmOf`).
+- **Word, not knowledge**: the taker of a treasury hears of it as word from where he took it comes (`tell`).
 - **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
   his fallen realm that king holds, by the same sum as any grant, keeping it reckoned as risky land (its people take an heir
   of their own house better than a stranger).

@@ -59,10 +59,16 @@ describe("CourtTakenTests", () => {
     e.fall("Mitanni", "Hatti");
     c.status = "Dead";
     e.kingDied(c, "put to death by Hatti", e.courtAt("Hatti"));
+    // Not yet: word of his death goes to where his realm fell, and the heir is raised when it comes.
+    Assert.equal(c.id, kingOf(s, "Mitanni").id);
+    const word = s.journeys[s.journeys.length - 1];
+    Assert.equal(["KingDead", e.fallOf("Mitanni")!.capital], [word.news, word.toProvince]);
+    e.kingDeadHeard(word);
     const heir = kingOf(s, "Mitanni");
     Assert.notEqual(c.id, heir.id);
     Assert.equal(["Free", null], [heir.status, heir.employer]);
-    Assert.notNull(heir.at);
+    // He walks from there to the court nearest it.
+    Assert.contains(s.journeys, (j) => j.kind === "Travel" && j.characterId === heir.id);
     Assert.contains(heir.facts, (f) => f.text.includes("claims its throne"));
     Assert.contains(s.events, (x) => x.kind === "king-exile");
   });

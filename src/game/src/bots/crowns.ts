@@ -40,7 +40,7 @@ export function crownOrders(b: Board, orders: Order[], busy: HSet<string>): void
     byMan.set(g.character, [...(byMan.get(g.character) ?? []), g.province]);
   }
   // Item 17b, part C2: the heir of a fallen realm in exile at his court, over the land of that realm he holds, as
-  // Suppiluliuma made Shattiwaza king of Mitanni again: its people take an heir of their own house better than a stranger,
+  // Suppiluliuma put Shattiwaza on his father's throne of Mitanni: its people take an heir of their own house better than a stranger,
   // so keeping it is reckoned as risky land.
   const exiles = new Map<string, string[]>();
   for (const c of v.known.filter((x) => x.heirOf !== null && x.heirOf !== b.me && x.status === "free" && x.where === "at your court" && !busy.has(x.id) && !v.crowning.includes(x.id))) {
