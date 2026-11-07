@@ -105,7 +105,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const place = placesKnown(engine, p, seen);
   const t = s.treasuries.get(p);
   const v = newSeatView({
-    claims: s.claims.map((c) => ({ ...c })),
+    // The claims to the rank this court knows of (bug #777: one made in play, where his greetings have been read); not
+    // which other courts know it.
+    claims: s.claims.filter((c) => c.heardBy === null || c.heardBy.includes(p)).map((c) => ({ ...c, heardBy: null })),
     greetings: s.recognition.filter((r) => r.from === p || r.to === p).map((r) => ({ ...r })),
     // Item 17+: the names claimed, as this court gives them.
     claimedName: claimedName(p),

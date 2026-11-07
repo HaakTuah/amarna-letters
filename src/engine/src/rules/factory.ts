@@ -26,7 +26,7 @@ import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
 import { AttestedCast, FirstCores, Governors1346, Leanings1346, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Residents1346, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
-import { kingTongues, servedThere } from "./tongues.ts";
+import { drawTongues, kingTongues, servedThere } from "./tongues.ts";
 import { courtReads, courtSpeaks, peopleSpeak } from "../model/languages.ts";
 import { newGovernor } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
@@ -108,7 +108,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
  * did not; a claimant or a town's ruler with a stake starts with a share of their love, and so does a house the letters
  * show them leaning to. Every governor the sources name in office holds his post from the first season, as a grant at his
  * king's pleasure (no fee), with a standing of his own from his years there; where the office is attested and the name
- * lost, the governor is one of the ordinary people of the court's region in the pool; Pharaoh's commissioners over vassals' lands start
+ * lost, the governor is one of the ordinary people of the court's region in the pool, or, if none of them is free, one
+ * of the pool made one of its people (#765); Pharaoh's commissioners over vassals' lands start
  * as open residents there. Every grade is in `rules/cast.ts`.
  */
 function openingLoyalties(s: GameState, m: WorldMap): void {
@@ -138,9 +139,15 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     // from it, else whoever stands at it.
     const own = free.filter((c) => Styles.some((st) => st.court === court && st.names.includes(c.name)));
     const here = (xs: Character[]): Character[] => xs.filter((c) => c.at === court);
-    const pool = [here(own), own, here(free)].find((xs) => xs.length > 0) ?? [];
+    // #765: none of them free, one of the ordinary people standing at it (else anywhere), not a Nubian in Pharaoh's
+    // service, is of its people after all: named and born in its style. Never a stranger of another people; the pool keeps
+    // its size and its order.
+    const strangers = free.filter((c) => !c.facts.some((f) => f.tag === "nubian"));
+    const pool = [here(own), own, here(strangers), strangers].find((xs) => xs.length > 0) ?? [];
     const c = pool.length > 0 ? rng(`${court}:${calling}`).pick(pool) : null;
-    if (c !== null) called(c, calling);
+    if (c === null) return null;
+    if (!own.includes(c)) ofCourt(s, c, court, rng(`${court}:${calling}:own`));
+    called(c, calling);
     return c;
   };
   // One taken from another court's service into his post of 1346: that court takes on one of the free people at it instead,
@@ -366,6 +373,34 @@ export function populate(s: GameState): void {
   s.baseline = s.characters.length;
 }
 
+/** A court's name style, or the nearest court's if it has none of its own. */
+function styleOf(p: Power): (typeof Styles)[number] {
+  const map = WorldMap.default;
+  const capital = map.capital(p).id;
+  const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => map.hops(map.capital(x).id, capital), cmpNum])[0];
+  return Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
+}
+
+/** The first of `names` (a court's style, shuffled) nobody has yet, else "the younger" or "the elder" of one. */
+function freeName(s: GameState, names: string[], p: Power): string {
+  const taken = (n: string): boolean => s.characters.some((c) => c.name === n);
+  return [...names, ...names.map((n) => `${n} the younger`), ...names.map((n) => `${n} the elder`)].find((n) => !taken(n)) ?? `${names[0]} of ${land(p)}`;
+}
+
+/**
+ * #765: an ordinary person of the pool made one of court `p`'s people: named and born in its style, speaking as one born
+ * there, and drawn in the likeness of that name.
+ */
+function ofCourt(s: GameState, c: Character, p: Power, rng: Rng): void {
+  const style = styleOf(p);
+  c.name = freeName(s, rng.shuffle([...style.names]), p);
+  c.origin = rng.pick(style.origins);
+  const born = c.facts.find((f) => f.tag === "origin");
+  if (born !== undefined) born.text = `Born in ${c.origin}.`;
+  drawTongues(s.seed, c);
+  c.persona = personaTemplate(c);
+}
+
 /**
  * The owner's answer to item 12's review (item 11f): every court that reads Akkadian starts with an Akkadian-speaking scribe
  * in its service, as the archives show the letters read and written by such scribes at every court that answered them; a
@@ -378,13 +413,11 @@ function scribes(s: GameState): void {
     const capital = map.capital(p).id;
     if (!courtReads(p, capital).includes("Akkadian")) continue;
     const rng = Rng.for(s.seed, 0, "scribe", p);
-    const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => map.hops(map.capital(x).id, capital), cmpNum])[0];
-    const style = Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
-    // A name of the style nobody has yet, else "the younger" or "the elder" of one; or the scribe the sources name (item 17+).
+    const style = styleOf(p);
+    // A name of the style nobody has yet; or the scribe the sources name (item 17+).
     const names = rng.shuffle([...style.names]);
-    const taken = (n: string): boolean => s.characters.some((c) => c.name === n);
     const named = NamedScribes.get(p) ?? null;
-    const name = named?.name ?? ([...names, ...names.map((n) => `${n} the younger`), ...names.map((n) => `${n} the elder`)].find((n) => !taken(n)) ?? `${names[0]} of ${land(p)}`);
+    const name = named?.name ?? freeName(s, names, p);
     const c = create(s, rng, { name, origin: named?.origin ?? rng.pick(style.origins), attested: named?.attested ?? false }, "scribe", Math.min(rng.range(15, 95), rng.range(15, 95)));
     finish(s, c, named?.core ?? null, named?.attested ?? false);
     c.tongues.set("Akkadian", Math.max(c.tongues.getOrDefault("Akkadian", 0), rng.range(80, 95)));
