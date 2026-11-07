@@ -131,6 +131,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
+    traits: s.reigns.tryGet(p)?.traits ?? [],
     // Its governors as it knows them: one whose end (death, turning, land lost) has not yet reached it still stands.
     governors: governorsKnown(s, s.turn).filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, seat: seatKnown(g, s.turn), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
     ended: s.ended,

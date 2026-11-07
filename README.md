@@ -198,18 +198,18 @@ There is one winner. Shared victory for sworn allies is a house rule, off by def
 
 ## The seven Great Kings
 
-Every king reads every power's opening position. The script kings each play a temperament of their
-own, varied a little in every game.
+Every king reads every power's opening position. The script kings each play the king on their throne, as the sources show the man (from item 17b), his
+traits varied a little in every game.
 
 | Power | Capital | Tier | Starts with | How the script king plays |
 |---|---|---|---|---|
-| **Egypt** | Akhetaten | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,200 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
-| **Hatti** | Hattusa | Strong | 15,000 men at Hattusa, Samuha, in Kizzuwatna, Tuwanuwa, Nesa and Sapinuwa, a few ships off Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
-| **Babylonia** | Babili | Strong | armies in Babili, Dur-Kurigalzu, Nippur and Sippar (10,000 men in all), 600 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
-| **Mitanni** | Washukanni | Middle | armies in Washukanni, Harran and Taidu (10,000 men in all), 450 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
-| **Assyria** | Ashur | Middle | armies in Ashur, Ninua and Arbail (4,000 men in all), 300 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
-| **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
-| **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
+| **Egypt** | Akhetaten | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,200 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | Akhenaten, "the king of the sun-disc": proud and slow to answer, ungenerous with gold, unwarlike |
+| **Hatti** | Hattusa | Strong | 15,000 men at Hattusa, Samuha, in Kizzuwatna, Tuwanuwa, Nesa and Sapinuwa, a few ships off Kizzuwatna, 300 shekels | Suppiluliuma, "the patient conqueror": patient, a master of treaties, cunning, and aggressive when he strikes |
+| **Babylonia** | Babili | Strong | armies in Babili, Dur-Kurigalzu, Nippur and Sippar (10,000 men in all), 600 shekels | Burna-Buriash, "keeper of the old order": the proudest and greediest, counting every shekel, loyal to his treaty with Egypt |
+| **Mitanni** | Washukanni | Middle | armies in Washukanni, Harran and Taidu (10,000 men in all), 450 shekels | Tushratta, "the loving brother": lavish, loyal and proud, writing as Egypt's equal |
+| **Assyria** | Ashur | Middle | armies in Ashur, Ninua and Arbail (4,000 men in all), 300 shekels | Ashur-uballit, "the upstart who would be brother": ambitious, claiming the brotherhood of the Great Kings |
+| **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | Arzawa's unknown king, "the western opportunist": a first guess from his land's push east while Hatti was weak |
+| **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | Alashiya's king, "the copper merchant": a trader who keeps his word, the least aggressive |
 
 **The opening as it stood.** Where no source speaks, the opening takes the middle of the experts' estimates (the
 realms' people, the size of towns, how often the Nile fails, how each city drinks under siege), all cited in
@@ -240,7 +240,7 @@ checks its orders against what its rivals are likely to do by playing the season
 engine's own adjudicator. When one king runs away with the game, the others swear coalitions
 against him and strike at his land together; a king attacked by a strong neighbour asks the
 neighbour's other neighbours for a defence pact. Script kings give standing orders too. The god
-view lists each king's temperament under **Standings**. Every rule they follow, with its numbers,
+view lists each king's traits under **Standings**. Every rule they follow, with its numbers,
 is in [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) under "Script kings".
 
 ## The courts

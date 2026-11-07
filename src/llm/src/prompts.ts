@@ -20,6 +20,7 @@ import {
   groupBy,
   isEnvoyWaiting,
   rulerOf,
+  standout,
   landGrowth,
   sortBy,
   terrainOf,
@@ -44,8 +45,10 @@ import { GoldLifeline, economyLines, worksLines } from "./prompt-economy.ts";
 import { person } from "./prompt-audience.ts";
 import { NoneRead, copySource, inFull, letterBrief, letterLine, lettersGold, openingTreaties, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
 import { Sb, andList, asViewFigures, joinS, num } from "./text.ts";
-export function identity(p: Power): string {
-  return `You are ${rulerOf(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
+export function identity(p: Power, traits: readonly number[]): string {
+  // Item 17b: the king is a person, and plays as the man the sources show; his traits shape his play, his stakes decide it.
+  const nature = traits.length === 0 ? "" : ` By nature you are ${andList(standout(traits))}.`;
+  return `You are ${rulerOf(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.${nature}`;
 }
 
     /// <summary>

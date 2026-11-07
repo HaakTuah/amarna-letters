@@ -27,7 +27,7 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), the 
 
 - **Powers risen in play.** `Power` is a power the map starts with (`FixedPower`, `FixedPowers`) or one risen in play,
   named by its land: the governor's province's name (with his own after it if a power already goes by that name).
-  `GameState.risen` keeps each (`RisenPower`: names, ruler, capital, the season and kingdom it rose from, and his temper),
+  `GameState.risen` keeps each (`RisenPower`: names, ruler, capital, the season and kingdom it rose from; since item 17b his traits are his reign's, [57](57-every-person.md)),
   and a registry in `model/power.ts` mirrors it for what names a power without the state (`setRisen`, called by every
   new game, every `TurnEngine` and the web page as a state arrives). `AllPowers` is every power in play's order, the
   fixed ones and then the risen as they rose; `cmpPower` sorts risen powers after the fixed. A risen power's capital is

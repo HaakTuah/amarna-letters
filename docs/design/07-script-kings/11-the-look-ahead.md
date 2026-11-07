@@ -1,6 +1,6 @@
 ### The look-ahead
 
-- **Rivals' orders.** For each living rival with troops on its board, the king draws two plans from the rival's side. It uses the rival's archetype, its own sightings and treasury estimates, and a mirror of its dealings with him:
+- **Rivals' orders.** For each living rival with troops on its board, the king draws two plans from the rival's side. It uses the rival's archetype (its ruler of 1346 as the sources show him, [03](03-temperament.md)), its own sightings and treasury estimates, and a mirror of its dealings with him:
   - his "attacked us" is our "we attacked him";
   - the same treaty or alliance;
   - a grudge of 3 if we attacked him in the last three seasons;

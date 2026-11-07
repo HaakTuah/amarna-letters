@@ -68,6 +68,8 @@ export class LlmLeaderSeat implements ISeat {
   /** Item 16: a model or file king hears its royal council while it is on. */
   readonly hearsCouncil = true;
   private readonly power: Power;
+  /** Item 17b: the king's traits as his last view showed them, for a call that has no view of its own (phrasing). */
+  private traits: readonly number[] = [];
   private readonly client: JsonAsker;
   private readonly model: string;
   private readonly effort: string;
@@ -134,6 +136,7 @@ export class LlmLeaderSeat implements ISeat {
 
   /** The orders request for this view, as the king's record now stands (the measure of call size reads it too). */
   ordersCall(view: SeatView): CallSpec {
+    this.traits = view.traits;
     const user = new Sb();
     user.appendLine(situation(view, this.journalOf.tabletsRead));
     user.appendLine(this.journalOf.forOrders());
@@ -144,7 +147,7 @@ export class LlmLeaderSeat implements ISeat {
       role: `leader:${this.power}`,
       model: this.model,
       sharedSystem: this.shared(view),
-      seatSystem: identity(this.power),
+      seatSystem: identity(this.power, view.traits),
       user: user.toString(),
       schema: this.rungs?.planning != null ? Replies.leaderOrders(this.config).extend({ new_plan: NewPlan }) : Replies.leaderOrders(this.config),
       effort: this.effort,
@@ -224,7 +227,7 @@ export class LlmLeaderSeat implements ISeat {
       model: r.planning,
       // Its own short opening, what a planner needs of the rules, never the kings' whole rulebook.
       sharedSystem: planRules(this.configOf(view)),
-      seatSystem: identity(this.power),
+      seatSystem: identity(this.power, view.traits),
       user: user.toString(),
       schema: planReply(),
       effort: this.effort,
@@ -268,7 +271,7 @@ export class LlmLeaderSeat implements ISeat {
       role: `alerts:${this.power}`,
       model: r.small!,
       sharedSystem: this.shared(view),
-      seatSystem: identity(this.power),
+      seatSystem: identity(this.power, view.traits),
       user: user.toString(),
       schema: alertsReply(),
       effort: "low",
@@ -327,7 +330,7 @@ export class LlmLeaderSeat implements ISeat {
       role: `host:${this.power}`,
       model: this.model,
       sharedSystem: this.shared(court),
-      seatSystem: identity(this.power),
+      seatSystem: identity(this.power, court.traits),
       user: user.toString(),
       // With its orders standing it may also send letters and reopen its orders. It is asked only what applies.
       schema: Replies.hostReply(this.config, view),
@@ -364,7 +367,7 @@ export class LlmLeaderSeat implements ISeat {
       role: `host:${this.power}`,
       model: this.model,
       sharedSystem: this.shared(court),
-      seatSystem: identity(this.power),
+      seatSystem: identity(this.power, court.traits),
       user: user.toString(),
       schema: Replies.courtReply(this.config, first.ordersStand, first.reopenChosen),
       effort: this.effort === "high" ? "medium" : "low",
@@ -411,7 +414,7 @@ export class LlmLeaderSeat implements ISeat {
       role: `phrase:${this.power}`,
       model: this.phrasing,
       sharedSystem: PhrasingSystem,
-      seatSystem: identity(this.power),
+      seatSystem: identity(this.power, this.traits),
       user: `${req.envoy}, envoy of ${req.from}, stands before you. Your answer, decided already: ${joinS("; ", req.clauses)}. Word it as you would speak it to him, in your own voice, in one to three sentences: say nothing that is not in the answer, and promise nothing more.`,
       schema: Replies.phrase(),
       effort: "low",

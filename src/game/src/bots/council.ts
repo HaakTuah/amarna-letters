@@ -28,7 +28,7 @@ import {
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { Brain } from "./brain.ts";
-import { personalityFor, type Personality } from "./personality.ts";
+import type { Personality } from "./personality.ts";
 import { seatSeed } from "./script-leader.ts";
 import { Search, type Pictured } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
@@ -130,7 +130,7 @@ export class Council {
     let b = this.brains.tryGet(key);
     if (b === undefined) {
       const seed = this.seedFor(`council:${a}:${p}`);
-      this.brains.set(key, (b = new Brain(p, seed, tilt(personalityFor(p, this.seedFor(p)), a))));
+      this.brains.set(key, (b = new Brain(p, seed, null, (x) => tilt(x, a))));
     }
     return b;
   }

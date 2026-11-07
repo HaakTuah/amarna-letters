@@ -9,6 +9,8 @@ import { vassalSeason } from "./vassals.ts";
 import { huntBands, huntOrders, worthHunting } from "./outlaws.ts";
 import { payOffOrders } from "./raiders.ts";
 import {
+  Natures,
+  drawTraits,
   AllPowers,
   Dict,
   HSet,
@@ -40,7 +42,7 @@ import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
 import { asRead } from "./tidings.ts";
 import { Contingencies } from "./contingencies.ts";
-import { personalityFor, type Personality } from "./personality.ts";
+import { personalityOf, type Personality } from "./personality.ts";
 import { roadPolicy } from "./roads.ts";
 import { heardRepudiations, keepMoving, leaveByOrder, repudiations, revocations } from "./authority.ts";
 import { Search } from "./search.ts";
@@ -253,7 +255,10 @@ export function seatSeed(gameSeed: number, p: Power): number {
   return (hi & 0x1fffff) * 4294967296 + lo;
 }
 
-/** The temperament a script king plays with in a game with this seed (drawn from its seat seed). */
+/**
+ * The temperament a king of 1346 plays with in a game with this seed: his traits as the engine draws them (item 17b), for
+ * the tests; a seat reads its own king's from its view.
+ */
 export function temperament(p: Power, gameSeed: number): Personality {
-  return personalityFor(p, seatSeed(gameSeed, p));
+  return personalityOf(p, drawTraits(gameSeed, p, (Natures as Record<string, { traits: readonly number[] } | undefined>)[p]?.traits ?? []));
 }
