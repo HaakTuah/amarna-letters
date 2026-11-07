@@ -324,3 +324,55 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
 ### Questions for the owner
 
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; C2 does not depend on it).
+
+## Part D: one scoreboard for every person
+
+Started from `develop` at 779fc13 (C2 and its follow-up merged). As built: [57](../design/57-every-person.md), "Part D".
+The live design document could not be read from this account; the copy on `develop` is read again by its diff before
+the pull request.
+
+### What was built
+
+- **Every person on one board** (`TurnEngine.scoreboard`, `turn/scoreboard.ts`): every character, kings included, by
+  what he holds blended with his performance (`sizeWeight` percent for size, as for the realms); the living by score,
+  the dead below them all by what they held when they died, ties by id. It replaces the characters' ranking
+  (`Wealth.ranking`, `Wealth.line`, removed) and the powers' table: the realms' final scores are their reigning kings'
+  rows (`finalScores`), and `finalScores` and `decideWinners` moved beside it from `turn/resolve.ts`.
+- **A king** holds his realm and is measured from his accession, his realm's strength over what he inherited
+  (`Reign.strength`), by par for its start; a king who dies held his realm as it stood (`kingDied` sets `diedWith`).
+- **Anyone else** holds his purse and hoard, and is measured by what he gained since he came into play (`characterResult`,
+  over his savings brought in) against what characters gained in 50 script games (`CharacterPar`, every hundredth).
+- **Shown** in the end event (the first ten), the web app's Standings (one table, once the age has ended), the batch
+  (top three per game, how often a king and a character stood first). The kings' rulebook (HOW YOU WIN), the
+  characters' goal (`strategyText`), the README ("Winning") and the design notes say so.
+
+### First guesses (item 18 tunes them)
+
+- Size weighs 5 in a hundred for every person, as for the realms (`sizeWeight`); characters' par is what characters
+  gained in seeds 101-150, pooled for every calling.
+
+### Readings taken
+
+- **Size weighs 5, not half** (one fact, one place): the item's text says "half and half as a first guess", but the
+  owner's measured answer of 29 October set size at 5 in a hundred, which the Victory tab still states; one weight
+  (`sizeWeight`) serves both, and item 18 sets it.
+- **A character's start is what he brought into play** ("against par for his own start"): most characters start with
+  nothing, so a ratio like a realm's growth has no meaning; his result is the gold he gained since, one more for the
+  living so that every living result stands above a death's 0, and par is what characters gained in the script games,
+  pooled (no calling's par apart until item 18 asks for it).
+- **The winner is still a realm** (the seats play kings: "When a king dies, his player is out"): the first of the kings
+  on the board wins, so a character above every king is first on the board but no seat's loss; the batch's wins and
+  benchmarks stay comparable.
+- **A king's holding is his realm, not his purse** ("A king's holding is his realm"); a fallen realm's king or heir in
+  exile holds his purse and hoard, as any character.
+- **A realm whose king is dead and whose heir has not risen has no score**: its player is out, and nobody reigns to win.
+- **The powers' par was not refreshed**: the same run's growth differs from the recorded par, since earlier parts
+  changed who falls; refreshing it moves every benchmark and is item 18's to do with the weights.
+
+### Script players and the measure
+
+- **Characters' par** (`scripts/sim.sh --games 50 --seed 101 --par-out`, 39 minutes): of every character's result, the
+  lowest sixth died, two thirds gained nothing, and the top fifth gained from 2 to 2,741 shekels (median of those
+  gaining, about 70). The richest character held 876 shekels at the end on average (range 252-2,741).
+- **No new lever**: part D changes what is counted, not what a player can do, so there is no use against ignore; script
+  kings already play for their realm's growth and characters for their gold, which is what the board counts.
