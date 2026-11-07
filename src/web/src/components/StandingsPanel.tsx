@@ -1,6 +1,6 @@
 import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
 import { highlights, temperament } from "@amarna/game";
-import { color, fromWhere, powerName, shekels, when } from "../ui/format.ts";
+import { color, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import type { HistoryOf } from "./HistoryPanel.tsx";
 import { useMemo } from "react";
@@ -47,7 +47,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
           <thead>
             <tr>
               <th>Power</th>
-              <th title="The yield of the land held now over the homeland's at the start: not growth">
+              <th title="The yield of the land held now over the homeland's at the start">
                 Land yield<span className="sr"> (not growth)</span>
               </th>
               <th>Growth</th>
@@ -188,7 +188,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
                 <td>
                   <span className="named"><Emblem power={o.power} /> {powerName(o.power)}</span>
                 </td>
-                <td>{openingTroops(o)}</td>
+                <td>{openingTroops(o, provinceName)}</td>
                 <td>{o.gold} shekels</td>
                 <td>{o.homelandYield}</td>
                 <td>{o.strength}</td>

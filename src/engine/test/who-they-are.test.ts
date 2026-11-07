@@ -39,6 +39,8 @@ import {
   courtReads,
   WorldMap,
   PeopleOf1346,
+  Governors1346,
+  Styles,
 } from "@amarna/engine";
 import { Assert, skilled, smallWorld } from "./support.ts";
 
@@ -74,6 +76,16 @@ describe("WhoTheyAreTests", () => {
       Assert.contains(large.characters, (c) => c.name === "Hekanefer" && c.attested && c.at === "Egypt");
       Assert.equal(3, large.characters.filter((c) => c.facts.some((f) => f.tag === "nubian")).length);
       Assert.equal(new Set(large.characters.map((c) => c.name)).size, large.characters.length);
+    }
+  });
+
+  test("Every governor of 1346 whose name the sources lost is a man of his own court's people (#765)", () => {
+    for (let seed = 1; seed <= 12; seed++) {
+      const s = newGame(seed);
+      for (const g of Governors1346.filter((x) => x.name === null && s.owner.getOrDefault(x.province, null) === x.court)) {
+        const c = s.characters.find((x) => x.duty === "Governing" && x.watchProvince === g.province && x.employer === g.court)!;
+        Assert.true(Styles.some((st) => st.court === g.court && (st.names.includes(c.name) || st.names.some((n) => c.name.startsWith(`${n} the `)))), `seed ${seed}: ${c.name} of ${c.origin} governs ${g.province} for ${g.court}`);
+      }
     }
   });
 

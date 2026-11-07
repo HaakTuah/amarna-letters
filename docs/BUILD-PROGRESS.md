@@ -124,6 +124,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   by the road, and a scheduled order's road is reckoned to where its king's view shows it
   (`docs/rounds/2026-11-07-far-orders-refused.md`). Report:
   `docs/rounds/2026-11-06-far-unit-reported.md`.
+- ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
+  holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 75.
+  Report: `docs/rounds/2026-11-07-own-governors.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -226,8 +229,12 @@ the workshop check): among them the history check's lines still unclear for a re
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
   `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
   below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
-  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766). **Next:** the rest in the order above,
-  from the interface, the council and the help. **Still open, one game-wide decision:** one
+  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766); the interface, the council and the help,
+  #772 (report `docs/rounds/2026-11-07-slop-audit-interface.md`; save version 74; season against turn and minas
+  against shekels: #775; realm names beside place names: #768); the README's player text, #781 (its developers' part
+  moved to `docs/for-developers.md`, Step 0) and #782 (report `docs/rounds/2026-11-07-slop-audit-readme.md`).
+  **Next:** the requests that make models write (personas, letters, envoys' words), changed only with "Requests are
+  rules too"'s care. **Still open, one game-wide decision:** one
   place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
   "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
   and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included

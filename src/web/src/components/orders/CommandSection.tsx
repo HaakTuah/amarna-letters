@@ -23,7 +23,7 @@ import {
   type Power,
   type Withdraw,
 } from "@amarna/engine";
-import { powerName, provinceName } from "../../ui/format.ts";
+import { powerName, provinceName, shekels } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { map } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -116,7 +116,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
             <span className="row" style={{ gap: ".3rem" }}>
               <span className="muted">
                 <small>
-                  food: {u.buy ? "buys" : "takes"} where it stands by leave, carries {u.chest} shekels for it
+                  Food: {u.buy ? "buys it" : "takes it"} where it stands (by leave); {u.chest > 0 ? `carries ${shekels(u.chest)} for it` : "carries no gold for it"}
                 </small>
               </span>
               <input type="number" min={0} style={{ width: "5rem" }} value={food[u.province] ?? 0} onChange={(e) => setFood({ ...food, [u.province]: Math.max(0, Number(e.target.value) || 0) })} />
@@ -211,7 +211,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           <small>
             {provinceName(g.province)}: {name(g.character)}
             {g.seat !== g.province ? `, from his seat at ${provinceName(g.seat)}` : ""}
-            {g.from > v.turn ? ` (from turn ${g.from})` : ""}, levies {g.raised} of {g.levies}
+            {g.from > v.turn ? ` (from turn ${g.from})` : ""}, {g.levies === 0 ? "may raise no levies" : `has raised ${g.raised} of ${g.levies} levies`}
           </small>
           {!g.relieving && (
             <button className="small" onClick={() => add(unseat(g.province))}>
@@ -249,7 +249,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         <select value={gov.levies} onChange={(e) => setGov({ ...gov, levies: Number(e.target.value) })}>
           {Array.from({ length: MostGovernorLevies + 1 }, (_, i) => i).map((i) => (
             <option key={i} value={i}>
-              {i} levies
+              {i === 0 ? "no levies" : i === 1 ? "one levy" : `${i} levies`}
             </option>
           ))}
         </select>

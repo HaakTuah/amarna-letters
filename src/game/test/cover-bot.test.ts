@@ -65,10 +65,10 @@ describe("CoverBotTests", () => {
     // A model king reads the same: the caught spy at its post, never "at court, ready".
     let text = situation(view);
     Assert.contains(
-      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job as spy on Hatti, for ${caught.contract!.fee} shekels (${caught.contract!.advance} handed over, ${rest(caught.contract!)} `,
+      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job as spy on Hatti: ${caught.contract!.fee} shekels, ${caught.contract!.advance} paid, ${rest(caught.contract!)} `,
       text,
     );
-    Assert.contains(`), by turn ${caught.contract!.untilTurn};`, text);
+    Assert.contains(`; term to turn ${caught.contract!.untilTurn}`, text);
     Assert.contains(`${gone.id} ${gone.name} of ${gone.origin}; on the road home;`, text);
 
     let king = new ScriptLeader(11);
@@ -94,7 +94,7 @@ describe("CoverBotTests", () => {
     Assert.contains("held captive at the court of Mitanni;", line);
     Assert.doesNotContain("ready", line);
     // Its job stands while it is held: its line names the job.
-    Assert.contains(`for ${spy.contract!.fee} shekels`, line);
+    Assert.contains(`: ${spy.contract!.fee} shekels`, line);
 
     // A demand shows only once its word has arrived.
     let demand = newPendingTask({ id: "q900", kind: "RansomDemand", requester: "Hatti", other: "Mitanni", characterId: spy.id, spend: 90, dueTurn: 6 });
