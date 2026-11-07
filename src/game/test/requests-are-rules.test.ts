@@ -203,7 +203,7 @@ describe("RequestsAreRulesTests", () => {
 
     let call = Assert.single(asker.calls);
     let user = call.user;
-    Assert.contains("He dismissed you while you were away, so he is no longer your lord, but you report to him on the mission he gave you.", user);
+    Assert.contains("You no longer serve him, but you report to him on the mission he gave you.", user);
     Assert.contains("You carry back gold the king sent Naphurureya", user);
     Assert.contains("Write your report to him now.", user);
     Assert.doesNotContain("home at the court of your lord", user);

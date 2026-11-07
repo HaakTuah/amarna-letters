@@ -130,6 +130,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**A claim to the rank made in play (bug #777)**~~ (done, branch `fix/777-claims-in-play`): a king outside the seven
   who names himself Great King in a greeting claims the rank, known where that greeting is read, and established as
   Assyria's is. Save version 76. Report: `docs/rounds/2026-11-07-claims-in-play.md`.
+- ~~**An envoy never received remembers it (bug #784)**~~ (done, branch `fix/784-never-received`): its fact says it was
+  never received, not that it came home with the answer. Save version 77. Report: `docs/rounds/2026-11-07-never-received.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -235,9 +237,9 @@ the workshop check): among them the history check's lines still unclear for a re
   `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766); the interface, the council and the help,
   #772 (report `docs/rounds/2026-11-07-slop-audit-interface.md`; save version 74; season against turn and minas
   against shekels: #775; realm names beside place names: #768); the README's player text, #781 (its developers' part
-  moved to `docs/for-developers.md`, Step 0) and #782 (report `docs/rounds/2026-11-07-slop-audit-readme.md`).
-  **Next:** the requests that make models write (personas, letters, envoys' words), changed only with "Requests are
-  rules too"'s care. **Still open, one game-wide decision:** one
+  moved to `docs/for-developers.md`, Step 0) and #782 (report `docs/rounds/2026-11-07-slop-audit-readme.md`); the
+  requests that make models write, the last kind (report `docs/rounds/2026-11-07-slop-audit-requests.md`; voice lines
+  by temper, `Personas.voice`; clause words, not ids, to envoys; save version 78). **Still open, one game-wide decision:** one
   place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
   "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
   and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included

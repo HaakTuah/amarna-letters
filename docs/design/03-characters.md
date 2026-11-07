@@ -11,7 +11,9 @@
   kept, but its trait words follow the traits: every model request is built with the persona as it is
   now (`Personas.current`). A template persona has its trait words ("loyal mostly to yourself; fond
   of gold and quick to see a profit; …") and what it wants most rewritten in place from the current
-  traits, the rest (its secrets among them) as written; a persona the narrator wrote cannot be
+  traits, the rest (its voice line, from its courage and ambition, `Personas.voice`) as written. A persona
+  holds no facts: every request gives them beside it (`selfText`), the public ones as "Facts of your own life" and the
+  hidden and deep ones as secrets the character does not volunteer. A persona the narrator wrote cannot be
   rewritten without a model, so it is followed by "As you are now (where anything above differs,
   this is how you are now): you are …. What you want most: …." The web app's people panel shows the
   same. (Until the fix pass after item 4 the words were frozen: in the second agent simulation nine

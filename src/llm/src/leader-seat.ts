@@ -47,6 +47,7 @@ import { Parse } from "./parse.ts";
 import { courtBrief, identity, ordersLine, realmBrief, situation, sleepLine } from "./prompts.ts";
 import { audience, ordersStandAtCourt } from "./prompt-audience.ts";
 import { tabletBrief, tabletLine } from "./prompt-letters.ts";
+import { GoldLifeline } from "./prompt-economy.ts";
 import { leaderRules } from "./rules.ts";
 import { planRules } from "./rules-plan.ts";
 import type { JsonObject } from "./schema-tools.ts";
@@ -58,7 +59,7 @@ const courtKey = (v: AudienceView): string => `t${v.turn}/aud/${v.audienceId}/ho
 
 /** The fixed part of every phrasing call: what the job is, shared by every king (and cached). */
 const PhrasingSystem =
-  `You word the answers of a ruler of the Late Bronze Age, a Great King, a city's king or a land's chief, to the envoys at his court, in the voice of the Amarna letters: courteous, formal, brief. Each answer was decided before: you only put it into his words. ${PeriodShares} Reply with the reply tool.`;
+  `You word the answers of a ruler of the Late Bronze Age, a Great King, a city's king or a land's chief, to the envoys at his court, in the manner of the Amarna letters, as this ruler would speak by his rank, and briefly. Each answer was decided before: you only put it into his words. ${PeriodShares} Reply with the reply tool.`;
 
 export class LlmLeaderSeat implements ISeat {
   private readonly journalOf = new LeaderJournal();
@@ -348,6 +349,7 @@ export class LlmLeaderSeat implements ISeat {
         ? "ONE ENVOY STANDS BEFORE YOU. Answer him under answers, by his id."
         : `${views.length} ENVOYS STAND BEFORE YOU. Answer each of them under answers, by his id, one answer for each; each hears only what you say to him.`,
     );
+    user.appendLine(GoldLifeline);
     for (const v of views) {
       user.appendLine();
       user.append(audience(v, true));

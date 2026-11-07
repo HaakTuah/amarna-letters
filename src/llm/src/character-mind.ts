@@ -33,7 +33,7 @@ import {
   type Power,
   type SpyReport,
   authorityText,
-  clauseTag,
+  renderClause,
   renderClauses,
 } from "@amarna/engine";
 import {
@@ -582,7 +582,7 @@ export class LlmCharacterMind implements ICharacterMind {
     const gift = d.clauses.find((x) => x.kind === "gift" && x.amount !== null) ?? null;
     if (d.clauses.length > 0)
       user.appendLine(
-        `The letter's clauses, which the king's scribes hear as you recite them and his answer follows: ${d.clauses.map((x, i) => `${i + 1}. ${clauseTag(x)}`).join("; ")}. You may leave some out, add good wishes your lord did not write${gift !== null ? ", or state the gift as less than it is" : ""}; your lord learns only what you report.`,
+        `The letter's clauses, which the king's scribes hear as you recite them and his answer follows: ${d.clauses.map((x, i) => `${i + 1}. "${renderClause(x, ctx.sender, ctx.host)}"`).join(" ")} You may leave some out, add good wishes your lord did not write${gift !== null ? ", or state the gift as less than it is" : ""}; your lord learns only what you report.`,
       );
     user.appendLine("Speak to the king now.");
     // The gold questions only when it carries gold, and the swap only when its hand could fake the seal.
@@ -639,7 +639,7 @@ export class LlmCharacterMind implements ICharacterMind {
       const words = host.counter!.text.length > 0 ? host.counter!.text : renderClauses(host.counter!.clauses, ctx.host, ctx.sender);
       user.appendLine(`He offers you a tablet of his own to seal in your lord's name: "${words}"`);
       // What the engine grants and checks the limits by: its clauses, whatever its words say.
-      if (host.counter!.clauses.length > 0) user.appendLine(`Its clauses, which are what binds your lord: ${host.counter!.clauses.map(clauseTag).join("; ")}.`);
+      if (host.counter!.clauses.length > 0) user.appendLine(`Its clauses, which are what binds your lord: ${host.counter!.clauses.map((x) => `"${renderClause(x, ctx.host, ctx.sender)}"`).join(" ")}`);
       user.appendLine(authorityText(a!, (x) => WorldMap.default.get(x).name));
     } else if (host.counter !== null) user.appendLine("He offers you a tablet of his own to seal, but you do not carry your lord's seal: you cannot.");
     // Gold for its lord is handed over when the audience ends, and only if the envoy goes home with it and the host can pay.
@@ -689,7 +689,7 @@ export class LlmCharacterMind implements ICharacterMind {
         user.appendLine(
           still
             ? `You are home at the court of your lord, ${kingOf(lord)}.`
-            : `You are back at the court of ${kingOf(lord)}, who sent you on this mission. He dismissed you while you were away, so he is no longer your lord, but you report to him on the mission he gave you.`,
+            : `You are back at the court of ${kingOf(lord)}, who sent you on this mission. You no longer serve him, but you report to him on the mission he gave you.`,
         );
         // An envoy that was never received is not asked about an audience it never had.
         if (t !== null && t.audienceTurn === null && t.exchanges.length === 0)
@@ -718,7 +718,7 @@ export class LlmCharacterMind implements ICharacterMind {
         const received = t !== null && t.exchanges.length > 0;
         // Item 11a+: the king's answer in clauses, which it may report as any envoy may.
         const answers = t !== null ? t.exchanges.flatMap((x) => x.clauses.map((y) => ({ ...y }))) : [];
-        if (answers.length > 0) user.appendLine(`The king's answer in clauses, which your lord reads as you report them: ${answers.map((x, i) => `${i + 1}. ${clauseTag(x)}`).join("; ")}. You may leave some out, or report a refusal as acceptance.`);
+        if (answers.length > 0) user.appendLine(`The king's answer in clauses, which your lord reads as you report them: ${answers.map((x, i) => `${i + 1}. "${renderClause(x, t!.to, lord)}"`).join(" ")} You may leave some out, or report a refusal as acceptance.`);
         const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still, received, answers.length), signal, null, null, {
           stakes: { kind: "report", moved: 0.15 + share(c, cargo.gold) },
           keys: [`t${ctx.turn}/mind/${req.id}`],

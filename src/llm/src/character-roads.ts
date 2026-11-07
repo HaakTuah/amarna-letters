@@ -4,7 +4,7 @@
  * field is asked only where it applies, in the words of what it means ("Requests are rules too").
  */
 import { z } from "zod";
-import { land, newChiefChoice, newReportsChoice, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "@amarna/engine";
+import { bandCost, land, newChiefChoice, newReportsChoice, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "@amarna/engine";
 import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
@@ -27,7 +27,7 @@ export function chiefText(v: ChiefView): string {
   sb.appendLine(`It is season ${v.turn}. You lead a band of ${v.men} men in ${v.here.name}${v.ship ? ", with a ship: you also fall on travellers and ships at sea off its coast" : ""}. You decide what your band does next season.`);
   sb.appendLine(`The age: ${v.ending} Idrimi of Alalakh is a legend already: a king's son who fled, lived seven years among the Habiru, and came back to take a city.`);
   sb.appendLine(
-    `Your purse holds ${v.purse} shekels; what your band robs of gold is yours, and you pay your men from it. Your men cost about ${v.cost} shekels' worth a season in pay and food.${v.short > 0 ? ` For ${v.short} season${v.short === 1 ? "" : "s"} in a row you could not pay them all: men leave a band that does not pay, and a large band long unpaid turns on its chief.` : ""}`,
+    `Your purse holds ${v.purse} shekels; what your band robs of gold is yours, and you pay your men from it. Your men cost about ${v.cost > 0 ? v.cost : bandCost(v.men)} shekels' worth a season in pay and food.${v.short > 0 ? ` For ${v.short} season${v.short === 1 ? "" : "s"} in a row you could not pay them all: men leave a band that does not pay, and a large band long unpaid turns on its chief.` : ""}`,
   );
   sb.appendLine("The land where you work and the land next door, as you hear of it:");
   sb.appendLine(landLine(v.here, true));
