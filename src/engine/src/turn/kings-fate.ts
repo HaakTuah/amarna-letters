@@ -18,7 +18,7 @@ import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, s
 import { newJourney, type Journey } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy, type GameState } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
-import { crownedIn, kingAfield, kingLossUnheard, kingRoute, realmOfKing, standsAt } from "../rules/court.ts";
+import { crownedIn, fallenRealmOf, kingAfield, kingLossUnheard, kingRoute, realmOfKing, standsAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { KingAloneData, newKingRoad } from "../model/command.ts";
@@ -413,11 +413,6 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
   return c;
 }
 
-/** Part C2: the realm whose last king the character was, if it has fallen, or null. */
-function fallenRealmOf(s: GameState, id: string): Power | null {
-  for (const [p, r] of s.reigns) if (r.character === id && s.eliminated.includes(p)) return p;
-  return null;
-}
 
 /**
  * Part C2 ("A realm holds by its ledger": "abroad, and he is an exile with a claim"): the last king of a fallen realm is

@@ -121,4 +121,8 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   his realm fell, his heir (the record's next name, or drawn, as `nextHeir` picks him) lives on as a free man among its
   refugees at the court nearest where it fell, with a public fact that he claims its throne, seeking service. He reigns
   over nothing (`realmOfKing` counts no fallen realm); the realm's reign names him, so the record goes on through him. Any
-  king may make him king again by granting him land (order `crown`, item 17++), as Suppiluliuma did for Shattiwaza.
+  king may make him king again by granting him land (order `crown`, item 17++), as Suppiluliuma did for Shattiwaza. His
+  seat sees whose throne he claims (`CharacterView.heirOf`, `fallenRealmOf`).
+- **Script kings restore an heir** (`bots/crowns.ts`): one in exile at a script king's court is crowned over the land of
+  his fallen realm that king holds, by the same sum as any grant, keeping it reckoned as risky land (its people take an heir
+  of their own house better than a stranger).

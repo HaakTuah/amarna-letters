@@ -5,7 +5,8 @@
  * the land's distance, and halved where his governor writes it restless or its countryside went hungry (the risk of
  * losing it). He asks three quarters of what the land yields a year, since a local king, credited by his people, draws
  * more from it than a far overlord. Never where his own army stands (its weight would take the land back), never his
- * court's city. `--no-grant-play` and `--grant-play-half` never grant, only to measure what granting is worth.
+ * court's city. And the heir of a fallen realm in exile at his court over the land of that realm he holds (item 17b,
+ * part C2). `--no-grant-play` and `--grant-play-half` never grant, only to measure what granting is worth.
  */
 import { cmpStr, crown, hiddenPercent, sortBy, type HSet, type Order } from "@amarna/engine";
 import { Board } from "./board.ts";
@@ -38,8 +39,19 @@ export function crownOrders(b: Board, orders: Order[], busy: HSet<string>): void
     if (v.owner.getOrDefault(g.province, null) !== b.me || g.province === v.courtAt) continue;
     byMan.set(g.character, [...(byMan.get(g.character) ?? []), g.province]);
   }
+  // Item 17b, part C2: the heir of a fallen realm in exile at his court, over the land of that realm he holds, as
+  // Suppiluliuma made Shattiwaza king of Mitanni again: its people take an heir of their own house better than a stranger,
+  // so keeping it is reckoned as risky land.
+  const exiles = new Map<string, string[]>();
+  for (const c of v.known.filter((x) => x.heirOf !== null && x.heirOf !== b.me && x.status === "free" && x.where === "at your court" && !busy.has(x.id) && !v.crowning.includes(x.id))) {
+    const land = [...v.owner].filter(([x, o]) => o === b.me && x !== v.courtAt && Board.Map.get(x).home === c.heirOf && !v.governors.some((g) => g.province === x)).map(([x]) => x);
+    if (land.length > 0) exiles.set(c.id, land);
+  }
   let best: { character: string; provinces: string[]; tribute: number; gain: number } | null = null;
-  for (const [character, provinces] of sortBy([...byMan], [([c]: [string, string[]]) => c, cmpStr])) {
+  for (const [character, provinces, risky] of [
+    ...sortBy([...byMan], [([c]: [string, string[]]) => c, cmpStr]).map(([c, x]) => [c, x, false] as const),
+    ...sortBy([...exiles], [([c]: [string, string[]]) => c, cmpStr]).map(([c, x]) => [c, x, true] as const),
+  ]) {
     if (provinces.some((x) => b.mine.some((u) => u.province === x))) continue;
     let keep = 0;
     let yields = 0;
@@ -48,8 +60,8 @@ export function crownOrders(b: Board, orders: Order[], busy: HSet<string>): void
       if (e === undefined) continue;
       const year = 4 * e.tax;
       const hidden = hiddenPercent(e.counted === null ? null : v.turn - e.counted, (far.get(x)?.seasons ?? 0) + 1);
-      const risky = unquiet.has(x) || e.fed < 1000;
-      keep += Math.floor((Math.floor((year * (100 - hidden)) / 100) * (risky ? 1 : 2)) / 2);
+      const restive = risky || unquiet.has(x) || e.fed < 1000;
+      keep += Math.floor((Math.floor((year * (100 - hidden)) / 100) * (restive ? 1 : 2)) / 2);
       yields += year;
     }
     const tribute = Math.round((yields * TributeQuarters) / 4 / 5) * 5;

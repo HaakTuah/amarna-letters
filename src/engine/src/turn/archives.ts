@@ -111,7 +111,7 @@ P.archiveCopiesArrive = function (j, spy) {
 P.takeArchive = function (taker, province) {
   const S = this.s;
   const prov = this.map.get(province);
-  // Item 13: the archive moves with the court, so it lies wherever its king is.
+  // Item 13: the archive moves with the court, so it lies wherever the court is (item 17b, part C: not where its king is).
   const court = alive(S).find((q) => q !== taker && this.courtAt(q) === province) ?? (prov.capital && prov.home !== null && !alive(S).includes(prov.home) ? prov.home : null);
   if (court === null || court === taker) return;
   const held = new HSet(S.copies.filter((k) => k.holder === taker).map((k) => k.tabletId));
