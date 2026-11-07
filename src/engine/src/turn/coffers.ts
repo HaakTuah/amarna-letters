@@ -69,14 +69,15 @@ export const homeRoad = (e: TurnEngine, p: Power, province: string): boolean => 
 
 /** Seasons a bill or gold takes from a province with no road for word: never; credit is not given there (null). */
 const reach = (e: TurnEngine, p: Power, province: string): number | null => {
-  const d = e.wordTo(p, province);
+  const d = e.fromCourt(p, province);
   return Number.isFinite(d) ? d : null;
 };
 
 P.isFar = function (p, province) {
   // By the court's one clock for its land (word home within the season, #616), the line its view and its order checks
   // draw, so whether the treasury pays at once or a coffer and a bill pay never tells of roads unheard of (Codex, #635).
-  return this.wordFrom(p, province) >= 1;
+  // The treasury is at the court (item 17b, part C), wherever the king is.
+  return this.toCourt(p, province) >= 1;
 };
 
 P.cofferOf = function (p, province, make = false) {

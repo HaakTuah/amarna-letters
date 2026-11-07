@@ -32,10 +32,14 @@ import { newPlannedOrder, type PlannedOrder } from "../model/sleep.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** The seasons the king's couriers take to a province: 0 within the season. */
+    /** The seasons the king's couriers take to a province from where he commands (item 17b, part C): 0 within the season. */
     wordTo(p: Power, province: string): number;
-    /** Bug #616: the whole seasons beyond the first word takes home from a province to a king's court (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders and loads. */
+    /** Bug #616: the whole seasons beyond the first word takes home from a province to where a king commands (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders. */
     wordFrom(p: Power, province: string): number;
+    /** Item 17b, part C: the seasons the court's couriers take from the court itself to a province, for what leaves it (gold, bills, people), wherever the king is. */
+    fromCourt(p: Power, province: string): number;
+    /** Item 17b, part C: the whole seasons word and gold take from a province to the court itself, where the treasury is. */
+    toCourt(p: Power, province: string): number;
     /** The own unit the king names by a province, as he sees his units. */
     unitShownAt(p: Power, province: string): Unit | null;
     /** Bug #600: an order that reached the place of a unit gone: its king reads so when word comes back from there. */
@@ -95,6 +99,14 @@ P.wordTo = function (p, province) {
 
 P.wordFrom = function (p, province) {
   return courierSeasons(this.s, this.map, province, seatOf(this.s, this.map, p));
+};
+
+P.fromCourt = function (p, province) {
+  return courierSeasons(this.s, this.map, this.courtAt(p), province);
+};
+
+P.toCourt = function (p, province) {
+  return courierSeasons(this.s, this.map, province, this.courtAt(p));
 };
 
 P.unitShownAt = function (p, province) {

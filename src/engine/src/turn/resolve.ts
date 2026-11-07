@@ -551,7 +551,7 @@ P.fall = function (p, conqueror, ceded = false) {
   // A fallen court claims no name (item 17+).
   this.syncNames();
   this.endSleep(p);
-  // Its court's journey and its couriers on the road end with it.
+  // Its court's journey and its couriers on the road end with it; its king stands apart from no court (below).
   S.kingRoads = S.kingRoads.filter((r) => r.power !== p);
   S.couriers = S.couriers.filter((x) => x.power !== p);
   // Item 13: its armies in the field are their commanders' to decide once word of the fall reaches them (item 13+,
@@ -596,8 +596,17 @@ P.fall = function (p, conqueror, ceded = false) {
     if (ruler.status === "Free") {
       ruler.seeking = true;
       chooseStrategy(ruler);
+      // Item 17b, part C: one away from his court stands where he was, and walks to the nearest court still standing.
+      const afield = S.kingAt.tryGet(p);
+      const host = afield === undefined ? undefined : sortBy(alive(S), [(q: Power) => this.travelTurnsBetween(afield, this.courtAt(q)), cmpNum], [(q: Power) => AllPowers.indexOf(q), cmpNum])[0];
+      if (afield !== undefined && host !== undefined) {
+        ruler.at = null;
+        this.startTravel(ruler, host, null, afield);
+      }
     }
   }
+  S.kingAt.delete(p);
+  S.kingHeard.delete(p);
   const who = ceded ? `its king ceded its capital, ${capital.name}, to ${conqueror}` : conqueror !== null ? `${conqueror} took ${capital.name}, the last it held` : `${capital.name}, the last it held, was lost`;
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
   const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));

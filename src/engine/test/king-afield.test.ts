@@ -91,6 +91,26 @@ describe("KingAfieldTests", () => {
     Assert.single(s.couriers.filter((c) => c.power === "Egypt"));
   });
 
+  test("The treasury stays at the court: a far province does not reach it because the king stands there", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
+    const e = new TurnEngine(s);
+    s.owner.set("terqa", "Egypt");
+    const before = e.isFar("Egypt", "terqa");
+    s.kingAt.set("Egypt", "terqa");
+    Assert.equal([true, true], [before, e.isFar("Egypt", "terqa")]);
+  });
+
+  test("Dead away from his court, its king stays among its own people as it last knew him until the word comes", () => {
+    const s = afield();
+    const e = new TurnEngine(s);
+    const c = kingOf(s, "Babylonia");
+    s.owner.set("durkurigalzu", "Assyria");
+    e.dies(c, "durkurigalzu", "in battle");
+    const v = Views.for(s, "Babylonia");
+    Assert.equal("employed", Assert.single(v.court.filter((x) => x.id === c.id)).status);
+    Assert.empty(v.known.filter((x) => x.id === c.id));
+  });
+
   test("A court sent to where the king stands joins him", () => {
     const s = afield();
     season(s, subs({ Babylonia: { orders: [moveCourt("durkurigalzu")] } }));

@@ -82,7 +82,8 @@ P.grantCommand = function (p, o) {
   // with the king: from next season).
   // Bug #615: for where its king believes it stands (`placeKnown`), as his word names it.
   const at = placeKnown(this, u);
-  const seasons = Math.max(1, wordFromKing(S, this.map, p, at));
+  // He sets out from the court, wherever the king is (item 17b, part C).
+  const seasons = Math.max(1, this.fromCourt(p, at));
   u.commander = c.id;
   u.commandFrom = S.turn + (Number.isFinite(seasons) ? seasons : 1);
   u.relieveAt = null;

@@ -18,7 +18,7 @@ import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, s
 import { newJourney } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
-import { crownedIn, realmOfKing, seatOf } from "../rules/court.ts";
+import { crownedIn, kingLossUnheard, realmOfKing, seatOf } from "../rules/court.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { KingAloneData } from "../model/command.ts";
 import { defenderLost } from "./battles.ts";
@@ -193,7 +193,8 @@ P.courtFlees = function (p, by) {
   S.court.set(p, to);
   const c = findCharacter(S, S.reigns.get(p).character);
   if (S.kingAt.tryGet(p) === to) S.kingAt.delete(p);
-  const king = c !== null && c.status === "Captured" ? `${c.name} is ${c.heldBy === null ? "lost" : `held by ${powerName(c.heldBy)}`}, and ` : "";
+  // Its king held, as the court knows (a capture whose word is still on the road it does not know of).
+  const king = c !== null && c.status === "Captured" && !kingLossUnheard(S, p) ? `${c.name} is ${c.heldBy === null ? "lost" : `held by ${powerName(c.heldBy)}`}, and ` : "";
   const apart = S.kingAt.has(p) ? ` You are in ${this.map.get(S.kingAt.get(p)).name}, apart from it.` : "";
   notify(S, p, "Notice", "The court flees", `${this.map.get(where).name} is lost: ${king}your court has fled to ${this.map.get(to).name}, from where it rules${king === "" ? "" : " in his name until he is back"}.${apart}`);
 };

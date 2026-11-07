@@ -285,10 +285,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
   for (const c of s.characters) {
-    if (!knows(c, p) || unheardHire(s, c, p)) continue;
+    if (!knows(c, p, s) || unheardHire(s, c, p)) continue;
     const cv = characterView(s, commanderKnown(engine, p, c, place), p);
     // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
-    if (coverOf(c, p) !== null || isOurs(c, p)) v.court.push(cv);
+    if (coverOf(c, p) !== null || isOurs(c, p, s)) v.court.push(cv);
     else v.known.push(cv);
   }
 
@@ -427,11 +427,11 @@ function seenAtCourt(c: Character, viewer: Power): boolean {
  * themselves to it, and anyone a fact it knows names. A foreign spy posted at its court in secret is not seen there. The
  * dead are known only to the court they served.
  */
-function knows(c: Character, viewer: Power): boolean {
+function knows(c: Character, viewer: Power, s: GameState | null = null): boolean {
   if (coverOf(c, viewer) !== null) return true;
   if (c.status === "Dead" && c.employer !== viewer) return false;
   return (
-    isOurs(c, viewer) ||
+    isOurs(c, viewer, s) ||
     seenAtCourt(c, viewer) ||
     c.heldBy === viewer ||
     c.pitches.has(viewer) ||
@@ -440,9 +440,11 @@ function knows(c: Character, viewer: Power): boolean {
 }
 
 /** A servant of the court's, at home, abroad or held captive. */
-function isOurs(c: Character, viewer: Power): boolean {
+function isOurs(c: Character, viewer: Power, s: GameState | null = null): boolean {
   // Item 13: one who holds the king's command or governorship is his, in his service or free.
-  return (c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (c.grantedBy === viewer && c.status !== "Dead");
+  if ((c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (c.grantedBy === viewer && c.status !== "Dead")) return true;
+  // Item 17b, part C: its own king, dead away from it, is its own until the word comes.
+  return s !== null && c.employer === viewer && realmOfKing(s, c.id) === viewer && kingLossUnheard(s, viewer);
 }
 
 /** One its court does not know took its job yet (an offer taken abroad, whose word is on the road): it sees nothing of it. */
