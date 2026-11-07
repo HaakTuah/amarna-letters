@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, type Power, TurnEngine, newGame, newGameConfig } from "@amarna/engine";
+import { type GameState, type Power, TurnEngine, newGame, newGameConfig, newGoldLot } from "@amarna/engine";
 import { Assert, courtGoing, smallWorld } from "./support.ts";
 
 // Item 17b, part C2: the court as a place that can be taken, its treasury lost with it, its flight a real journey, and
@@ -33,6 +33,27 @@ describe("CourtTakenTests", () => {
     Assert.empty(s.copies.filter((k) => k.holder === "Egypt"));
     Assert.true(had === 0 || s.events.some((x) => x.kind === "archive-taken"));
     Assert.contains(s.events, (x) => x.signal === "court-taken-road");
+  });
+
+  test("A court taken loses its unweighed shipments with its gold", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const t = s.treasuries.get("Egypt");
+    t.gold = 100;
+    t.lots.push(newGoldLot({ id: "g1", from: "Hatti", stated: 50, face: 50, true: 0, arrivedTurn: 0 }));
+    e.courtFlees("Egypt", "Hatti", false);
+    Assert.equal([0, 0], [t.gold, t.lots.length]);
+  });
+
+  test("A court taken on the road loses its own archive, not another court's in the same place", () => {
+    const s = world();
+    const e = new TurnEngine(s);
+    const where = e.courtAt("Egypt");
+    s.court.set("Mitanni", where);
+    const mitanni = s.copies.filter((k) => k.holder === "Mitanni").length;
+    e.courtFlees("Egypt", "Hatti", true);
+    Assert.equal(mitanni, s.copies.filter((k) => k.holder === "Mitanni").length);
+    Assert.empty(s.copies.filter((k) => k.holder === "Egypt"));
   });
 
   test("Word of a king's death is sent on to a court that has moved since", () => {

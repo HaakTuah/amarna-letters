@@ -8,7 +8,7 @@
  * court's city. And the heir of a fallen realm in exile at his court over the land of that realm he holds (item 17b,
  * part C2). `--no-grant-play` and `--grant-play-half` never grant, only to measure what granting is worth.
  */
-import { cmpStr, crown, hiddenPercent, sortBy, type HSet, type Order } from "@amarna/engine";
+import { cmpNum, cmpStr, crown, hiddenPercent, sortBy, type HSet, type Order } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { restless } from "./freedom.ts";
 import { courierSeasonsFrom, knownWays } from "./works.ts";
@@ -45,7 +45,9 @@ export function crownOrders(b: Board, orders: Order[], busy: HSet<string>): void
   const exiles = new Map<string, string[]>();
   for (const c of v.known.filter((x) => x.heirOf !== null && x.heirOf !== b.me && x.status === "free" && x.where === "at your court" && !busy.has(x.id) && !v.crowning.includes(x.id))) {
     const land = [...v.owner].filter(([x, o]) => o === b.me && x !== v.courtAt && Board.Map.get(x).home === c.heirOf && !v.governors.some((g) => g.province === x)).map(([x]) => x);
-    if (land.length > 0) exiles.set(c.id, land);
+    // A grant's land lies together: each stretch of it apart is a grant of its own, the largest tried.
+    const parts = stretches(land);
+    if (parts.length > 0) exiles.set(c.id, parts[0]);
   }
   let best: { character: string; provinces: string[]; tribute: number; gain: number } | null = null;
   for (const [character, provinces, risky] of [
@@ -71,4 +73,23 @@ export function crownOrders(b: Board, orders: Order[], busy: HSet<string>): void
   if (best === null) return;
   orders.push(crown(best.character, best.provinces, best.tribute));
   busy.add(best.character);
+}
+
+/** Provinces split into the stretches that lie together, the largest first (ties by their first province's id). */
+function stretches(land: string[]): string[][] {
+  const left = new Set(land);
+  const out: string[][] = [];
+  for (const start of sortBy(land, [(x: string) => x, cmpStr])) {
+    if (!left.has(start)) continue;
+    const part = [start];
+    left.delete(start);
+    for (let i = 0; i < part.length; i++)
+      for (const n of Board.Map.neighbors(part[i]))
+        if (left.has(n)) {
+          left.delete(n);
+          part.push(n);
+        }
+    out.push(part);
+  }
+  return sortBy(out, [(x: string[]) => -x.length, cmpNum], [(x: string[]) => x[0], cmpStr]);
 }
