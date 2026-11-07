@@ -2,7 +2,7 @@
  * One scoreboard for every person (item 17b, part D; "One scoreboard for every person" under Victory): the kings and the
  * characters ranked together at the end of a game, each by what he holds, blended with how he did against par for his own
  * start (`GameConfig.sizeWeight` percent for size). A king holds his realm and is measured from his accession, against
- * what he inherited; a character holds his purse and hoard and is measured by what he gained since he came into play,
+ * what he inherited (`GameState.startStrength`); a character holds his purse and hoard and is measured by what he gained since he came into play,
  * against what characters gained in the script games ({@link CharacterPar}). The dead rank below every living person, by
  * what they held when they died. The realms' scores are their reigning kings' rows, and the winner is the first person on
  * the board, king or character.
@@ -65,11 +65,9 @@ P.scoreboard = function () {
     const dead = c.status === "Dead";
     const p = dead ? null : realmOfKing(S, c.id);
     if (p !== null && isAlive(S, p)) {
-      // A king: his realm, measured from his accession against what he inherited, by par for his realm's start.
-      const r = S.reigns.get(p);
-      const start = r.strength > 0 ? r.strength : S.startStrength.getOrDefault(p, 0);
+      // A king: his realm, measured from his accession against what he inherited (`growth`), by par for his realm's start.
       const holding = Math.max(0, this.strength(p));
-      return { character: c, power: p, holding, performance: start <= 0 ? 0 : standingOf(p, holding / start) / 2, dead };
+      return { character: c, power: p, holding, performance: standingOf(p, this.growth(p)) / 2, dead };
     }
     const holding = wealthOf(c).total;
     return { character: c, power: null, holding, performance: dead ? 0 : rankAmong(CharacterPar, characterResult(c)), dead };

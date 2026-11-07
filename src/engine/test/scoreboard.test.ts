@@ -38,7 +38,7 @@ describe("ScoreboardTests", () => {
   test("A king is measured from his accession, against what he inherited", () => {
     const s = world();
     const e = new TurnEngine(s);
-    s.reigns.get("Egypt").strength = e.strength("Egypt") / 2;
+    s.startStrength.set("Egypt", e.strength("Egypt") / 2);
     const row = Assert.single(e.scoreboard(), (x) => x.power === "Egypt");
     Assert.equal(standingOf("Egypt", 2) / 2, row.performance);
   });

@@ -104,7 +104,6 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   engine.seatKings();
   for (const p of AllPowers) {
     s.startStrength.set(p, engine.strength(p));
-    s.reigns.get(p).strength = s.startStrength.get(p);
   }
   // Each court's state of the realm, from the data by one rule for all (item 11+).
   for (const p of AllPowers) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));

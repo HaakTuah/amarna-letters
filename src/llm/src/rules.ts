@@ -242,7 +242,7 @@ Every king knows these customs, and knows that every other king knows them. Play
         // Public facts, fixed for the game: every court knows how each king began.
         sb.appendLine();
         sb.appendLine(`OPENING POSITIONS (known to every court)`);
-        sb.appendLine(`Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is ${c.provinceWeight} times what its land produces in a season, plus its treasury and what its provinces' purses and stores and its troops' baggage hold, and its growth is measured against it.`);
+        sb.appendLine(`Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is ${c.provinceWeight} times what its land produces in a season, plus its treasury and what its provinces' purses and stores and its troops' baggage hold, and its growth is measured against it, or against what an heir inherited from the season he came to the throne.`);
         for (const line of openingLines(c)) sb.appendLine(`- ` + line);
 
         sb.appendLine(`

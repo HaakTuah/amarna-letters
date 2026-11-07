@@ -34,7 +34,6 @@ describe("KingsFateTests", () => {
       const c = s.characters.find((x) => x.id === r.character)!;
       Assert.equal(["Ruling", p, "Employed", p], [c.duty, c.employer, c.status, c.at]);
       Assert.equal(p, realmOfKing(s, c.id));
-      Assert.equal(s.startStrength.get(p), r.strength);
     }
     Assert.equal("Suppiluliuma", kingOf(s, "Hatti").name);
     const v = new OrderValidator(s).validate("Hatti", newTurnSubmission({ orders: [dismiss(kingOf(s, "Hatti").id)] }));

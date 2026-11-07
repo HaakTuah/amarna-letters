@@ -35,7 +35,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   still call him by his title), his person's traits from his traits as a king (ambition from his appetite for war,
   courage from his want of caution, loyalty from his honesty, greed from his greed) and a competence of 60
   (`KingData.competence`), from which his skills are drawn. His reign (`GameState.reigns`) names him (`character`), and
-  holds his realm's strength as he came to it (`strength`), from which part D scores him. He is nobody's servant: no
+  his realm's growth is measured from his accession (part D: `GameState.startStrength`, set again at each accession). He is nobody's servant: no
   order of his own court may name him (the validator). The pool's baseline counts the kings.
 - **Taken, not fallen.** A king taken where he stands (the province changed hands) or stopped on the road is his taker's
   captive (`kingTaken`; a king walking home elsewhere is not taken with it), brought to the taker's court under guard as a captive handed over is, so troops of his own may
@@ -146,7 +146,8 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   two blended by `GameConfig.sizeWeight` percent for size (`finalScore`, as for the realms). The living rank by score,
   the dead below them all by what they held when they died, ties by id.
 - **A king** (reigning over a living realm, `realmOfKing`) holds his realm (`strength`) and is measured from his
-  accession: his growth is its strength over what he inherited (`Reign.strength`), ranked among par for his realm's
+  accession: his growth is its strength over what he inherited (`GameState.startStrength`, set again at each
+  accession, so his seat, his script and Standings measure what the board does), ranked among par for his realm's
   start (`standingOf` / 2). A king who dies held his realm as it stood (`kingDied` sets `Character.diedWith`).
 - **Anyone else** (a character, a fallen realm's king or heir in exile) holds his purse and hoard (`Wealth.of`) and is
   measured from what he brought into play (`characterResult`, from his savings brought in, `Earnings.savings`: 1 for as

@@ -339,7 +339,8 @@ the pull request.
   (`Wealth.ranking`, `Wealth.line`, removed) and the powers' table: the realms' final scores are their reigning kings'
   rows (`finalScores`), and `finalScores` and `decideWinners` moved beside it from `turn/resolve.ts`.
 - **A king** holds his realm and is measured from his accession, his realm's strength over what he inherited
-  (`Reign.strength`), by par for its start; a king who dies held his realm as it stood (`kingDied` sets `diedWith`).
+  (`GameState.startStrength`, set again at each accession; `Reign.strength`, its duplicate, removed: Codex's first
+  round), by par for its start; save version 86; a king who dies held his realm as it stood (`kingDied` sets `diedWith`).
 - **Anyone else** holds his purse and hoard, and is measured from what he brought into play (`characterResult`: gains
   above 1, losses below it) against characters' results in 50 script games (`CharacterPar`, every hundredth); a result
   tied with several recorded ones ranks at the middle of their run (`rankAmong`).
