@@ -15,12 +15,13 @@ import { HeirData, Lines, type Heir } from "../model/heirs.ts";
 import { KingTraitValues, ReignData, type Reign } from "../model/kings.ts";
 import { newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, setCrowned, type Power } from "../model/power.ts";
-import { newJourney } from "../model/records.ts";
-import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
+import { newJourney, type Journey } from "../model/records.ts";
+import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy, type GameState } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
-import { crownedIn, kingAfield, kingLossUnheard, realmOfKing, standsAt } from "../rules/court.ts";
+import { crownedIn, fallenRealmOf, kingAfield, kingLossUnheard, kingRoute, realmOfKing, standsAt } from "../rules/court.ts";
+import { formatMoney } from "../rules/calendar.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
-import { KingAloneData } from "../model/command.ts";
+import { KingAloneData, newKingRoad } from "../model/command.ts";
 import { defenderLost } from "./battles.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
@@ -43,8 +44,11 @@ declare module "./core.ts" {
      * may die in its fall, or on the road.
      */
     kingTaken(p: Power, by: Power | null, city: boolean): void;
-    /** Item 17b, part C: a power's court lost to `by`: it flees to the nearest city its realm holds, or the realm, holding nothing, falls. */
-    courtFlees(p: Power, by: Power | null): void;
+    /**
+     * Item 17b, part C: a power's court lost to `by`, where it stood or on the road (`road`): its treasury lost with it
+     * (part C2), it flees to the nearest city its realm holds, or the realm, holding nothing, falls.
+     */
+    courtFlees(p: Power, by: Power | null, road: boolean): void;
     /** Item 17b, part C: word that the king was taken (`text`) sets out from `where` to his court, unless he was with it. */
     kingLostWord(p: Power, where: string, text: string): void;
     /** Item 17b, part C: word that the king was taken reaches his court, which rules in his name from now. */
@@ -60,8 +64,12 @@ declare module "./core.ts" {
      * heir reigns once word of it reaches his court.
      */
     kingDied(c: Character, how: string, where: string): void;
-    /** Word of the king's death has reached his court (`text`): his heir reigns. */
+    /** Word of the king's death has reached his court (`text`): his heir reigns, or, the realm fallen, lives on in exile. */
     heirReigns(p: Power, text: string): void;
+    /** Part C2: word of a king's death sets out from `from` to his court in `seat`. */
+    kingDeadWord(p: Power, from: string, seat: string, text: string): void;
+    /** Part C2: word of a king's death arrives: sent on to a court that has moved since, else his heir reigns. */
+    kingDeadHeard(j: Journey): void;
     /** Word of a realm's new king, its `count`th heir, has reached court `by`, which knows him by his name from now. */
     heirHeard(p: Power, by: Power, count: number): void;
   }
@@ -178,22 +186,39 @@ P.kingLostHeard = function (p, text) {
   logEvent(S, "king-taken-heard", text, [p]);
 };
 
-P.courtFlees = function (p, by) {
+P.courtFlees = function (p, by, road) {
   const S = this.s;
   const where = this.courtAt(p);
   S.kingRoads = S.kingRoads.filter((r) => !(r.power === p && !r.alone));
-  // Its people flee to the nearest city the realm still holds; a realm that holds nothing has fallen.
+  // Part C2: its treasury is lost with it, to whoever took it (or to the people there, if nobody holds it); on the road its
+  // archive too, which a city taken gives up by its own rule (`takeArchive`).
+  const t = S.treasuries.get(p);
+  const gold = Math.max(0, t.gold);
+  t.gold -= gold;
+  // Its shipments not yet weighed are lost with it: what they held in fine gold is in that gold already.
+  t.lots.length = 0;
+  const taker = by !== null && isAlive(S, by) ? by : null;
+  if (gold > 0 && taker !== null) {
+    const went = this.receiveAt(taker, where, gold, false);
+    const to = { treasury: "into your treasury", coffer: "kept there in your own coffer", home: "on the road home to your treasury", people: "left among the people there, with no road home for it" }[went];
+    this.tell(taker, where, "Notice", "A treasury taken", `With the court of ${powerName(p)} in ${this.map.get(where).name} your men took its treasury: ${formatMoney(gold)}, ${to}.`);
+  } else if (gold > 0) this.spendAt(where, gold);
+  if (road && taker !== null) this.takeArchive(taker, where, p);
+  if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");
+  // Its people flee to the nearest city the realm still holds, a real journey; a realm that holds nothing has fallen.
   const held = ownedBy(S, p);
   if (held.length === 0) {
     this.fall(p, by);
     return;
   }
   const to = sortBy(held, [(x: string) => this.travelTurnsBetween(where, x), cmpNum], [(x: string) => x, cmpStr])[0];
-  if (to === where) return;
-  S.court.set(p, to);
+  const lost = gold > 0 ? ` Its treasury, ${formatMoney(gold)}, is lost with it.` : "";
   const c = findCharacter(S, S.reigns.get(p).character);
+  const r = to === where ? null : kingRoute(S, this.map, p, to);
+  if (r !== null) S.kingRoads.push(newKingRoad({ power: p, to, route: r.route, leg: 0, along: 0, since: S.turn, alone: false }));
+  else S.court.set(p, to);
   // Fled to where the king stands (as it knows), it is with him again.
-  if (kingAfield(S, p) === to) {
+  if (r === null && kingAfield(S, p) === to) {
     S.kingAt.delete(p);
     S.kingHeard.delete(p);
   }
@@ -201,7 +226,9 @@ P.courtFlees = function (p, by) {
   const king = c !== null && c.status === "Captured" && !kingLossUnheard(S, p) ? `${c.name} is ${c.heldBy === null ? "lost" : `held by ${powerName(c.heldBy)}`}, and ` : "";
   const afield = kingAfield(S, p);
   const apart = afield !== undefined ? ` You are in ${this.map.get(afield).name}, apart from it.` : "";
-  notify(S, p, "Notice", "The court flees", `${this.map.get(where).name} is lost: ${king}your court has fled to ${this.map.get(to).name}, from where it rules${king === "" ? "" : " in his name until he is back"}.${apart}`);
+  const flees = r !== null ? `your court flees to ${this.map.get(to).name}, and rules from the road` : to === where ? `your court shelters in ${this.map.get(to).name}, from where it rules` : `your court is in ${this.map.get(to).name}, from where it rules`;
+  const how = road ? `Your court was stopped and taken on the road in ${this.map.get(where).name}` : `${this.map.get(where).name} is lost`;
+  notify(S, p, "Notice", road ? "The court taken on the road" : "The court flees", `${how}: ${king}${flees}${king === "" ? "" : " in his name until he is back"}.${lost}${apart}`);
 };
 
 P.kingsInBattle = function (result) {
@@ -270,6 +297,10 @@ P.kingGoesHome = function (c, p, from) {
 P.kingDied = function (c, how, where) {
   const S = this.s;
   const p = realmOfKing(S, c.id);
+  // Part C2: the last king of a realm that has fallen: word of his death goes to its refugees where it fell, and his heir
+  // lives on in exile when it comes (`kingDeadHeard`).
+  const fallen = p === null ? fallenRealmOf(S, c.id) : null;
+  if (fallen !== null) this.kingDeadWord(fallen, where, this.fallOf(fallen)?.capital ?? this.map.capital(fallen).id, `${c.name}, once ${rulerStyle(fallen)} of ${powerName(fallen)}, is dead, ${how}.`);
   if (p === null) return;
   const r = S.reigns.get(p);
   // His reign, and his player's game, end where he dies; his road ends with him. Apart from his court, it believes him
@@ -287,14 +318,38 @@ P.kingDied = function (c, how, where) {
   }
   if (S.kingAt.has(p)) S.kingHeard.set(p, S.kingAt.get(p));
   S.kingAt.delete(p);
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(where, seat), from: p, to: p, news: "KingDead", text }));
+  this.kingDeadWord(p, where, seat, text);
+};
+
+P.kingDeadWord = function (p, from, seat, text) {
+  const S = this.s;
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + this.travelTurnsBetween(from, seat), from: p, to: p, news: "KingDead", text, toProvince: seat }));
+};
+
+P.kingDeadHeard = function (j) {
+  const S = this.s;
+  const p = j.to;
+  const seat = this.courtAt(p);
+  // Part C2: a court that has moved since he died has the word sent on from where it was.
+  if (isAlive(S, p) && j.toProvince !== null && j.toProvince !== seat) {
+    this.kingDeadWord(p, j.toProvince, seat, j.text ?? "");
+    return;
+  }
+  // The word has come: it no longer believes him afield.
+  S.kingHeard.delete(p);
+  this.heirReigns(p, j.text ?? "");
 };
 
 P.heirReigns = function (p, text) {
   const S = this.s;
   const r = S.reigns.get(p);
   const dead = findCharacter(S, r.character);
-  if (dead === null || dead.status !== "Dead" || !isAlive(S, p)) return;
+  if (dead === null || dead.status !== "Dead") return;
+  // Part C2: the realm fell before the word came: its heir lives on in exile, unless it was given away by sealed tablet.
+  if (!isAlive(S, p)) {
+    if ((this.fallOf(p)?.land.length ?? 0) === 0) exileHeir(this, p, dead);
+    return;
+  }
   // Its seat wakes as the word comes: a death concerns it, and a human player's heir is played by a script from now.
   this.endSleep(p, "the king is dead");
   // The heir inherits a third of his father's standing, love and hate alike, with the people and the soldiers.
@@ -323,8 +378,8 @@ P.heirHeard = function (p, by, count) {
   setCrowned(crownedIn(S));
 };
 
-/** The heir's reign as the record or the draw gives him: his place on the line, his traits, his name and what is known of him. */
-function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Character {
+/** The next heir as the record or the draw gives him: his place on the line, his traits, his name, what is known of him, and the man of the record already on the map, if he is. */
+function nextHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): { at: number; traits: number[]; name: string; about: string; there: Character | null } {
   const S = e.s;
   const rng = e.r("heir", p);
   const line = Lines[p]?.heirs ?? [];
@@ -345,8 +400,16 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
   const name = h?.name ?? drawnName(e, p, rng);
   const kinLine = kin.startsWith("of ") ? `Followed ${dead.name}, ${kin}.` : kin.startsWith("a ") || kin.startsWith("an ") || kin.startsWith("the ") ? `${upper(kin)}, who followed ${dead.name}.` : `${upper(kin)} of ${dead.name}.`;
   const about = h === null || h.about === "" ? kinLine : `${kinLine} ${h.about}`;
-  // A man of the record already on the map takes the throne himself, from wherever he is.
+  // A man of the record already on the map is the heir himself, wherever he is.
   const there = h !== null ? (living(h) ?? null) : null;
+  return { at, traits, name, about, there };
+}
+
+/** The heir's reign as the record or the draw gives him (`nextHeir`). */
+function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Character {
+  const S = e.s;
+  const { at, traits, name, about, there } = nextHeir(e, p, dead, was);
+  // A man of the record already on the map takes the throne himself, from wherever he is.
   if (there !== null) crownPerson(e, there, p, about);
   const c = there ?? newKing(e, p, name, traits, [about]);
   S.reigns.set(p, { traits, since: S.turn, character: c.id, strength: e.strength(p), name: c.name, about, line: at });
@@ -354,6 +417,42 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
   e.syncNames();
   remember(c, S.turn, `${dead.name} is dead, and I reign over ${land(p)}.`);
   return c;
+}
+
+
+/**
+ * Part C2 ("A realm holds by its ledger": "abroad, and he is an exile with a claim"): the last king of a fallen realm is
+ * dead, and its heir, by the record or drawn, lives on among its refugees abroad, at the court nearest where it fell, a free
+ * man with a claim to its throne that any king may take up, as Suppiluliuma put Shattiwaza on his father's throne of
+ * Mitanni (`docs/history/14-courts-and-free-cities.md`, "Shattiwaza"). He reigns over nothing; the record goes on through him if he dies too.
+ */
+function exileHeir(e: TurnEngine, p: Power, dead: Character): void {
+  const S = e.s;
+  const was = S.reigns.get(p);
+  const { at, traits, name, about, there } = nextHeir(e, p, dead, was);
+  const fell = e.fallOf(p)?.capital ?? e.map.capital(p).id;
+  const host = sortBy(alive(S), [(q: Power) => e.travelTurnsBetween(fell, e.courtAt(q)), cmpNum], [(q: Power) => AllPowers.indexOf(q), cmpNum])[0] ?? null;
+  const claim = `Heir of the kings of ${land(p)}, in exile; claims its throne.`;
+  let c = there;
+  if (c === null) {
+    c = newCharacter({ id: newId(S, "c"), name: S.characters.some((x) => x.name === name) ? `${name} of ${land(p)}` : name, origin: e.map.get(fell).name, calling: `heir of ${land(p)}, in exile`, traits: newTraits(personTraits(traits)) });
+    c.status = "Free";
+    c.at = null;
+    c.seeking = true;
+    drawSkills(S.seed, c);
+    chooseStrategy(c);
+    c.persona = personaTemplate(c);
+    S.characters.push(c);
+    // He sets out among its refugees from where it fell, as a free man walks to a court (C2's design check).
+    if (host !== null) e.startTravel(c, host, null, fell);
+    // A new man, he carries his claim from where it fell: whoever meets him on the road or at a court hears it from him.
+    for (const text of [claim, about]) c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
+    remember(c, S.turn, `${dead.name} is dead, and ${land(p)} has fallen: I am the heir of its kings, in exile.`);
+  }
+  // A man of the record already elsewhere gains no fact and no memory now: word of the death and the fall has not reached
+  // him, nor those who know him (Codex's third round); a seat sees his claim once it has heard of the fall (`heirOf`).
+  S.reigns.set(p, { ...was, traits, character: c.id, name: c.name, about, line: at });
+  logEvent(S, "king-exile", `${c.name}, heir of ${land(p)}, lives on in exile.`, [], "king-exile");
 }
 
 /** One already on the map comes to the throne: his service, errands and roads end, and he is at his court. */

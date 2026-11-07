@@ -369,6 +369,8 @@ export interface CharacterView {
   intercepted: boolean;
   /** Item 17b: the realm whose reigning king this is, as the viewer knows (an heir once word of him has come); null for anyone else. */
   kingOf: Power | null;
+  /** Item 17b, part C2: the fallen realm whose throne the person claims as the heir of its kings, in exile (public), else null. */
+  heirOf: Power | null;
   /**
    * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.
    */
@@ -459,6 +461,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     heldByYou: false,
     intercepted: false,
     kingOf: null,
+    heirOf: null,
     ransomDemand: null,
     ransomCarrier: null,
     owed: null,
@@ -503,6 +506,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   heldByYou: B,
   intercepted: B,
   kingOf: opt(S),
+  heirOf: opt(S),
   ransomDemand: opt(I),
   ransomCarrier: opt(I),
   owed: opt(I),

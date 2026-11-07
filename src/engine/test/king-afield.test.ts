@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { type AdjudicationResult, Dict, type GameState, OrderValidator, type Power, TurnEngine, type TurnSubmission, Views, inboxOf, notify, roads, moveCourt, newCharacter, newGame, newGameConfig, newId, newTablet, newTabletCopy, newTurnSubmission, newUnit, seatOf, send, standsAt, wordFromKing } from "@amarna/engine";
-import { Assert, armiesBefore13, removeAll, smallWorld, subs } from "./support.ts";
+import { Assert, armiesBefore13, removeAll, smallWorld, subs, courtGoing } from "./support.ts";
 
 // Item 17b, part C: the king apart from his court, commanding from where he is, at the risk of his life.
 describe("KingAfieldTests", () => {
@@ -201,8 +201,8 @@ describe("KingAfieldTests", () => {
     e.capitalsTaken();
     const c = kingOf(s, "Babylonia");
     Assert.equal(["Employed", "Ruling"], [c.status, c.duty]);
-    Assert.notEqual("babylon", s.court.get("Babylonia"));
-    Assert.equal("Babylonia", s.owner.get(s.court.get("Babylonia")));
+    Assert.notEqual("babylon", courtGoing(s, "Babylonia"));
+    Assert.equal("Babylonia", s.owner.get(courtGoing(s, "Babylonia")));
   });
 
   test("A battle his side loses where he stands: he dies in it, is taken, or gets away with his men", () => {

@@ -14,7 +14,7 @@ import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify,
 import { type Unit } from "../model/units.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { counted, listed, notTaken, pick, seasonsWords, upper } from "../rules/wording.ts";
-import { realmOfKing } from "../rules/court.ts";
+import { fallenRealmOf, realmOfKing } from "../rules/court.ts";
 import { cap } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import { OrderValidator } from "../rules/validator.ts";
@@ -565,7 +565,7 @@ P.captive = function (host, co) {
       let master: Power | null = null;
       for (const l of S.losses) if (l.characterId === c.id && l.court === host && l.kind === "Captured") master = l.master;
       S.losses.push(newLossAbroad({ turn: S.turn, kind: "PutToDeath", characterId: c.id, court: host, master }));
-      if (realm !== null) this.kingDied(c, `put to death by ${powerName(host)}`, this.courtAt(host));
+      if (realm !== null || fallenRealmOf(S, c.id) !== null) this.kingDied(c, `put to death by ${powerName(host)}`, this.courtAt(host));
       break;
     }
     case "Ransom": {

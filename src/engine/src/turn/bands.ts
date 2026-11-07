@@ -29,7 +29,7 @@ import { chooseStrategy } from "../rules/strategy.ts";
 import { TurnEngine, idNumber } from "./core.ts";
 import { killsByChoice } from "./own-choices.ts";
 import { paidOffBy } from "./raiders.ts";
-import { realmOfKing } from "../rules/court.ts";
+import { fallenRealmOf, realmOfKing } from "../rules/court.ts";
 
 /** How a head rose ("How he rose shapes who he is"): the circumstance leans his traits, since it picks the man. */
 export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw" | "captain" | "elder";
@@ -294,7 +294,8 @@ P.dies = function (c, where, how) {
   if (band !== null) this.leaderLost(band, "he is dead");
   const from = S.owner.getOrDefault(where, null) ?? employer;
   if (from !== null) for (const heard of AllPowers.filter((p) => p !== realm && (p === employer || coverOf(c, p) !== null))) this.rumor(heard, from, `It is said that ${c.name} died ${how} in ${name}.`, c.id, "Death");
-  if (realm !== null) this.kingDied(c, `${how} in ${name}`, where);
+  // Part C2: a fallen realm's last king or heir in exile too, for the heir after him.
+  if (realm !== null || fallenRealmOf(S, c.id) !== null) this.kingDied(c, `${how} in ${name}`, where);
 };
 
 /**
