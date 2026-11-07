@@ -27,6 +27,11 @@ export function seatOf(s: GameState, map: WorldMap, p: Power): string {
   return s.kingAt.tryGet(p) ?? courtOf(s, map, p);
 }
 
+/** Item 17b, part C: whether word that a power's king was taken or died away from his court is still on its way to it. */
+export function kingLossUnheard(s: GameState, p: Power): boolean {
+  return s.journeys.some((j) => j.kind === "Word" && j.to === p && (j.news === "KingTaken" || j.news === "KingDead"));
+}
+
 /** Whether the court is on the road (`alone`: whether the king is, without it). */
 export function onTheRoad(s: GameState, p: Power, alone = false): boolean {
   return s.kingRoads.some((r) => r.power === p && r.alone === alone);
@@ -52,9 +57,10 @@ export function courtMoveRefusal(v: Checking, order: CourtOrder): string | null 
   if (!v.Map.exists(to) || v.Map.get(to).isSea) return `there is no land province called '${to}'`;
   if (v.orders.find((o) => o.type === "court" && (o.alone === true) === alone) !== order) return `you already sent ${alone ? "yourself" : "your court"} to another place by an earlier order`;
   if (alone) {
-    // Only a king free and reigning goes anywhere: one held is in his captor's hands.
+    // Only a king free and reigning goes anywhere: one held is in his captor's hands (his court refuses it only once it
+    // knows; an order sent before goes nowhere).
     const king = findCharacter(v.S, v.S.reigns.tryGet(v.power)?.character ?? "");
-    if (king === null || king.status !== "Employed" || king.duty !== "Ruling") return "you are not free to travel";
+    if ((king === null || king.status !== "Employed" || king.duty !== "Ruling") && !kingLossUnheard(v.S, v.power)) return "you are not free to travel";
     if (to === seatOf(v.S, v.Map, v.power) && !onTheRoad(v.S, v.power, true)) return `you are already in ${to}`;
   } else if (to === courtOf(v.S, v.Map, v.power) && !onTheRoad(v.S, v.power)) return `your court is already in ${to}`;
   const r = kingRoute(v.S, v.Map, v.power, to, alone);

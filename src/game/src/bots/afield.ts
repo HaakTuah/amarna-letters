@@ -26,8 +26,8 @@ export function kingAfield(b: Board, orders: Order[]): void {
   if (!FieldPlay.on(b.me)) return;
   const v = b.v;
   // Only a king free and reigning travels; one on the road goes on.
-  if (v.kingTo !== null || !v.known.some((c) => c.kingOf === v.power && c.status === "employed")) return;
-  const here = v.kingAt ?? v.courtAt;
+  if (v.kingTo !== null || ![...v.court, ...v.known].some((c) => c.kingOf === v.power && c.status === "employed")) return;
+  const here = v.seat;
   const ways = knownWays(v);
   const seasons = (from: string, to: string): number => (from === to ? 0 : (courierRoute(v, ways, to, from)?.seasons ?? Infinity));
   const foes = new Set(b.others.map((u) => u.province));

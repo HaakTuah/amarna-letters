@@ -671,8 +671,13 @@ P.wordArrives = function (j) {
       notify(S, j.to, "Rumor", "A king is dead", j.text ?? "");
       break;
     case "KingDead":
-      // Item 17b: word of the king's death reaches his own court, and his heir reigns.
+      // Item 17b: word of the king's death reaches his own court, and his heir reigns; it no longer believes him afield.
+      S.kingAt.delete(j.to);
       this.heirReigns(j.to, j.text ?? "");
+      break;
+    case "KingTaken":
+      // Item 17b, part C: word that the king was taken away from his court reaches it.
+      this.kingLostHeard(j.to, j.text ?? "");
       break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);

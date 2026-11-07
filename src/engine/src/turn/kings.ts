@@ -13,7 +13,7 @@ import { CourtData, KingAloneData, newKingRoad } from "../model/command.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import type { CourtOrder } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
-import { alive, logEvent, notify } from "../model/state.ts";
+import { alive, findCharacter, logEvent, notify } from "../model/state.ts";
 import { PointsPerDay, legPoints } from "../model/travel.ts";
 import { courtMoveCost, courtOf, kingRoute, seatOf } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -48,6 +48,9 @@ const stopped = new WeakMap<TurnEngine, Map<Power, { by: Power; alone: boolean }
 P.setOutCourt = function (p, o) {
   const S = this.s;
   const alone = o.alone === true;
+  // A king taken or dead before the order could reach him goes nowhere (his court did not know).
+  const king = findCharacter(S, S.reigns.get(p).character);
+  if (alone && (king === null || king.status !== "Employed" || king.duty !== "Ruling")) return;
   const r = kingRoute(S, this.map, p, o.to, alone);
   if (r === null) return;
   const cost = courtMoveCost(idiv(r.cost, PointsPerDay), alone);

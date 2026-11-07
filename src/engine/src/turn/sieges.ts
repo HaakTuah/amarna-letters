@@ -330,8 +330,9 @@ P.gateHolds = function (province) {
   const owner = S.owner.getOrDefault(province, null);
   const at = this.revoltAt(province);
   const level = S.restless.getOrDefault(province, 0);
-  // Its ruler there: his court, or his governor (Rib-Hadda lost Byblos the one time he left it, EA 136-138).
-  const present = owner !== null && (this.courtAt(owner) === province || this.governorOf(province)?.[0].power === owner);
+  // Its ruler there: the king himself, where he commands from (item 17b, part C), or his governor (Rib-Hadda lost Byblos
+  // the one time he left it, EA 136-138).
+  const present = owner !== null && (this.seatAt(owner) === province || this.governorOf(province)?.[0].power === owner);
   return Math.max(1, UnrestData.gate + (present ? 1 : 0) + (level * 2 < at ? 1 : 0) - (level >= at ? 1 : 0));
 };
 

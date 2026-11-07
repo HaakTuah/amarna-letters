@@ -148,7 +148,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
   pace of a company of 300, with the king if he is with it. Each season it goes on, the court where it got to. Envoys,
   servants and reports that reach a court that has left are sent on after it (`ForwardedKinds`). The archive moves with
-  it. The king alone (`alone`, `travel_alone`) and what befalls him where he stands: [57](57-every-person.md), "Part C".
+  it. The king alone (`alone`, `travel_alone`) and what befalls him where he stands: [57](57-every-person.md), "Part C1".
 
 ## Governors (`turn/governors.ts`)
 

@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type AdjudicationResult, Dict, type GameState, OrderValidator, type Power, TurnEngine, type TurnSubmission, Views, moveCourt, newGame, newGameConfig, newId, newTurnSubmission, newUnit, seatOf, wordFromKing } from "@amarna/engine";
+import { type AdjudicationResult, Dict, type GameState, OrderValidator, type Power, TurnEngine, type TurnSubmission, Views, inboxOf, moveCourt, newGame, newGameConfig, newId, newTurnSubmission, newUnit, seatOf, wordFromKing } from "@amarna/engine";
 import { Assert, armiesBefore13, removeAll, smallWorld, subs } from "./support.ts";
 
 // Item 17b, part C: the king apart from his court, commanding from where he is, at the risk of his life.
@@ -43,6 +43,33 @@ describe("KingAfieldTests", () => {
     Assert.contains("not free to travel", Assert.single(v.rejected).reason);
   });
 
+  test("Taken away from his court, it learns of it only when the word comes, and believes him where he was till then", () => {
+    const s = afield();
+    const e = new TurnEngine(s);
+    s.owner.set("durkurigalzu", "Assyria");
+    // Taken alive (not in a city's fall, which may kill him).
+    e.kingTaken("Babylonia", "Assyria", false);
+    Assert.equal("Captured", kingOf(s, "Babylonia").status);
+    Assert.equal("durkurigalzu", s.kingAt.tryGet("Babylonia"));
+    const v = Views.for(s, "Babylonia");
+    Assert.equal("durkurigalzu", v.kingAt);
+    Assert.equal("employed", Assert.single(v.court.filter((c) => c.kingOf === "Babylonia")).status);
+    // The word comes.
+    const word = Assert.single(s.journeys.filter((j) => j.news === "KingTaken"));
+    while (s.turn < word.arriveTurn) season(s);
+    season(s);
+    Assert.false(s.kingAt.has("Babylonia"));
+    Assert.contains(inboxOf(s, "Babylonia"), (i) => i.title === "The king taken");
+  });
+
+  test("A court sent to where the king stands joins him", () => {
+    const s = afield();
+    season(s, subs({ Babylonia: { orders: [moveCourt("durkurigalzu")] } }));
+    for (let i = 0; i < 4 && s.kingRoads.length > 0; i++) season(s);
+    Assert.equal("durkurigalzu", s.court.tryGet("Babylonia"));
+    Assert.false(s.kingAt.has("Babylonia"));
+  });
+
   test("A city taken where the king stands apart takes him or kills him; his court stays where it is", () => {
     const s = afield();
     const e = new TurnEngine(s);
@@ -51,7 +78,8 @@ describe("KingAfieldTests", () => {
     e.capitalsTaken();
     const c = kingOf(s, "Babylonia");
     Assert.true(c.status === "Dead" || (c.status === "Captured" && c.heldBy === "Assyria"));
-    Assert.false(s.kingAt.has("Babylonia"));
+    // His court believes him there till the word comes.
+    Assert.equal("durkurigalzu", s.kingAt.tryGet("Babylonia"));
     Assert.equal("babylon", s.court.tryGet("Babylonia") ?? "babylon");
     Assert.doesNotContain(s.eliminated, (p) => p === "Babylonia");
   });
@@ -70,7 +98,7 @@ describe("KingAfieldTests", () => {
 
   test("A battle his side loses where he stands: he dies in it, is taken, or gets away with his men", () => {
     const outcomes = new Set<string>();
-    for (let seed = 1; seed <= 12; seed++) {
+    for (let seed = 1; seed <= 24; seed++) {
       const s = afield(seed);
       removeAll(s.units, (u) => u.province === "durkurigalzu" || u.province === "ekallate");
       const his = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "durkurigalzu", men: 2000 });
@@ -84,6 +112,6 @@ describe("KingAfieldTests", () => {
       Assert.notEqual("other", got);
       outcomes.add(got);
     }
-    Assert.true(outcomes.size >= 2);
+    Assert.equal(["away", "dead", "taken"], [...outcomes].sort());
   });
 });

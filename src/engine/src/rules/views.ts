@@ -29,7 +29,7 @@ import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtV
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { courtOf, realmOfKing } from "./court.ts";
+import { courtOf, kingLossUnheard, realmOfKing, seatOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -133,6 +133,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     courtTo: s.kingRoads.find((r) => r.power === p && !r.alone)?.to ?? null,
     kingAt: s.kingAt.tryGet(p) ?? null,
     kingTo: s.kingRoads.find((r) => r.power === p && r.alone)?.to ?? null,
+    seat: seatOf(s, m, p),
     traits: s.reigns.tryGet(p)?.traits ?? [],
     // Its governors as it knows them: one whose end (death, turning, land lost) has not yet reached it still stands.
     governors: governorsKnown(s, s.turn).filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, seat: seatKnown(g, s.turn), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
@@ -448,16 +449,16 @@ function unheardHire(s: GameState, c: Character, viewer: Power): boolean {
   return c.employer === viewer && !jobKnown(c, s.turn);
 }
 
-/**
- * Whom a spy `court` caught confessed to serving when it was caught there (its latest capture there), or null if it would
- * not say: all the court learned of its master.
- */
 /** Whom a captive held by `court` is known there to serve: a king's realm, to a court that knows he reigns (item 17b), else whom it confessed to serving. */
 function captiveMaster(s: GameState, id: string, court: Power): Power | null {
   const realm = realmOfKing(s, id);
   return realm !== null && reignKnown(court, realm) ? realm : confessedMaster(s, id, court);
 }
 
+/**
+ * Whom a spy `court` caught confessed to serving when it was caught there (its latest capture there), or null if it would
+ * not say: all the court learned of its master.
+ */
 function confessedMaster(s: GameState, id: string, court: Power): Power | null {
   let found: Power | null = null;
   let any = false;
@@ -470,6 +471,9 @@ function confessedMaster(s: GameState, id: string, court: Power): Power | null {
 }
 
 function characterView(s: GameState, c: Character, viewer: Power): CharacterView {
+  // Item 17b, part C: its own king taken or dead away from his court, as the court last knew him until the word comes.
+  if (c.status !== "Employed" && realmOfKing(s, c.id) === viewer && kingLossUnheard(s, viewer))
+    return characterView(s, { ...c, status: "Employed", duty: "Ruling", heldBy: null, intercepted: false, at: viewer }, viewer);
   const cover = coverOf(c, viewer);
   if (cover !== null) return coveredView(s, c, cover);
   const ours = c.employer === viewer || c.grantedBy === viewer;

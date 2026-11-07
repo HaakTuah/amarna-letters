@@ -844,6 +844,8 @@ export interface SeatView {
    */
   kingAt: string | null;
   kingTo: string | null;
+  /** Item 17b, part C: where the king commands from: where he stands apart from his court, else the court. */
+  seat: string;
   /** Item 17b: the king's own traits as this game drew them (0 to 100, in `KingTraitValues`' order): who he is. */
   traits: number[];
   /** Item 13: the court's own governorships: the province, its governor's id, when he governs from, and his levies. */
@@ -1079,6 +1081,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     courtTo: null,
     kingAt: null,
     kingTo: null,
+    seat: "",
     traits: [],
     governors: [],
     king: "",
@@ -1178,6 +1181,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   courtTo: opt(S),
   kingAt: opt(S),
   kingTo: opt(S),
+  seat: S,
   traits: list(I),
   governors: list(() => GovernorViewSchema),
   king: S,
