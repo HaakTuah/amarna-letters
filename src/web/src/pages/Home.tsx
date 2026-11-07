@@ -374,7 +374,7 @@ export function Home() {
         </label>
         {seat !== null && !isGreatKing(seat) && (
           <p className="muted small">
-            A small state is harder: few men, little gold and Great Kings on every side. It plays by the same rules and is judged against its own start,
+            A small state is harder: few men and little gold beside the Great Kings' armies, and Great Kings near. It plays by the same rules and is judged against its own start,
             so a {powerName(seat)} that holds out and grows can win.
           </p>
         )}

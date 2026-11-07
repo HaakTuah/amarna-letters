@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { kingFor, kingOtherNames, rulerOf, rulerStyle } from "@amarna/engine";
+import { kingFor, kingOtherNames, rulerOf, rulerStyle, setNameClaims } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 describe("KingNames", () => {
@@ -21,6 +21,13 @@ describe("KingNames", () => {
     Assert.equal(rulerOf("Byblos"), "Rib-Hadda, king of Gubla");
     Assert.equal(rulerOf("Tunip"), "the king of Tunip");
     Assert.equal(rulerOf("Alashiya"), "the Great King of Alashiya");
+    // An unnamed ruler keeps the realm he claims (Codex on #774).
+    setNameClaims([["Tunip", "Hatti"]], []);
+    try {
+      Assert.equal(rulerOf("Tunip"), "the king of Hatti");
+    } finally {
+      setNameClaims([], []);
+    }
     Assert.equal(rulerStyle("Kaska"), "chief");
     Assert.equal(rulerStyle("Amurru"), "king");
   });

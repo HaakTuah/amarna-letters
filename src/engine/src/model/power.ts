@@ -566,8 +566,10 @@ export function rulerStyle(p: Power): "Great King" | "king" | "chief" {
 /** The ruler as he calls himself to his own seat: "Rib-Hadda, king of Gubla", "the chief of the Kaska". */
 export function rulerOf(p: Power): string {
   const name = kingFor(p, p);
-  // An unnamed ruler is named by his style: "the king of Tunip", and Alashiya's "the Great King of Alashiya".
-  return rulerNamed(p) ? `${name}, ${rulerStyle(p)} of ${claimedName(p)}` : isGreatKing(p) ? `the Great King of ${claimedName(p)}` : name;
+  if (rulerNamed(p)) return `${name}, ${rulerStyle(p)} of ${claimedName(p)}`;
+  // An unnamed ruler is named by his style and the realm he claims: "the king of Tunip", "the Great King of Alashiya", and
+  // the sources' own words for a land under its own name ("the chief of the Kaska").
+  return claimedName(p) === ownLand(p) && !isGreatKing(p) ? name : `the ${rulerStyle(p)} of ${claimedName(p)}`;
 }
 
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */

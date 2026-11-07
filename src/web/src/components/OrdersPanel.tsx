@@ -2,7 +2,9 @@ import {
   AllPowers,
   authenticate,
   forge,
+  journeyGroups,
   type GameState,
+  type JourneyGroup,
 } from "@amarna/engine";
 import { describeOrder, powerName, shekels, when } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
@@ -18,31 +20,18 @@ import { CourtSection } from "./orders/CourtSection.tsx";
 import { CouncilSection } from "./orders/CouncilSection.tsx";
 
 /**
- * An envoy's journey as the engine words it for kings ("Terqa: 2 season(s) each way"), read for a person: the court by the
- * name the game shows, "1 season" or "2 seasons" rather than "season(s)". Models read the same line rewritten by their seat view
- * (`llm/src/prompts.ts`).
- */
-const TravelTime = /^(?<court>.+?): (?<n>\d+) season\(s\) each way$/;
-/**
- * Every court's journey, grouped by its length (item 17++++: a small state's seat reads forty-six courts, most of them a
- * season away): the most common length once, "1 season to every court but", and the others by name.
+ * Every court's journey in the orders (item 17++++), grouped by its length as the model's request groups it
+ * (`journeyGroups`, shared): a few courts one by one; a long list, forty-six courts for any seat, as the most common length
+ * once ("1 season to every court but these") and the others by name.
  */
 export function travelTimes(lines: readonly string[]): string {
-  const by = new Map<number, string[]>();
-  const odd: string[] = [];
-  for (const t of lines) {
-    const m = TravelTime.exec(t);
-    if (m?.groups === undefined) odd.push(t);
-    else by.set(Number(m.groups.n), [...(by.get(Number(m.groups.n)) ?? []), powerName(m.groups.court)]);
-  }
+  const { most, others, odd } = journeyGroups(lines);
   const seasons = (n: number): string => `${n} ${n === 1 ? "season" : "seasons"}`;
-  const groups = [...by].sort((a, b) => b[1].length - a[1].length);
-  if (groups.length === 0) return odd.join("; ");
-  const [[most, many], ...rest] = groups;
-  const others = rest.map(([n, courts]) => `${courts.join(", ")}: ${seasons(n)}`);
-  // Only a list long enough to need it is grouped; a few courts read best one by one.
-  if (lines.length <= 8) return [...groups.flatMap(([n, courts]) => courts.map((c) => `${c}: ${seasons(n)}`)), ...odd].join("; ");
-  return [`${seasons(most)} to ${rest.length === 0 ? "every court" : "every court but these"}${rest.length === 0 ? ` (${many.length})` : ""}`, ...others, ...odd].join("; ");
+  const named = (g: JourneyGroup): string => `${g.courts.map(powerName).join(", ")}: ${seasons(g.seasons)}`;
+  if (most === null) return odd.join("; ");
+  if (lines.length <= 8)
+    return [...[most, ...others].sort((a, b) => a.seasons - b.seasons).flatMap((g) => g.courts.map((c) => `${powerName(c)}: ${seasons(g.seasons)}`)), ...odd].join("; ");
+  return [`${seasons(most.seasons)} to every court${others.length === 0 ? ` (${most.courts.length})` : " but these"}`, ...others.map(named), ...odd].join("; ");
 }
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */

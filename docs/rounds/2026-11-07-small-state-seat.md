@@ -21,10 +21,13 @@ seat choice's words and the seat view's fit for a small realm:
   chief's land; choosing one says why it is harder and that it can win.
 - **How a seat is styled** (`rulerStyle`, `rulerOf` in `src/engine/src/model/power.ts`): a request's identity line said
   "Great King of" to every seat, so Rib-Hadda was told he was the Great King of Gubla. It now says "Rib-Hadda, king of
-  Gubla", "the king of Tunip", "the Great King of Alashiya", "the chief of the Kaska"; the phrasing of a court's answers speaks of "a ruler … a Great King,
-  a city's king or a land's chief"; the chronicle's annals style each ruler so.
+  Gubla", "the king of Tunip", "the Great King of Alashiya", "the chief of the Kaska" (an unnamed ruler under the realm he
+  claims); the rulebook says a seat plays "a Great King, a city's king or a land's chief"; the phrasing of a court's
+  answers, both chronicle narrators' annals (the script narrator wrote "Great King of" for every realm) and the script
+  kings' own words of their rank ("mind his manners with a king", an envoy's "Chief of the Kaska") follow.
 - **The envoys' journeys** in the seat's orders, grouped by their length once the list is long ("1 season to every court but
-  these; Arrapha, Elam: 2 seasons"), where it was forty-six courts one by one.
+  these; Arrapha, Elam: 2 seasons"), where it was forty-six courts one by one, by the grouping the model's request already
+  used, now shared (`journeyGroups`).
 - Tests: a model's file seat played as Byblos for a season (`src/game/test/file-seat.test.ts`), the styles
   (`src/engine/test/king-names.test.ts`), the journeys (`src/web/test/travel-times.test.ts`).
 - Docs: README ("Playing with Claude"), `docs/design/26-city-states-as-powers.md`, `DESIGN-NOTES.md`.
@@ -39,6 +42,11 @@ and a game begun as Gubla opens on its orders, its council and its map, with no 
 - **The style is presentation, never rank**: a city's ruler is a king, a land under a chief a chief, the seven Great Kings
   Great Kings; whether anyone calls him Great King is earned in greetings, as before. The model's request no longer tells
   it a rank it does not hold ("Requests are rules too").
+- **The map already opens on the seat's own realm** (its capital at the centre, `openingView`), a small state's too;
+  which names the map shows first when crowded is the map's general rule, left as it is. Principle: build the least that
+  meets the text.
+- **A small state's claim to Great King rank** cannot yet be recorded in play (only the claims at the start are); that is
+  older than this item and filed as a bug (#777), not built here.
 - **No rule changes**: nothing checks which power a seat is (the item's own words), so script kings, the benchmarks and
   the saves are untouched; no save version.
 

@@ -342,8 +342,8 @@ them Sonnet.
 ## Playing with Claude
 
 Pick a preset, choose whether to watch or take a seat, and begin. Any seat can be yours: one of the seven Great Kings, the
-advised start, or a small state's (Rib-Hadda's Gubla, a chief's land), which is harder: few men, little gold and Great
-Kings on every side. It plays by the same rules and is judged on the one scoreboard against its own start, so a Gubla that
+advised start, or a small state's (Rib-Hadda's Gubla, a chief's land), which is harder: few men and little gold beside the
+Great Kings' armies, and Great Kings near. It plays by the same rules and is judged on the one scoreboard against its own start, so a Gubla that
 holds out and grows can win. A model can take any seat as well (Customize the table).
 
 | Preset | Kings | Envoys and spies | Narrator | Rough cost of a game |
