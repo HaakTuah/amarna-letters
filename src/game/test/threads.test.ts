@@ -179,6 +179,14 @@ describe("ThreadTests", () => {
     Assert.equal(r.tellings(1), replay.tellings(1));
   });
 
+  test("A city that names its realm is said once, not as its own capital", () => {
+    const gazru = WorldMap.default.capital("Gezer").id;
+    const t = newThread({ court: "", kind: "siege", province: gazru, from: "Gath", to: "Gezer", moved: 0.2, soon: true });
+    Assert.equal("Gazru may fall to Gimti next season.", threadWords(t, {}));
+    const assur = newThread({ court: "", kind: "siege", province: WorldMap.default.capital("Assyria").id, from: "Mitanni", to: "Assyria", moved: 0.2, soon: true });
+    Assert.equal("Ashur, Assyria's capital may fall to Mitanni next season.", threadWords(assur, {}));
+  });
+
   test("A shared log whose threads are malformed fails to load, cleanly", () => {
     const good = newThread({ court: "", kind: "siege", province: WorldMap.default.capital("Assyria").id, from: "Mitanni", to: "Assyria", moved: 0.2, text: "Mitanni besieges Assur." });
     const line = (v: unknown): string => `{"type":"decision","key":"t2/threads","value":${JSON.stringify(v)}}`;

@@ -98,6 +98,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The file picker for saved games and replays was the browser's own grey "Choose File" button, unlike every other button in the game, and stark in dark mode; it is now drawn as the game's buttons are, everywhere a file is chosen.
 - On the New game screen, the Local agents card's cost, "your Claude subscription", broke onto two lines beside its note on desktop; the cost stays on one line, and its note moves below it when the card is narrow.
 - The "How it works" page still told the first rules of combat, "strength is one plus supports … dislodged units are destroyed", and so did the rules-as-implemented design note; both now say what the README and the battles' design note do: each unit fights by its men and its commander, and a beaten unit loses men and falls back, destroyed only when beaten three to one or with nowhere to go.
+- The Threads tab told a city-state's capital as its own: "Gazru, Gazru's capital may fall to Gimti next season" (the same for Niya, Akka and every realm named after its city); a city that names its realm is now said once, "Gazru may fall to Gimti next season", and a Great King's capital keeps its line ("Ashur, Assyria's capital"). The template narrator's words only; no request or seat view reads them.
 
 ## Finds not yet fixed
 
