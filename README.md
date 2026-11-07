@@ -220,9 +220,10 @@ realms' people, the size of towns, how often the Nile fails, how each city drink
 **Places by their own names.** The map, the letters and every report name each place as the sources of 1346 do: the
 Amarna letters' own form where they give one (Gubla for Byblos, Urusalim for Jerusalem, Hazzatu for Gaza, Babili for
 Babylon), otherwise the period's Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis). What a place is and its
-modern name are on its card. Two settings in the game's menu show you places by the names a reader knows today (Byblos, Thebes) and the Great Kings'
-realms by their own letters' names (Miṣri, Karduniash, Aššur) instead; they change only what you read, never what a king
-is told. Every province, realm, title and person has a history button, its events as your court learned them (the whole
+modern name are on its card. Two settings in the game's menu choose the names you read: places by their names of 1346
+(the default) or by the names a reader knows today (Byblos, Thebes), and realms by the names people know (the default:
+Egypt, and Byblos for Gubla's realm) or by their own letters' names (Miṣri, Karduniash, Aššur, Gubla); they change only
+what you read, never what a king is told. Every province, realm, title and person has a history button, its events as your court learned them (the whole
 record once the game ends); the Search window finds anything your court knows by any of its names, forgiving
 misspellings; and every real place, realm and person links to its page to learn more, while what the game made up is
 marked as invented. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
