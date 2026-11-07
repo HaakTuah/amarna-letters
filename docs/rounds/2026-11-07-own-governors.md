@@ -5,21 +5,23 @@ Found by the slop audit's reader of the cast's biographies (#764). `scripts/usag
 ## What changed
 
 - **A post of 1346 whose holder's name the sources lost** (a governor, or one of Pharaoh's open residents) goes to one
-  of the free people of its court's name style, as before; where none is left, a man is made for the post in that
-  style, an ordinary person standing at its court, as the larger pool's are (`ownMan` in `openingLoyalties`,
-  `rules/factory.ts`), never a stranger of another people. On seed 3, Urim's governor for Babylon was Yapa-ilu of
-  Hazzatu and Samuha's for Hatti Shagarakti of Nippur; both are now of their own courts.
+  of the free people of its court's name style, as before; where none is left, the ordinary person who would have been
+  taken (one standing at the court, not a Nubian in Pharaoh's service) is made one of its people: named and born in its
+  style, his tongues those of his birthplace (`ofCourt` in `rules/factory.ts`), never a stranger of another people. The
+  pool keeps its size and order. On seed 3, Urim's governor for Babylon was Yapa-ilu of Hazzatu and Samuha's for Hatti
+  Shagarakti of Nippur; both are now of their own courts.
 - The scribes' naming (a court's style, or the nearest court's; a name nobody has yet) is shared with it: `styleOf`,
   `freeName`.
 - **Tests:** `src/engine/test/who-they-are.test.ts`, "Every governor of 1346 whose name the sources lost is a man of his
-  own court's people" (twelve seeds; it failed before), and the pool's count, which now allows for those made.
+  own court's people" (twelve seeds; it failed before); the fingerprints of the opening's people
+  (`starting-term.test.ts`), which this moves.
 - **Docs:** design note `47-whom-a-province-obeys.md`. **Save version 74** (the opening changes).
 
 ## Readings taken
 
-1. **A man made for the post, rather than a bigger pool.** The issue offers both; making one only where the pool runs
-   short changes no other seed's draws and keeps the pool's size (item 10's "about 60", now 100) where it was set.
-   Principle: one fact, one place; build nothing outside the item.
+1. **The man who would have been taken is made one of the court's people,** rather than the pool grown or a man added:
+   only seeds that run short change, and the pool keeps its size and order (an ordinary person of the pool is drawn, not
+   recorded, so his name and birthplace are the draw's to set). Principle: build nothing outside the item.
 
 ## Questions for the owner
 

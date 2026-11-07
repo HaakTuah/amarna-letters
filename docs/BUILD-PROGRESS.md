@@ -125,7 +125,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   (`docs/rounds/2026-11-07-far-orders-refused.md`). Report:
   `docs/rounds/2026-11-06-far-unit-reported.md`.
 - ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
-  holder's name is lost, with no free man of the court's style left, gets one made for it in that style. Save version 74.
+  holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 74.
   Report: `docs/rounds/2026-11-07-own-governors.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the

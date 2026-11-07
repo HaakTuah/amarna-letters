@@ -61,10 +61,7 @@ describe("WhoTheyAreTests", () => {
       const large = newGame(seed);
       // And since item 11f an Akkadian scribe at every court that reads Akkadian.
       const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
-      // And since #765 a governor or resident of 1346 made for his post where his court had no free man of its own people left.
-      const made = large.characters.slice(100 + scribes);
-      Assert.all(made, (c) => Assert.true(c.duty === "Governing" || c.openly));
-      Assert.equal(100 + scribes + made.length, large.characters.length);
+      Assert.equal(100 + scribes, large.characters.length);
       // Item 17++: the posts of 1346 add facts after the pool is drawn, numbered after it, so facts are compared without ids.
       const first = (g: typeof small): string => JSON.stringify(g.characters.slice(0, FirstPool).map((c) => ({ ...c, facts: c.facts.map((f) => ({ ...f, id: f.tag === "resident" ? "" : f.id })) })));
       Assert.equal(first(small), first(large));

@@ -59,12 +59,13 @@ describe("StartingTermTests", () => {
   // history check: Akhetaten no generated Egyptian's birthplace, so every draw after it moves, and the people of 1346 "Of"
   // where they served; the texts the history checks corrected before it are now the fingerprint's own), and for save version 54
   // (item 17++a: the realms named by their lands, Tjehenu, Kaska, Seir and Sutu, in the cast's texts), and for the slop
-  // audit's biographies (#764: the cast's lines rewritten, the letters' envoys royal envoys, governors of their court's style).
+  // audit's biographies (#764: the cast's lines rewritten, the letters' envoys royal envoys, governors of their court's style),
+  // and for #765 (a post of 1346 with none of its court's style free given a man made one of its people).
   //
   test.each([
-    [1, "71e2fdac8e42ea3a"],
-    [7, "7512fe8e99d7f3c6"],
-    [42, "8b425a73c29fbee6"],
+    [1, "214c5d0a910421a1"],
+    [7, "4ebab13356580fa1"],
+    [42, "353fd77cf1e121ea"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     // Since item 17++ Pharaoh's commissioners stay at their posts for years: residents, not the starting corps.
