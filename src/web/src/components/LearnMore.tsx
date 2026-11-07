@@ -1,6 +1,6 @@
-import { AllPowers, PersonLinks, PlaceLinks, WorldMap, king, ownLand, powerName, realmLink, type FixedPower, type GameState, type HistoryKind, type LearnMore as Link, type Power } from "@amarna/engine";
+import { AllPowers, PersonLinks, PlaceLinks, WorldMap, king, ownLand, realmLink, type FixedPower, type GameState, type HistoryKind, type LearnMore as Link, type Power } from "@amarna/engine";
 import { provinceName } from "../ui/format.ts";
-import { otherName, realmName } from "../ui/names.ts";
+import { otherName, otherRealmName, realmName } from "../ui/names.ts";
 
 /**
  * "Learn more, and what is invented" (Interface, build order item 17+++b): a real place, realm or person's link to read
@@ -49,7 +49,7 @@ function shownName(state: GameState, kind: HistoryKind, id: string, knownAs?: st
     case "province":
       return WorldMap.default.exists(id) ? both(provinceName(id), WorldMap.default.get(id).name) : id;
     case "realm":
-      return both(realmName(id), powerName(id));
+      return ((now, other) => (other !== null ? `${now} (${other})` : now))(realmName(id), otherRealmName(id));
     case "title":
       return id;
     case "person":

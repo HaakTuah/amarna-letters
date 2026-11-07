@@ -3,7 +3,7 @@ import { Views, newGame, newGameConfig, newOwnerChange, setNameClaims, type Game
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 import { buildScene } from "../src/map/scene.ts";
 import { dated, powerName, provinceName } from "../src/ui/format.ts";
-import { otherName, setNames, shown } from "../src/ui/names.ts";
+import { otherName, otherRealmName, setNames, shown } from "../src/ui/names.ts";
 import { knownTo, matchScore, scoreOf } from "../src/ui/search.ts";
 import { knownAs } from "../src/components/HistoryPanel.tsx";
 import { learnOf } from "../src/components/LearnMore.tsx";
@@ -12,15 +12,22 @@ import { frameFrom } from "../src/session/frames.ts";
 // Item 17+++b, "History, search and names": the two name settings change every name the player reads and nothing else;
 // one search finds anything the seat knows by any of its names, forgiving misspellings, and counts only what it knows.
 describe("Search and names", () => {
-  test("By default places take their period names and the Great Kings' realms the names people know", () => {
+  test("By default places take their period names and every realm the name people know (#768)", () => {
     setNames({ places: "period", realms: "known" });
     Assert.equal(provinceName("byblos"), "Gubla");
     Assert.equal(powerName("Egypt"), "Egypt");
-    Assert.equal(powerName("Byblos"), "Gubla");
+    // Gubla's realm reads Byblos while the city reads Gubla; Tjehenu's realm, Libya.
+    Assert.equal(powerName("Byblos"), "Byblos");
+    Assert.equal(powerName("Libya"), "Libya");
+    Assert.equal(otherRealmName("Byblos"), "Gubla");
     Assert.equal(otherName("Gubla"), "Byblos");
+    // In text, a name both a realm's and a place's is the realm's only after words that say so.
+    Assert.equal(shown("Rib-Hadda wrote from Gubla to the court of Gubla."), "Rib-Hadda wrote from Gubla to the court of Byblos.");
+    // A realm named for no place keeps its name.
+    Assert.equal(powerName("Damascus"), "Upe");
   });
 
-  test("Modern places rename every place and every realm named for one, in text too, and nothing inside another word", () => {
+  test("Modern places rename every place, in text too, and nothing inside another word; the realms keep their own setting", () => {
     setNames({ places: "modern", realms: "known" });
     Assert.equal(provinceName("byblos"), "Byblos");
     Assert.equal(powerName("Byblos"), "Byblos");
@@ -28,15 +35,20 @@ describe("Search and names", () => {
     Assert.equal(shown("Rib-Hadda of Gubla wrote from Ṣumur; Ashur-uballit holds Ashur."), "Rib-Hadda of Byblos wrote from Simyra; Ashur-uballit holds Ashur.");
     Assert.equal(dated("Waset and the Ways of Horus, turn 2", null).startsWith("Thebes and the north Sinai"), true);
     Assert.equal(otherName("Gubla"), "Gubla");
-    setNames({ places: "period" });
+    // Modern places with period realms: the city is Byblos, its realm Gubla.
+    setNames({ realms: "period" });
+    Assert.equal(powerName("Byblos"), "Gubla");
+    Assert.equal(shown("Rib-Hadda wrote from Gubla to the court of Gubla."), "Rib-Hadda wrote from Byblos to the court of Gubla.");
+    setNames({ places: "period", realms: "known" });
   });
 
-  test("Period realms rename only the Great Kings' realms whose letters named them otherwise", () => {
+  test("Period realms name every realm by its letters' names", () => {
     setNames({ places: "period", realms: "period" });
     Assert.equal(powerName("Egypt"), "Miṣri");
     Assert.equal(powerName("Babylonia"), "Karduniash");
     Assert.equal(powerName("Assyria"), "Aššur");
     Assert.equal(powerName("Mitanni"), "Mitanni");
+    Assert.equal(powerName("Libya"), "Tjehenu");
     Assert.equal(shown("Egypt's envoy, an Egyptian, reached Ashur."), "Miṣri's envoy, an Egyptian, reached Ashur.");
     setNames({ realms: "known" });
     Assert.equal(powerName("Egypt"), "Egypt");

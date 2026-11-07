@@ -1,6 +1,6 @@
-import { Views, WorldMap, claimedName, historyOf, knownName, powerName, shortDate, type GameState, type HistoryKind, type Power } from "@amarna/engine";
+import { Views, WorldMap, claimedName, historyOf, knownName, shortDate, type GameState, type HistoryKind, type Power } from "@amarna/engine";
 import { dated, provinceName, when } from "../ui/format.ts";
-import { otherName, realmName } from "../ui/names.ts";
+import { otherName, otherRealmName, realmName } from "../ui/names.ts";
 import { titleName } from "../ui/search.ts";
 import { LearnMore } from "./LearnMore.tsx";
 
@@ -34,10 +34,9 @@ export function knownAs(state: GameState, id: string, viewer: Power | null): str
   return [...v.court, ...v.known].find((c) => c.id === id)?.name ?? null;
 }
 
-/** The engine's own name of a place or realm, whose other name the window's second line gives; null for a person. */
+/** The engine's own name of a place or title, whose other name the window's second line gives (a realm's: `otherRealmName`). */
 function rawName(h: HistoryOf): string | null {
   if (h.kind === "province") return WorldMap.default.exists(h.id) ? WorldMap.default.get(h.id).name : null;
-  if (h.kind === "realm") return powerName(h.id);
   return h.kind === "title" ? h.id : null;
 }
 
@@ -60,7 +59,7 @@ export function HistoryPanel({ state, of, viewer, record, onProvince, onHistory,
   const seen = record ? null : viewer;
   const name = nameOf(state, of, seen);
   const raw = rawName(of);
-  const other = raw !== null ? otherName(raw) : null;
+  const other = of.kind === "realm" ? otherRealmName(of.id) : raw !== null ? otherName(raw) : null;
   return (
     <>
       <div className="row" style={{ justifyContent: "space-between" }}>

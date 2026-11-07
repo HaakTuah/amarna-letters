@@ -40,10 +40,13 @@ of 1346 (the default) or the names a modern reader knows them by (`FamiliarPlace
 `model/familiar-names.ts`, read from the modern names the card gives, `ModernNames`, before any parenthesis: Byblos for
 Gubla, Thebes for Waset, Kirkuk for Arrapha; with a short list of exceptions: Kanesh, not Kültepe; a place whose period
 name is the one readers know, Hattusa or Ugarit, keeps it, as does one whose modern name is a description or a village
-chosen for its site, Tamassos). Realms: the names people know (the default) or their
-own letters' names (`PeriodRealmNames`: Miṣri, Karduniash, Aššur, each anchored in the geography dossier); only the
-Great Kings' realms differ, since every other realm is named by its land or city, a place, and so follows the places'
-setting (Gubla's realm is Byblos with modern places). The page rewrites the names where it shows them, in every panel,
+chosen for its site, Tamassos). Realms, every one of them, apart from the places (the owner, 7 November 2026, #768): the
+names people know (the default) or their own letters' names. A Great King's realm: Egypt or Miṣri, Babylonia or
+Karduniash, Assyria or Aššur (`PeriodRealmNames`, each anchored in the geography dossier). Any other realm is named by
+its city or land, so its known name is the name a reader knows that place by (`FamiliarPlaceNames`): by default Gubla's
+realm reads Byblos while the city reads Gubla, Tjehenu's realm Libya; a realm named for no place (Upe, Hana) keeps its
+name either way. In text, a name both a realm's and a place's (Gubla) is read as the realm's only after words that say
+so ("the court of", "the king of", "the envoy of" and the like, `RealmBefore`), and as the place's anywhere else. The page rewrites the names where it shows them, in every panel,
 the map's labels and the engine's text it shows (`dated`, `powerName` and `provinceName` in `ui/format.ts`); a name is
 swapped only as a whole word, never inside another (Ashur-uballit stays). The other name always shows on the card's
 second line: "in 1346 Gubla" under a modern name, "today Byblos (Jbeil)" under a period one. The engine's text, every

@@ -551,7 +551,7 @@ export function Play() {
                   <option value="modern">Modern names</option>
                 </select>
               </label>
-              <label title="The Great Kings' realms by the names people know (Egypt), or by their own letters' names (Miṣri)">
+              <label title="Every realm by the names people know (Egypt, Byblos), or by their own letters' names (Miṣri, Gubla)">
                 Realms{" "}
                 <select value={names.realms} onChange={(e) => setNames({ realms: e.target.value as "known" | "period" })}>
                   <option value="known">Names people know</option>
