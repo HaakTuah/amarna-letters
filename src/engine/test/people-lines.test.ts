@@ -68,4 +68,16 @@ describe("PeopleLineTests", () => {
     new TurnEngine(s).coverFor(c, "Egypt", "EnvoyAtCourt");
     Assert.equal(["at the court of Gubla", "Byblos"], [c.covers[0].whereText, c.covers[0].court]);
   });
+  test("A fallen king still rules his realm to a court that has not heard of its fall (bug #817)", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Byblos");
+    const king = s.characters.find((x) => x.id === s.reigns.get("Byblos").character)!;
+    const origin = king.facts.find((f) => f.tag === "origin" && f.text.startsWith("Rules "))!;
+    const rules = origin.text;
+    // Gubla falls (as `fall` in turn/resolve.ts writes it); Egypt has not heard.
+    s.eliminated.push("Byblos");
+    origin.text = `Ruled ${rules.slice("Rules ".length)}`;
+    Assert.contains(Views.character(s, king, "Egypt").knownFacts, (f) => f === rules);
+    s.fallsHeard.set("Egypt", ["Byblos"]);
+    Assert.contains(Views.character(s, king, "Egypt").knownFacts, (f) => f === origin.text);
+  });
 });

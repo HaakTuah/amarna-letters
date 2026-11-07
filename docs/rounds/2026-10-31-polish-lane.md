@@ -102,6 +102,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The Threads tab told a city-state's capital as its own: "Gazru, Gazru's capital may fall to Gimti next season" (the same for Niya, Akka and every realm named after its city); a city that names its realm is now said once, "Gazru may fall to Gimti next season", and a Great King's capital keeps its line ("Ashur, Assyria's capital"). The template narrator's words only; no request or seat view reads them.
 - The orders tab told a player to "click one of your units on the map … click the unit again to hold", where the map's legend and the About page say "tap"; it now says "tap" too, which reads right on a phone and on a computer alike.
 - The Season tab's "Also this season" began some lines in lower case ("about 1,900 people fled a heavy tax from Ta-Mehu into Tjehenu.") and said one line word for word as often as it happened ("A tablet in Canaanite waits for a reader at Egypt's court." eight times in Egypt's second season); each line now starts with a capital, and a line said more than once is shown once with how many times ("×8"). The engine's text, which kings read, is as it was.
+- Bug #817: a fallen realm's living king read "Ruled Gubla …" at once in the view of every court that knew him, so one holding him captive far off learned of the fall before word came; a court that has not heard of the fall still reads "Rules …" (`factsAsHeard` in `rules/views.ts`). Report: `docs/rounds/2026-11-07-fall-unheard.md`.
 
 ## Finds not yet fixed
 
