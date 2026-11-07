@@ -49,7 +49,8 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
 ### A name made of outcomes
 
 - **Outcomes are facts** (`TurnEngine.outcome`), hidden, known to the court that saw them, tagged `outcome` or
-  `outcome-bad`: a mission carried and the answer brought home; a turn back on the road; siege lines slipped through; a
+  `outcome-bad`: a mission carried and the answer brought home (or, where the envoy was never received, remembered as
+  that: bug #784); a turn back on the road; siege lines slipped through; a
   post watched unseen (two seasons or more); a spy caught; an envoy caught by besiegers. Each moves the name at that court
   (+6, -10, first guesses) and spreads as rumour (`NewsKind` "Name") to every other living court except the character's
   master, a secret master, any court still holding a cover for it (its news comes its own ways), and, for a post watched
