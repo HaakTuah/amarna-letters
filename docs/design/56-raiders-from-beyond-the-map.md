@@ -59,12 +59,12 @@ come by sea (`bySea`); each land beyond it that sends raiders has a weight among
 
 ## Script kings (`src/game/src/bots/raiders.ts`, `--no-raider-play`, `--raider-play-half`)
 
-- Police on their coasts at a door raiders press through: up to 120 men at the strongest door, by its `raids`
-  (`doorPolice`, in the works plan beside the police against the loose and the bands).
-- They hunt raiders as any band (`outlaws.ts`), enlist them at war as any band (`generals.ts`, the fee now what they
+- They hunt raiders where an army of theirs stands with them, as any band (`outlaws.ts`), but march no army after them,
+  since raiders go home within a few seasons by themselves; police at the doors were measured and did not pay (the
+  report). They enlist them at war as any band (`generals.ts`, the fee now what they
   reckon the chief asks, `chiefAskSeen`, with a tenth over), and pay off raiders they cannot break where an army of
   theirs stands with them, for 2 seasons, with a tenth over, when the treasury holds three times it (`payOffOrders`).
-- Ignoring raiders turns all of it off for raider bands.
+- Ignoring raiders turns all of it off for raider bands, the police against bands included.
 
 ## The seat view and the rulebook
 
