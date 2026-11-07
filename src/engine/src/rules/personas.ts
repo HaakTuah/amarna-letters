@@ -4,11 +4,17 @@ import { strategiesOf } from "./strategy.ts";
 
 /** A persona prompt from traits and facts, used until (or instead of) the narrator's version. */
 export function personaTemplate(c: Character): string {
-  const secrets = c.facts.filter((f) => f.secrecy !== "Public").map((f) => f.text);
-  let text = opening(c) + temperament(c.traits) + WantMarker + want(c.traits) + ".";
-  if (secrets.length > 0) text += ` Things about yourself you do not volunteer: ${secrets.join(" ")}`;
-  text += " You speak in the formal manner of a royal messenger of the Late Bronze Age.";
-  return text;
+  // Its facts, its secrets marked, come beside the persona in every request (`selfText`), so the persona does not repeat them.
+  return `${opening(c)}${temperament(c.traits)}${WantMarker}${want(c.traits)}. ${voice(c.traits)}`;
+}
+
+/** How a template persona speaks, from its courage and ambition, so not every character speaks alike. */
+export function voice(t: Traits): string {
+  if (t.courage >= 65) return "You speak plainly, even to kings, and do not soften hard words.";
+  if (t.courage <= 35) return "You speak softly, with many courtesies, and take care never to give offence.";
+  if (t.ambition >= 65) return "You speak with an eye to how your words will be repeated at court.";
+  if (t.ambition <= 30) return "You speak briefly and say no more than you are asked.";
+  return "You weigh your words and suit them to whoever is listening.";
 }
 
 /** How a template persona begins, up to its trait words. */
@@ -32,7 +38,7 @@ const WantMarker = ". What you want most: ";
 export function temperament(t: Traits): string {
   return [
     t.loyalty >= 65 ? "steadfast to whoever treats you fairly" : t.loyalty <= 35 ? "loyal mostly to yourself" : "loyal while it is worth your while",
-    t.greed >= 65 ? "fond of gold and quick to see a profit" : t.greed <= 30 ? "indifferent to riches" : "glad of a gift",
+    t.greed >= 65 ? "fond of gold and quick to see a profit" : t.greed <= 30 ? "careless of small sums" : "glad of a gift",
     t.competence >= 65 ? "shrewd and observant" : t.competence <= 35 ? "careless with details" : "capable enough",
     t.ambition >= 65 ? "eager to be noticed by kings" : t.ambition <= 30 ? "content with a quiet life" : "hopeful of advancement",
     t.courage >= 65 ? "bold, unafraid to carry hard words" : t.courage <= 35 ? "timid before powerful men and eager to please them" : "careful with powerful men",
@@ -76,4 +82,4 @@ export function currentPersona(c: Character): string {
 }
 
 /** The C# build's static class Personas. */
-export const Personas = { template: personaTemplate, calling, temperament, want, current: currentPersona };
+export const Personas = { template: personaTemplate, calling, temperament, want, voice, current: currentPersona };
