@@ -25,7 +25,9 @@ function carried(t: Thread): string {
 function siege(t: Thread, own: Power | null): string {
   const city = place(t.province);
   const capital = t.to !== "" && capitalOf(t.to) === t.province;
-  const held = capital ? `${city}, ${land(t.to)}'s capital` : city;
+  // A city that names its realm (Gazru, Gazru's capital) is said once.
+  const named = capital && land(t.to).replace(/^the /, "") === city.replace(/^the /, "");
+  const held = capital && !named ? `${city}, ${land(t.to)}'s capital` : city;
   if (own !== null && t.to === own)
     return t.soon ? `Your city of ${held} may fall next season: ${land(t.from)}'s siege has worn it nearly through.` : `${land(t.from)}'s army lies before your city of ${held}.`;
   if (own !== null && t.from === own)
