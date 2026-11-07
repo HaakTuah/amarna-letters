@@ -1011,7 +1011,7 @@ export interface SeatView {
   goldSent: { province: string; gold: number }[];
   /** #587: its own provinces beyond the season's reach of its court, by the road home: their coffers and bills pay there. */
   far: string[];
-  /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
+  /** Claims to the rank of Great King this court knows of and whether each is still new (item 8; bug #777); `heardBy` is not shown. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
   greetings: Recognition[];
