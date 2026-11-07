@@ -643,9 +643,9 @@ P.wordArrives = function (j) {
       notify(S, j.to, "Notice", GrantTitle, j.text ?? "");
       break;
     case "Realm": {
-      // Item 13: a report from afar in the realm, as its courier brings it.
+      // Item 13: a report from afar in the realm, as its courier brings it, timed to where the king is (`tellAt`).
       const [kind, title, ...text] = (j.text ?? "").split("|");
-      notify(S, j.to, kind as InboxKind, title, text.join("|"));
+      notify(S, j.to, kind as InboxKind, title, text.join("|"), null, true, false);
       break;
     }
     case "Job":

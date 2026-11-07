@@ -691,6 +691,8 @@ P.endOfTurn = function () {
       c.facts.push(newFact({ id: newId(S, "f"), text: `Spent three years and more at the court of ${land(c.at!)}.`, secrecy: "Hidden", tag: "abroad", knownBy: [c.employer!, c.at!] }));
   }
 
+  // Item 17b, part C: who came to each court this season, for a king away from it.
+  this.cameToCourts();
   let reason: string | null = null;
   if (alive(S).length <= 1) reason = OneKingdomLeft;
   // The last season was drawn in secret at the start (rules/ending.ts); an open age has none.

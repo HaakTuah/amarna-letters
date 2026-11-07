@@ -144,6 +144,7 @@ export class TurnEngine {
     // Item 17b: a king held at his captor's court may get away.
     this.kingsHeld();
     this.newcomers();
+    this.cameToCourts();
     // Item 12: the dice of who understands whom fall before any model is called.
     this.settleSpeech();
     this.lifeRequests();
@@ -447,7 +448,7 @@ export class TurnEngine {
     return courtOf(this.s, this.map, p);
   }
 
-  /** The province a king commands from: where he stands apart from his court, else his court (item 17b, part C). */
+  /** The province a king commands from as his court knows it (item 17b, part C, `seatOf`). */
   seatAt(p: Power): string {
     return seatOf(this.s, this.map, p);
   }

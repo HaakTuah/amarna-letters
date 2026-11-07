@@ -18,7 +18,7 @@ import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify, unitAt } from "../model/state.ts";
 import { unitReport, type Unit } from "../model/units.ts";
-import { courierSeasons, seatOf, wordHomeAt } from "../rules/court.ts";
+import { courierSeasons, kingAfield, seatOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
@@ -207,7 +207,7 @@ P.sendOrders = function (p, sub) {
       continue;
     }
     // Item 17b, part C: the court's own business, ordered by a king away from it, goes to his court with his couriers.
-    const at = placeOf(this, p, o) ?? (S.kingAt.has(p) && unitOf(o) === null && !(o.type === "court" && o.alone === true) ? { province: this.courtAt(p), unit: null } : null);
+    const at = placeOf(this, p, o) ?? (kingAfield(S, p) !== undefined && unitOf(o) === null && !(o.type === "court" && o.alone === true) ? { province: this.courtAt(p), unit: null } : null);
     if (at === null || !this.map.exists(at.province)) {
       keep.push(o);
       continue;

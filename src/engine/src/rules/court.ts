@@ -20,11 +20,49 @@ export function courtOf(s: GameState, map: WorldMap, p: Power): string {
 }
 
 /**
- * The province the king commands from (item 17b, part C, "the king commands from where he is"): where he stands apart from
- * his court, else his court. His orders to his land and armies go out from here, and their reports come here.
+ * Where the king stands apart from his court as it knows (item 17b, part C): where he stands, or, while word that he was
+ * taken or died there is on its way, where he was; undefined with his court.
+ */
+export function kingAfield(s: GameState, p: Power): string | undefined {
+  return s.kingAt.tryGet(p) ?? s.kingHeard.tryGet(p);
+}
+
+/**
+ * The province the king commands from as his court knows it (item 17b, part C, "the king commands from where he is"): where
+ * he stands apart from it ({@link kingAfield}), else his court. His orders to his land and armies go out from here, their
+ * reports come here, and his view and his order checks are drawn from here, so his capture or death away from his court
+ * shows in nothing before the word of it comes. What is physically true where he stands goes by {@link standsAt}.
  */
 export function seatOf(s: GameState, map: WorldMap, p: Power): string {
+  return kingAfield(s, p) ?? courtOf(s, map, p);
+}
+
+/**
+ * Where the king physically stands for the rules of the world (item 17b, part C): apart from his court, or with it; one
+ * taken or dead away from it is no longer where he was, and his court rules in his name. A unit he stands with carries
+ * out a standing order, his presence holds a city's gate, and a battle or a city lost there takes him.
+ */
+export function standsAt(s: GameState, map: WorldMap, p: Power): string {
   return s.kingAt.tryGet(p) ?? courtOf(s, map, p);
+}
+
+/**
+ * Item 17b, part C: the seasons a courier from a king's court takes to where he is apart from it, as it knows, beyond the
+ * next, by which the court's business reaches him (`CourtKinds`, `GameState.courtLag`); 0 with his court.
+ */
+export function courtLagOf(s: GameState, map: WorldMap, p: Power): number {
+  const at = kingAfield(s, p);
+  if (at === undefined) return 0;
+  const t = wordHomeAt(s, map, at, courtOf(s, map, p), s.turn);
+  return Number.isFinite(t) && t > s.turn ? t - s.turn : 0;
+}
+
+/**
+ * Item 17b, part C: whether what came to a power's court in season `turn` (a tablet, the check of one, a person come there)
+ * has reached its king away from it, as the notice of it does: at once with his court, else `lag` seasons after the next.
+ */
+export function broughtToKing(s: GameState, turn: number, lag: number): boolean {
+  return lag === 0 || turn + 1 + lag <= s.turn;
 }
 
 /** Item 17b, part C: whether word that a power's king was taken or died away from his court is still on its way to it. */

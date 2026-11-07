@@ -18,7 +18,7 @@ import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, s
 import { newJourney } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
-import { crownedIn, kingLossUnheard, realmOfKing, seatOf } from "../rules/court.ts";
+import { crownedIn, kingAfield, kingLossUnheard, realmOfKing, standsAt } from "../rules/court.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { KingAloneData } from "../model/command.ts";
 import { defenderLost } from "./battles.ts";
@@ -141,7 +141,7 @@ P.seatKings = function () {
 
 P.kingTaken = function (p, by, city) {
   const S = this.s;
-  const where = seatOf(S, this.map, p);
+  const where = standsAt(S, this.map, p);
   const c = findCharacter(S, S.reigns.get(p).character);
   // Only a king free and reigning where it fell, or on the road, is taken: one walking home elsewhere is not.
   if (c === null || c.status !== "Employed" || c.duty !== "Ruling" || by === null || !isAlive(S, by)) return;
@@ -192,10 +192,15 @@ P.courtFlees = function (p, by) {
   if (to === where) return;
   S.court.set(p, to);
   const c = findCharacter(S, S.reigns.get(p).character);
-  if (S.kingAt.tryGet(p) === to) S.kingAt.delete(p);
+  // Fled to where the king stands (as it knows), it is with him again.
+  if (kingAfield(S, p) === to) {
+    S.kingAt.delete(p);
+    S.kingHeard.delete(p);
+  }
   // Its king held, as the court knows (a capture whose word is still on the road it does not know of).
   const king = c !== null && c.status === "Captured" && !kingLossUnheard(S, p) ? `${c.name} is ${c.heldBy === null ? "lost" : `held by ${powerName(c.heldBy)}`}, and ` : "";
-  const apart = S.kingAt.has(p) ? ` You are in ${this.map.get(S.kingAt.get(p)).name}, apart from it.` : "";
+  const afield = kingAfield(S, p);
+  const apart = afield !== undefined ? ` You are in ${this.map.get(afield).name}, apart from it.` : "";
   notify(S, p, "Notice", "The court flees", `${this.map.get(where).name} is lost: ${king}your court has fled to ${this.map.get(to).name}, from where it rules${king === "" ? "" : " in his name until he is back"}.${apart}`);
 };
 
@@ -205,7 +210,7 @@ P.kingsInBattle = function (result) {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Employed" || c.duty !== "Ruling") continue;
     // A battle his side lost where he stands: his men beaten from it, or crushed holding it.
-    const x = seatOf(S, this.map, p);
+    const x = standsAt(S, this.map, p);
     const f = result.fights.find((f) => f.at === x && S.units.find((u) => u.id === f.defender)?.power === p && defenderLost(f));
     if (f === undefined) continue;
     const by = S.units.find((u) => u.id === f.attacker)?.power ?? null;

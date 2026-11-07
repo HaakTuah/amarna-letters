@@ -69,18 +69,27 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
 
 - **The court is the capital, and the king commands from where he is.** The court (`GameState.court`, `courtOf`) holds
   the treasury, the archive and the officials, and receives envoys and letters; the king may stand apart from it
-  (`GameState.kingAt`), and his seat (`seatOf`, `TurnEngine.seatAt`) is where he stands, else his court. His orders to his
-  land and armies go out from his seat by courier, their reports and what he sees as current come to it, and a unit he
-  stands with carries out a standing order as one with its commander does.
+  (`GameState.kingAt`), and his seat (`seatOf`, `TurnEngine.seatAt`) is where he stands as his court knows it, else his
+  court. His orders to his land and armies go out from his seat by courier, their reports and what he sees as current
+  come to it, and his order checks are drawn from it. What is physically true goes by where he really stands
+  (`standsAt`): a unit he stands with carries out a standing order as one with its commander does, his presence holds a
+  city's gate, the people's regard and what they hide from a share asked grow with his distance, and a battle or a city
+  lost there takes him. The treasury's reach is the court's (`fromCourt`, `toCourt`, `isFar`, and the order checks of
+  `send` and of costs paid where they fall), wherever he is.
 - **What reaches his court is sent on to him** (`CourtKinds`, `GameState.courtLag`, set by `courtLags` each season): the
   notices of its business (audiences, envoys' and spies' reports, foreign news, people presenting themselves, tablets and
-  their checks) reach him when a courier from his court could bring them; his orders for that business (letters, envoys,
+  their checks) reach him when a courier from his court could bring them (`courtLagOf`), and so do the tablets, their
+  checks (`TabletCopy.authTurn`), the people come to it (`GameState.cameToCourt`, noted after each phase's arrivals) and
+  his envoys' reports in his view (`broughtToKing`); a report from his land is timed to him by its own road
+  (`tellAt`), never his court's on top. His orders for that business (letters, envoys,
   people, captives, tolls on all his land, moving the court) go to the court with his couriers (`sendOrders`), carried out
   there when they arrive.
 - **His court learns of his capture or death by word** (`kingLostWord`, `kingLostHeard`, news `KingTaken`; `KingDead`):
-  taken or killed apart from it, he commands from nowhere and its orders go out from the court, but it believes him where
-  he was (`GameState.kingHeard`: its view's `kingAt` and `seat`, and its own king shown as last known) and sees nothing of
-  it (the event is his captor's) until the word comes; a king back at his court first ends that.
+  taken or killed apart from it, he stands nowhere (`standsAt` is the court, which rules in his name), but it believes
+  him where he was (`GameState.kingHeard`, read by `kingAfield` and `seatOf`): its orders go out, its reports and the
+  court's business come, its view and its order checks are drawn, as from there, its own king is shown as last known, and
+  it sees nothing of it (the event is his captor's) until the word comes; a king back at his court, or his court come to
+  where it believes him, first ends that.
 - **He travels alone** (order `court` with `alone`, `travel_alone`): with his guard, for 5 shekels and 2 more for every
   ten days of road, as a company of 60, faster than his court (`KingAloneData`, first guesses), on the court's road rules
   (`GameState.kingRoads`, `alone`), stopped where a king besieges a city of his or has troops in land closed to him. Only

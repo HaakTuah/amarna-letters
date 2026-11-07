@@ -7,6 +7,7 @@
  * roads to him has troops; the province where his court stands taken loses it.
  */
 import { waysOf } from "../model/works.ts";
+import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { CourtData, KingAloneData, newKingRoad } from "../model/command.ts";
@@ -15,7 +16,7 @@ import type { CourtOrder } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
 import { alive, findCharacter, logEvent, notify } from "../model/state.ts";
 import { PointsPerDay, legPoints } from "../model/travel.ts";
-import { courtMoveCost, courtOf, kingRoute, seatOf, wordHomeAt } from "../rules/court.ts";
+import { courtLagOf, courtMoveCost, courtOf, kingAfield, kingRoute, standsAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { TurnEngine } from "./core.ts";
@@ -35,6 +36,8 @@ declare module "./core.ts" {
     courtsLost(): Map<Power, Power | null>;
     /** Who took `at` from `p` this season, or undefined; `court`: a court never moved counts its map capital lost if it is not his. */
     lostThisSeason(p: Power, at: string, court: boolean): Power | null | undefined;
+    /** Item 17b, part C: notes the season each person standing at a court came there (`GameState.cameToCourt`), after each phase's arrivals. */
+    cameToCourts(): void;
     /** Item 17b, part C: how late the court's business reaches each king apart from his court (`GameState.courtLag`), as things stand now. */
     courtLags(): void;
     /** Who may stop the king on the road in a province: a power besieging a city of his there, or one that closed its roads to him with troops there. */
@@ -62,7 +65,7 @@ P.setOutCourt = function (p, o) {
   if (alone && !S.kingAt.has(p)) S.kingAt.set(p, courtOf(S, this.map, p));
   S.kingRoads.push(newKingRoad({ power: p, to: o.to, route: r.route, leg: 0, along: 0, since: S.turn, alone }));
   const days = Math.max(1, Math.ceil(r.cost / PointsPerDay));
-  const who = alone ? "You set out with your guard, leaving your court where it is," : S.kingAt.has(p) ? "Your court sets out without you" : "You set out with your court";
+  const who = alone ? "You set out with your guard, leaving your court where it is," : kingAfield(S, p) !== undefined ? "Your court sets out without you" : "You set out with your court";
   notify(S, p, "Resolution", alone ? "You set out" : "The court sets out", `${who} for ${this.map.get(o.to).name}, for ${formatMoney(cost)}: about ${days} days of road.`);
   logEvent(S, "court", alone ? `The king of ${p} set out without his court for ${this.map.get(o.to).name}.` : `The court of ${p} set out for ${this.map.get(o.to).name}.`, [p], alone ? "king-alone" : "court-moves");
 };
@@ -98,9 +101,9 @@ P.kingsTravel = function () {
     place.set(p, at);
     // Through the besiegers of a city of his, or where a king who closed his roads to him has troops, his guard may not
     // get him through: each such place he passed this season, from where he set out to where he stops. A court without
-    // its king goes on.
+    // its king (as it knows: one taken apart from it was never with it) goes on.
     let stoppedBy: Power | null = null;
-    if (road.alone || !S.kingAt.has(p))
+    if (road.alone || kingAfield(S, p) === undefined)
       for (const x of road.route.slice(start, road.leg + 1)) {
         const q = this.kingStoppedAt(p, x);
         if (q === null || !rng.chance(RoadOdds.troops / 100)) continue;
@@ -114,16 +117,19 @@ P.kingsTravel = function () {
     }
     if (road.leg < road.route.length - 1) continue;
     S.kingRoads = S.kingRoads.filter((x) => x !== road);
-    // Item 17b, part C: the king and his court together again where one comes to the other.
-    const together = S.kingAt.tryGet(p) === courtOf(S, this.map, p) && !S.kingRoads.some((x) => x.power === p);
-    if (together) S.kingAt.delete(p);
+    // Item 17b, part C: the king and his court together again where one comes to the other (as it knows where he is).
+    const together = kingAfield(S, p) === courtOf(S, this.map, p) && !S.kingRoads.some((x) => x.power === p);
+    if (together) {
+      S.kingAt.delete(p);
+      S.kingHeard.delete(p);
+    }
     const text = together
       ? road.alone
         ? `You are back with your court in ${this.map.get(at).name}.`
         : `Your court has come to you in ${this.map.get(at).name}.`
       : road.alone
         ? `You are in ${this.map.get(at).name}, apart from your court: your orders go out from here.`
-        : S.kingAt.has(p)
+        : kingAfield(S, p) !== undefined
           ? `Your court is in ${this.map.get(at).name}: envoys and letters come to it there, and your treasury and archive are kept there.`
           : `You and your court are in ${this.map.get(at).name}: your orders go out from here.`;
     notify(S, p, "Resolution", road.alone ? "You arrive" : "The court arrives", text);
@@ -133,9 +139,20 @@ P.kingsTravel = function () {
 P.courtLags = function () {
   const S = this.s;
   S.courtLag.clear();
-  for (const [p, at] of S.kingAt) {
-    const t = wordHomeAt(S, this.map, at, courtOf(S, this.map, p), S.turn);
-    if (Number.isFinite(t) && t > S.turn) S.courtLag.set(p, t - S.turn);
+  for (const p of alive(S)) {
+    const lag = courtLagOf(S, this.map, p);
+    if (lag > 0) S.courtLag.set(p, lag);
+  }
+};
+
+P.cameToCourts = function () {
+  const S = this.s;
+  const was = S.cameToCourt;
+  S.cameToCourt = new Dict();
+  for (const c of S.characters) {
+    if (c.at === null || c.status === "Dead") continue;
+    const key = `${c.id}@${c.at}`;
+    S.cameToCourt.set(key, was.tryGet(key) ?? S.turn);
   }
 };
 
@@ -159,7 +176,7 @@ P.kingsTaken = function () {
       continue;
     }
     // Where he stands changed hands this season to another power: he is taken with it, or dies in its fall.
-    const by = this.lostThisSeason(p, seatOf(S, this.map, p), !S.kingAt.has(p));
+    const by = this.lostThisSeason(p, standsAt(S, this.map, p), !S.kingAt.has(p));
     if (by !== undefined) out.set(p, { by, city: true });
   }
   return out;

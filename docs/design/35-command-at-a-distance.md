@@ -72,8 +72,9 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 
 - **The court is the capital** (`GameState.court`, `courtOf`, `TurnEngine.courtAt`): travel, envoys, letters, archives
   and the fall read it where they read the map's capital before. **The king commands from where he is** (item 17b, part C,
-  [57](57-every-person.md)): his orders to his land and armies, their reports, what he sees and the units he stands with
-  read his seat (`seatOf`, `TurnEngine.seatAt`, `wordFromKing`), his court unless he stands apart from it.
+  [57](57-every-person.md)): his orders to his land and armies, their reports and what he sees read his seat as his court
+  knows it (`seatOf`, `TurnEngine.seatAt`, `wordFromKing`), his court unless he stands apart from it; the units he stands
+  with, where he physically stands (`standsAt`).
 - **Couriers** (`courierSeasons`): a lone traveller's pace on the fastest road; 0 where a courier makes it within the season
   (45 days of road). `sendOrders`: an order for a unit or place beyond that sets out with a courier (`GameState.couriers`),
   bound to its unit as a scheduled order is, and is carried out in the season it arrives; orders arriving join the season's

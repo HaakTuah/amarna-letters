@@ -18,7 +18,7 @@ import type { Power } from "../model/power.ts";
 import { findCharacter, logEvent, newId, notify } from "../model/state.ts";
 import { newUnit, type Unit, loseUnit } from "../model/units.ts";
 import { newJourney } from "../model/records.ts";
-import { courtOf, seatOf, wordFromKing, wordHomeAt } from "../rules/court.ts";
+import { courtOf, seatOf, standsAt, wordFromKing, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { placesNamed } from "../model/order-reading.ts";
@@ -65,7 +65,7 @@ P.commanderOf = function (u) {
 };
 
 P.kingWith = function (u) {
-  return seatOf(this.s, this.map, u.power) === u.province;
+  return standsAt(this.s, this.map, u.power) === u.province;
 };
 
 P.commandOf = function (u) {

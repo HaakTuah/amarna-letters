@@ -388,6 +388,11 @@ export interface GameState {
    * there is on its way; he commands from nowhere meanwhile, and its orders go out from the court.
    */
   kingHeard: Dict<Power, string>;
+  /**
+   * Item 17b, part C: the season each person standing at a court came to stand there, by `<character>@<court>`, by which
+   * one newly come reaches its king away from it as the notices of the court's business do (`broughtToKing`).
+   */
+  cameToCourt: Dict<string, number>;
   /** Item 13: the courts on the road, with their kings or without them; item 17b, part C: kings on the road alone. */
   kingRoads: KingRoad[];
   /** Item 13: orders on the road with the realm's couriers, from a king's court to where they are carried out. */
@@ -579,6 +584,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     court: new Dict(),
     kingAt: new Dict(),
     kingHeard: new Dict(),
+    cameToCourt: new Dict(),
     kingRoads: [],
     couriers: [],
     lettersCarried: new Dict(),
@@ -720,6 +726,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   court: dict(S),
   kingAt: dict(S),
   kingHeard: dict(S),
+  cameToCourt: dict(I),
   kingRoads: list(() => KingRoadSchema),
   couriers: list(() => CourierSchema),
   lettersCarried: dict(I),

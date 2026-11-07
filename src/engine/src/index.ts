@@ -17,7 +17,7 @@ export * from "./rules/factory.ts";
 export * from "./rules/greeting.ts";
 export * from "./rules/opening.ts";
 export * from "./rules/realm.ts";
-export { crownedIn, realmOfKing, seatOf, wordFromKing, wordHomeAt } from "./rules/court.ts";
+export { crownedIn, realmOfKing, seatOf, standsAt, wordFromKing, wordHomeAt } from "./rules/court.ts";
 export * from "./rules/wealth.ts";
 export * from "./rules/personas.ts";
 export * from "./rules/scoring.ts";

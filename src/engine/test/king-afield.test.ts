@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type AdjudicationResult, Dict, type GameState, OrderValidator, type Power, TurnEngine, type TurnSubmission, Views, inboxOf, notify, roads, moveCourt, newGame, newGameConfig, newId, newTurnSubmission, newUnit, seatOf, wordFromKing } from "@amarna/engine";
+import { type AdjudicationResult, Dict, type GameState, OrderValidator, type Power, TurnEngine, type TurnSubmission, Views, inboxOf, notify, roads, moveCourt, newCharacter, newGame, newGameConfig, newId, newTablet, newTabletCopy, newTurnSubmission, newUnit, seatOf, send, standsAt, wordFromKing } from "@amarna/engine";
 import { Assert, armiesBefore13, removeAll, smallWorld, subs } from "./support.ts";
 
 // Item 17b, part C: the king apart from his court, commanding from where he is, at the risk of his life.
@@ -67,8 +67,8 @@ describe("KingAfieldTests", () => {
     const e = new TurnEngine(s);
     s.owner.set("durkurigalzu", "Assyria");
     e.kingTaken("Babylonia", "Assyria", false);
-    // The court believes him at Dur-Kurigalzu; the realm commands and sees from its court.
-    Assert.equal(["babylon", "durkurigalzu"], [seatOf(s, e.map, "Babylonia"), Views.for(s, "Babylonia").seat]);
+    // The court believes him at Dur-Kurigalzu, and commands and sees as from there; he stands nowhere of his own.
+    Assert.equal(["durkurigalzu", "babylon", "durkurigalzu"], [seatOf(s, e.map, "Babylonia"), standsAt(s, e.map, "Babylonia"), Views.for(s, "Babylonia").seat]);
     Assert.doesNotContain(s.events, (x) => x.kind === "king-taken" && x.visibleTo.includes("Babylonia"));
     Assert.contains(s.events, (x) => x.kind === "king-taken" && x.visibleTo.includes("Assyria"));
   });
@@ -91,6 +91,51 @@ describe("KingAfieldTests", () => {
     Assert.single(s.couriers.filter((c) => c.power === "Egypt"));
   });
 
+  test("Taken far from his court, nothing his court sees or how its word travels changes before the word comes", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
+    const e = new TurnEngine(s);
+    s.kingAt.set("Egypt", "terqa");
+    const seen = () => {
+      e.courtLags();
+      const v = Views.for(s, "Egypt");
+      const refused = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [moveCourt("terqa", true)] })).rejected.map((r) => r.reason);
+      return { seat: v.seat, kingAt: v.kingAt, sight: [...Views.sight(s, e.map, "Egypt")].sort(), word: [e.wordTo("Egypt", "memphis"), e.wordFrom("Egypt", "memphis"), e.heardAt("Egypt", "memphis")], lag: s.courtLag.tryGet("Egypt"), refused };
+    };
+    const before = seen();
+    Assert.true((before.lag ?? 0) >= 1);
+    e.kingTaken("Egypt", "Hatti", false);
+    Assert.equal("Captured", kingOf(s, "Egypt").status);
+    Assert.equal(before, seen());
+    // His orders for the court's business still go to it by courier, as from where it believes him.
+    Assert.empty(e.sendOrders("Egypt", newTurnSubmission({ orders: [roads("Hatti", true)] })).orders);
+    Assert.single(s.couriers.filter((c) => c.power === "Egypt"));
+  });
+
+  test("What came to his court reaches a king far from it only as a courier brings it", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
+    const e = new TurnEngine(s);
+    s.kingAt.set("Egypt", "terqa");
+    const tablet = newTablet({ id: "t-new", text: "A new tablet.", proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti"] });
+    s.tablets.push(tablet);
+    s.copies.push(newTabletCopy({ id: "k-new", tabletId: tablet.id, holder: "Egypt", acquiredTurn: s.turn, source: "brought" }));
+    const old = newTablet({ id: "t-old", text: "An old tablet.", proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti"] });
+    s.tablets.push(old);
+    s.copies.push(newTabletCopy({ id: "k-old", tabletId: old.id, holder: "Egypt", acquiredTurn: -10, source: "brought", authResult: "The seals are genuine.", authTurn: s.turn }));
+    const guest = newCharacter({ id: "c-guest", name: "Guest" });
+    guest.status = "Free";
+    guest.at = "Egypt";
+    s.characters.push(guest);
+    e.cameToCourts();
+    const shown = () => {
+      const v = Views.for(s, "Egypt");
+      return { tablets: v.tablets.map((t) => t.tabletId).sort(), check: v.tablets.find((t) => t.tabletId === old.id)?.authResult ?? null, guest: [...v.court, ...v.known].some((c) => c.id === guest.id) };
+    };
+    Assert.equal({ tablets: [old.id], check: null, guest: false }, shown());
+    // Seasons later, the courier has brought it all.
+    s.turn += 8;
+    Assert.equal({ tablets: [old.id, tablet.id].sort(), check: "The seals are genuine.", guest: true }, shown());
+  });
+
   test("The treasury stays at the court: a far province does not reach it because the king stands there", () => {
     const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
     const e = new TurnEngine(s);
@@ -98,6 +143,21 @@ describe("KingAfieldTests", () => {
     const before = e.isFar("Egypt", "terqa");
     s.kingAt.set("Egypt", "terqa");
     Assert.equal([true, true], [before, e.isFar("Egypt", "terqa")]);
+    // So gold may still be sent there from the treasury, by the court's clock, not the king's.
+    Assert.empty(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [send("terqa", 10)] })).rejected);
+  });
+
+  test("A report from afar comes to a king away from his court by its own road, not by his court's", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
+    const e = new TurnEngine(s);
+    s.kingAt.set("Egypt", "terqa");
+    e.courtLags();
+    Assert.true(s.courtLag.getOrDefault("Egypt", 0) >= 1);
+    e.tellAt("Egypt", s.turn + 2, "SpyReport", "From afar", "A spy's report.", "memphis");
+    const word = Assert.single(s.journeys.filter((j) => j.news === "Realm"));
+    s.turn = word.arriveTurn;
+    e.wordArrives(word);
+    Assert.equal(word.arriveTurn, inboxOf(s, "Egypt").find((i) => i.title === "From afar")!.turn);
   });
 
   test("Dead away from his court, its king stays among its own people as it last knew him until the word comes", () => {
