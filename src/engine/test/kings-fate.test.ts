@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, OrderValidator, type Power, TurnEngine, captive, crownedIn, dismiss, king, kingFor, newGame, newGameConfig, newTurnSubmission, payRansom, realmOfKing, setCrowned } from "@amarna/engine";
+import { Dict, type GameState, OrderValidator, type Power, TurnEngine, captive, crownedIn, dismiss, king, kingFor, newGame, newGameConfig, newTurnSubmission, ownedBy, payRansom, realmOfKing, setCrowned } from "@amarna/engine";
 import { Lines } from "../src/model/heirs.ts";
 import { KingData } from "../src/turn/kings-fate.ts";
 import { Assert, smallWorld, subs } from "./support.ts";
@@ -118,6 +118,27 @@ describe("KingsFateTests", () => {
     Assert.equal("Employed", c.status);
     for (let i = 0; i < 12 && c.duty !== "Ruling"; i++) season(s);
     Assert.equal(["Ruling", "Egypt"], [c.duty, c.at]);
+  });
+
+  test("A namesake who reigns elsewhere is never taken for the record's heir", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const e = new TurnEngine(s);
+    const ugarit = kingOf(s, "Ugarit");
+    const aitakama = kingOf(s, "Qadesh");
+    aitakama.status = "Dead";
+    e.kingDied(aitakama, "for the test", e.courtAt("Qadesh"));
+    const heir = kingOf(s, "Qadesh");
+    Assert.notEqual(ugarit.id, heir.id);
+    Assert.equal(["Ruling", "Ugarit"], [ugarit.duty, ugarit.employer]);
+    Assert.equal("Ugarit", realmOfKing(s, ugarit.id));
+  });
+
+  test("A realm left holding nothing falls though its court stood abroad", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
+    s.court.set("Egypt", "hattusa");
+    for (const id of ownedBy(s, "Egypt")) s.owner.set(id, "Mitanni");
+    new TurnEngine(s).capitalsTaken();
+    Assert.contains("Egypt", s.eliminated);
   });
 
   test("A king walking home is not taken with his court's city", () => {

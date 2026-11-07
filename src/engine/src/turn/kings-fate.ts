@@ -170,6 +170,8 @@ P.kingDied = function (c, how, where) {
   const r = S.reigns.get(p);
   // His reign, and his player's game, end where he dies.
   S.reignsEnded.push({ power: p, character: c.id, since: r.since, until: S.turn, how });
+  // His seat wakes: a death concerns it, and a human player's heir is played by a script from now.
+  this.endSleep(p, "the king is dead");
   logEvent(S, "king-dies", `${c.name}, king of ${p}, died ${how}.`, [], "king-dies");
   // His court learns of it as word comes from where he died (at once, if he died there), and his heir reigns from then.
   const seat = this.courtAt(p);
@@ -215,7 +217,8 @@ function raiseHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): Charac
   // The next name on the record whose man is not already dead or held; past it, a son or brother drawn as facts.
   let at = was.line + 1;
   const living = (h: Heir): Character | null | undefined => {
-    const c = h.name === null ? undefined : S.characters.find((x) => x.name === h.name);
+    // The man of the record himself: one of the sources' people on the map by that name, never a namesake who reigns elsewhere.
+    const c = h.name === null ? undefined : S.characters.find((x) => x.name === h.name && x.attested && realmOfKing(S, x.id) === null);
     if (c === undefined) return null;
     return c.status === "Dead" || c.status === "Captured" ? undefined : c;
   };

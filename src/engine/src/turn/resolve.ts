@@ -522,8 +522,11 @@ P.raise = function (p, r) {
  * nearest city his realm still holds (`TurnEngine.kingTaken`); only a realm that holds nothing falls.
  */
 P.capitalsTaken = function () {
+  const S = this.s;
   const taken = this.kingsTaken();
-  for (const p of alive(this.s).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p) ?? null);
+  for (const p of alive(S).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p) ?? null);
+  // A realm left holding nothing falls, wherever its king is (one whose court stood abroad among them).
+  for (const p of alive(S).filter((x) => ownedBy(S, x).length === 0)) this.fall(p, S.owner.getOrDefault(this.courtAt(p), null));
 };
 
 P.fall = function (p, conqueror, ceded = false) {

@@ -62,7 +62,8 @@ class PageSeat implements ISeat {
     this.heir = heir;
   }
   decide(view: SeatView): Promise<TurnSubmission> {
-    if (this.out) return this.heir.decide(view);
+    // Played by a script from now, every season: it never sleeps (item 17b).
+    if (this.out) return this.heir.decide(view).then((s) => ({ ...s, stayAwake: true }));
     // Asked for orders, it is awake: a wish to wake made in the same season is spent.
     this.wakeNow = false;
     return new Promise((resolve) => {
