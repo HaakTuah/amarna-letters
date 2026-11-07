@@ -314,6 +314,8 @@ P.envoyArrivesAbroad = function (j) {
   S.audiences.push(aud);
   // Item 17+: the host reads in the sealed greeting the name the sender claims.
   this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null, j.dispatch!.sealed ?? 0);
+  // And whether he names himself Great King: a claim to the rank made in play is known where his greetings are read.
+  this.rankHeard(j.to, j.from, j.dispatch!.greeting);
   const trail = this.trail(j.dispatch!.trailId);
   if (trail !== null) trail.audienceTurn = S.turn;
 };

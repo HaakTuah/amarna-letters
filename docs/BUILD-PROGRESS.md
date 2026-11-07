@@ -127,6 +127,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
   holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 75.
   Report: `docs/rounds/2026-11-07-own-governors.md`.
+- ~~**A claim to the rank made in play (bug #777)**~~ (done, branch `fix/777-claims-in-play`): a king outside the seven
+  who names himself Great King in a greeting claims the rank, known where that greeting is read, and established as
+  Assyria's is. Save version 76. Report: `docs/rounds/2026-11-07-claims-in-play.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
