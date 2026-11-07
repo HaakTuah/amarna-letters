@@ -83,6 +83,10 @@ this branch, gives the "after" column below.
 
 ## Tests and benchmarks
 
-See the PR.
+- Save version 74 (73 is #773's): the biographies' lines, the servants' terms and the greetings the script kings read
+  all move a seed.
+- Tests that pinned the old wording follow it (`contract-text`, `cover-bot`, `rulebook-text`); the starting cast's
+  fingerprint is taken again. The sleeping seat's test (`file-seat`) plays seed 3: on seed 2 the script kings, no longer
+  taking a city's king for modest, sent Alashiya no envoy within its seven seasons.
 
 Questions for the owner: see the PR.
