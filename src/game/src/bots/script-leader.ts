@@ -9,7 +9,7 @@ import { vassalSeason } from "./vassals.ts";
 import { huntBands, huntOrders, worthHunting } from "./outlaws.ts";
 import { payOffOrders } from "./raiders.ts";
 import {
-  Natures,
+  natureTraits,
   drawTraits,
   AllPowers,
   Dict,
@@ -260,5 +260,5 @@ export function seatSeed(gameSeed: number, p: Power): number {
  * the tests; a seat reads its own king's from its view.
  */
 export function temperament(p: Power, gameSeed: number): Personality {
-  return personalityOf(p, drawTraits(gameSeed, p, (Natures as Record<string, { traits: readonly number[] } | undefined>)[p]?.traits ?? []));
+  return personalityOf(p, drawTraits(gameSeed, p, natureTraits(p)));
 }

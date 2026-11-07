@@ -41,8 +41,9 @@ part A, `state.ts` (at the 50 KB mark) was split by meaning (#800, the unit to `
 ### Readings taken
 
 - **Traits from deeds, the corrections as the item lists them** ("Attested characters"; pillar: period first). Akhenaten:
-  aggression 20, generosity 25, pride 90, diplomacy 40 (slow to answer, keeping envoys), honesty 40 (gilded wood for
-  the promised gold); he still sends debased gold in most games, as EA 27 and 29 complain. Suppiluliuma: patient
+  aggression 20, generosity 25 (gilded wood for the promised gold, EA 27 and 29, the design's evidence of an ungenerous
+  king), pride 90, diplomacy 40 (slow to answer, keeping envoys); honesty 50, middling, since no source shows him
+  betraying a friend (the design check's point: 40 counted the gilded wood twice). Suppiluliuma: patient
   (caution 60), diplomacy and cunning 80, aggression 70; honesty 50, so he breaks a treaty when it pays but never
   forges (a forger needs honesty under 40), since no source shows him forging. Tushratta: lavish (generosity 90),
   loyal (honesty 75), proud (85). Ashur-uballit: honesty 50, since the sources do not show it. Arzawa: no forgery
@@ -59,7 +60,10 @@ part A, `state.ts` (at the 50 KB mark) was split by meaning (#800, the unit to `
 - Tests that leaned on the old archetypes were moved to what the new kings do: the letters' slop guard takes five kings
   since Akhenaten writes little; the envoy test puts a giving king on Egypt's throne; the standing-order search starts
   at seed 5. Use against ignore does not apply: traits are who a king is, not a feature to use or leave.
-- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games ran and replayed exactly. Wins:
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`, on the first cut, Akhenaten's honesty 40): all 50 games ran and replayed exactly. Wins:
   Babylonia 19, Egypt 18, Hatti 3, Assyria 3, Kaska, Lukka, Mitanni and Azzi one each (17++++a's check: Babylonia 16,
   Egypt 14, Hatti 8, Assyria 4). Suppiluliuma, patient now where the archetype was impatient, wins less but grows most
   (mean growth 1.48); Akhenaten, unwarlike, still wins by holding. For item 18, which tunes the chances.
+- **Each nature's sources:** the Great Kings' natures name the dossier lines their deeds rest on and a grade (B from
+  deeds; Ashur-uballit C, his honesty unknown; Arzawa's G, a first guess), checked by the history-anchor test; the
+  Kurustama treaty Suppiluliuma broke is a new graded line in the politics dossier (`01-kurustama`).

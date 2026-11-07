@@ -40,7 +40,7 @@ only where deeds show the man; "then [S]" where the record stops. Who ruled in 1
   I** [A, C his kin] (about 1300; rebelled, was taken and made a vassal by Adad-nirari I) > **Wasashatta** [A] (son;
   rebelled again and sought Hatti's help, which "took his bribe" and never came [A]) > **Shattuara II** [A, C his kin]
   (beaten by Shalmaneser I, about 1260; Hanigalbat annexed), then none. Grayson, RIMA 1 (A.0.76.1, 3; A.0.77.1).
-- <a id="16-line-assyria"></a>**Assyria** (each the son of the one before [A: the Assyrian King List]):
+- <a id="16-line-assyria"></a>**Assyria** (each the son of the one before, except where marked [A: the Assyrian King List]):
   **Enlil-nirari** [A] (1327-1318; fought Kurigalzu II) > **Arik-den-ili** [A] (1317-1306; campaigned in the Zagros
   and against the Ahlamu) > **Adad-nirari I** [A] (1305-1274; warlike: beat Nazi-Maruttash and crushed Hanigalbat) >
   **Shalmaneser I** [A] (1273-1244; annexed Hanigalbat; boasts of blinding captives [A]) > **Tukulti-Ninurta I** [A]

@@ -17,12 +17,12 @@ Most behaviour switches on at a threshold. This table gives the share of games i
 | Fights kings who have done it no wrong (aggression > 0.55) | 0% | 100% | 0% | 0% | 100% | 71% | 0% |
 | ...even while another king leads (aggression > 0.8) | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 | Will fight the leader (aggression > 0.25) | 24% | 100% | 71% | 100% | 100% | 100% | 0% |
-| May betray a friend (honesty < 0.55) | 100% | 71% | 0% | 0% | 71% | 71% | 0% |
-| Sends debased gold (honesty < 0.45) | 71% | 24% | 0% | 0% | 24% | 24% | 0% |
+| May betray a friend (honesty < 0.55) | 71% | 71% | 0% | 0% | 71% | 71% | 0% |
+| Sends debased gold (honesty < 0.45) | 24% | 24% | 0% | 0% | 24% | 24% | 0% |
 | Forges (cunning > 0.7 and honesty < 0.4) | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
 | Plants spies (cunning > 0.55) | 0% | 100% | 0% | 0% | 71% | 0% | 0% |
 | Bribes envoys (cunning > 0.6) | 0% | 100% | 0% | 0% | 48% | 0% | 0% |
-| Lulls its war target (cunning × (1 − honesty) > 0.3) | 10% | 98% | 0% | 0% | 48% | 5% | 0% |
+| Lulls its war target (cunning × (1 − honesty) > 0.3) | 0% | 98% | 0% | 0% | 48% | 5% | 0% |
 | Turns captives (cunning > 0.65) | 0% | 100% | 0% | 0% | 24% | 0% | 0% |
 | Refuses the leader's tablets (caution < 0.6) | 48% | 48% | 24% | 100% | 100% | 95% | 0% |
 | Keeps its capital garrison with 3+ troops (caution > 0.5) | 95% | 95% | 100% | 24% | 24% | 48% | 100% |

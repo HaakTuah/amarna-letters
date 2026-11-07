@@ -1,8 +1,7 @@
 /**
  * The kings as persons (build order item 17b, "Attested characters" under Characters): no realm keeps a temper of its own;
  * each ruler has his own traits, set from what the sources show the man did, and a realm changes when its king does. The
- * kings of 1346 here; the record of the kings who followed in the courts dossier ("The kings who followed",
- * `docs/history/14-courts-and-free-cities.md`). Each game varies a king's traits by a seeded amount within a narrow band
+ * kings of 1346 here; the record of the kings who followed in `docs/history/16-the-kings-who-followed.md`. Each game varies a king's traits by a seeded amount within a narrow band
  * (`ReignData.vary`, about 10 points either way, as for every attested character), so the essence holds while no game is
  * the same. Every trait runs from 0 to 100.
  */
@@ -25,9 +24,16 @@ export interface KingNature {
   readonly epithet: string;
   readonly description: string;
   readonly traits: readonly number[];
+  /**
+   * The Great Kings' (item 17b): the dossier lines each deed rests on (checked by `history-anchors.test.ts`), and how sure
+   * the reading of the man is, by the dossiers' grades: B, an inference from his deeds most would share; G, a first guess
+   * where the sources are silent. The city-states' rulers rest on their rulers' lines (`RulerAnchors`) as item 11+ set them.
+   */
+  readonly anchors?: readonly string[];
+  readonly grade?: "B" | "C" | "G";
 }
 
-const n = (epithet: string, description: string, traits: readonly number[]): KingNature => ({ epithet, description, traits });
+const n = (epithet: string, description: string, traits: readonly number[], anchors?: readonly string[], grade?: "B" | "C" | "G"): KingNature => ({ epithet, description, traits, anchors, grade });
 
 /**
  * The rulers of 1346, from the politics and people dossiers: the Great Kings as the item names them, the city-states' as
@@ -39,37 +45,51 @@ export const Natures: Record<FixedPower, KingNature> = {
   Egypt: n(
     "the king of the sun-disc",
     "Proud and slow to answer, keeping foreign envoys for years; ungenerous with gold, sending gilded wood for the solid gold his father promised (EA 27, 29); unwarlike, though he could summon a vassal sternly (EA 162).",
-    [20, 60, 40, 60, 25, 90, 40, 40, 50, 60],
+    [20, 60, 50, 60, 25, 90, 40, 40, 50, 60],
+    ["01-akhenaten", "09-tushratta-statues", "09-tushratta-envoys", "01-aziru"],
+    "B",
   ),
   Hatti: n(
     "the patient conqueror",
     "Patient, a master of treaties and marriages, cunning, and aggressive when he strikes; he keeps the treaty forms, yet broke the Kurustama treaty with Egypt.",
     [70, 60, 50, 45, 45, 75, 80, 80, 60, 30],
+    ["01-suppiluliuma", "01-kurustama", "01-babylonia-hatti"],
+    "B",
   ),
   Babylonia: n(
     "keeper of the old order",
     "Proud of his rank, counting every shekel of a gift, refusing to call upstarts brother, and loyal to his treaty with Egypt.",
     [30, 65, 70, 75, 35, 95, 70, 40, 55, 60],
+    ["01-burna-buriash", "01-egypt-babylonia", "01-babylonia-assyria"],
+    "B",
   ),
   Mitanni: n(
     "the loving brother",
     "Lavish, loyal and proud, writing to Pharaoh as his equal and loving brother, and sending rich gifts to keep the friendship of his fathers.",
     [40, 45, 75, 30, 90, 85, 80, 35, 55, 50],
+    ["01-tushratta", "01-egypt-mitanni"],
+    "B",
   ),
   Assyria: n(
     "the upstart who would be brother",
     "Ambitious, claiming the brotherhood of the Great Kings and marrying his daughter into Babylon; his honesty the sources do not show.",
     [70, 45, 50, 55, 45, 80, 70, 60, 55, 45],
+    ["01-ashur-uballit", "01-egypt-assyria", "06-muballitat-sherua"],
+    "C",
   ),
   Arzawa: n(
     "the western opportunist",
     "Unknown in 1346: a first guess from his land's push east while Hatti was weak, ready to take land from a weak neighbour.",
     [60, 50, 50, 55, 40, 60, 55, 45, 50, 50],
+    ["01-tarhundaradu", "01-hatti-arzawa"],
+    "G",
   ),
   Alashiya: n(
     "the copper merchant",
     "A trader who keeps his word and calls Pharaoh brother, paying in copper rather than fighting.",
     [15, 75, 80, 55, 55, 50, 75, 35, 35, 95],
+    ["01-king-of-alashiya", "01-egypt-alashiya"],
+    "B",
   ),
 
   Kaska: n("the burner of Hattusa", "Chiefs of the hill villages who raid the Hittite lands and bow to no king.", [80, 30, 40, 60, 20, 50, 20, 50, 70, 10]),
@@ -117,6 +137,13 @@ export const Natures: Record<FixedPower, KingNature> = {
   Elam: n("the king beyond the circle", "A kingdom outside the Great Kings' circle, watching Babylon.", [50, 55, 50, 55, 35, 75, 40, 50, 60, 50]),
 };
 
+/** A power's king of 1346's traits as the sources show him; none (a middling ruler) for a power risen in play. */
+export function natureTraits(p: Power): readonly number[] {
+  return fixedNature(p)?.traits ?? [];
+}
+
+const fixedNature = (p: Power): KingNature | undefined => (Natures as Record<string, KingNature | undefined>)[p];
+
 /** First guesses (item 18 tunes them): how far a game varies each trait either way. */
 export const ReignData = { vary: 10 };
 
@@ -146,7 +173,7 @@ export function risenTraits(t: { ambition: number; courage: number; loyalty: num
 
 /** What is known of a power's king for display: a ruler of 1346's nature, or a risen ruler's story (his traits are his reign's). */
 export function natureOf(p: Power): { epithet: string; description: string } {
-  const fixed = (Natures as Record<string, KingNature | undefined>)[p];
+  const fixed = fixedNature(p);
   if (fixed !== undefined) return fixed;
   const r = risenOf(p);
   return { epithet: "the risen ruler", description: `${r?.king ?? "A ruler"}, who rules ${r?.land ?? p} in his own name${r === null || r.from === "" ? "" : `, once ${r.from}'s`}.` };

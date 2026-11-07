@@ -2,7 +2,7 @@
  * How a script king plays: his king's traits (item 17b, `model/kings.ts` in the engine), as weights from 0 to 1. No realm
  * keeps a temper of its own: the seat plays the man on its throne, as its view shows him, and a new king plays as himself.
  */
-import { KingTraitValues, Natures, natureOf, standout, type Power } from "@amarna/engine";
+import { KingTraitValues, natureOf, natureTraits, standout, type Power } from "@amarna/engine";
 
 export interface Personality {
   readonly epithet: string;
@@ -40,7 +40,7 @@ export function personalityOf(p: Power, traits: readonly number[]): Personality 
  * drew him; a ruler risen in play as a middling one.
  */
 export function archetype(p: Power): Personality {
-  return personalityOf(p, (Natures as Record<string, { traits: readonly number[] } | undefined>)[p]?.traits ?? []);
+  return personalityOf(p, natureTraits(p));
 }
 
 /** The three traits that stand out, for display (`standout` in the engine's `model/kings.ts`). */
