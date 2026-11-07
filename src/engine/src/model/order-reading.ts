@@ -32,6 +32,8 @@ export function describe(o: Order): string {
       return `set out with the court for ${named(o.to)}`;
     case "enlist":
       return `offer the chief of the band in ${named(o.province)} ${o.fee} shekels for his band to serve as your army for ${o.term} seasons`;
+    case "payOff":
+      return `offer the chief of the band in ${named(o.province)} ${o.fee} shekels to leave your land and keep out of it for ${o.term} seasons`;
     case "hold":
       return `${o.unit} holds`;
     case "move":

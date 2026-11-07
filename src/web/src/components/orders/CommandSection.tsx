@@ -8,6 +8,7 @@ import {
   bandCost,
   command,
   enlist,
+  payOff,
   govern,
   crown,
   answer,
@@ -198,10 +199,13 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         .map((x) => (
           <div className="row" key={`band-${x.province}`}>
             <small>
-              {x.chief}'s band of {x.men} in {provinceName(x.province)}, where your army stands
+              {x.chief}'s {x.raiders !== "" ? `${x.raiders}, ${x.men} from beyond the map,` : `band of ${x.men}`} in {provinceName(x.province)}, where your army stands
             </small>
             <button className="small" onClick={() => add(enlist(x.province, bandCost(x.men) * 4 * 3, 4))}>
               Offer {bandCost(x.men) * 4 * 3} shekels for four seasons' service
+            </button>
+            <button className="small" onClick={() => add(payOff(x.province, bandCost(x.men) * 4 * 3, 4))}>
+              Offer {bandCost(x.men) * 4 * 3} shekels to leave your land for four seasons
             </button>
           </div>
         ))}

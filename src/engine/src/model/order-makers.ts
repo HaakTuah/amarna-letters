@@ -8,7 +8,8 @@ import type { GreetingOptions, TabletProposal } from "./records.ts";
 import type { Authority, GrantKind } from "./authority.ts";
 import type { JobWhat } from "./people.ts";
 import type { Mandate } from "./command.ts";
-import type { HoldOrder, MoveOrder, SupportOrder, ConvoyOrder, BesiegeOrder, BuildOrder, RazeOrder, SallyOrder, SellOrder, PurchaseOrder, FeedOrder, SendOrder, CaravanOrder, TradeOrder, ShipOrder, TollOrder, DemandOrder, AnswerOrder, CensusOrder, WelcomeOrder, DeportOrder, ExpelOrder, ReturnRunawaysOrder, RaiseOrder, DisbandOrder, FoldOrder, CedeProvinceOrder, GiftUnitOrder, DispatchOrder, ReleaseOrder, SeekCandidatesOrder, HireOrder, RenewOrder, SeizeHoardOrder, SellDebtOrder, PayCarriersOrder, UpkeepOrder, CommandOrder, RelieveOrder, SupplyOrder, MandateOrder, GovernOrder, CrownOrder, UnseatOrder, EnlistOrder, CourtOrder, HuntOrder, HuntBandsOrder, PayFeeOrder, BorrowOrder, RepayOrder, BuyNewsOrder, DismissOrder, BackgroundCheckOrder, PlaceSpyOrder, RecallSpyOrder, StealOrder, GiftOrder, CounterIntelOrder, RoadsOrder, ClaimNameOrder, RevokeOrder, GrantOrder, RepudiateOrder, AssayOrder, AuthenticateOrder, ForgeOrder, CaptiveFate, CaptiveOrder, PayRansomOrder, LetterOrder, BuyLetterOrder, UnreadableOrder } from "./orders.ts";
+import type { HoldOrder, MoveOrder, SupportOrder, ConvoyOrder, BesiegeOrder, BuildOrder, RazeOrder, SallyOrder, SellOrder, PurchaseOrder, FeedOrder, SendOrder, CaravanOrder, TradeOrder, ShipOrder, TollOrder, DemandOrder, AnswerOrder, CensusOrder, WelcomeOrder, DeportOrder, ExpelOrder, ReturnRunawaysOrder, RaiseOrder, DisbandOrder, FoldOrder, CedeProvinceOrder, GiftUnitOrder, DispatchOrder, ReleaseOrder, SeekCandidatesOrder, HireOrder, RenewOrder, SeizeHoardOrder, SellDebtOrder, PayCarriersOrder, UpkeepOrder, CommandOrder, RelieveOrder, SupplyOrder, MandateOrder, GovernOrder, CrownOrder, UnseatOrder, EnlistOrder,
+  PayOffOrder, CourtOrder, HuntOrder, HuntBandsOrder, PayFeeOrder, BorrowOrder, RepayOrder, BuyNewsOrder, DismissOrder, BackgroundCheckOrder, PlaceSpyOrder, RecallSpyOrder, StealOrder, GiftOrder, CounterIntelOrder, RoadsOrder, ClaimNameOrder, RevokeOrder, GrantOrder, RepudiateOrder, AssayOrder, AuthenticateOrder, ForgeOrder, CaptiveFate, CaptiveOrder, PayRansomOrder, LetterOrder, BuyLetterOrder, UnreadableOrder } from "./orders.ts";
 
 export const hold = (unit: string): HoldOrder => ({ type: "hold", unit });
 export const command = (unit: string, character: string): CommandOrder => ({ type: "command", unit, character });
@@ -20,6 +21,7 @@ export const crown = (character: string, provinces: string[], tribute: number, p
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
 export const moveCourt = (to: string): CourtOrder => ({ type: "court", to });
 export const enlist = (province: string, fee: number, term: number): EnlistOrder => ({ type: "enlist", province, fee, term });
+export const payOff = (province: string, fee: number, term: number): PayOffOrder => ({ type: "payOff", province, fee, term });
 export const move = (unit: string, to: string, forced = false): MoveOrder => (forced ? { type: "move", unit, to, forced } : { type: "move", unit, to });
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });

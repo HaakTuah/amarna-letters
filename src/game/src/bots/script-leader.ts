@@ -6,7 +6,8 @@
  * playing in that king's character.
  */
 import { vassalSeason } from "./vassals.ts";
-import { huntBands, huntOrders } from "./outlaws.ts";
+import { huntBands, huntOrders, worthHunting } from "./outlaws.ts";
+import { payOffOrders } from "./raiders.ts";
 import {
   AllPowers,
   Dict,
@@ -156,6 +157,8 @@ export class ScriptLeader implements ISeat {
     nameClaims(board, orders);
     // The owner's answers to item 11b: armies fall on bands only by the king's order.
     huntOrders(board, orders);
+    // Item 17++++a: raiders it cannot break are paid to go home.
+    payOffOrders(board, orders, (x, army) => worthHunting(board, x, army));
     orders.splice(0, orders.length, ...collecting(board, orders));
     roadPolicy(board, brain, orders);
     // Tablets our envoys sealed beyond what we allow, and leave granted to kings turned foe (item 9).

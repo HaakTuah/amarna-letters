@@ -43,6 +43,7 @@ import "./trade.ts";
 import "./names.ts";
 import "./knowledge.ts";
 import "./bands.ts";
+import "./raiders.ts";
 import "./cession.ts";
 import "./falls.ts";
 import "./rulers.ts";

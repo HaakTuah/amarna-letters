@@ -38,6 +38,7 @@ export { RidePlay } from "./bots/rides.ts";
 export { TidingsPlay } from "./bots/tidings.ts";
 export { SpyCheckPlay } from "./bots/spy-check.ts";
 export { OutlawPlay } from "./bots/outlaws.ts";
+export { RaiderPlay } from "./bots/raiders.ts";
 export { VassalPlay } from "./bots/vassals.ts";
 export { CommandPlay } from "./bots/generals.ts";
 export { FreedomPlay } from "./bots/freedom.ts";

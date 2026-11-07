@@ -23,6 +23,7 @@ import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
 import { grantStandsFor, newGrantView } from "../model/authority.ts";
+import { raidersHome } from "../model/raiders.ts";
 import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newHeldLetterView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
@@ -216,7 +217,17 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     // Item 11b: the bands it sees, in its sight and in its own land (its people tell of them).
     bands: s.bands
       .filter((b) => seen.has(b.province) || s.owner.getOrDefault(b.province, null) === p)
-      .map((b) => newBandSeen({ province: b.province, men: b.men, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "", ship: b.ship })),
+      .map((b) =>
+        newBandSeen({
+          province: b.province,
+          men: b.men,
+          chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "",
+          ship: b.ship,
+          raiders: raidersHome(b.from)?.beyond.raids?.who ?? "",
+          captives: b.captives,
+          paidUntil: b.paidBy === p && s.turn <= b.paidUntil ? b.paidUntil : 0,
+        }),
+      ),
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
     unheardHere: s.unheard.filter((a) => a.host === p).map((a) => a.envoyId),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
@@ -739,6 +750,8 @@ function dutyText(c: Character): string {
       return `governing ${placeName(c.watchProvince)}`;
     case "Ruling":
       return "ruling in his own name";
+    case "Abroad":
+      return "gone beyond the map";
   }
 }
 

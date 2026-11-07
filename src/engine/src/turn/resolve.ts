@@ -8,7 +8,7 @@ import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from
 import { describe, placesNamed, told, unitOf } from "../model/order-reading.ts";
 import { placesKnown } from "../rules/units-known.ts";
 import { newTurnSubmission, type RejectedOrder, type TurnSubmission } from "../model/submission.ts";
-import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type LetterOrder, type BuyLetterOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
+import { type CourtOrder, type CommandOrder, type EnlistOrder, type PayOffOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type LetterOrder, type BuyLetterOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power, whose, powerName } from "../model/power.ts";
@@ -186,6 +186,8 @@ P.resolveSeason = function (submissions) {
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
   // Item 13: bands enlisted where an army of their new master stands with them.
   for (const [p, o] of all((o): o is EnlistOrder => o.type === "enlist")) this.enlistBand(p, o);
+  // Item 17++++a: bands paid to leave.
+  for (const [p, o] of all((o): o is PayOffOrder => o.type === "payOff")) this.payOffBand(p, o);
   // Item 13: governors raise their own levies where foreign troops threaten their provinces.
   this.governorsLevy();
   // The season's trades at the markets, grain handed to towns, and caravans setting out (item 9+a).

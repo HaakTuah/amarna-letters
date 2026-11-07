@@ -38,23 +38,13 @@ export function arrivalChance(baseline: number, living: number): number {
   return clamp(MoneyData.arrivalBase + Math.round((MoneyData.arrivalShort * (baseline - living)) / baseline), 0, MoneyData.arrivalMost);
 }
 
-function weighted<T>(rng: Rng, items: readonly T[], weight: (x: T) => number): T {
-  const total = items.reduce((a, x) => a + weight(x), 0);
-  let roll = rng.range(1, Math.max(1, total));
-  for (const x of items) {
-    roll -= weight(x);
-    if (roll <= 0) return x;
-  }
-  return items[items.length - 1];
-}
-
 /** At most one a season, from the stream "arrivals". */
 P.newcomers = function () {
   const S = this.s;
   const living = count(S.characters, (c) => c.status !== "Dead");
   const rng = this.r("arrivals");
   if (!rng.chance(arrivalChance(S.baseline, living) / 100)) return;
-  const door = weighted(rng, Doors, (d) => d.share);
+  const door = rng.weighted(Doors, (d) => d.share);
   const c = this.newcomer(rng, door);
   logEvent(S, "newcomer", `${c.name} came onto the map through ${door.name}.`, [], "newcomer");
 };
@@ -65,9 +55,9 @@ P.newcomers = function () {
  */
 P.newcomer = function (rng, door) {
   const S = this.s;
-  const reason = weighted(rng, ReasonValues, (r: Reason) => door.reasons[r]);
+  const reason = rng.weighted(ReasonValues, (r: Reason) => door.reasons[r]);
   const home = reason === "home";
-  const beyond: Beyond = weighted(rng, door.beyond, (b) => b.weight);
+  const beyond: Beyond = rng.weighted(door.beyond, (b) => b.weight);
   // A local coming home has his own court's name and tongue; anyone else his land's.
   const homeCourt: Power = home ? rng.pick(doorCourts(door)) : "Egypt";
   const style = Styles.find((st) => st.court === homeCourt)!;

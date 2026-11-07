@@ -5,6 +5,7 @@
  * to his besieged walls, and an army in a foe's land razing the relay stations his couriers ride by. Walls themselves are
  * the strategy's (`fortification` in statecraft-strategy.ts). Every figure it reckons with is the engine's own.
  */
+import { doorPolice, heeded, RaiderPlay } from "./raiders.ts";
 import {
   BandData,
   build,
@@ -147,11 +148,13 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     if (policed >= 2) break;
     const loose = v.provinces.find((p) => p.province === id)?.loose ?? 0;
     const bands = sum(
-      v.bands.filter((x) => x.province === id),
+      heeded(b.me, v.bands).filter((x) => x.province === id),
       (x) => x.men,
     );
-    if (loose < BandData.crowd / 2 && bands === 0) continue;
-    const want = Math.min(WorksData.Policing.most, Math.ceil(Math.min(300, Math.floor(loose / 40) + Math.floor(bands / 3) + (bands > 0 ? 50 : 0)) / PoliceMenPerLevel));
+    // Item 17++++a: on a coast where a door opens that raiders press through, enough to keep the most of them away.
+    const door = RaiderPlay.on(b.me) ? doorPolice(id) : 0;
+    if (loose < BandData.crowd / 2 && bands === 0 && door === 0) continue;
+    const want = Math.min(WorksData.Policing.most, Math.ceil(Math.max(door, Math.min(300, Math.floor(loose / 40) + Math.floor(bands / 3) + (bands > 0 ? 50 : 0))) / PoliceMenPerLevel));
     const now = own(v, "Policing", id)?.level ?? 0;
     if (want <= now + 2) continue;
     orders.push(build(id, "Policing", want, pay(buildGold("Policing", id, want - now))));

@@ -94,6 +94,8 @@ const o: BatchOptions = {
   spyCheckPlayHalf: false,
   noOutlawPlay: false,
   outlawPlayHalf: false,
+  noRaiderPlay: false,
+  raiderPlayHalf: false,
   noVassalPlay: false,
   vassalPlayHalf: false,
   noCommandPlay: false,
@@ -233,6 +235,13 @@ for (let i = 0; i < args.length; i++) {
     case "--outlaw-play-half":
       // Half the script kings neither hunt bands nor buy news (item 11b), alternating by seed.
       o.outlawPlayHalf = true;
+      break;
+    case "--no-raider-play":
+      o.noRaiderPlay = true;
+      break;
+    case "--raider-play-half":
+      // Half the script kings ignore the raiders from beyond the map (item 17++++a), alternating by seed.
+      o.raiderPlayHalf = true;
       break;
     case "--no-vassal-play":
       o.noVassalPlay = true;
@@ -561,7 +570,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-count-play --count-play-half --no-grant-play --grant-play-half --no-take-up-play --take-up-play-half --no-region-play --region-play-half --no-audit-play --audit-play-half --no-talk-play --talk-play-half --no-occupy-play --occupy-play-half --no-war-play --war-play-half --no-tidings-play --tidings-play-half --no-ride-play --ride-play-half --no-spy-check-play --spy-check-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --coffer-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-count-play --count-play-half --no-grant-play --grant-play-half --no-take-up-play --take-up-play-half --no-region-play --region-play-half --no-audit-play --audit-play-half --no-talk-play --talk-play-half --no-occupy-play --occupy-play-half --no-war-play --war-play-half --no-tidings-play --tidings-play-half --no-ride-play --ride-play-half --no-spy-check-play --spy-check-play-half --no-outlaw-play --outlaw-play-half --no-raider-play --raider-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --coffer-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -759,6 +768,8 @@ if (o.caravanPlayHalf && results.length > 0)
   console.log("\nScript kings that send their caravans through foreign land, sneaking where the roads are closed to them (\"current\") against those that keep them to their own land (\"baseline\"):" + versusReport(results, sides));
 if (o.outlawPlayHalf && results.length > 0)
   console.log("\nScript kings that hunt the bands in their land and buy news of their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.raiderPlayHalf && results.length > 0)
+  console.log("\nScript kings that police their coasts where raiders come in, and hunt, hire and pay off the raiders from beyond the map (\"current\") against those that ignore them (\"baseline\"):" + versusReport(results, sides));
 if (o.vassalPlayHalf && results.length > 0)
   console.log("\nScript players that pay their tribute while it is worth it, demand it of vassals in arrears, and offer vassalage either way (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.commandPlayHalf && results.length > 0)

@@ -277,7 +277,8 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling"] as const;
+/** "Abroad" (item 17++++a): gone home beyond the map, a raider chief with his spoils, until he comes back through his door. */
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling", "Abroad"] as const;
 export type Duty = (typeof DutyValues)[number];
 
 /**

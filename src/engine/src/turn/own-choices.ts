@@ -13,6 +13,7 @@ import { newMindRequest } from "../model/exchanges.ts";
 import { KillValues, newChiefView, newReportsView, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "../model/life.ts";
 import { remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
+import { raidersHome } from "../model/raiders.ts";
 import { findCharacter, logEvent, newId } from "../model/state.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { basePrice } from "./court.ts";
@@ -106,6 +107,11 @@ P.chiefView = function (c, b) {
     shipMen: BandData.shipMen,
     kill: c.chiefPlan?.kill ?? null,
     ending: endingWords(S, b.province),
+    home: ((h) => (h === null ? null : `${h.beyond.land}, beyond ${h.door.name}`))(raidersHome(b.from)),
+    canGoHome: b.from !== "" && this.canGoHome(b),
+    captives: b.captives,
+    paidBy: b.paidBy !== "" && S.turn <= b.paidUntil ? b.paidBy : null,
+    paidUntil: b.paidUntil,
   });
 };
 
@@ -144,6 +150,11 @@ P.chiefDecides = function (b, chief) {
   const S = this.s;
   const plan = freshPlan(chief.chiefPlan, S.turn);
   if (plan === null) return false;
+  // Item 17++++a: a raider chief who chose to go home does, if he can from where his band stands.
+  if (plan.home && b.from !== "" && this.canGoHome(b)) {
+    this.goHome(b, "he chose to");
+    return "gone";
+  }
   if (plan.giveUp) {
     remember(chief, S.turn, `I chose to give up the road in ${this.map.get(b.province).name}.`);
     this.wayBack(b, "he chose to");

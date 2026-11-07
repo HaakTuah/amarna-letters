@@ -35,6 +35,7 @@ export * from "./declarations.ts";
 export * from "./money.ts";
 export * from "./life.ts";
 export * from "./doors.ts";
+export * from "./raiders.ts";
 export * from "./bands.ts";
 export * from "./vassals.ts";
 export * from "./command.ts";

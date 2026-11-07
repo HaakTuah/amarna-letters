@@ -15,6 +15,7 @@ import {
   crown,
   moveCourt,
   enlist,
+  payOff,
   type MandateTask,
   type Engage,
   type Withdraw,
@@ -588,6 +589,8 @@ function other(x: Node): Order | null {
       return moveCourt(province);
     case "enlist_band":
       return enlist(province, Math.max(0, I(x, "gold")), I(x, "term"));
+    case "pay_off_band":
+      return payOff(province, Math.max(0, I(x, "gold")), I(x, "term"));
     case "hunt_bands":
       return hunt(province);
     case "hunt_bands_always":

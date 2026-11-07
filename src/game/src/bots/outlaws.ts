@@ -5,6 +5,7 @@
  */
 import { BandData, buyNews, cmpStr, hunt, huntBands as huntBandsOrder, sortBy, sum, move, type BandSeen, type Order, type Power, type SeatView } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { heeded } from "./raiders.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
@@ -30,7 +31,7 @@ const BandHunt = { loss: BandData.huntLoss, least: BandData.least };
  */
 export function huntBands(b: Board, plan: MilitaryPlan): void {
   if (!OutlawPlay.on(b.me)) return;
-  const bands = b.v.bands.filter((x) => x.men >= HuntMen && b.isMine(x.province) && worthHunting(b, x, sum(b.mine.filter((u) => u.kind === "Army"), (u) => u.men) / Math.max(1, b.mine.filter((u) => u.kind === "Army").length)));
+  const bands = heeded(b.me, b.v.bands).filter((x) => x.men >= HuntMen && b.isMine(x.province) && worthHunting(b, x, sum(b.mine.filter((u) => u.kind === "Army"), (u) => u.men) / Math.max(1, b.mine.filter((u) => u.kind === "Army").length)));
   if (bands.length === 0) return;
   const target = new Set(bands.map((x) => x.province));
   for (const u of sortBy([...b.mine], [(u) => u.province, cmpStr])) {
@@ -62,7 +63,7 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
 export function huntOrders(b: Board, orders: Order[]): void {
   if (b.v.huntBands) orders.push(huntBandsOrder(false));
   if (!OutlawPlay.on(b.me)) return;
-  for (const x of sortBy([...b.v.bands], [(x) => x.province, cmpStr])) {
+  for (const x of sortBy(heeded(b.me, b.v.bands), [(x) => x.province, cmpStr])) {
     if (!b.isMine(x.province)) continue;
     const army = b.mine.filter((u) => u.kind === "Army" && u.province === x.province).reduce((a, u) => a + u.men, 0);
     if (army > 0 && worthHunting(b, x, army)) orders.push(hunt(x.province));
@@ -70,7 +71,7 @@ export function huntOrders(b: Board, orders: Order[]): void {
 }
 
 /** A hunt by an army of `army` men ends the band, or drives it out of our land: it has no province of ours to flee to. */
-function worthHunting(b: Board, x: BandSeen, army: number): boolean {
+export function worthHunting(b: Board, x: BandSeen, army: number): boolean {
   const lost = Math.min(x.men, Math.floor((Math.floor((x.men * BandHunt.loss) / 100) * army) / (army + x.men)) + 1);
   if (x.men - lost < BandHunt.least) return true;
   return !Board.Map.movesFrom("Army", x.province).some((n) => n !== x.province && !Board.Map.get(n).isSea && b.isMine(n) && !b.unitAt.has(n));
