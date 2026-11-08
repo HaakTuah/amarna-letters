@@ -253,7 +253,7 @@ const Closings: Partial<Record<Power, readonly string[]>> = {
     "I do not leave my friends to stand alone.",
     "Ask the kings who stood with Hatti what my friendship was worth.",
     "No friend of Hatti has ever stood alone.",
-    "When my friends call, the chariots of Hatti come.",
+    "The Storm God of Hatti watches over my friends and their roads.",
   ],
   Arzawa: [
     "Write to me in my own tongue; my friends do.",

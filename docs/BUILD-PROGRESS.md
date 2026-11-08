@@ -207,7 +207,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | in progress, in six parts (the report lists them): A (no rule names a power; temperament a setting; save version 87) merged, #828; B (the scoreboard: par refreshed, the weight of size kept at 5 while #825 waits, the land's fixed multiple kept, bold and careful counted; save version 88) on `item/balance-b`. **Pick up at part C** (length and war) on a fresh branch from `develop`; then D (money and characters, re-measuring bold and careful), E (script spending as investment), F (the audit, par refreshed once more), then stop for review | `item/balance-b` | `docs/rounds/2026-11-07-balance-pass.md` |
+| 18 | The balance pass | in progress, in six parts (the report lists them): A (no rule names a power; temperament a setting; save version 87) merged, #828; B (the scoreboard: par refreshed, the weight of size kept at 5 while #825 waits, the land's fixed multiple kept, bold and careful counted; save version 88) on `item/balance-b`. **Pick up at part C** (length and war) on a fresh branch from `develop`; then D (money and characters, bold and careful tuned), E (script spending as investment; whether kings build, give, campaign or hoard, and the last seasons), F (the audit: par refreshed once more, win rates on seeds 1-100 and 101-200, Mitanni below par), then stop for review | `item/balance-b` | `docs/rounds/2026-11-07-balance-pass.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |

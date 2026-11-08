@@ -14,9 +14,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **The weight of size** stays 5 percent (`GameConfig.sizeWeight`, the one place it is set), the owner's answer of
   29 October 2026 to item 11e; question #825 asks whether it should be half and half, and his answer is that one number.
 - **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth at reference
-  prices). Par ranks each power against its own start, so the multiple moves no power's chance of first place; the
-  alternative, the gold the land can still yield in the seasons likely left, would move every score as the omens darken
-  with no wealth moving, against "every movement of wealth scores itself" (Victory). The script kings already value a
+  prices): the alternative, the gold the land can still yield in the seasons likely left, would move every score as the
+  omens darken with no wealth moving, against "every movement of wealth scores itself" (Victory). The script kings already value a
   province by the seasons they believe are left (`Board.baseValue`, [29](29-answers-to-11plus.md)).
 - **Bold and careful characters** ("Bold or careful, one goal"): the batch summary says how many of the five
   best-placed living characters in each game took the bold road (`Character.bold`), against the share of bold

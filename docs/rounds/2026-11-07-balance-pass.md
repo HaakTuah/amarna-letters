@@ -16,11 +16,14 @@ what comes before it:
 - **C. Length and war:** the default cap and median of the random ending; the pace of war (sieges, marching, slow
   absorption); whether capitals fall in most games (pillar 8); standing orders and commanders; wars that begin and end.
 - **D. Money and characters:** characters' costs, lending, the gift threshold, the pool's size, markets' purses, fees
-  and servants (no court starved of carriers or tongues).
+  and servants (no court starved of carriers or tongues); bold and careful characters re-measured and tuned until both
+  roads reach the top at comparable rates (part B found the careful ahead, also measured after part C).
 - **E. Script kings' spending as investment:** gifts, bribes and tribute judged by expected return; the darkest seasons'
-  grabs; courts playing distinctly; how close their best options are.
+  grabs; courts playing distinctly; how close their best options are; whether kings build, give and campaign or sit on
+  their treasure, and what the last seasons look like (the wealth of a realm's two checks, from part B).
 - **F. The audit:** par refreshed once more on the tuned play; every feature passes use against ignore; the people 17+ added judged by what they did (the list to
-  the owner); starting positions, banditry and far provinces against the sources. Then **stop for review**.
+  the owner); starting positions, banditry and far provinces against the sources; win rates per power on the item's
+  full seed sets (1-100 and 101-200), Mitanni's standing below par among them. Then **stop for review**.
 
 ## Part A: before tuning
 
@@ -96,13 +99,15 @@ refuses this account; the copy on `develop` has not changed since part A began.
 
 - **The weight of size stays as built, 5 in a hundred**, the owner's last answer (29 October, to item 11e), while #825
   is open (the orchestrator's brief; "Unattended work"). It is set in one place, so his answer is one line.
-- **The land stays at a fixed multiple** ("The wealth of a realm"; "every movement of wealth scores itself"): par ranks
-  each power against its own start, so the multiple moves no power's chance; land valued by the seasons left would
-  move every score as the omens darken while nothing changed hands.
-- **Bold and careful are comparable for now; part D re-measures** ("Bold or careful, one goal": "if one road always
-  wins, the numbers are tuned"): neither road always wins (the careful hold 47% of the top places, from 38% of the
-  characters), and the numbers either road earns by (lending, fees, characters' costs) are part D's to tune, so tuning
-  them here would be done twice.
+- **The land stays at a fixed multiple** ("The wealth of a realm": fixed values, and "every movement of wealth scores
+  itself"): land valued by the seasons left would move every score as the omens darken while nothing changed hands.
+  How the land weighs in what the kings do (build, give, campaign or sit on their treasure; the last seasons) is
+  measured in part E, where their spending is tuned.
+- **Bold and careful are not yet comparable; part D tunes them** ("Bold or careful, one goal": "if one road always
+  wins, the numbers are tuned"): the careful hold 47% of the top places from 38% of the characters, about 1.45 times
+  the bold's rate a head and about three standard deviations from parity, so the gap is real. The numbers either
+  road earns by (lending, fees, characters' costs) are part D's to tune, and part C changes the bold road's risks, so
+  tuning them here would be done twice; it is measured after C and tuned in D.
 - **One refresh of par, not a chase for a fixed point** ("Balance: first guesses during the build"): par steers the
   scripts' play, so each refresh moves the play it measures; one refresh, checked on its own seeds, puts every Great
   King but Mitanni within 0.07 of par, and parts C to E change the play again, so par is refreshed once more at the
