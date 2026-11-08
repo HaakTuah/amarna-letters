@@ -91,6 +91,16 @@ export class ScriptLeader implements ISeat {
     brain.learn(view, new Board(view));
   }
 
+  /**
+   * How close the calls of the season it last decided for a power were ({@link Brain.margins}): the closer of its war choice
+   * and its plan, 0 for a coin toss to 1 for an obvious call, or null where it made neither.
+   */
+  marginOf(p: Power): number | null {
+    const m = this.brains.tryGet(p)?.margins;
+    const xs = m === undefined ? [] : [m.war, m.plan].filter((x): x is number => x !== null);
+    return xs.length === 0 ? null : Math.min(...xs);
+  }
+
   /** The memory this bot keeps for a power, if it has played or watched it. */
   brainOf(p: Power): Brain | null {
     return this.brains.tryGet(p) ?? null;
@@ -107,12 +117,13 @@ export class ScriptLeader implements ISeat {
     const board = new Board(view, brain.remembered(view), brain.treasury, brain.offersRead);
     const rng = brain.r(view.turn, "decide");
 
+    brain.margins = { war: null, plan: null };
     heardRepudiations(board, brain);
     // The vassal bonds we know, the overlord we still serve and the tribute we owe this year (item 11+).
     vassalSeason(board, brain);
     Statecraft.strategy(board, brain, rng);
     const plan = Tactics.make(board, brain);
-    Search.improve(board, brain, plan, brain.r(view.turn, "search"));
+    brain.margins.plan = Search.improve(board, brain, plan, brain.r(view.turn, "search"));
     Tactics.besiege(board, brain, plan);
     // Guests by passage move on, or they overstay and take a friend's land (item 9).
     keepMoving(board, plan);
