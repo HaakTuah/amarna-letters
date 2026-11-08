@@ -423,13 +423,12 @@ are not set beside these.)
 - **The darkest seasons' grabs** (the item: raising taxes, keeping grain from hungry towns, seizing hoards, leaving fees
   unpaid): under grave or darker omens the script kings raise a province's share of the harvest about as often as in the
   middle (0.28 a season against 0.27; most rises come in the opening, 0.53, as they set their first taxes) and leave a
-  hungry countryside unfed more often (0.16 against 0.10), but seize no hoards and withhold no fees. The unfed countryside
-  is no end grab: the script kings' grain sums never read the seasons left (`bots/grain.ts`, `bots/land.ts`); a
-  countryside is fed only from the stores beyond what its troops' depots need (two seasons of food for the units they
-  supply, and more on a frontier with armies beside it), and a besieged city's stores cannot be sent at all, so it rises
-  with the wars and sieges of the later age; and they still hire,
-  0.25 jobs a season against 0.35. The random ending keeps the seasons a king
-  believes are left long (about 86 at the start, 48 at season 60, 41 at season 80: `seasonsLeft`), so a good name never
+  hungry countryside unfed more often (0.16 against 0.10), but seize no hoards and withhold no fees; and they still hire,
+  0.25 jobs a season against 0.35. The unfed countryside is no end grab: the script kings' grain sums never read the
+  seasons left (`bots/grain.ts`, `bots/land.ts`); a countryside is fed only from the stores beyond what its troops'
+  depots need (two seasons of food for the units they supply, and more on a frontier with armies beside it), and a
+  besieged city's stores cannot be sent at all, so it rises with the wars and sieges of the later age. The random ending
+  keeps the seasons a king believes are left long (about 86 at the start, 48 at season 60, 41 at season 80: `seasonsLeft`), so a good name never
   stops paying, and a rule to grab at the end would grab nearly as readily in the middle. Principle: the kings know only
   what the omens tell them ("never the drawn last season"); a grab that pays only to one who knows the end is not taken,
   and none was built.
