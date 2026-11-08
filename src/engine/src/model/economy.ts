@@ -166,7 +166,7 @@ export const EconomyData = {
   boatEatPercent: 4,
   caravanPayPer: 10,
   caravanOutlawPercent: 1,
-  breachPerLevel: 3,
+  breachPerLevel: 6,
 } as const;
 
 const NoEconomy: ProvinceEconomy = e(0, "Thin");

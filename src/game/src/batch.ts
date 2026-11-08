@@ -2,6 +2,7 @@
 import { pulseOf, pulseReport, type Pulse } from "./pulse.ts";
 import {
   ClauseKindValues,
+  isAlive,
   standingOf,
   type Clause,
   AllPowers,
@@ -59,6 +60,8 @@ export interface FallMeasure {
   conqueror: Power | null;
   fromConquerorEntry: number | null;
   fromFirstEntry: number | null;
+  /** Seasons for a letter from the fallen court to its conqueror's and the reply back, each leg by its own road (pillar 8), at the game's end; older summaries have none. */
+  reply?: number | null;
 }
 
 export interface GameSummary {
@@ -270,13 +273,16 @@ export function greatWarOf(s: GameState): string | null {
   return f <= b ? "capital" : "vassal";
 }
 
-export function fallsOf(s: GameState): FallMeasure[] {
+export function fallsOf(s: GameState, engine: TurnEngine): FallMeasure[] {
   return s.falls.map((f) => {
+    // The letter there and the reply back: each leg by its own road, since the winds and currents differ.
+    const court = f.conqueror !== null && isAlive(s, f.conqueror) ? engine.courtAt(f.conqueror) : null;
+    const there = court === null ? null : engine.travelTurnsBetween(f.capital, court) + engine.travelTurnsBetween(court, f.capital);
     const by = s.invaded.tryGet(f.power) ?? null;
     const since = (entry: number | null): number | null => (entry !== null ? f.turn - entry + 1 : null);
     const mine = f.conqueror !== null && by !== null ? (by.tryGet(f.conqueror) ?? null) : null;
     const first = by !== null && by.size > 0 ? min([...by.values()], (x) => x) : null;
-    return { power: f.power, turn: f.turn, conqueror: f.conqueror, fromConquerorEntry: since(mine), fromFirstEntry: since(first) };
+    return { power: f.power, turn: f.turn, conqueror: f.conqueror, fromConquerorEntry: since(mine), fromFirstEntry: since(first), reply: there !== null && Number.isFinite(there) ? there : null };
   });
 }
 
@@ -357,7 +363,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     standingKept,
     standingFired: sum(AllPowers, (p) => inboxOf(s, p).filter((i) => i.kind === "Resolution" && i.title.startsWith("Standing order ") && i.title.endsWith(" fired")).length),
     seed,
-    falls: fallsOf(s),
+    falls: fallsOf(s, engine),
     greatWar: greatWarOf(s),
     pulse: pulseOf(s),
     turns: s.scores.length === 0 ? 0 : max(s.scores, (x) => x.turn),
@@ -400,6 +406,15 @@ export function warReport(games: readonly GameSummary[]): string[] {
       : `median ${median(xs)}, range ${min(xs, (x) => x)}-${max(xs, (x) => x)}, ${fmt((100.0 * xs.filter((x) => x >= 5 && x <= 10).length) / xs.length, "0")}% within 5-10`;
   out.push(`  Seasons from the conqueror's first entry into the fallen king's land to the fall: ${spread(falls.filter((f) => f.fromConquerorEntry !== null).map((f) => f.fromConquerorEntry!))}.`);
   out.push(`  From anyone's first entry into it: ${spread(falls.filter((f) => f.fromFirstEntry !== null).map((f) => f.fromFirstEntry!))}.`);
+  // Pillar 8 ("War is slower than diplomacy"; item 18, part C): the kingdoms that fell sooner after their conqueror's entry
+  // than a letter from their court to his and its reply take (measured where the conqueror still reigns at the end).
+  const timed = falls.filter((f) => f.fromConquerorEntry !== null && f.reply != null);
+  const quick = timed.filter((f) => f.fromConquerorEntry! < f.reply!);
+  const quickBy = sortBy([...new Set(quick.map((f) => f.power))], [(p: Power) => -quick.filter((f) => f.power === p).length, cmpNum], [(p: Power) => p, cmpStr]);
+  out.push(`  A letter to the conqueror and its reply: ${timed.length === 0 ? "none" : `median ${median(timed.map((f) => f.reply!))} seasons`}; fallen faster than that after his entry: ${quick.length} of ${timed.length}${quick.length > 0 ? ` (${quickBy.map((p) => `${p} ${quick.filter((f) => f.power === p).length}`).join(", ")})` : ""}.`);
+  // A fall is a realm left holding nothing (item 17b), so a Great King's capital was taken in at least as many games.
+  const great = new Set<Power>(GreatKings);
+  out.push(`  A Great King's realm fell (held nothing) in ${games.filter((g) => g.falls.some((f) => great.has(f.power))).length} of ${games.length} games.`);
   out.push(`  Kingdoms fallen: ${AllPowers.map((p) => `${p} ${falls.filter((f) => f.power === p).length}`).join(", ")}.`);
   return out;
 }

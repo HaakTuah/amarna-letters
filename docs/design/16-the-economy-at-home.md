@@ -94,7 +94,8 @@ marches armies by distance.
 ### Sieges
 
 A city falls by hunger (it was `starving` as the season began and the siege still stands) or by a breach, once its wear
-reaches `breachPerLevel` 3 for each level of its walls (it was the walls' level until 9+a). Wear still advances as in
+reaches `breachPerLevel` 6 for each level of its walls (it was the walls' level until 9+a; 3 until item 18, part C,
+[58](58-the-balance-pass.md)). Wear still advances as in
 item 5 (a step, two with an uncut support, less when the city is supplied by sea). An unblockaded coastal city is fed from
 the sea and ate nothing from its stores until item 9+b; since then ships carry its grain (`17-the-economy-abroad.md`). Water inside the
 walls is not built: the dossiers give no city's wells, so every city holds as long as its food (reading in the report).
