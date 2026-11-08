@@ -19,7 +19,7 @@ what comes before it:
   and servants (no court starved of carriers or tongues).
 - **E. Script kings' spending as investment:** gifts, bribes and tribute judged by expected return; the darkest seasons'
   grabs; courts playing distinctly; how close their best options are.
-- **F. The audit:** every feature passes use against ignore; the people 17+ added judged by what they did (the list to
+- **F. The audit:** par refreshed once more on the tuned play; every feature passes use against ignore; the people 17+ added judged by what they did (the list to
   the owner); starting positions, banditry and far provinces against the sources. Then **stop for review**.
 
 ## Part A: before tuning
@@ -72,3 +72,64 @@ Started from `develop` at 4a7be3d (17b's milestone merged, #827).
 ### Questions for the owner
 
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825) (still open; part B needs it).
+
+## Part B: the scoreboard
+
+Started from `develop` at dbccc06 (part A's milestone, #829, merged). The check for changes: the live document still
+refuses this account; the copy on `develop` has not changed since part A began.
+
+### What was built
+
+- **Par refreshed** (`scripts/sim.sh --games 50 --seed 101 --par-out`, 24 minutes): the powers' and the characters' par
+  from the same 50 games, on the rules as part A left them. Against the old powers' par (measured before 17b's parts
+  changed who falls), the strong powers grow more and the middle ones fall more: Egypt's median growth 0.89 to 1.25,
+  Hatti's 1.03 to 1.74, Babylonia's 0.93 to 1.22; Assyria fell in 28 games (10), Mitanni in 12 (3), Arzawa in 14 (6).
+  On the old par these same games went to Egypt 22, Babylonia 14 and Hatti 10.
+- **Hatti's closings, five** (`bots/voices.ts`, presentation only): with four, one line stood in 7 of 12 of a test
+  game's letters once play moved, against "no script king repeats one sentence in most of his letters".
+- **Bold and careful counted**: the batch summary gives the share of bold characters among each game's five
+  best-placed living characters, against their share of all characters.
+- **Kept**: the weight of size at 5 percent, one number (`GameConfig.sizeWeight`), so the owner's answer to #825 is a
+  one-line change; the land at its fixed multiple (`provinceWeight` 10). Save version 88.
+
+### Readings taken
+
+- **The weight of size stays as built, 5 in a hundred**, the owner's last answer (29 October, to item 11e), while #825
+  is open (the orchestrator's brief; "Unattended work"). It is set in one place, so his answer is one line.
+- **The land stays at a fixed multiple** ("The wealth of a realm"; "every movement of wealth scores itself"): par ranks
+  each power against its own start, so the multiple moves no power's chance; land valued by the seasons left would
+  move every score as the omens darken while nothing changed hands.
+- **Bold and careful are comparable for now; part D re-measures** ("Bold or careful, one goal": "if one road always
+  wins, the numbers are tuned"): neither road always wins (the careful hold 47% of the top places, from 38% of the
+  characters), and the numbers either road earns by (lending, fees, characters' costs) are part D's to tune, so tuning
+  them here would be done twice.
+- **One refresh of par, not a chase for a fixed point** ("Balance: first guesses during the build"): par steers the
+  scripts' play, so each refresh moves the play it measures; one refresh, checked on its own seeds, puts every Great
+  King but Mitanni within 0.07 of par, and parts C to E change the play again, so par is refreshed once more at the
+  end of the pass (part F).
+- **Par moves the save version** ("new rules mean a new save version"): the scripts' play and a game's final scores
+  and winner change with it.
+
+### Script players and the measure
+
+- **Seeds 1-50 on the new par** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): every game replayed exactly;
+  the script kings read par in play (`Board.growth` ranks every rival by it), so the play moved as well as the
+  scores. First place: the Great Kings 15 (Assyria 5, Hatti 3, Arzawa 3, Egypt 2,
+  Babylonia 2, Mitanni and Alashiya none), the city-states 25 (18 of them; Seha and Amurru 3 each), characters 10.
+  Mean standing (1 is par): Egypt 1.00, Hatti 0.82, Babylonia 1.08, Mitanni 0.79, Assyria 1.02, Arzawa 1.14, Alashiya
+  1.10. So par holds the Great Kings near even among themselves and Egypt's mines carry it no further than par allows;
+  the weight of size is what still gives a Great King (about 2 games each) more than a city-state (under 1 each), and
+  a character stands first in 10 games against 2 on the old par, since a well-measured par puts the best of a game's
+  370 characters near the top of his ranking as often as the best king.
+- **Par is close to settled**: measured again on seeds 101-150 under the play the new par makes, the Great Kings
+  stood at Egypt 1.02, Hatti 0.97, Babylonia 1.06, Assyria 1.06, Arzawa 0.99, Alashiya 1.07 and Mitanni 0.75; first
+  place went to kings in 39 games and characters in 11. The par from that run would itself move play again, so the
+  first measure is kept (the readings).
+- **Bold and careful**: of the five best-placed living characters, 53% were bold (132 of 250), against 62% of all
+  characters (9,991 of 16,239): a careful character reached the top five about 1.4 times as often as a bold one.
+- **No new lever**: part B changes what is counted, not what a player can do, so no use against ignore.
+
+### Questions for the owner
+
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825) (still open; part B's numbers added to it).
+- [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; part B does not depend on it).

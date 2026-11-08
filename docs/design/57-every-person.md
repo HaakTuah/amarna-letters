@@ -167,7 +167,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
 - **Where it is shown**: the end event names the first ten (`placing`); the web app's Standings shows the whole board
   once the age has ended, to every viewer, and the season's end notice points to it; the batch prints the top three
   after each game's result line (the whole with `--detail`, `boardLine`), and its summary how often a king and a
-  character stood first, how rich the richest character was and where all characters' gold came from. During play a
+  character stood first, how many of the best-placed characters took the bold road ([58](58-the-balance-pass.md)), how rich the richest character was and where all characters' gold came from. During play a
   character knows its own wealth, never the board. Kings read how they are scored in their rulebook (HOW YOU WIN), and
   characters their goal (`strategyText`).
 
