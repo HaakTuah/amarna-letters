@@ -39,10 +39,11 @@ Since item 8 every letter, tablet and answer of theirs is also set out in clause
 - **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, gifts and tribute, and pleas for relief go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
 - **Gifts as investments** (item 18 part E; `bots/investment.ts`; "Gold is a lifeline"). Every gift, bribe and gift in
   return is judged by what it buys against what it costs, the same shekels off the king's score. The king pictures the
-  receiver as a court like his own: gold weighed warms its trust in him (a shekel 1/400, at most 0.25 for 100), trust
-  cools its hostility (0.3 a point) and fades 5% a season, and less hostility is a smaller chance each season (0.1 of the
-  hostility) that it marches on what of his lies next to its land or troops, an attack taking half of it, over the
-  seasons he believes are left. A gift cools no more than the receiver's hostility, as the king reckons it, has left to
+  receiver as a court like his own, by the rules its own trust follows (`TrustRules` in `bots/brain.ts`): gold weighed
+  warms its trust in him (a shekel 1/400, at most 0.25 for 100), trust cools its hostility (0.3 a point) and fades 5% a
+  season, and less hostility is a smaller chance each season (0.1 of the hostility, times its troops against his as its
+  own war choice weighs them, `warOdds`) that it marches on what of his lies next to its land or troops, an attack taking
+  half of it, over the seasons he believes are left. A gift cools no more than the receiver's hostility, as the king reckons it, has left to
   fall to its floor (`HostilityFloor`, 0.05): gold to a king who already means him no harm buys nothing. The gift that returns most beyond its cost is sent, up to what is spare; none if none
   pays, so gifts go to dangerous neighbours rather than far friends (#841 to the owner), and their worth falls as the
   seasons a king believes are left grow fewer. Generosity is how much

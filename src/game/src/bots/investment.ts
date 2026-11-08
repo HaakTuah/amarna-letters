@@ -2,9 +2,8 @@
  * Gold sent abroad as an investment (item 18, part E; "Gold is a lifeline": "nobody hands gold out unless he believes it
  * buys a greater benefit on average, over a time he can name ... script kings judge gifts and bribes the same way, as
  * investments with an expected return, rather than by a generosity threshold"). A script king pictures the receiver as a
- * court like his own: gold weighed at an audience warms its king's trust in the giver (`Brain`'s audiences: a shekel buys
- * `trustPerShekel`, at most `trustMost`), trust cools his hostility (`Brain.hostility`: `hostilityPerTrust` a point), and
- * trust fades back by `trustFades` a season. Less hostility is a smaller chance each season that he marches on what of
+ * court like his own, by the rules its own trust follows (`TrustRules`): gold weighed at an audience warms its king's trust
+ * in the giver, trust cools his hostility, and trust fades back a little each season. Less hostility is a smaller chance each season that he marches on what of
  * ours lies within his reach, and the gift is worth that over the seasons the king believes are left (`Board.horizon`),
  * against its cost: the same shekels off his own score. A gift that returns less than it costs is not sent, and a gift's
  * worth falls as the seasons he believes are left grow fewer. How much a king believes goodwill is worth is his own: a
@@ -16,7 +15,7 @@
 import { Board } from "./board.ts";
 import type { Power } from "@amarna/engine";
 import type { Personality } from "./personality.ts";
-import { HostilityFloor, warOdds, type Brain } from "./brain.ts";
+import { HostilityFloor, TrustRules, warOdds, type Brain } from "./brain.ts";
 
 /** Whether a king gives gifts at all; off only to measure what they are worth (`--gift-play-half`). */
 export const GiftPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -28,15 +27,11 @@ export const GiftPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me
 };
 
 export const InvestData = {
-  trustPerShekel: 1 / 400,
-  trustMost: 0.25,
-  hostilityPerTrust: 0.3,
-  trustFades: 0.05,
   attackPerHostility: 0.1,
   lostIfAttacked: 0.5,
   /** What a bribe buys of a gift's warmth: the envoy's good word in his report, not gold in his king's hand. */
   bribeEffect: 0.25,
-  /** The amounts weighed, in steps of ten up to the most a gift can warm (`trustMost` / `trustPerShekel`). */
+  /** The amounts weighed, in steps of ten up to the most a gift can warm (`TrustRules.giftMost` / `TrustRules.perShekel`). */
   step: 10,
 } as const;
 
@@ -81,16 +76,16 @@ export function giftReturn(
   effect = 1,
   risk = atRisk(b, x),
 ): number {
-  const d = InvestData;
+  const t = TrustRules;
   const cooled = Math.min(
     Math.max(0, brain.hostility(x, b) - HostilityFloor),
-    d.hostilityPerTrust *
-      Math.min(d.trustMost, gold * d.trustPerShekel) *
+    t.hostilityPerTrust *
+      Math.min(t.giftMost, gold * t.perShekel) *
       effect *
       goodwillOf(brain.p),
   );
   const seasons = Math.max(1, b.horizon);
-  const kept = (1 - (1 - d.trustFades) ** seasons) / d.trustFades;
+  const kept = (1 - (1 - t.fades) ** seasons) / t.fades;
   return cooled * kept * lossPerHostility(b, brain, x, risk);
 }
 
@@ -129,7 +124,7 @@ export function bestGift(
   let gain = 0;
   for (
     let g = d.step;
-    g <= Math.min(spare, d.trustMost / d.trustPerShekel);
+    g <= Math.min(spare, TrustRules.giftMost / TrustRules.perShekel);
     g += d.step
   ) {
     const net = giftReturn(b, brain, x, g, effect, risk) - g;

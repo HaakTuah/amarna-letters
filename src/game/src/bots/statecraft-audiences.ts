@@ -21,7 +21,7 @@ import {
   type TabletView,
 } from "@amarna/engine";
 import { Board, LeadFloor } from "./board.ts";
-import type { Brain } from "./brain.ts";
+import { TrustRules, type Brain } from "./brain.ts";
 import { Names } from "./names.ts";
 import { reliability } from "./statecraft-court.ts";
 import { outweighs, rivals, touches } from "./statecraft-strategy.ts";
@@ -105,7 +105,7 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
   } else if (view.goldWeighed > 0) {
     speech.push(say(p.greed > 0.65 && view.goldWeighed < 100 ? "smallGift" : "thanks", key));
     reply.clauses.push(clause("accept", { answers: "gift" }));
-    r.trust += Math.min(0.25, view.goldWeighed / 400.0);
+    r.trust += Math.min(TrustRules.giftMost, view.goldWeighed * TrustRules.perShekel);
   }
 
   for (const copy of view.copiesShown) {

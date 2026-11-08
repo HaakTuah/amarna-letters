@@ -317,7 +317,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   runner.tellThreads = false;
   await runner.prepare();
   const watch = new MoneyWatch();
-  const spent = new SpendingWatch();
+  const spent = new SpendingWatch(runner.state);
   // Each season read once it is played, by its own number, the last (when playTurn says the age is over) included.
   for (let more = true; more; ) {
     const played = runner.state.turn;

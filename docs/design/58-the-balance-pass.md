@@ -61,9 +61,13 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **Gifts, bribes and tribute are investments** ("Gold is a lifeline"): the rule is in
   [the script kings' letters and gifts](07-script-kings/15-letters-and-gifts.md), "Gifts as investments". It replaces
   the spare-gold, generosity and chance thresholds; `--gift-play-half` measures it (the report).
-- **The spending report** (`spendingReport`), in every batch summary: per Great King and season, in the opening (seasons
-  1-20), the middle and the last 8, gold given abroad, jobs offered, levies, works, ransoms, the treasury's share of the
-  realm's wealth and the darkest seasons' four grabs; and each court's first march into another's land across the seeds.
+- **The spending report** (`SpendingWatch`, `spendingReport`), in every batch summary: per Great King and season, in
+  the opening (seasons 1-20), the middle, and the seasons of grave or darker omens (`omenTier`, what every court reads),
+  gold given abroad (envoys' gold, gifts to persons, and at audiences the gifts envoys took and gold sent back), jobs
+  offered, levies, works, ransoms, the treasury's share of the realm's wealth, and the four grabs: provinces whose share
+  of the harvest rose, provinces whose countryside went hungry while their stores held grain and none was sent, hoards
+  seized, fees withheld (and troops' pay held back beside them); and each court's first march into land another held
+  when the season began.
 - **Kept as built**, by the measure: no grab at the end of the age (the seasons a king believes are left stay long under
   the random ending, so a good name keeps paying), and openings that follow the map (#840 to the owner).
 - Save version 91: script kings give by the receiver's odds against them, so play from the same seed differs from
