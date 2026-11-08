@@ -93,11 +93,6 @@ export interface GameSummary {
   firstIsKing?: boolean;
   /** Each character's result against par (`characterResult`), kings apart, for `CharacterPar`; older summaries have none. */
   characterResults?: number[];
-  /**
-   * Bold and careful characters ("Bold or careful, one goal"; item 18): of the five best-placed living characters, how
-   * many took the bold road; and of every character in the game, how many were bold and how many there were in all.
-   * Older summaries have none.
-   */
   /** Item 18, part D: where the gold sat, the fees agreed and the two roads ({@link MoneyWatch}). */
   money?: MoneyMeasure;
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
@@ -116,6 +111,8 @@ export interface GameSummary {
   /** The characters' decisions ("Characters sleep like kings", item 8): calls, wake-ups (character-seasons asked), pool, seasons. */
   characterCalls: number;
   characterWakeups: number;
+  /** The most characters woken in any one season ("How many characters": the spike, not the average, is what to watch). */
+  characterPeak?: number;
   characterPool: number;
   /** Item 17+: each attested person, by name: the seasons it was asked to decide, the times it was sent anywhere, and whether it served a court. */
   people?: Record<string, [number, number, number]>;
@@ -301,6 +298,13 @@ export function courtsOf(s: GameState): [number, number, number] {
   return [held, reopened, stoodIn];
 }
 
+/** The most characters woken in one season, from each character's seasons asked. */
+function peakOf(asks: ReadonlyMap<string, readonly number[]>): number {
+  const per = new Map<number, number>();
+  for (const turns of asks.values()) for (const t of new Set(turns)) per.set(t, (per.get(t) ?? 0) + 1);
+  return Math.max(0, ...per.values());
+}
+
 /** Plays one game to its end (and, with verifyReplay, replays its log and compares the final states). */
 export async function playGame(seed: number, build: (state: GameState) => GameRunner, verifyReplay: boolean, config: GameConfig | null = null, log: ((line: string) => void) | null = null): Promise<[GameSummary, GameRunner]> {
   const runner = build(newGame(seed, config));
@@ -310,7 +314,12 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   runner.tellThreads = false;
   await runner.prepare();
   const watch = new MoneyWatch();
-  while (await runner.playTurn()) watch.season(runner.state);
+  // Each season read once it is played, by its own number, the last (when playTurn says the age is over) included.
+  for (let more = true; more; ) {
+    const played = runner.state.turn;
+    more = await runner.playTurn();
+    watch.season(runner.state, played);
+  }
   const s = runner.state;
 
   let matches = true;
@@ -351,6 +360,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
     characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
+    characterPeak: peakOf(runner.characterAsks),
     characterPool: s.characters.length,
     people: Object.fromEntries(
       s.characters.filter((c) => c.attested).map((c) => [c.name, [new Set(runner.characterAsks.get(c.id) ?? []).size, c.sent, c.employer !== null || c.formerEmployer !== null ? 1 : 0] as [number, number, number]]),
@@ -738,7 +748,8 @@ export function batchReport(games: readonly GameSummary[]): string {
     lines.push(
       `Characters as agents would be asked ${fmt(sum(games, (g) => g.characterCalls) / seasons, "0.0")} times a season (calls), ` +
         `${fmt(sum(games, (g) => g.characterWakeups) / seasons, "0.0")} wake-ups a season over a pool of ${fmt(mean(games.map((g) => g.characterPool)), "0")}: ` +
-        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season.`,
+        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season; ` +
+        `the busiest season woke ${max(games, (g) => g.characterPeak ?? 0)} (its median over the games ${median(games.map((g) => g.characterPeak ?? 0))}).`,
     );
   // Item 17+: how often each attested person is sent anywhere or decides anything, over the games (the report's count).
   const people = new Map<string, [number, number, number, number]>();

@@ -17,10 +17,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   prices): the alternative, the gold the land can still yield in the seasons likely left, would move every score as the
   omens darken with no wealth moving, against "every movement of wealth scores itself" (Victory). The script kings already value a
   province by the seasons they believe are left (`Board.baseValue`, [29](29-answers-to-11plus.md)).
-- **Bold and careful characters** ("Bold or careful, one goal"): the batch summary says how many of the five
-  best-placed living characters in each game took the bold road (`Character.bold`), against the share of bold
-  characters in all (`roadsOf` in `game/src/batch.ts`). Part D (money and characters: costs, lending, fees) tunes the
-  numbers both roads earn by, and measures this again.
+- **Bold and careful characters** ("Bold or careful, one goal"): counted by road (`Character.bold`) among the
+  best-placed living characters; since part D in the money report (below).
 - Save version 88: par refreshed, so the script kings' play and a game's final scores and winner differ from version 87's.
 
 ## Part C: length and war (`EconomyData.breachPerLevel`)
@@ -43,8 +41,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   ask up to twice it and the bravest nothing more, where it ran from all of it down to half (the rule and its numbers:
   [23](23-roads-and-reputations.md), "Reputation from losses abroad"). Kings hire the cheapest candidate who will go, so the
   careful, who asked least, took nearly every job, and dangerous service with it. Now a dangerous court's errands go to
-  the bold, and the careful's steady service is service at safe courts. Seizing hoards (`WarySeized` 15) is unchanged:
-  it threatens a keeper's hoard, not his life.
+  the bold, and the careful's steady service is service at safe courts. Seizing hoards (`WarySeized` 15, at most
+  `WarySeizedMost` 60, the timid all of it and the bravest half) is unchanged: it threatens a keeper's hoard, not his life.
 - **The money report** (`MoneyWatch`, `moneyReport`): the world's gold at seasons 1, 20, 40, 60 and 80 (treasuries,
   markets' purses, characters' purses and hoards, the loose men's loot), the jobs agreed in each twenty seasons with
   their mean fee a season and the share of living characters in service, and for each road its characters, deaths,

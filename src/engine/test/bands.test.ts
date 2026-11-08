@@ -296,6 +296,10 @@ describe("BandTests", () => {
     Assert.true(basePrice(c, "Assyria") < timid);
     c.traits.courage = 100;
     Assert.equal(basePrice(c, "Assyria"), before);
+    // A court heard to seize hoards threatens his gold, not his life: even the bravest asks more of it.
+    const unseized = basePrice(c, "Egypt");
+    c.heard.push(lossKey(newLossAbroad({ turn: 1, kind: "Seized", characterId: "c970", court: "Egypt", master: "Egypt" })));
+    Assert.true(basePrice(c, "Egypt") > unseized);
   });
 
   test("Personas speak of experience, never of age", () => {
