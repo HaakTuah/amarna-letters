@@ -23,7 +23,8 @@ what comes before it:
   their treasure, and what the last seasons look like (the wealth of a realm's two checks, from part B).
 - **F. The audit:** par refreshed once more on the tuned play; every feature passes use against ignore; the people 17+ added judged by what they did (the list to
   the owner); starting positions, banditry and far provinces against the sources; win rates per power on the item's
-  full seed sets (1-100 and 101-200), Mitanni's standing below par among them. Then **stop for review**.
+  full seed sets (1-100 and 101-200), Mitanni's standing below par and why a Great King stands first more often than
+  a city-state even at a weight of size of 0 among them. Then **stop for review**.
 
 ## Part A: before tuning
 
@@ -122,10 +123,18 @@ refuses this account; the copy on `develop` has not changed since part A began.
   scores. First place: the Great Kings 15 (Assyria 5, Hatti 3, Arzawa 3, Egypt 2,
   Babylonia 2, Mitanni and Alashiya none), the city-states 25 (18 of them; Seha and Amurru 3 each), characters 10.
   Mean standing (1 is par): Egypt 1.00, Hatti 0.82, Babylonia 1.08, Mitanni 0.79, Assyria 1.02, Arzawa 1.14, Alashiya
-  1.10. So par holds the Great Kings near even among themselves and Egypt's mines carry it no further than par allows;
-  the weight of size is what still gives a Great King (about 2 games each) more than a city-state (under 1 each), and
-  a character stands first in 10 games against 2 on the old par, since a well-measured par puts the best of a game's
+  1.10. So par holds the Great Kings near even among themselves and Egypt's mines carry it no further than par allows.
+  A Great King still stands first about 3 times as often as a city-state (about 2 games each, against under 1), and a
+  character stands first in 10 games against 2 on the old par, since a well-measured par puts the best of a game's
   370 characters near the top of his ranking as often as the best king.
+- **The weight of size, rescored** (the same 50 games with `--detail`, every board rescored at other weights, since no
+  script reads the weight; at 5 the rescoring gives 15, 24 and 11, the run's 15, 25 and 10 within rounding): first
+  place to the Great Kings, city-states and characters at weight 0: 11, 25, 14; at 2: 11, 25, 14; at 5: 15, 24, 11;
+  at 10: 24, 17, 9; at 20: 34, 13, 3; at 50: 50, 0, 0 (Babylonia 23, Egypt 15). So even at 0 a Great King stands first
+  about 2.7 times as often as a city-state, so size is not the whole of their edge; why is not measured here, and part
+  F looks for it. The seven Great Kings' share is
+  nearest the city-states' at weights 0 to 2, and no weight gives every power the same chance and characters a win now
+  and then together; that choice is #825's, and the numbers are added to it.
 - **Par is close to settled**: measured again on seeds 101-150 under the play the new par makes, the Great Kings
   stood at Egypt 1.02, Hatti 0.97, Babylonia 1.06, Assyria 1.06, Arzawa 0.99, Alashiya 1.07 and Mitanni 0.75; first
   place went to kings in 39 games and characters in 11. The par from that run would itself move play again, so the
