@@ -31,6 +31,7 @@ import { againstIn, answerLetter, givesAwayIn } from "./statecraft-clauses.ts";
 import { counterFor, grantsOk } from "./authority.ts";
 import { closing, pleaHeard, say } from "./voices.ts";
 import { Curse, Oath, allianceTablet, coalitionTablet, peaceTablet, pleasIn } from "./statecraft-letters.ts";
+import { InvestData, bestGift, giftReturn, goodwillOf } from "./investment.ts";
 
 export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): HostReply {
   const p = brain.p;
@@ -48,8 +49,11 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
     const offered = brain.bribeOffered.tryGet(view.audienceId);
     if (offered !== undefined) {
       brain.bribeOffered.delete(view.audienceId);
-      if (view.giftAccepted === 0 && brain.spareGold > 150 + offered[0]) {
-        again.bribe = toInt(roundEven((offered[0] * 1.5) / 10)) * 10;
+      const more = toInt(roundEven((offered[0] * 1.5) / 10)) * 10;
+      // Half as much again, if that still buys more than it costs (investment.ts).
+      if (view.giftAccepted === 0 && more <= brain.spareGold && giftReturn(b, sender, more, InvestData.bribeEffect * goodwillOf(p)) > more) {
+        brain.spareGold -= more;
+        again.bribe = more;
         again.bribeAsk = offered[1];
         again.speech = say("pressBribe", key);
       }
@@ -183,9 +187,12 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
   else if (hostile) reply.clauses.push(clause("grievance"));
   speech.push(closing(me, key));
 
-  // A gift to the messenger, to colour what he tells his lord.
-  if (p.cunning > 0.6 && !friend && brain.spareGold > 150 && rng.chance(0.4 * p.cunning)) {
-    reply.bribe = 30 + rng.range(0, 3) * 10;
+  // A gift to the messenger, to colour what he tells his lord: a cunning king's way, where his good word is worth its cost
+  // (investment.ts).
+  const bribe = p.cunning > 0.6 && !friend ? bestGift(b, sender, brain.spareGold, InvestData.bribeEffect * goodwillOf(p)) : 0;
+  if (bribe > 0) {
+    brain.spareGold -= bribe;
+    reply.bribe = bribe;
     reply.bribeAsk = hostile ? "Tell your lord that my armies are few and my thoughts are of peace." : "Tell your lord that my armies are many and my friendship is worth keeping.";
     reply.bribeClauses = [clause("newsStrength", { power: me, amount: hostile ? 0 : 1 })];
     // The audience stays open for one more exchange, to offer more if the envoy refuses (see above).
@@ -194,8 +201,11 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
   }
   if (hostile && r.grudge > 3 && p.vengeance > 0.6 && rng.chance(0.5)) reply.detain = true;
   if (reliability(view.envoy) === 0 && count(b.v.court, (c) => c.status === "employed") < 3 && brain.spareGold > 200 && rng.chance(0.1 + 0.2 * p.cunning)) reply.jobOffer = 30;
-  if (friend && view.goldWeighed >= 40 && brain.spareGold > 100 && p.generosity > 0.5) {
-    reply.goldBack = idiv(idiv(view.goldWeighed, 4), 10) * 10;
+  // A gift in return to a friend who brought gold, where it pays (investment.ts), at most half of what he brought.
+  const back = friend && view.goldWeighed > 0 ? Math.min(bestGift(b, sender, brain.spareGold, goodwillOf(p)), idiv(idiv(view.goldWeighed, 2), 10) * 10) : 0;
+  if (back > 0) {
+    brain.spareGold -= back;
+    reply.goldBack = back;
     // Debased only for a friend we trust 0.3 or more, as for gifts (see compose).
     reply.goldBackPurity = p.honesty < 0.45 && r.trust >= 0.3 ? 75 : 100;
   }

@@ -5,14 +5,12 @@ import { bondClauses, bondLetters } from "./vassals.ts";
 import { fugitiveRights } from "./borders.ts";
 import {
   HSet,
-  clamp,
   cmpBool,
   cmpNum,
   cmpPower,
   cmpStr,
   desc,
   dispatch,
-  idiv,
   newGreetingOptions,
   newTabletProposal,
   clause,
@@ -44,6 +42,7 @@ import { clausePlays } from "./statecraft-clauses.ts";
 import { authorityFor, authorityOn, basingTablet, passageClause, stagingFor } from "./authority.ts";
 import { wantsTradeRights } from "./trade.ts";
 import { Letter, closing } from "./voices.ts";
+import { bestGift, goodwillOf } from "./investment.ts";
 
 export const Oath = "By Shamash, Amun, Marduk and Teshub";
 
@@ -128,14 +127,13 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     const small = b.strength(me) < 0.6 * b.strength(x);
     if (r.treaty && !r.allied && r.trust > 0.2 && fresh && (x !== leader || small) && !rivals(b, me, x))
       missions.push(mission(x, "alliance", 0.5 * p.diplomacy + 0.2 * r.trust + (small ? 0.15 : 0)));
-    if (!besieged && brain.isFriend(x) && brain.spareGold > 150 && rng.chance(0.3)) missions.push(mission(x, "gift", 0.4 * p.generosity));
+    // Item 18 part E: a gift, or a small kingdom's tribute to a great one, wherever it buys more than it costs ("Gold is a
+    // lifeline"; investment.ts): to a neighbour whose hostility it cools, not to a friend far away.
+    if (!besieged && fresh && !r.hostile && bestGift(b, x, brain.spareGold, goodwillOf(p)) > 0) missions.push(mission(x, isSmall(me) && !isSmall(x) ? "tribute" : "gift", 0.4));
     // Item 14 ("Finkel's version"): once in a game, a greedy king short of gold begs a stronger friend for it, in the words
     // Finkel gave such letters: an Easter egg, rare by design.
     if (!brain.begged && p.greed > 0.7 && brain.spareGold < 100 && brain.isFriend(x) && b.strength(x) > b.strength(me) && rng.chance(0.1))
       missions.push(mission(x, "beg", 0.3 + 0.3 * p.greed));
-    // Tribute, to a great neighbour who looks ready to march.
-    if (!besieged && isSmall(me) && !isSmall(x) && neighbours.has(x) && brain.spareGold > 100 && fresh && !r.hostile && brain.hostility(x, b) > 0.35)
-      missions.push(mission(x, "tribute", 0.35 + 0.4 * p.caution));
   }
   // The year's tribute to the overlord we serve, a demand of a vassal in arrears, and vassalage offered either way (item 11+).
   for (const l of bondLetters(b, brain)) missions.push(mission(l.to, `bond-${l.kind}`, l.score, null, null, l.amount));
@@ -290,16 +288,15 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
   const greeting = greet(brain, to, m.kind === "tribute" || m.kind === "bond-tribute" || m.kind === "bond-submit", b);
   const key = `${b.v.turn}|${me}|${to}`;
   const flavour = closing(me, `${key}|${m.kind}`);
-  const weaker =
-    b.landGrowth(me) *
-      sum(Board.Map.homeOf(me), (x) => x.yield) <
-    b.landGrowth(to) * sum(Board.Map.homeOf(to), (x) => x.yield);
-  // Gifts are score given away: kept small, and only one gift-bearing letter a season.
-  const gift = (share: number): number => {
-    if (brain.spareGold < 100 || brain.giftTurn === b.v.turn) return 0;
-    brain.giftTurn = b.v.turn;
-    // No more than a third of a season's income: a small kingdom's gifts are small.
-    return idiv(Math.trunc(clamp(10 + brain.spareGold * share * 0.5, 20, Math.max(20, Math.min(60, idiv(b.v.income, 3))))), 10) * 10;
+  // Gifts are score given away: only what returns more than it costs (investment.ts), and one gift-bearing letter a season.
+  const gift = (): number => {
+    if (brain.giftTurn === b.v.turn) return 0;
+    const g = bestGift(b, to, brain.spareGold, goodwillOf(p));
+    if (g > 0) {
+      brain.giftTurn = b.v.turn;
+      brain.spareGold -= g;
+    }
+    return g;
   };
   // The faithless debase their gold, but only for a friend who trusts them, who has no cause to assay it.
   const purity = (): number => (p.honesty < 0.45 && brain.isFriend(to) && brain.rel.get(to).trust >= 0.3 ? rng.range(55, 85) : 100);
@@ -329,8 +326,8 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
         },
       );
     case "peace": {
-      // The weak pay tribute; the generous send gifts anyway.
-      const g = weaker || p.generosity > 0.6 ? gift(0.08 + 0.1 * p.generosity + (weaker ? 0.06 : 0)) : 0;
+      // A gift goes with the offer where it pays (investment.ts).
+      const g = gift();
       return dispatch(
         envoy,
         to,
@@ -461,7 +458,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       return dispatch(envoy, to, FinkelLetter, { mandate: "Ask for gold. Promise nothing.", greeting, clauses: [clause("wellWishes"), clause("askGold", { amount: 100 })] });
     case "gift":
     case "tribute": {
-      const g = gift(0.06 + 0.08 * p.generosity);
+      const g = gift();
       if (g === 0) return null;
       return dispatch(envoy, to, trim(`${Letter.gift({ key })} ${flavour}`), {
         mandate: "Speak of friendship. Promise nothing.",
