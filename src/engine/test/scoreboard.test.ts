@@ -68,7 +68,7 @@ describe("ScoreboardTests", () => {
     const e = new TurnEngine(s);
     e.decideWinners();
     const first = e.scoreboard()[0];
-    Assert.equal([first.power ?? first.character.name], s.winners);
+    Assert.equal([first.power ?? nameFrom(first.character)], s.winners);
     // A merchant who gained far beyond every king stands first, and wins.
     const c = s.characters.find((x) => x.duty !== "Ruling" && x.status !== "Dead")!;
     [c.purse, c.earned.savings] = [100000, 0];
@@ -80,10 +80,10 @@ describe("ScoreboardTests", () => {
   test("A sworn pair shares the victory only above every other living person, characters too", () => {
     const s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0, sharedVictory: true, sizeWeight: 0 })), "Egypt", "Hatti");
     s.tablets.push(newTablet({ id: "t901", text: "Alliance.", proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 1, allianceOath: true }));
-    // The pair grown past their par; every character kept only what he brought.
+    // The pair grown far past every result of par; every character kept only what he brought.
     for (const c of s.characters) [c.purse, c.hoard, c.earned.savings] = [0, null, 0];
-    s.treasuries.get("Egypt").gold += 5000;
-    s.treasuries.get("Hatti").gold += 5000;
+    s.treasuries.get("Egypt").gold += 50000;
+    s.treasuries.get("Hatti").gold += 50000;
     const e = new TurnEngine(s);
     e.decideWinners();
     Assert.equal(["Egypt", "Hatti"], s.winners);

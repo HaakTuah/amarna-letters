@@ -60,8 +60,8 @@ Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true 
   11d, [29](29-answers-to-11plus.md)). The winner is the first on the one scoreboard of every person
   ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)). The scripts weigh rivals by performance (`Board.growth`) and size by strength; playing for place is item
   18's ([31](31-cities-defended.md)).
-- **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth); the alternative
-  (the gold a land can still produce in the seasons likely left) is the report's reading, for item 18.
+- **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth), kept in item 18
+  ([58](58-the-balance-pass.md)).
 - **When one power is left** the game ends, as before; a vassal is still a power, so holding vassals is not having them.
 
 ### The state of the realm (`rules/realm.ts`)

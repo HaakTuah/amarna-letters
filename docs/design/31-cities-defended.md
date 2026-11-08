@@ -41,8 +41,7 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
   the scripts' thresholds (`Board.growth`, `LeadFloor`) were written for.
 - **The final score** (`finalScore`; the owner's decision of 29 October 2026, added to the item while it was built):
   size and performance (`standingOf` / 2), both from 0 to 1, weighted by `GameConfig.sizeWeight` percent for size (5
-  since item 11f, the owner's answer to the review; 50 at first; a first guess, set in item 18 so that every power has
-  about the same chance of first place). Since item 17b, part D, every person is scored on one scoreboard, and a realm's
+  since item 11f, the owner's answer to the review; 50 at first; kept in item 18, part B, [58](58-the-balance-pass.md)). Since item 17b, part D, every person is scored on one scoreboard, and a realm's
   final score is its reigning king's row ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)).
   The winner is the first person on the board, a realm's king or a character; a shared victory compares the pair's
   scores, each weighed by its starting strength, with every other living person's. The batch report gives each power's mean score where it lived.

@@ -300,8 +300,9 @@ describe("IntelligenceTests", () => {
         allianceOath: true,
       }),
     );
-    s.treasuries.get("Arzawa").gold += 2000;
-    s.treasuries.get("Alashiya").gold += 2000;
+    // Grown far past every result of par (item 18 refreshed it), so neither ranks above the other by where par falls.
+    s.treasuries.get("Arzawa").gold += 20000;
+    s.treasuries.get("Alashiya").gold += 20000;
     let e = begin(s);
     e.resolve(new Dict<Power, TurnSubmission>());
     Assert.true(s.ended);
