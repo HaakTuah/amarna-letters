@@ -137,7 +137,7 @@
     gave it a support to hold that was not cut (`AdjudicationResult.holdSupported`); a season in
     which it supports, convoys or tries to move adds nothing. One order is enough: the siege goes
     on while the army holds there. Since item 9+a the walls price the storm, not the clock: the city
-    **surrenders** by hunger (it could not feed its people as the season began) or once it is worn down three steps for
+    **surrenders** by hunger (it could not feed its people as the season began) or once it is worn down six steps for
     each level of its walls, a breach (`16-the-economy-at-home.md`, "Sieges"); until 9+a it surrendered when worn down as
     far as its walls were high, at the end of that season (`TurnEngine.sieges`, after movement and
     before land changes hands) and its walls fall a level; a city stormed falls a level too. Before 9+a a

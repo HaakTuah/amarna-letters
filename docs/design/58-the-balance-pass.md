@@ -22,3 +22,14 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   characters in all (`roadsOf` in `game/src/batch.ts`). Part D (money and characters: costs, lending, fees) tunes the
   numbers both roads earn by, and measures this again.
 - Save version 88: par refreshed, so the script kings' play and a game's final scores and winner differ from version 87's.
+
+## Part C: length and war (`EconomyData.breachPerLevel`)
+
+- **A breach takes twice the wear** (`breachPerLevel` 6 steps for each level of walls, 3 before): with 3, walls fell to
+  wear in two or three seasons and the breach, not the stores, was the clock of most sieges, against "Walls price the
+  storm, not the clock" (War). Now hunger and thirst end most sieges, as "How long a siege lasts" asks.
+- **Kept**: the age's median (80 seasons) and cap (140 to 160), the owner's of 30 October 2026, since most ages pass the
+  length test; the gate a starving city keeps (`UnrestData.gate` 1); the people's help on rough ground (twice).
+- **The war report** counts, by kingdom, the falls within four seasons of the conqueror's entry (`warReport` in
+  `game/src/batch.ts`), the measure of pillar 8.
+- Save version 89: the slower breach.

@@ -148,3 +148,67 @@ refuses this account; the copy on `develop` has not changed since part A began.
 
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825) (still open; part B's numbers added to it).
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; part B does not depend on it).
+
+## Part C: length and war
+
+Started from `develop` at 1f81bfb (part B's milestone, #831, merged). The check for changes: the live document still
+refuses this account; the copy on `develop` has not changed since part A began.
+
+### What was built
+
+- **A breach takes twice the wear** (`EconomyData.breachPerLevel` 6 steps for each level of walls, 3 before). Saved
+  version 89.
+- **The war report** counts, by kingdom, the falls within four seasons of the conqueror's entry: pillar 8's measure.
+- **Kept**: the age's median and cap, the gate a starving city keeps, the people's help on rough ground (the readings).
+
+### First guesses
+
+- `breachPerLevel` 6, so walls of level 1 hold three to six seasons of wear and level 3 nine to eighteen.
+
+### Readings taken
+
+- **The breach, not the stores, was the clock, so the breach is what moves** ("How long a siege lasts": "Walls price
+  the storm, not the clock"; "A blockaded city holds as long as it can eat and drink"): of 1,579 sieges won in seeds
+  1-50, about 990 ended in a breach, 562 by hunger and 31 by thirst. With twice the wear, hunger and thirst end most
+  (838 and 223 of 1,344).
+- **The gate stays at 1** (keep it lean): a gate kept three seasons longer halved the gates opened from within (562 to
+  298) but left the falls within four seasons where they were (403 against 400), since the breach came first.
+- **The rough ground stays twice** (pillar 8 against the length test): three times left Lukka's eight early falls as
+  they were and cut the ages that saw a Great King's war decided from 42 to 39 of 50.
+- **Lukka's early fall is the owner's question** (#832): a one-province land without a town is taken by beating its
+  army, and nothing in the design gives it time as walls give a city; the alternative, a rule for every land without a
+  town, is a design choice.
+- **The age's length stays as the owner set it** ("Random ending": a median of about 80 seasons, the cap at 140 to
+  160, 30 October 2026; "most ages should see at least one Great King's war decided"): 42 of 50 ages pass, and the
+  slower breach does not lengthen a game, whose end is drawn at the start.
+- **Wars still begin and end** (item 18: standing orders "favour defence ... so check that wars still end, and that
+  they still begin"): the first fall of a game comes in season 6 on the median (4 before), 3,670 offers of peace were
+  accepted (3,725 before), and a Great King's capital fell first in 20 ages and a Great King was made another's vassal
+  first in 22.
+
+### Script players and the measure
+
+All on seeds 1-50, before (part B's rules) and after:
+
+| | Before | Gate 3 | Breach 6 (built) | Breach 6, rough ×3 |
+|---|---|---|---|---|
+| Kingdoms fallen | 989 | 968 | 934 | 883 |
+| First fall of a game, median season | 4 | 4 | 6 | 6 |
+| From the conqueror's entry to the fall, median (within 5-10) | 5 (29%) | 6 (26%) | 7 (53%) | 7 (55%) |
+| Fallen within four seasons of the conqueror's entry | 400 | 403 | 105 | 100 |
+| Fallen in the first two seasons (games) | 8 (Lukka) | 8 | 8 | 8 |
+| Ages with a Great King's war decided | 43 | 43 | 42 | 39 |
+| Sieges won: by hunger / thirst / breach | 562 / 31 / ~990 | 298 / 42 / ~1,190 | 838 / 223 / ~280 | 808 / - / - |
+
+- **Commanders pay** (`--command-play-half`, the item's "commanders are worth what stale orders cost"): kings that grant
+  command away from court grow 0.90 against 0.79 and win 27 games against 12, from half the seats each.
+- **Wins** on the slower breach: Assyria 12, Arzawa 3, Hatti 2, the city-states 22, characters 10. Par was measured
+  under the faster breach, so the standings lean; part F refreshes par on the tuned play.
+- Item 5 found 61% of falls within 5-10 seasons of the conqueror's entry; the city-states since 11+ brought it down to
+  29%, and the slower breach brings it back to 53%.
+
+### Questions for the owner
+
+- [#832](https://github.com/HaakTuah/amarna-letters/issues/832): a land without a town falls in one battle; should it
+  hold out for some seasons (new)?
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825) and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
