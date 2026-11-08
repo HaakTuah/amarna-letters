@@ -14,7 +14,7 @@
 import { Board } from "./board.ts";
 import type { Power } from "@amarna/engine";
 import type { Personality } from "./personality.ts";
-import { HostilityFloor, type Brain } from "./brain.ts";
+import { HostilityFloor, warOdds, type Brain } from "./brain.ts";
 
 /** Whether a king gives gifts at all; off only to measure what they are worth (`--gift-play-half`). */
 export const GiftPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -77,9 +77,11 @@ export function giftReturn(
       effect *
       goodwillOf(brain.p),
   );
+  // He marches where his troops outweigh ours, by the odds his own war choice weighs (`statecraft-strategy.ts`).
+  const odds = warOdds(brain.force(x, b), b.mine.length);
   const seasons = Math.max(1, b.horizon);
   const kept = (1 - (1 - d.trustFades) ** seasons) / d.trustFades;
-  return d.attackPerHostility * cooled * kept * d.lostIfAttacked * risk;
+  return d.attackPerHostility * odds * cooled * kept * d.lostIfAttacked * risk;
 }
 
 /** The gift to `x` that returns most beyond its cost, at most `spare`; 0 when none returns more than it costs. */

@@ -12,6 +12,7 @@ import {
   StartGold,
   StartUnits,
   clamp,
+  count,
   cmpNum,
   cmpOpt,
   cmpPower,
@@ -64,6 +65,8 @@ export class Relation {
 const WagesGuess = 25;
 /** The least hostility {@link Brain.hostility} ever reckons: some danger from every king. */
 export const HostilityFloor = 0.05;
+/** A war's odds as a king weighs them: his troops against his foe's, from a quarter to 1.6. */
+export const warOdds = (ours: number, theirs: number): number => clamp((ours + 0.5) / (theirs + 0.5), 0.25, 1.6);
 
 /**
  * A book of every king we know, that opens a page for a king risen in play (items 13+ and 17) the first time we look him
@@ -508,6 +511,11 @@ export class Brain {
       r.trust = Math.max(-1, r.trust - 0.5);
       r.grudge += 2;
     }
+  }
+
+  /** Another king's troops as this court reckons them: those in sight, or the most it has heard he has. */
+  force(x: Power, b: Board): number {
+    return Math.max(count(b.others, (u) => u.power === x), this.armySeen.tryGet(x)?.[0] ?? 0);
   }
 
   /** How likely another king is to attack us this season, never below {@link HostilityFloor}. */

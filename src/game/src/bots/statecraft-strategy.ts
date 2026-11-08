@@ -45,7 +45,7 @@ import { censusOrders, corveeShares, demandOrders, levyOrder } from "./counts.ts
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import { WarPlay, keptBond } from "./siege-tactics.ts";
-import type { Brain } from "./brain.ts";
+import { warOdds, type Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
 // ================================================================= strategy
@@ -57,7 +57,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
   const leader = b.leader();
   const reach = reachableLand(b);
   // Troops a king can field, from what we see and what we have seen of him lately.
-  const force = (x: Power): number => Math.max(count(b.others, (u) => u.power === x), brain.armySeen.tryGet(x)?.[0] ?? 0);
+  const force = (x: Power): number => brain.force(x, b);
 
   // What a war on a king could win this year: each province of his within reach, by the chance our troops there beat what he
   // can hold it with (a unit and its supports, walls, or troops that can block).
@@ -110,7 +110,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
         // Allies and the bonds of vassalage we keep are never the war; a plain peace is its price, weighed below.
         if (WarPlay.on(me) && keptBond(brain, x)) return [x, -Number.MAX_VALUE];
         // A war is worth what it can win: the odds of our troops against his,
-        const odds = clamp((ours + 0.5) / (force(x) + 0.5), 0.25, 1.6);
+        const odds = warOdds(ours, force(x));
         // what we can take from him (see prize),
         if (![...reach].some((t) => b.ownerOf(t) === x)) return [x, -Number.MAX_VALUE];
         // and the kings who could fall on us while we are busy with him.
