@@ -439,12 +439,17 @@ export function askingPrice(c: Character, court: Power): number {
   return basePrice(c, court);
 }
 
-/** Item 11b (first guesses): what a person asks more of a court for each of its people it heard were lost abroad, and each it put to death, in percent, at most `WaryMost`. */
-export const WaryLost = 10;
-export const WaryKilled = 15;
-/** The owner's answers to item 11a (a first guess): what a person asks more of a court it heard seized a hoard, in percent, each. */
+/**
+ * Item 11b (first guesses, doubled in item 18 part D): what a person asks more of a court for each of its people it heard
+ * were lost abroad, and each it put to death, in percent, at most `WaryMost`; the timid ask up to twice it and the
+ * bravest nothing, so dangerous service pays and goes to the bold ("Bold or careful, one goal": "well-paid errands into danger").
+ */
+export const WaryLost = 20;
+export const WaryKilled = 30;
+/** The owner's answers to item 11a (a first guess): what a person asks more of a court it heard seized a hoard, in percent, each, at most `WarySeizedMost`. */
 export const WarySeized = 15;
-export const WaryMost = 60;
+export const WarySeizedMost = 60;
+export const WaryMost = 120;
 
 /**
  * What a person asks a court a season of a job's term (item 10): by what it believes it can do, never its true skill
@@ -463,9 +468,12 @@ export function basePrice(c: Character, court: Power): number {
   price = Math.max(1, price);
   if (c.heardRate !== null) price = Math.max(1, toInt(roundEven((price * (100 - MoneyData.heardWeight) + c.heardRate * MoneyData.heardWeight) / 100)));
   // Item 11b, reputation from losses abroad: a court it heard loses its people abroad, or puts others to death, it serves
-  // only for more, the timid most ("Jobs, not wages"); and one it heard seizes hoards.
+  // only for more, the timid most and the bravest for nothing more ("Jobs, not wages"); and one it heard seizes hoards,
+  // a threat to its gold, not its life, the timid somewhat more.
   const heard = lossesHeardOf(c, court);
-  const wary = Math.trunc((Math.min(WaryMost, WaryLost * heard.lost + WaryKilled * heard.killed + WarySeized * heard.seized) * (100 - Math.trunc(c.traits.courage / 2))) / 100);
+  const danger = Math.trunc((Math.min(WaryMost, WaryLost * heard.lost + WaryKilled * heard.killed) * 2 * (100 - c.traits.courage)) / 100);
+  const seized = Math.trunc((Math.min(WarySeizedMost, WarySeized * heard.seized) * (100 - Math.trunc(c.traits.courage / 2))) / 100);
+  const wary = danger + seized;
   price += Math.trunc((price * wary) / 100);
   return price;
 }

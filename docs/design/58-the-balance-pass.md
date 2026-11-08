@@ -17,10 +17,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   prices): the alternative, the gold the land can still yield in the seasons likely left, would move every score as the
   omens darken with no wealth moving, against "every movement of wealth scores itself" (Victory). The script kings already value a
   province by the seasons they believe are left (`Board.baseValue`, [29](29-answers-to-11plus.md)).
-- **Bold and careful characters** ("Bold or careful, one goal"): the batch summary says how many of the five
-  best-placed living characters in each game took the bold road (`Character.bold`), against the share of bold
-  characters in all (`roadsOf` in `game/src/batch.ts`). Part D (money and characters: costs, lending, fees) tunes the
-  numbers both roads earn by, and measures this again.
+- **Bold and careful characters** ("Bold or careful, one goal"): counted by road (`Character.bold`) among the
+  best-placed living characters; since part D in the money report (below).
 - Save version 88: par refreshed, so the script kings' play and a game's final scores and winner differ from version 87's.
 
 ## Part C: length and war (`EconomyData.breachPerLevel`)
@@ -35,3 +33,25 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   game's end, where the conqueror still reigns), the falls sooner than that after his entry, by kingdom; and the games in which a
   Great King's realm fell (held nothing, item 17b), a lower bound on the games in which his capital was taken.
 - Save version 89: the slower breach.
+
+## Part D: money and characters (`WaryLost`, `WaryKilled`, `WaryMost` in `turn/court.ts`; `game/src/money-report.ts`)
+
+- **Danger money goes to the bold** ("Bold or careful, one goal": the bold road's "well-paid errands into danger"). What
+  a person asks more of a court it heard loses its people abroad or puts others to death is doubled, and the timid now
+  ask up to twice it and the bravest nothing more, where it ran from all of it down to half (the rule and its numbers:
+  [23](23-roads-and-reputations.md), "Reputation from losses abroad"). Kings hire the cheapest candidate who will go, so the
+  careful, who asked least, took most jobs, dangerous service among them. Now the careful shun courts heard to lose their
+  people, and the bold take more of that service (the report gives the shares). What a person asks more of a court heard to seize
+  hoards (`WarySeized`, at most `WarySeizedMost`) keeps its old scale: it threatens a keeper's hoard, not his life.
+- **The money report** (`MoneyWatch`, `moneyReport`), read after each season by the season played: the world's gold at
+  seasons 1, 20, 40, 60 and 80 (treasuries, the kings' gold away from them, markets' purses, characters' purses and
+  hoards, the loose men's loot); in each twenty seasons the jobs agreed with their mean fee a season (over the term
+  agreed), the share of living characters in service and what a free man takes in a season working for himself
+  (lending and dealing at face, loot, news and carrying); and for each road its characters, deaths, places in the top
+  five and top twenty, jobs with courts heard to lose their people, gains a head and earnings by source. It replaces
+  part B's line on the roads. Beside the average wake-ups, the batch summary gives the busiest season's
+  (`GameSummary.characterPeak`).
+- **Kept as built**, by the measure (the report): characters' living and a hoard's keep (`MoneyData.living`,
+  `hoardFee`), lending's rates (`interest*`), the pool's baseline, the markets' purses, and the gift threshold of routine
+  audiences (the standing answers' backstop, a quarter of the treasury), which only model kings meet.
+- Save version 90: a person's price at a dangerous court, so who is hired, and what follows, differ from version 89's.

@@ -21,7 +21,7 @@ what comes before it:
 - **E. Script kings' spending as investment:** gifts, bribes and tribute judged by expected return; the darkest seasons'
   grabs; courts playing distinctly; how close their best options are; whether kings build, give and campaign or sit on
   their treasure, and what the last seasons look like (the wealth of a realm's two checks, from part B).
-- **F. The audit:** par refreshed once more on the tuned play; every feature passes use against ignore; the people 17+ added judged by what they did (the list to
+- **F. The audit:** par refreshed once more on the tuned play; bold and careful in the top five and twenty, and the careful dying more often than the bold, and fees that do not fall when many wait for work (#837) (from part D); every feature passes use against ignore; the people 17+ added judged by what they did (the list to
   the owner); starting positions, banditry and far provinces against the sources; win rates per power on the item's
   full seed sets (1-100 and 101-200), Mitanni's standing below par and why a Great King stands first more often than
   a city-state even at a weight of size of 0 among them; commanders' worth by the distance of the front and the size of
@@ -232,3 +232,107 @@ games exactly, with the same results as the column for them:
 - [#832](https://github.com/HaakTuah/amarna-letters/issues/832): a land without a town falls in one battle; should it
   hold out for some seasons (new)?
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825) and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
+
+## Part D: money and characters
+
+Started from `develop` at 922d4b2 (part C's milestone, #834, merged). The check for changes: the live document still
+refuses this account; the copy on `develop` has not changed since part A began.
+
+### What was built
+
+- **Danger money goes to the bold**: what a person asks more of a court it heard loses its people abroad or puts others
+  to death is doubled, and runs from twice that for the timid to nothing for the bravest (it ran from all of it to half).
+  What it asks more of a court heard to seize hoards keeps its old scale: that threatens a keeper's gold, not his life.
+  The rulebook's line on prices says so. Save version 90.
+- **The money report** (`game/src/money-report.ts`, in every batch summary): where the world's gold sits at seasons 1,
+  20, 40, 60 and 80, the kings' gold away from their treasuries included; in each twenty seasons the jobs agreed, their
+  fee a season, the share of characters in service and what a free man takes in a season working for himself; and each
+  road's characters, deaths, places in the top five and twenty, jobs with courts heard to lose their people, gains and
+  earnings by source. It replaces part B's line on the roads. The batch summary also gives the busiest season's
+  wake-ups beside the average.
+
+### Numbers tuned
+
+- `WaryLost` 20 (from 10), `WaryKilled` 30 (15), `WaryMost` 120 (60), scaled by 2 × (100 − courage) in a hundred (from
+  100 − courage/2). `WarySeized` stays 15, at most 60 (`WarySeizedMost`), scaled as before.
+
+### Readings taken
+
+- **The bold lost on price, not on choice, so the price of danger is what moves** ("Bold or careful, one goal": "well-paid
+  errands into danger"; "Fees clear the market"; "Skills set the odds; the character decides"). Kings hire the cheapest
+  candidate who will go, and the bold ask more (greed is in every price), so the careful took most of the jobs: they
+  earned 165 shekels a head in fees against the bold's 101. Whether a free man seeks service was not the cause: two
+  versions of that choice moved nothing on seeds 1-20. With the premium steeper by courage, the careful shun courts heard
+  to lose their people and the bold take more of that service: of the jobs with such courts, the bold's share rose from
+  53% to 60% on seeds 1-50 (they are few, 4% to 8% of all jobs, and fewer now that the careful shun them). Three times
+  the premium did worse than twice on seeds 1-20, so twice is kept.
+- **The top five, not the top twenty, is "the top of the ranking"** (part B's measure, kept so the two compare): a
+  careful character reached the top five 1.20 times as often a head as a bold one on both seed sets (1.44 and 1.47
+  before), and the bold took 56% to 57% of those places from 61% of the characters. The top twenty did not move (1.9 to
+  2.0 times), since a careful man's steady fees give a higher median gain (37 shekels against 22), and the bold road's
+  loot pays less than the fees it gives up; lending's rates, the bold road's other source, were kept untried. Part F
+  measures both again on the tuned play.
+- **The careful still die more often than the bold** (17% to 19% against 12% to 14% at the end, about as before): service
+  abroad is where men die, and the careful still hold most of it. The design has the bold road as the one that may end
+  "dead"; the danger premium shifts the deadliest service a little, and part F's plan carries it.
+- **Working for oneself never pays better than service, so fees need not rise to win men back** ("Where characters are,
+  and what they speak": "whether fees rise until service pays again when working for oneself pays better"): after the
+  first twenty seasons a job pays 27 to 28 shekels a season, while a free man takes in about 1 a season working for
+  himself (lending and dealing at face, loot, news and carrying). The share in service falls from 38% in the first
+  twenty seasons to 5% to 7% after a hundred because the courts hire less (about 9,500 jobs agreed in the first twenty
+  seasons, 1,300 in seasons 61-80), not because service pays too little. **The falling side is still open**: with so
+  many idle, "when many wait for work, they fall" asks for falling fees, and they held; a seeker's price that falls as
+  he waits moved neither the fees agreed nor the roads on seeds 1-20, since a price is set by what a man has heard
+  others paid as much as by his own. Filed as a bug, #837, for part F.
+- **The markets' purses do not inflate, and their gold drains off the map, not into hoards** ("Where gold comes from and
+  where it goes"): over the first eighty seasons the purses fall from about 44,000 shekels to 18,000 and the treasuries
+  rise from about 6,700 to 16,000 to 17,000, while hoards stay near 3,000, characters' purses near 6,000 and the kings'
+  gold away from their treasuries near 150. All the gold counted falls from about 57,000 to 42,000, most of it in the
+  first forty seasons and little after sixty: what leaves goes out through the edge markets, the main way out the
+  design names, and the purses settle.
+- **No court is starved of carriers but Egypt, and Egypt's is the residents' rule, the owner's** (#836; "Where
+  characters are, and what they speak"): letters to every other court wait 1.0 to 2.5 seasons for a carrier understood
+  there; to Egypt 3.8 to 4.0, and nearly all of them are Pharaoh's commissioners' reports from posts with no court to
+  hire at, which a resident never carries himself (item 17++). The border walk a watcher may take would not help: no
+  such post lies next to Egypt's own land. Kept as built; the alternatives are in the issue.
+- **The pool keeps its baseline** ("How many characters": "that spike, not the average, is what to watch"; "late games
+  may have a surplus of characters, which means cheap men and more outlaws, and suits the age"): 0.28 wake-ups a season
+  per character, about 100 to 110 a season over a pool of 330 to 350 (the dead counted); the busiest season of a game
+  wakes about 150 on the median and at most about 400, nearly the whole pool. No court waits long for servants but Egypt (above), so the measure gives no reason to move it; what
+  the spike costs in model calls is weighed with the model games.
+- **Characters' costs and lending stay as built**: characters spend about nine tenths of what they earn (living, a
+  hoard's keep, loans made, what was taken), lending and dealing bring about 8% of what both roads earn, and nothing in
+  the measure points at a number there.
+- **The gift threshold of routine audiences stays** (the standing answers' backstop, a quarter of the treasury): only
+  model kings meet it, and no model games are run until the build order is done; it is weighed then.
+
+### Script players and the measure
+
+On the same seeds, before (part C's rules) and after:
+
+| | Seeds 1-50 before | after | Seeds 101-150 before | after |
+|---|---|---|---|---|
+| Bold share of all characters | 61% | 61% | 62% | 62% |
+| Bold in the top five | 129 of 250 (52%) | 142 (57%) | 132 (53%) | 143 (57%) |
+| Careful's rate a head against the bold's, top five | 1.44 | 1.20 | 1.47 | 1.20 |
+| Careful's rate a head against the bold's, top twenty | 2.00 | 1.90 | 1.88 | 1.97 |
+| Jobs with a court heard to lose its people, bold / careful | 8% / 6% | 7% / 4% | | 6% / 4% |
+| Dead at the end, bold / careful | 13% / 18% | 12% / 17% | 13% / 19% | 14% / 19% |
+| First place: kings / characters | 40 / 10 | 42 / 8 | 40 / 10 | 41 / 9 |
+
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games replayed exactly. Wins: Assyria
+  8 (12 before), Egypt 2 (1), Arzawa 2 (3), Hatti 1 (2); the change moves only who is hired, and the seeds diverge from
+  there.
+- **Seeds 1-20, the levers tried** (before the seizure premium was set apart): whether a free man seeks service, two
+  ways, moved nothing; the danger premium at once (×1, steeper by courage) gave the bold 59 of the top five's 100
+  places (51 before), at twice 59, at three times 50, and twice with a seeker's price falling as he waits 64.
+- **No new lever**: part D changes what a person asks, not what a player can do, so no use against ignore.
+
+### Questions for the owner
+
+- [#836](https://github.com/HaakTuah/amarna-letters/issues/836): Pharaoh's commissioners wait for passers-by to carry
+  their reports; should they carry them, or hire a carrier, after a long wait (new)?
+- [#837](https://github.com/HaakTuah/amarna-letters/issues/837): fees do not fall when many more people wait for work
+  than the courts want (a bug, new; for part F).
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
+  and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).

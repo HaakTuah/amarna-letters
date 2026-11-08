@@ -49,6 +49,7 @@ import type { ModelCall, ShadowDecision, CharacterChoice } from "./log.ts";
 import { GameLog } from "./log.ts";
 import { GameRunner } from "./runner.ts";
 import { SignalDetector } from "./signals.ts";
+import { MoneyWatch, moneyReport, type MoneyMeasure } from "./money-report.ts";
 
 /**
  * A kingdom's fall as the pace of war measures it: the season, the conqueror, and the seasons from the conqueror's first
@@ -92,12 +93,8 @@ export interface GameSummary {
   firstIsKing?: boolean;
   /** Each character's result against par (`characterResult`), kings apart, for `CharacterPar`; older summaries have none. */
   characterResults?: number[];
-  /**
-   * Bold and careful characters ("Bold or careful, one goal"; item 18): of the five best-placed living characters, how
-   * many took the bold road; and of every character in the game, how many were bold and how many there were in all.
-   * Older summaries have none.
-   */
-  roads?: { topBold: number; top: number; bold: number; all: number };
+  /** Item 18, part D: where the gold sat, the fees agreed and the two roads ({@link MoneyWatch}). */
+  money?: MoneyMeasure;
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
   /**
@@ -114,6 +111,8 @@ export interface GameSummary {
   /** The characters' decisions ("Characters sleep like kings", item 8): calls, wake-ups (character-seasons asked), pool, seasons. */
   characterCalls: number;
   characterWakeups: number;
+  /** The most characters woken in any one season ("How many characters": the spike, not the average, is what to watch). */
+  characterPeak?: number;
   characterPool: number;
   /** Item 17+: each attested person, by name: the seasons it was asked to decide, the times it was sent anywhere, and whether it served a court. */
   people?: Record<string, [number, number, number]>;
@@ -299,6 +298,13 @@ export function courtsOf(s: GameState): [number, number, number] {
   return [held, reopened, stoodIn];
 }
 
+/** The most characters woken in one season, from each character's seasons asked. */
+function peakOf(asks: ReadonlyMap<string, readonly number[]>): number {
+  const per = new Map<number, number>();
+  for (const turns of asks.values()) for (const t of new Set(turns)) per.set(t, (per.get(t) ?? 0) + 1);
+  return Math.max(0, ...per.values());
+}
+
 /** Plays one game to its end (and, with verifyReplay, replays its log and compares the final states). */
 export async function playGame(seed: number, build: (state: GameState) => GameRunner, verifyReplay: boolean, config: GameConfig | null = null, log: ((line: string) => void) | null = null): Promise<[GameSummary, GameRunner]> {
   const runner = build(newGame(seed, config));
@@ -307,8 +313,12 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   // Nor shows the threads to watch: nobody watches a batch.
   runner.tellThreads = false;
   await runner.prepare();
-  while (await runner.playTurn()) {
-    /* the whole game */
+  const watch = new MoneyWatch();
+  // Each season read once it is played, by its own number, the last (when playTurn says the age is over) included.
+  for (let more = true; more; ) {
+    const played = runner.state.turn;
+    more = await runner.playTurn();
+    watch.season(runner.state, played);
   }
   const s = runner.state;
 
@@ -345,11 +355,12 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     topWealth: Math.max(0, ...characters.filter((x) => !x.dead).map((x) => x.holding)),
     firstIsKing: board.length > 0 && board[0].power !== null,
     characterResults: characters.map((x) => characterResult(x.character)),
-    roads: roadsOf(characters),
+    money: watch.end(characters),
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
     characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
+    characterPeak: peakOf(runner.characterAsks),
     characterPool: s.characters.length,
     people: Object.fromEntries(
       s.characters.filter((c) => c.attested).map((c) => [c.name, [new Set(runner.characterAsks.get(c.id) ?? []).size, c.sent, c.employer !== null || c.formerEmployer !== null ? 1 : 0] as [number, number, number]]),
@@ -620,12 +631,6 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
   return lines.join("\n");
 }
 
-/** Bold and careful characters on the board (item 18): the five best-placed living ones' roads, and every character's. */
-function roadsOf(characters: readonly PersonScore[]): NonNullable<GameSummary["roads"]> {
-  const top = characters.filter((x) => !x.dead).slice(0, 5);
-  return { topBold: count(top, (x) => x.character.bold), top: top.length, bold: count(characters, (x) => x.character.bold), all: characters.length };
-}
-
 /** The scoreboard over many games: who stood first, how rich the richest character was at the end, and where all characters' gold came from. */
 export function scoreboardReport(games: readonly GameSummary[]): string[] {
   const top = games.map((g) => g.topWealth);
@@ -636,19 +641,10 @@ export function scoreboardReport(games: readonly GameSummary[]): string[] {
   return [
     "Every person on one scoreboard (item 17b, part D):",
     `  First place: a king in ${count(games, (g) => g.firstIsKing === true)} of ${games.length} games, a character in ${count(games, (g) => g.firstIsKing === false)}.`,
-    roadsLine(games),
     `  The richest character held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
     `  All the gold characters gained, ${total} shekels: fees ${share(gained.fees)}, lending and dealing ${share(gained.dealt)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal or capture ${share(gained.carried)}, savings brought in ${share(gained.savings)}, loot ${share(gained.loot)}, news and carrying ${share(gained.news)}; they spent ${gained.spent}.`,
     "  " + Wealth.WhatCounts,
   ];
-}
-
-/** Whether bold and careful characters reach the top at comparable rates ("Bold or careful, one goal"; item 18). */
-function roadsLine(games: readonly GameSummary[]): string {
-  const r = games.flatMap((g) => (g.roads === undefined ? [] : [g.roads]));
-  const pct = (a: number, b: number): string => (b === 0 ? "-" : `${fmt((100.0 * a) / b, "0")}%`);
-  const [topBold, top, bold, all] = [sum(r, (x) => x.topBold), sum(r, (x) => x.top), sum(r, (x) => x.bold), sum(r, (x) => x.all)];
-  return `  Bold and careful: of the five best-placed living characters in each game, ${pct(topBold, top)} were bold (${topBold} of ${top}), against ${pct(bold, all)} of all characters (${bold} of ${all}).`;
 }
 
 /**
@@ -752,7 +748,8 @@ export function batchReport(games: readonly GameSummary[]): string {
     lines.push(
       `Characters as agents would be asked ${fmt(sum(games, (g) => g.characterCalls) / seasons, "0.0")} times a season (calls), ` +
         `${fmt(sum(games, (g) => g.characterWakeups) / seasons, "0.0")} wake-ups a season over a pool of ${fmt(mean(games.map((g) => g.characterPool)), "0")}: ` +
-        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season.`,
+        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season; ` +
+        `the busiest season woke ${max(games, (g) => g.characterPeak ?? 0)} (its median over the games ${median(games.map((g) => g.characterPeak ?? 0))}).`,
     );
   // Item 17+: how often each attested person is sent anywhere or decides anything, over the games (the report's count).
   const people = new Map<string, [number, number, number, number]>();
@@ -768,6 +765,7 @@ export function batchReport(games: readonly GameSummary[]): string {
     );
   lines.push("");
   lines.push(...scoreboardReport(games));
+  lines.push(...moneyReport(games.flatMap((g) => (g.money !== undefined ? [g.money] : []))));
   const cost = sum(games, (g) => g.costUsd);
   if (cost > 0) lines.push(`\nModel cost: $${fmt(cost, "0.00")} total, $${fmt(cost / games.length, "0.00")} per game.`);
   const errors = sum(games, (g) => g.errors);

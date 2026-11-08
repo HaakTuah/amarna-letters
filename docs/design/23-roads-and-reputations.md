@@ -90,8 +90,9 @@ item 18 tunes them.
 
 - People hear of losses abroad (`S.losses`) where they stand, at the court where they happened, and from everyone at the
   same court, who pass on what they heard (`Character.heard`, the newest 40, of the last 12 seasons).
-- A person asks a court more for each of its people it heard were caught or put to death abroad (10 in a hundred) and
-  each it put to death (15), at most 60, times (1 − courage/200). The life view tells it both (`CourtSeen.executions`,
+- A person asks a court more for each of its people it heard were caught or put to death abroad (20 in a hundred) and
+  each it put to death (30), at most 120, times 2 × (1 − courage/100): the timid ask up to twice it, the bravest nothing
+  more (item 18 part D, [58](58-the-balance-pass.md)). The life view tells it both (`CourtSeen.executions`,
   `lost`), and script characters weigh them in where to stand.
 
 ### Natural losses (`naturalLosses`; "No age in this game")
