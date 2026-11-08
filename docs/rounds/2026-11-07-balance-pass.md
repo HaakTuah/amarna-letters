@@ -132,15 +132,16 @@ refuses this account; the copy on `develop` has not changed since part A began.
   place to the Great Kings, city-states and characters at weight 0: 11, 25, 14; at 2: 11, 25, 14; at 5: 15, 24, 11;
   at 10: 24, 17, 9; at 20: 34, 13, 3; at 50: 50, 0, 0 (Babylonia 23, Egypt 15). So even at 0 a Great King stands first
   about 2.7 times as often as a city-state, so size is not the whole of their edge; why is not measured here, and part
-  F looks for it. The seven Great Kings' share is
-  nearest the city-states' at weights 0 to 2, and no weight gives every power the same chance and characters a win now
-  and then together; that choice is #825's, and the numbers are added to it.
+  F looks for it. Lower weights bring the powers
+  nearest each other and give characters the most wins (14 of 50 at 0 to 2, perhaps more than "now and then"); higher
+  weights cut the characters' wins but hand the games to the Great Kings. That choice is #825's, and the numbers are
+  added to it.
 - **Par is close to settled**: measured again on seeds 101-150 under the play the new par makes, the Great Kings
   stood at Egypt 1.02, Hatti 0.97, Babylonia 1.06, Assyria 1.06, Arzawa 0.99, Alashiya 1.07 and Mitanni 0.75; first
   place went to kings in 39 games and characters in 11. The par from that run would itself move play again, so the
   first measure is kept (the readings).
 - **Bold and careful**: of the five best-placed living characters, 53% were bold (132 of 250), against 62% of all
-  characters (9,991 of 16,239): a careful character reached the top five about 1.4 times as often as a bold one.
+  characters (9,991 of 16,239): a careful character reached the top five about 1.45 times as often as a bold one.
 - **No new lever**: part B changes what is counted, not what a player can do, so no use against ignore.
 
 ### Questions for the owner
