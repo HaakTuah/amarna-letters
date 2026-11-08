@@ -51,7 +51,7 @@ import { bridgesWanted } from "./tongues.ts";
 import { byLeave, stirGold, watchedProvinces } from "./freedom.ts";
 import { willing } from "./siege-tactics.ts";
 import type { Personality } from "./personality.ts";
-import { bestGift, goodwillOf } from "./investment.ts";
+import { bestGift } from "./investment.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
 /** What a court saw a person do well (item 10, "A name made of outcomes"). */
@@ -469,7 +469,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       }
     } else if (r !== undefined && !r.hostile) {
       // A host's gift, small, where it pays to warm the king he claims to serve (investment.ts).
-      const gift = Math.min(30, bestGift(b, c.claimsToServe!, spare, goodwillOf(p)));
+      const gift = Math.min(30, bestGift(b, brain, c.claimsToServe!, spare));
       if (gift > 0) {
         orders.push(giftTo(c.id, gift));
         spare -= gift;

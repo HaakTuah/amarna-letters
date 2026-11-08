@@ -31,7 +31,7 @@ import { againstIn, answerLetter, givesAwayIn } from "./statecraft-clauses.ts";
 import { counterFor, grantsOk } from "./authority.ts";
 import { closing, pleaHeard, say } from "./voices.ts";
 import { Curse, Oath, allianceTablet, coalitionTablet, peaceTablet, pleasIn } from "./statecraft-letters.ts";
-import { InvestData, bestGift, giftReturn, goodwillOf } from "./investment.ts";
+import { InvestData, bestGift, giftReturn } from "./investment.ts";
 
 export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): HostReply {
   const p = brain.p;
@@ -51,7 +51,7 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
       brain.bribeOffered.delete(view.audienceId);
       const more = toInt(roundEven((offered[0] * 1.5) / 10)) * 10;
       // Half as much again, if that still buys more than it costs (investment.ts).
-      if (view.giftAccepted === 0 && more <= brain.spareGold && giftReturn(b, sender, more, InvestData.bribeEffect * goodwillOf(p)) > more) {
+      if (view.giftAccepted === 0 && more <= brain.spareGold && giftReturn(b, brain, sender, more, InvestData.bribeEffect) > more) {
         brain.spareGold -= more;
         again.bribe = more;
         again.bribeAsk = offered[1];
@@ -189,7 +189,7 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
 
   // A gift to the messenger, to colour what he tells his lord: a cunning king's way, where his good word is worth its cost
   // (investment.ts).
-  const bribe = p.cunning > 0.6 && !friend ? bestGift(b, sender, brain.spareGold, InvestData.bribeEffect * goodwillOf(p)) : 0;
+  const bribe = p.cunning > 0.6 && !friend ? bestGift(b, brain, sender, brain.spareGold, InvestData.bribeEffect) : 0;
   if (bribe > 0) {
     brain.spareGold -= bribe;
     reply.bribe = bribe;
@@ -202,7 +202,7 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
   if (hostile && r.grudge > 3 && p.vengeance > 0.6 && rng.chance(0.5)) reply.detain = true;
   if (reliability(view.envoy) === 0 && count(b.v.court, (c) => c.status === "employed") < 3 && brain.spareGold > 200 && rng.chance(0.1 + 0.2 * p.cunning)) reply.jobOffer = 30;
   // A gift in return to a friend who brought gold, where it pays (investment.ts), at most half of what he brought.
-  const back = friend && view.goldWeighed > 0 ? Math.min(bestGift(b, sender, brain.spareGold, goodwillOf(p)), idiv(idiv(view.goldWeighed, 2), 10) * 10) : 0;
+  const back = friend && view.goldWeighed > 0 ? Math.min(bestGift(b, brain, sender, brain.spareGold), idiv(idiv(view.goldWeighed, 2), 10) * 10) : 0;
   if (back > 0) {
     brain.spareGold -= back;
     reply.goldBack = back;

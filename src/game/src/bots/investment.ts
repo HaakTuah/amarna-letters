@@ -14,6 +14,7 @@
 import { Board } from "./board.ts";
 import type { Power } from "@amarna/engine";
 import type { Personality } from "./personality.ts";
+import { HostilityFloor, type Brain } from "./brain.ts";
 
 /** Whether a king gives gifts at all; off only to measure what they are worth (`--gift-play-half`). */
 export const GiftPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -54,19 +55,28 @@ export function atRisk(b: Board, x: Power): number {
   return v;
 }
 
-/** The shekels a gift of `gold` to `x` is worth to us over the seasons left: the attacks it makes less likely. `effect` scales its warmth (1 for gold in his hand). */
+/**
+ * The shekels a gift of `gold` to `x` is worth to us over the seasons left: the attacks it makes less likely. `effect`
+ * scales its warmth (1 for gold in his hand), and the king's own belief in goodwill ({@link goodwillOf}) scales it again.
+ * A gift cools no more than his hostility has left to fall (`Brain.hostility`, never below `HostilityFloor`): a king
+ * who means us no harm is not made safer by gold.
+ */
 export function giftReturn(
   b: Board,
+  brain: Brain,
   x: Power,
   gold: number,
   effect = 1,
   risk = atRisk(b, x),
 ): number {
   const d = InvestData;
-  const cooled =
+  const cooled = Math.min(
+    Math.max(0, brain.hostility(x, b) - HostilityFloor),
     d.hostilityPerTrust *
-    Math.min(d.trustMost, gold * d.trustPerShekel) *
-    effect;
+      Math.min(d.trustMost, gold * d.trustPerShekel) *
+      effect *
+      goodwillOf(brain.p),
+  );
   const seasons = Math.max(1, b.horizon);
   const kept = (1 - (1 - d.trustFades) ** seasons) / d.trustFades;
   return d.attackPerHostility * cooled * kept * d.lostIfAttacked * risk;
@@ -75,6 +85,7 @@ export function giftReturn(
 /** The gift to `x` that returns most beyond its cost, at most `spare`; 0 when none returns more than it costs. */
 export function bestGift(
   b: Board,
+  brain: Brain,
   x: Power,
   spare: number,
   effect = 1,
@@ -89,7 +100,7 @@ export function bestGift(
     g <= Math.min(spare, d.trustMost / d.trustPerShekel);
     g += d.step
   ) {
-    const net = giftReturn(b, x, g, effect, risk) - g;
+    const net = giftReturn(b, brain, x, g, effect, risk) - g;
     if (net > gain) [best, gain] = [g, net];
   }
   return best;

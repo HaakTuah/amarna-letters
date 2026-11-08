@@ -42,7 +42,7 @@ import { clausePlays } from "./statecraft-clauses.ts";
 import { authorityFor, authorityOn, basingTablet, passageClause, stagingFor } from "./authority.ts";
 import { wantsTradeRights } from "./trade.ts";
 import { Letter, closing } from "./voices.ts";
-import { bestGift, goodwillOf } from "./investment.ts";
+import { bestGift } from "./investment.ts";
 
 export const Oath = "By Shamash, Amun, Marduk and Teshub";
 
@@ -129,7 +129,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
       missions.push(mission(x, "alliance", 0.5 * p.diplomacy + 0.2 * r.trust + (small ? 0.15 : 0)));
     // Item 18 part E: a gift, or a small kingdom's tribute to a great one, wherever it buys more than it costs ("Gold is a
     // lifeline"; investment.ts): to a neighbour whose hostility it cools, not to a friend far away.
-    if (!besieged && fresh && !r.hostile && bestGift(b, x, brain.spareGold, goodwillOf(p)) > 0) missions.push(mission(x, isSmall(me) && !isSmall(x) ? "tribute" : "gift", 0.4));
+    if (!besieged && fresh && !r.hostile && bestGift(b, brain, x, brain.spareGold) > 0) missions.push(mission(x, isSmall(me) && !isSmall(x) ? "tribute" : "gift", 0.4));
     // Item 14 ("Finkel's version"): once in a game, a greedy king short of gold begs a stronger friend for it, in the words
     // Finkel gave such letters: an Easter egg, rare by design.
     if (!brain.begged && p.greed > 0.7 && brain.spareGold < 100 && brain.isFriend(x) && b.strength(x) > b.strength(me) && rng.chance(0.1))
@@ -291,7 +291,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
   // Gifts are score given away: only what returns more than it costs (investment.ts), and one gift-bearing letter a season.
   const gift = (): number => {
     if (brain.giftTurn === b.v.turn) return 0;
-    const g = bestGift(b, to, brain.spareGold, goodwillOf(p));
+    const g = bestGift(b, brain, to, brain.spareGold);
     if (g > 0) {
       brain.giftTurn = b.v.turn;
       brain.spareGold -= g;

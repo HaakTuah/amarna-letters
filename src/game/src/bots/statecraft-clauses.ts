@@ -17,7 +17,7 @@ import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { Names } from "./names.ts";
 import { willing } from "./tactics.ts";
-import { bestGift, goodwillOf } from "./investment.ts";
+import { bestGift } from "./investment.ts";
 
 /** A promise of support for a move: in `turn`, the troops of `by` support the move of `of`'s troops from `from` into `to`. */
 export interface SupportPromise {
@@ -87,7 +87,7 @@ export function answerLetter(view: AudienceView, b: Board, brain: Brain, reply: 
         if (!once(c.kind)) break;
         const want = c.amount ?? 0;
         // A friend in need gets what pays to give him (investment.ts), up to what he asks; anyone else is refused.
-        const give = friend ? Math.min(want, bestGift(b, sender, brain.spareGold, goodwillOf(p))) : 0;
+        const give = friend ? Math.min(want, bestGift(b, brain, sender, brain.spareGold)) : 0;
         brain.spareGold -= give;
         if (give <= 0) reply.clauses.push(answer("refuse", "askGold"));
         else {

@@ -62,6 +62,8 @@ export class Relation {
 }
 
 const WagesGuess = 25;
+/** The least hostility {@link Brain.hostility} ever reckons: some danger from every king. */
+export const HostilityFloor = 0.05;
 
 /**
  * A book of every king we know, that opens a page for a king risen in play (items 13+ and 17) the first time we look him
@@ -508,7 +510,7 @@ export class Brain {
     }
   }
 
-  /** How likely another king is to attack us this season. */
+  /** How likely another king is to attack us this season, never below {@link HostilityFloor}. */
   hostility(other: Power, b: Board): number {
     const r = this.rel.get(other);
     let h = 0.3;
@@ -526,7 +528,7 @@ export class Brain {
     if (r.treaty && r.oathsBroken === 0) h -= 0.3;
     if (r.allied && r.oathsBroken === 0) h -= 0.2;
     if (b.leader() === this.me) h += 0.15;
-    return clamp(h, 0.05, 0.95);
+    return clamp(h, HostilityFloor, 0.95);
   }
 
   /**
