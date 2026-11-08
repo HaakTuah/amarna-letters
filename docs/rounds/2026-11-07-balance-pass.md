@@ -161,7 +161,7 @@ refuses this account; the copy on `develop` has not changed since part A began.
   version 89.
 - **The war report** gives pillar 8's measure: how long a letter from each fallen court to its conqueror's and the
   reply take, and the falls that came sooner than that after his entry, by kingdom (measured where the conqueror still
-  reigns at the end); and in how many games a Great King's capital fell. (The table's "within four seasons" row was read
+  reigns at the end); and in how many games a Great King's realm fell. (The table's "within four seasons" row was read
   from a first version of the line, while the levers were tried.)
 - **Kept**: the age's median and cap, the gate a starving city keeps, the people's help on rough ground (the readings).
 
@@ -220,7 +220,10 @@ games exactly, with the same results as the column for them:
   under the faster breach, so the standings lean; part F refreshes par on the tuned play.
 - **Pillar 8 holds but for Lukka** (the regression run): a letter to the conqueror and its reply take 2 seasons on the
   median, and 3 of the 724 falls so timed came sooner after his entry, all Lukka's (#832). **Capitals fall in most
-  games**: a Great King's capital fell in 36 of 50, judged with the length set, as the item asks.
+  games**: a Great King's realm fell, left holding nothing, in 36 of 50 (since 17b a realm falls only then), so his
+  capital was taken in at least as many; judged with the length set, as the item asks. The falls left out of the
+  letter-and-reply measure (210 of 934) are those whose conqueror no longer reigned at the end; the within-four-seasons
+  count, which takes every fall, came down from 400 to 105 on the same rules, so they do not hide a fast war.
 - Item 5 found 61% of falls within 5-10 seasons of the conqueror's entry; the city-states since 11+ brought it down to
   29%, and the slower breach brings it back to 53%.
 

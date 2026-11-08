@@ -410,8 +410,9 @@ export function warReport(games: readonly GameSummary[]): string[] {
   const quick = timed.filter((f) => f.fromConquerorEntry! < f.reply!);
   const quickBy = sortBy([...new Set(quick.map((f) => f.power))], [(p: Power) => -quick.filter((f) => f.power === p).length, cmpNum], [(p: Power) => p, cmpStr]);
   out.push(`  A letter to the conqueror and its reply: ${timed.length === 0 ? "none" : `median ${median(timed.map((f) => f.reply!))} seasons`}; fallen faster than that after his entry: ${quick.length} of ${timed.length}${quick.length > 0 ? ` (${quickBy.map((p) => `${p} ${quick.filter((f) => f.power === p).length}`).join(", ")})` : ""}.`);
-  const great = new Set(AllPowers.filter((p) => tier(p) !== "City"));
-  out.push(`  A Great King's capital fell in ${games.filter((g) => g.falls.some((f) => great.has(f.power))).length} of ${games.length} games.`);
+  // A fall is a realm left holding nothing (item 17b), so a Great King's capital was taken in at least as many games.
+  const great = new Set<Power>(GreatKings);
+  out.push(`  A Great King's realm fell (held nothing) in ${games.filter((g) => g.falls.some((f) => great.has(f.power))).length} of ${games.length} games.`);
   out.push(`  Kingdoms fallen: ${AllPowers.map((p) => `${p} ${falls.filter((f) => f.power === p).length}`).join(", ")}.`);
   return out;
 }
