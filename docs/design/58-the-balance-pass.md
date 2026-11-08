@@ -40,13 +40,17 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   a person asks more of a court it heard loses its people abroad or puts others to death is doubled, and the timid now
   ask up to twice it and the bravest nothing more, where it ran from all of it down to half (the rule and its numbers:
   [23](23-roads-and-reputations.md), "Reputation from losses abroad"). Kings hire the cheapest candidate who will go, so the
-  careful, who asked least, took nearly every job, and dangerous service with it. Now a dangerous court's errands go to
-  the bold, and the careful's steady service is service at safe courts. Seizing hoards (`WarySeized` 15, at most
-  `WarySeizedMost` 60, the timid all of it and the bravest half) is unchanged: it threatens a keeper's hoard, not his life.
-- **The money report** (`MoneyWatch`, `moneyReport`): the world's gold at seasons 1, 20, 40, 60 and 80 (treasuries,
-  markets' purses, characters' purses and hoards, the loose men's loot), the jobs agreed in each twenty seasons with
-  their mean fee a season and the share of living characters in service, and for each road its characters, deaths,
-  places in the top five and top twenty, gains a head and earnings by source. It replaces part B's line on the roads.
+  careful, who asked least, took most jobs, dangerous service among them. Now the careful shun courts heard to lose their
+  people, and the bold take more of that service (the report gives the shares). What a person asks more of a court heard to seize
+  hoards (`WarySeized`, at most `WarySeizedMost`) keeps its old scale: it threatens a keeper's hoard, not his life.
+- **The money report** (`MoneyWatch`, `moneyReport`), read after each season by the season played: the world's gold at
+  seasons 1, 20, 40, 60 and 80 (treasuries, the kings' gold away from them, markets' purses, characters' purses and
+  hoards, the loose men's loot); in each twenty seasons the jobs agreed with their mean fee a season (over the term
+  agreed), the share of living characters in service and what a free man takes in a season working for himself
+  (lending and dealing at face, loot, news and carrying); and for each road its characters, deaths, places in the top
+  five and top twenty, jobs with courts heard to lose their people, gains a head and earnings by source. It replaces
+  part B's line on the roads. Beside the average wake-ups, the batch summary gives the busiest season's
+  (`GameSummary.characterPeak`).
 - **Kept as built**, by the measure (the report): characters' living and a hoard's keep (`MoneyData.living`,
   `hoardFee`), lending's rates (`interest*`), the pool's baseline, the markets' purses, and the gift threshold of routine
   audiences (the standing answers' backstop, a quarter of the treasury), which only model kings meet.

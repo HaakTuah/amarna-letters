@@ -242,49 +242,64 @@ refuses this account; the copy on `develop` has not changed since part A began.
 
 - **Danger money goes to the bold**: what a person asks more of a court it heard loses its people abroad or puts others
   to death is doubled, and runs from twice that for the timid to nothing for the bravest (it ran from all of it to half).
+  What it asks more of a court heard to seize hoards keeps its old scale: that threatens a keeper's gold, not his life.
   The rulebook's line on prices says so. Save version 90.
 - **The money report** (`game/src/money-report.ts`, in every batch summary): where the world's gold sits at seasons 1,
-  20, 40, 60 and 80; the jobs agreed in each twenty seasons, their fee a season and the share of characters in service;
-  and each road's characters, deaths, places in the top five and twenty, gains and earnings by source. It replaces part
-  B's line on the roads.
+  20, 40, 60 and 80, the kings' gold away from their treasuries included; in each twenty seasons the jobs agreed, their
+  fee a season, the share of characters in service and what a free man takes in a season working for himself; and each
+  road's characters, deaths, places in the top five and twenty, jobs with courts heard to lose their people, gains and
+  earnings by source. It replaces part B's line on the roads. The batch summary also gives the busiest season's
+  wake-ups beside the average.
 
 ### Numbers tuned
 
 - `WaryLost` 20 (from 10), `WaryKilled` 30 (15), `WaryMost` 120 (60), scaled by 2 × (100 − courage) in a hundred (from
-  100 − courage/2).
+  100 − courage/2). `WarySeized` stays 15, at most 60 (`WarySeizedMost`), scaled as before.
 
 ### Readings taken
 
 - **The bold lost on price, not on choice, so the price of danger is what moves** ("Bold or careful, one goal": "well-paid
   errands into danger"; "Fees clear the market"; "Skills set the odds; the character decides"). Kings hire the cheapest
-  candidate who will go, and the bold ask more (greed is in every price), so the careful took the jobs: they earned 165
-  shekels a head in fees against the bold's 101, and died more often (18% against 13%), since service abroad was the
-  dangerous road. Whether a free man seeks service was not the cause: two versions of that choice moved nothing on seeds
-  1-20. Steepening the danger premium by courage lets a dangerous court's errands go to the bold, cheaper there than the
-  careful, and the careful's steady service is at safe courts. Three times the premium did worse than twice on seeds
-  1-20, so twice is kept.
-- **The top five, not the top twenty, is "the top of the ranking"** (part B's measure, kept so the two compare): the bold
-  now reach the top five at 0.82 to 0.88 times the careful's rate a head (0.69 before), within the noise of 250 places;
-  the top twenty still favour the careful (0.54 to 0.55 times, 0.50 to 0.53 before), since a careful man's steady fees give a
-  higher median gain, and the bold road's loot pays less than the fees it gives up. Part F measures both again on the
-  tuned play.
-- **Fees clear the market as built** ("Fees clear the market": "when many wait for work, they fall"): the share in
-  service falls from 38% in the first twenty seasons to about 6% after a hundred, but the idle are men working for
-  themselves, not men seeking service, so there is no surplus of seekers for fees to fall against; a price that falls
-  while a seeker waits moved neither the fees agreed (22 to 23 a season after the first twenty seasons) nor the roads,
-  on seeds 1-20. Fees rose from 15 to 22 a season once the first rush of hiring passed, and then held.
-- **The markets' purses neither inflate nor drain into hoards** ("Where gold comes from and where it goes"): the purses
-  fall from about 28,000 shekels to 18,000 in the first forty seasons, into the treasuries (14,000 to 17,000) as taxes
-  and sales, and then hold; hoards stay near 3,000 and characters' purses near 6,000.
+  candidate who will go, and the bold ask more (greed is in every price), so the careful took most of the jobs: they
+  earned 165 shekels a head in fees against the bold's 101. Whether a free man seeks service was not the cause: two
+  versions of that choice moved nothing on seeds 1-20. With the premium steeper by courage, the careful shun courts heard
+  to lose their people and the bold take more of that service: of the jobs with such courts, the bold's share rose from
+  53% to 60% on seeds 1-50 (they are few, 4% to 8% of all jobs, and fewer now that the careful shun them). Three times
+  the premium did worse than twice on seeds 1-20, so twice is kept.
+- **The top five, not the top twenty, is "the top of the ranking"** (part B's measure, kept so the two compare): a
+  careful character reached the top five 1.20 times as often a head as a bold one on both seed sets (1.44 and 1.47
+  before), and the bold took 56% to 57% of those places from 61% of the characters. The top twenty did not move (1.9 to
+  2.0 times), since a careful man's steady fees give a higher median gain (37 shekels against 22), and the bold road's
+  loot pays less than the fees it gives up; lending's rates, the bold road's other source, were kept untried. Part F
+  measures both again on the tuned play.
+- **The careful still die more often than the bold** (17% to 19% against 12% to 14% at the end, about as before): service
+  abroad is where men die, and the careful still hold most of it. The design has the bold road as the one that may end
+  "dead"; the danger premium shifts the deadliest service a little, and part F looks at it again.
+- **Working for oneself never pays better than service, so fees need not rise to win men back** ("Where characters are,
+  and what they speak": "whether fees rise until service pays again when working for oneself pays better"): after the
+  first twenty seasons a job pays 27 to 28 shekels a season, while a free man takes in about 1 a season working for
+  himself (lending and dealing at face, loot, news and carrying). The share in service falls from 38% in the first
+  twenty seasons to 5% to 7% after a hundred because the courts hire less (about 9,500 jobs agreed in the first twenty
+  seasons, 1,300 in seasons 61-80), not because service pays too little. **The falling side is still open**: with so
+  many idle, "when many wait for work, they fall" asks for falling fees, and they held; a seeker's price that falls as
+  he waits moved neither the fees agreed nor the roads on seeds 1-20, since a price is set by what a man has heard
+  others paid as much as by his own. Part F measures it again.
+- **The markets' purses do not inflate, and their gold drains off the map, not into hoards** ("Where gold comes from and
+  where it goes"): over the first eighty seasons the purses fall from about 44,000 shekels to 18,000 and the treasuries
+  rise from about 6,700 to 16,000 to 17,000, while hoards stay near 3,000, characters' purses near 6,000 and the kings'
+  gold away from their treasuries near 150. All the gold counted falls from about 57,000 to 42,000, most of it in the
+  first forty seasons and little after sixty: what leaves goes out through the edge markets, the main way out the
+  design names, and the purses settle.
 - **No court is starved of carriers but Egypt, and Egypt's is the residents' rule, the owner's** (#836; "Where
   characters are, and what they speak"): letters to every other court wait 1.0 to 2.5 seasons for a carrier understood
   there; to Egypt 3.8 to 4.0, and nearly all of them are Pharaoh's commissioners' reports from posts with no court to
   hire at, which a resident never carries himself (item 17++). The border walk a watcher may take would not help: no
   such post lies next to Egypt's own land. Kept as built; the alternatives are in the issue.
-- **The pool keeps its baseline** ("How many characters": "late games may have a surplus of characters, which means
-  cheap men and more outlaws, and suits the age"): 0.28 wake-ups a season per character, as since item 17++, about 100 a
-  season over a pool of 330 to 360 (the dead counted); no court waits long for servants but Egypt (above), so the
-  measure gives no reason to move it.
+- **The pool keeps its baseline** ("How many characters": "that spike, not the average, is what to watch"; "late games
+  may have a surplus of characters, which means cheap men and more outlaws, and suits the age"): 0.28 wake-ups a season
+  per character, about 100 to 110 a season over a pool of 330 to 350 (the dead counted); the busiest season of a game
+  wakes about 150 on the median and at most about 400, nearly the whole pool. No court waits long for servants but Egypt (above), so the measure gives no reason to move it; what
+  the spike costs in model calls is weighed with the model games.
 - **Characters' costs and lending stay as built**: characters spend about nine tenths of what they earn (living, a
   hoard's keep, loans made, what was taken), lending and dealing bring about 8% of what both roads earn, and nothing in
   the measure points at a number there.
@@ -298,18 +313,19 @@ On the same seeds, before (part C's rules) and after:
 | | Seeds 1-50 before | after | Seeds 101-150 before | after |
 |---|---|---|---|---|
 | Bold share of all characters | 61% | 61% | 62% | 62% |
-| Bold in the top five | 129 of 250 (52%) | 141 (56%) | 132 (53%) | 147 (59%) |
-| Careful's rate a head against the bold's, top five | 1.44 | 1.22 | 1.47 | 1.13 |
-| Careful's rate a head against the bold's, top twenty | 2.00 | 1.81 | 1.88 | 1.85 |
-| Dead at the end, bold / careful | 13% / 18% | 12% / 16% | 13% / 19% | 14% / 18% |
-| First place: kings / characters | 40 / 10 | 40 / 10 | 40 / 10 | 39 / 11 |
+| Bold in the top five | 129 of 250 (52%) | 142 (57%) | 132 (53%) | 143 (57%) |
+| Careful's rate a head against the bold's, top five | 1.44 | 1.20 | 1.47 | 1.20 |
+| Careful's rate a head against the bold's, top twenty | 2.00 | 1.90 | 1.88 | 1.97 |
+| Jobs with a court heard to lose its people, bold / careful | 8% / 6% | 7% / 4% | | 6% / 4% |
+| Dead at the end, bold / careful | 13% / 18% | 12% / 17% | 13% / 19% | 14% / 19% |
+| First place: kings / characters | 40 / 10 | 42 / 8 | 40 / 10 | 41 / 9 |
 
 - **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games replayed exactly. Wins: Assyria
-  10 (12 before), Hatti 4 (2), Arzawa 2 (3), the city-states 24 (22), characters 10 (10). A Great King's war was decided
-  in 37 ages (42), still most; the change moves only who is hired, and the seeds diverge from there.
-- **Seeds 1-20, the levers tried**: whether a free man seeks service, two ways, moved nothing; the danger premium at once
-  (×1, steeper by courage) gave the bold 59 of the top five's 100 places (51 before), at twice 59, at three times 50,
-  and twice with a seeker's price falling as he waits 64.
+  8 (12 before), Egypt 2 (1), Arzawa 2 (3), Hatti 1 (2); the change moves only who is hired, and the seeds diverge from
+  there.
+- **Seeds 1-20, the levers tried** (before the seizure premium was set apart): whether a free man seeks service, two
+  ways, moved nothing; the danger premium at once (×1, steeper by courage) gave the bold 59 of the top five's 100
+  places (51 before), at twice 59, at three times 50, and twice with a seeker's price falling as he waits 64.
 - **No new lever**: part D changes what a person asks, not what a player can do, so no use against ignore.
 
 ### Questions for the owner
