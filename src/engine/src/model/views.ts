@@ -912,6 +912,8 @@ export interface SeatView {
   startStrength: number;
   /** What a shekel of yield counts in strength (public, in the rulebook). */
   provinceWeight: number;
+  /** Item 18: whether kings' traits were rolled for this game (`GameConfig.rolledTraits`): then no rival is known by his history. */
+  rolledTraits: boolean;
   /**
    * Who this court knows holds each land province (build order item 7b, "Hidden by default"): as it is where it sees, and
    * elsewhere as of the season in {@link ownerAsOf}, by word or by what its own people brought home ({@link ownerFrom}).
@@ -1120,6 +1122,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     strength: 0,
     startStrength: 0,
     provinceWeight: newGameConfig().provinceWeight,
+    rolledTraits: false,
     owner: new Dict(),
     ownerAsOf: new Dict(),
     ownerFrom: new Dict(),
@@ -1220,6 +1223,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   strength: I,
   startStrength: I,
   provinceWeight: I,
+  rolledTraits: B,
   owner: dict(opt(S)),
   ownerAsOf: dict(I),
   ownerFrom: dict(S),

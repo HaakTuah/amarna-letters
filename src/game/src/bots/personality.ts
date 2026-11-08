@@ -43,6 +43,11 @@ export function archetype(p: Power): Personality {
   return personalityOf(p, natureTraits(p));
 }
 
+/** Item 18: a rival pictured when kings' traits were rolled for the game: a middling king, judged by what he does. */
+export function unknownKing(p: Power): Personality {
+  return personalityOf(p, KingTraitValues.map(() => 50));
+}
+
 /** The three traits that stand out, for display (`standout` in the engine's `model/kings.ts`). */
 export function highlights(t: Personality): string[] {
   return standout(KingTraitValues.map((k) => Math.round(t[k] * 100)));
