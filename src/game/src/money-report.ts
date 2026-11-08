@@ -5,7 +5,7 @@
  * ("Fees clear the market"), and what bold and careful characters earn, from what, how often they serve courts that lose
  * their people, and how often they die ("Bold or careful, one goal").
  */
-import { addEarnings, characterResult, earningsTotal, fmt, lossesHeardOf, newEarnings, sum, type Character, type Earnings, type GameState, type PersonScore } from "@amarna/engine";
+import { addEarnings, characterResult, earningsTotal, fmt, lossesHeardOf, newEarnings, sum, type Character, type Earnings, type GameState, type PersonScore, type StayLeft } from "@amarna/engine";
 
 /** The seasons the gold stocks are read at, and the width of the windows fees are counted in. */
 export const MoneyMarks = [1, 20, 40, 60, 80] as const;
@@ -21,7 +21,7 @@ export interface GoldStocks {
   hoards: number;
   /** The loose men's loot. */
   loot: number;
-  /** The kings' gold away from their treasuries: in far coffers, on the road to or from them, with caravans and envoys, and lots not yet assayed. */
+  /** The kings' gold away from their treasuries: in far coffers, on the road to or from them, with caravans and envoys. */
   away: number;
 }
 
@@ -37,8 +37,7 @@ export function goldStocks(s: GameState): GoldStocks {
       sum(s.coffers, (c) => c.gold) +
       sum(s.sent, (r) => r.gold) +
       sum(s.caravans, (c) => c.gold) +
-      sum(s.journeys, (j) => (j.dispatch?.gold ?? 0) + (j.cargo?.gold ?? 0)) +
-      sum([...s.treasuries.values()], (t) => sum(t.lots, (l) => l.face)),
+      sum(s.journeys, (j) => (j.dispatch?.gold ?? 0) + (j.cargo?.gold ?? 0)),
   };
 }
 
@@ -84,6 +83,8 @@ export class MoneyWatch {
   readonly m: MoneyMeasure = { stocks: [], fees: [] };
   private readonly seen = new Set<string>();
   private readonly self = new Map<string, number>();
+  /** Each character's stay carried by its contract last season ({@link StayLeft}). */
+  private readonly stays = new Map<string, StayLeft | null>();
   private readonly jobs = { bold: [0, 0], careful: [0, 0] };
 
   season(s: GameState, played: number): void {
@@ -101,8 +102,13 @@ export class MoneyWatch {
         f.selfEarned += selfOf(c) - before;
       }
       const k = c.contract;
+      const stay = this.stays.get(c.id) ?? null;
+      this.stays.set(c.id, k?.stay ?? null);
       if (k === null || c.employer === null || this.seen.has(`${c.id}:${k.startTurn}`)) continue;
       this.seen.add(`${c.id}:${k.startTurn}`);
+      // A stay resumed after an errand (`jobsDone`) is the old job going on, not a new one: the rest of the stay the last
+      // contract carried, to the same season.
+      if (stay !== null && k.advance === 0 && k.untilTurn === stay.until && k.fee === stay.rest) continue;
       f.jobs++;
       // The term agreed: a job runs from its first season to `untilTurn` = start + term.
       f.perSeason += k.fee / Math.max(1, k.untilTurn - k.startTurn);

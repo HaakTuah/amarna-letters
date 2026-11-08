@@ -21,7 +21,7 @@ what comes before it:
 - **E. Script kings' spending as investment:** gifts, bribes and tribute judged by expected return; the darkest seasons'
   grabs; courts playing distinctly; how close their best options are; whether kings build, give and campaign or sit on
   their treasure, and what the last seasons look like (the wealth of a realm's two checks, from part B).
-- **F. The audit:** par refreshed once more on the tuned play; bold and careful in the top five and twenty (from part D); every feature passes use against ignore; the people 17+ added judged by what they did (the list to
+- **F. The audit:** par refreshed once more on the tuned play; bold and careful in the top five and twenty, and the careful dying more often than the bold, and fees that do not fall when many wait for work (#837) (from part D); every feature passes use against ignore; the people 17+ added judged by what they did (the list to
   the owner); starting positions, banditry and far provinces against the sources; win rates per power on the item's
   full seed sets (1-100 and 101-200), Mitanni's standing below par and why a Great King stands first more often than
   a city-state even at a weight of size of 0 among them; commanders' worth by the distance of the front and the size of
@@ -274,7 +274,7 @@ refuses this account; the copy on `develop` has not changed since part A began.
   measures both again on the tuned play.
 - **The careful still die more often than the bold** (17% to 19% against 12% to 14% at the end, about as before): service
   abroad is where men die, and the careful still hold most of it. The design has the bold road as the one that may end
-  "dead"; the danger premium shifts the deadliest service a little, and part F looks at it again.
+  "dead"; the danger premium shifts the deadliest service a little, and part F's plan carries it.
 - **Working for oneself never pays better than service, so fees need not rise to win men back** ("Where characters are,
   and what they speak": "whether fees rise until service pays again when working for oneself pays better"): after the
   first twenty seasons a job pays 27 to 28 shekels a season, while a free man takes in about 1 a season working for
@@ -283,7 +283,7 @@ refuses this account; the copy on `develop` has not changed since part A began.
   seasons, 1,300 in seasons 61-80), not because service pays too little. **The falling side is still open**: with so
   many idle, "when many wait for work, they fall" asks for falling fees, and they held; a seeker's price that falls as
   he waits moved neither the fees agreed nor the roads on seeds 1-20, since a price is set by what a man has heard
-  others paid as much as by his own. Part F measures it again.
+  others paid as much as by his own. Filed as a bug, #837, for part F.
 - **The markets' purses do not inflate, and their gold drains off the map, not into hoards** ("Where gold comes from and
   where it goes"): over the first eighty seasons the purses fall from about 44,000 shekels to 18,000 and the treasuries
   rise from about 6,700 to 16,000 to 17,000, while hoards stay near 3,000, characters' purses near 6,000 and the kings'
@@ -332,5 +332,7 @@ On the same seeds, before (part C's rules) and after:
 
 - [#836](https://github.com/HaakTuah/amarna-letters/issues/836): Pharaoh's commissioners wait for passers-by to carry
   their reports; should they carry them, or hire a carrier, after a long wait (new)?
+- [#837](https://github.com/HaakTuah/amarna-letters/issues/837): fees do not fall when many more people wait for work
+  than the courts want (a bug, new; for part F).
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
