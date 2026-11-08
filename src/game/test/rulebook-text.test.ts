@@ -228,7 +228,7 @@ describe("SeasonRulebookTests", () => {
     ],
     ["You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them"],
     [
-      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 3 steps for each level of its walls, when they are breached.",
+      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 6 steps for each level of its walls, when they are breached.",
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [

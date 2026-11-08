@@ -24,7 +24,8 @@ what comes before it:
 - **F. The audit:** par refreshed once more on the tuned play; every feature passes use against ignore; the people 17+ added judged by what they did (the list to
   the owner); starting positions, banditry and far provinces against the sources; win rates per power on the item's
   full seed sets (1-100 and 101-200), Mitanni's standing below par and why a Great King stands first more often than
-  a city-state even at a weight of size of 0 among them. Then **stop for review**.
+  a city-state even at a weight of size of 0 among them; commanders' worth by the distance of the front and the size of
+  the realm (from part C). Then **stop for review**.
 
 ## Part A: before tuning
 
@@ -148,3 +149,86 @@ refuses this account; the copy on `develop` has not changed since part A began.
 
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825) (still open; part B's numbers added to it).
 - [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open; part B does not depend on it).
+
+## Part C: length and war
+
+Started from `develop` at 1f81bfb (part B's milestone, #831, merged). The check for changes: the live document still
+refuses this account; the copy on `develop` has not changed since part A began.
+
+### What was built
+
+- **A breach takes twice the wear** (`EconomyData.breachPerLevel` 6 steps for each level of walls, 3 before). Saved
+  version 89.
+- **The war report** gives pillar 8's measure: how long a letter from each fallen court to its conqueror's and the
+  reply take, and the falls that came sooner than that after his entry, by kingdom (measured where the conqueror still
+  reigns at the end); and in how many games a Great King's realm fell. (The table's "within four seasons" row was read
+  from a first version of the line, while the levers were tried.)
+- **Kept**: the age's median and cap, the gate a starving city keeps, the people's help on rough ground (the readings).
+
+### Numbers tuned
+
+- `breachPerLevel` 6 (from 3), so walls of level 1 hold three to six seasons of wear and level 3 nine to eighteen.
+
+### Readings taken
+
+- **The breach, not the stores, was the clock, so the breach is what moves** ("How long a siege lasts": "Walls price
+  the storm, not the clock"; "A blockaded city holds as long as it can eat and drink"): of 1,579 sieges won in seeds
+  1-50, about 990 ended in a breach, 562 by hunger and 31 by thirst. With twice the wear, hunger and thirst end most
+  (838 and 223 of 1,344).
+- **The gate stays at 1** ("Balance: first guesses during the build": a number changes only where the measure asks it to): a gate kept three seasons longer halved the gates opened from within (562 to
+  298) but left the falls within four seasons where they were (403 against 400), since the breach came first.
+- **The rough ground stays twice** (pillar 8 against the length test): three times left Lukka's eight early falls as
+  they were and cut the ages that saw a Great King's war decided from 42 to 39 of 50.
+- **Lukka's early fall is the owner's question** (#832; pillar 8 and "Whom a province obeys"): its chief dies in a
+  lost battle and his heir, who inherits a third of his father's standing (17b), weighs about 33 against an army's force
+  of up to 100, which clears it by more than the margin of 20. The levers that are first guesses move this too little:
+  rough ground at three times left the eight games as they were; the margin would need to be about 67 or more, and the
+  most force can weigh about 53 or less, each freezing or slowing conquest in every province. So the choice is between
+  the built rule, an heir's larger share, and a rule for every land without a town: the owner's.
+- **Marching and slow absorption are measured and kept** ("the pace of war (sieges, marching, slow absorption ...)"):
+  the pace on the roads comes from the distances dossier ("Starting positions come from the sources"), and from the
+  conqueror's entry most falls now wait on a siege, not the march; absorption ("Obedience has degrees": a third of the
+  yield at a bare lead) is unchanged, and revolts (381 in seeds 1-50) still take back what is held badly. The
+  slower breach is the one number the measure asked to move.
+- **The age's length stays as the owner set it** ("Random ending": a median of about 80 seasons, the cap at 140 to
+  160, 30 October 2026; "most ages should see at least one Great King's war decided"): 42 of 50 ages pass, and the
+  slower breach does not lengthen a game, whose end is drawn at the start.
+- **Wars still begin and end, read from what follows them** (item 18: standing orders "favour defence ... so check that wars still end, and that
+  they still begin"): the first fall of a game comes in season 6 on the median (4 before), 3,670 offers of peace were
+  accepted (3,725 before), and a Great King's capital fell first in 20 ages and a Great King was made another's vassal
+  first in 22.
+
+### Script players and the measure
+
+All on seeds 1-50, before (part B's rules) and after; the built rules' regression run (`--verify-replay`) replayed all 50
+games exactly, with the same results as the column for them:
+
+| | Before | Gate 3 | Breach 6 (built) | Breach 6, rough ×3 |
+|---|---|---|---|---|
+| Kingdoms fallen | 989 | 968 | 934 | 883 |
+| First fall of a game, median season | 4 | 4 | 6 | 6 |
+| From the conqueror's entry to the fall, median (within 5-10) | 5 (29%) | 6 (26%) | 7 (53%) | 7 (55%) |
+| Fallen within four seasons of the conqueror's entry | 400 | 403 | 105 | 100 |
+| Fallen in the first two seasons (games) | 8 (Lukka) | 8 | 8 | 8 |
+| Ages with a Great King's war decided | 43 | 43 | 42 | 39 |
+| Sieges won: by hunger / thirst / breach | 562 / 31 / ~990 | 298 / 42 / ~1,190 | 838 / 223 / ~280 | 808 / - / - |
+
+- **Commanders pay** (`--command-play-half`, the item's "commanders are worth what stale orders cost"): kings that grant
+  command away from court grow 0.90 against 0.79 and win 27 games against 12, from half the seats each. Overall only: the split by the distance of the front and the size of the realm is part
+  F's.
+- **Wins** on the slower breach: Assyria 12, Arzawa 3, Hatti 2, the city-states 22, characters 10. Par was measured
+  under the faster breach, so the standings lean; part F refreshes par on the tuned play.
+- **Pillar 8 holds but for Lukka** (the regression run): a letter to the conqueror and its reply take 2 seasons on the
+  median, and 3 of the 724 falls so timed came sooner after his entry, all Lukka's (#832). **Capitals fall in most
+  games**: a Great King's realm fell, left holding nothing, in 36 of 50 (since 17b a realm falls only then), so his
+  capital was taken in at least as many; judged with the length set, as the item asks. The falls left out of the
+  letter-and-reply measure (210 of 934) are those whose conqueror no longer reigned at the end; the within-four-seasons
+  count, which takes every fall, came down from 400 to 105 on the same rules, so they do not hide a fast war.
+- Item 5 found 61% of falls within 5-10 seasons of the conqueror's entry; the city-states since 11+ brought it down to
+  29%, and the slower breach brings it back to 53%.
+
+### Questions for the owner
+
+- [#832](https://github.com/HaakTuah/amarna-letters/issues/832): a land without a town falls in one battle; should it
+  hold out for some seasons (new)?
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825) and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
