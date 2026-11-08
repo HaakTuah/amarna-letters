@@ -35,8 +35,8 @@ Started from `develop` at 4a7be3d (17b's milestone merged, #827).
   Left as they are: presentation (names, seasons, titles), the sources' starting data (Egypt's commissioners of 1346),
   and the frozen first script leader kept only as a benchmark yardstick (`bots/baseline-leader.ts`, "Do not improve it").
 - **Temperament is a setting** (`GameConfig.rolledTraits`, off by default): on, every king's traits are rolled for the
-  game (`rolledNature`, each 15 to 85, then varied as always), a record heir keeps his name and story but not the
-  record's nature, and no court knows a rival by his history (`SeatView.rolledTraits`): a script king pictures every
+  game (`rolledNature`, each 15 to 85, then varied as always), a record heir keeps his name and kin but not the
+  record's nature nor its account of his deeds, every king's rulebook says the temperaments were drawn, and no court knows a rival by his history (`SeatView.rolledTraits`): a script king pictures every
   rival as a middling king (`unknownKing`) and judges him by what he does. `--rolled-traits` in the batch runner,
   "Kings' temperaments rolled" under Customize. Save version 87.
 

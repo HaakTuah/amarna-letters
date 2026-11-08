@@ -59,7 +59,9 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   from where he is, walking to his court. Past the record, a son (three in four) or brother is drawn, named in his land's style. His
   traits are what the record shows of him, each varied as every king's (`ReignData.vary`); the rest drawn up to 25 points
   either side of the middle (`HeirData`). He reigns from that season, by his own name (`Reign.name`, read by every name a
-  power's king goes by) and with what the record shows of him (`Reign.about`, his card).
+  power's king goes by) and with what the record shows of him (`Reign.about`, his card); in a game whose kings'
+  temperaments are rolled, his traits and his card keep nothing of the record's man but his name and kin
+  ([07/03](07-script-kings/03-temperament.md)).
 - **He inherits a third** of his father's standing: every entry of his realm in every ledger (the provinces' and the
   armies') is cut to a third, love and hate alike; debts and promises pass to him to honour or not.
 - **His player is out** (`GameState.reignsEnded` keeps each reign ended, how and when): a human seat's heir is played by a
