@@ -54,3 +54,18 @@ Started from `develop` at 4a7be3d (17b's milestone merged, #827).
 - **A middling picture, not inference from deeds**: a rival's picture is only the look-ahead's prior; what he does
   already moves the script's trust, grudges and fear of him each season (`Brain.learn`), so judging by deeds needs no
   new rule.
+
+### Script players and the measure
+
+- **Regression** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games replayed exactly, with the same
+  results as 17b's last run (Egypt 23, Babylonia 14, Hatti 6, Assyria 4, Ugarit, Ashkelon and a character one each):
+  the default plays as before, and neither fallback changed a game.
+- **Rolled temperaments** (`--rolled-traits`, the same 50 seeds): every game ran; wins Egypt 19, Babylonia 14, Mitanni 4,
+  Hatti 4, the Suteans 2, Assyria 2, and five others one each; Mitanni fell in 25 games (14 with the sources' kings),
+  Lukka in 13 (33). The courts play differently when their kings do, as "What keeps them different" asks; part C
+  judges the pace of war on the sources' kings, the default.
+- **No new lever**: a table setting, not a choice in play, so no use against ignore.
+
+### Questions for the owner
+
+- [#825](https://github.com/HaakTuah/amarna-letters/issues/825) (still open; part B needs it).
