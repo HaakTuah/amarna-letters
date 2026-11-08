@@ -19,8 +19,10 @@ what comes before it:
   and servants (no court starved of carriers or tongues); bold and careful characters re-measured and tuned until both
   roads reach the top at comparable rates (part B found the careful ahead, also measured after part C).
 - **E. Script kings' spending as investment:** gifts, bribes and tribute judged by expected return; the darkest seasons'
-  grabs; courts playing distinctly; how close their best options are; whether kings build, give and campaign or sit on
-  their treasure, and what the last seasons look like (the wealth of a realm's two checks, from part B).
+  grabs; courts playing distinctly; whether kings build, give and campaign or sit on their treasure, and what the last
+  seasons look like (the wealth of a realm's two checks, from part B).
+- **E2. How close the scripts' best options are,** for the model budget, and the script deciding beside every model
+  decision, logged by kind ("What a call is worth"; "Shadow scripts").
 - **F. The audit:** par refreshed once more on the tuned play; bold and careful in the top five and twenty, and the careful dying more often than the bold, and fees that do not fall when many wait for work (#837) (from part D); every feature passes use against ignore; the people 17+ added judged by what they did (the list to
   the owner); starting positions, banditry and far provinces against the sources; win rates per power on the item's
   full seed sets (1-100 and 101-200), Mitanni's standing below par and why a Great King stands first more often than
@@ -337,11 +339,11 @@ On the same seeds, before (part C's rules) and after:
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
 
-## Part E: script kings' spending as investment (in progress)
+## Part E: script kings' spending as investment
 
-Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/balance-e`, draft #839.
+Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/balance-e`, #839.
 
-### Built so far
+### What was built
 
 - **The spending report** (`game/src/spending-report.ts`, in every batch summary): per Great King and season, gold given
   abroad, jobs offered, levies, works, ransoms, the treasury's share of the realm's wealth, and the darkest seasons'
@@ -349,35 +351,72 @@ Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/b
   1-20), the middle and the last 8 seasons; and each court's first march into another's land across the seeds.
 - **Gifts, bribes and tribute judged by their expected return** (`bots/investment.ts`), replacing the spare-gold,
   generosity and chance thresholds at every place a script king sends gold of its own choosing (letters, peace gifts,
-  tribute, bribes and the second offer, gold back, a friend's `askGold`, a false envoy's host's gift); generosity is how
-  much a king believes goodwill is worth (×0.5 to ×1.5). `--gift-play-half` measures it. The design notes (07-script-kings
-  15, 16 and 14; 14-structured-press) describe it.
+  tribute, bribes and the second offer, gold back, a friend's `askGold`, a false envoy's host's gift). The king pictures
+  the receiver as a court like his own: gold warms its trust, trust cools its hostility, and less hostility is a smaller
+  chance that it marches on what of ours it can reach, weighed by its troops against ours (`warOdds`, the odds its own
+  war choice weighs), over the seasons the king believes are left. A gift cools no more than the receiver's hostility has
+  left to fall (`HostilityFloor`). Generosity is how much a king believes goodwill is worth (×0.5 to ×1.5).
+  `--gift-play-half` measures it. The design notes (07-script-kings 15, 16 and 14; 14-structured-press; 58) describe it.
+- **Shared, not copied:** a rival's troops as a court reckons them (`Brain.force`) and a war's odds (`warOdds`) are one
+  function each, for the war choice and the gift alike.
+- **A test's seed:** the standing-order test's search starts at seed 7, whose order fires in its tenth season under
+  these rules (only its seed choice moved).
 
-### Measured (seeds 1-50)
+### The levers tried (`--gift-play-half`, seeds 1-50 unless said)
 
-| | Part D's rules | Investment |
+| Investment model | Givers' growth against non-givers' | Wins, givers / non-givers | Gold given a king-season, opening |
+|---|---|---|---|
+| As first built (the half-way commit) | 0.82 / 0.80 | 17 / 21 | 6.5 |
+| A gift cools no more than hostility has left to fall | 0.83 / 0.80 | 17 / 22 | 1.8 |
+| The same, seeds 101-150 | 0.78 / 0.79 | 15 / 22 | 1.7 |
+| And the gold counted again on a rival's score (reverted) | 0.82 / 0.81 | 14 / 24 | 0.7 |
+| **And the receiver's odds against us weighed (built)** | **0.79 / 0.77** | **20 / 14** | 1.0 |
+| The same, seeds 101-150 | E6GROWTH | E6WINS | E6GOLD |
+
+The investment model first counted every province a neighbour could reach as at risk whether or not he could win there;
+the script kings' war choice weighs a target by the odds of its troops against his (`statecraft-strategy.ts`), so a gift
+to a weak neighbour bought little and one to a strong neighbour too little. Weighing the same odds made gifts pay.
+
+### Measured (seeds 1-50, the rules as built)
+
+| A Great King's season | Part D's rules | Part E |
 |---|---|---|
-| Gold given abroad a king-season: opening / middle / last 8 | 0.6 / 0.6 / 0.7 | 6.5 / 3.1 / 2.6 |
-| Jobs offered a king-season | 0.50 / 0.33 / 0.28 | 0.53 / 0.32 / 0.30 |
-| Treasury, % of the realm's wealth | 8.2 / 12.1 / 11.9 | 7.9 / 11.7 / 11.7 |
-| A higher share of a harvest a king-season | 0.16 / 0.28 / 0.27 | 0.16 / 0.27 / 0.29 |
+| Gold given abroad: opening / middle / last 8 | 0.6 / 0.6 / 0.7 | 1.0 / 0.5 / 0.9 |
+| Jobs offered | 0.50 / 0.33 / 0.28 | 0.51 / 0.33 / 0.32 |
+| Works ordered | | 0.55 / 0.32 / 0.32 |
+| Treasury, % of the realm's wealth | 8.2 / 12.1 / 11.9 | 8.3 / 12.6 / 12.0 |
+| A higher share of a harvest | 0.16 / 0.28 / 0.27 | 0.16 / 0.28 / 0.31 |
+| Troops' pay held back | | 0.09 / 0.04 / 0.06 |
 | Hoards seized, fees withheld | none | none |
 
-- The first march into another's land differs by court but hardly by seed: Babylonia against Elam in 49 of 50 games,
-  Assyria against Arrapha in 50, Mitanni against Isuwa in 48, Hatti against Carchemish in 39; Egypt late (season 18 to 28
-  on the median, against Shasu, Libya and Ashkelon); Alashiya almost never.
-- The regression run replayed all 50 games exactly; wins hardly moved.
-- **Use against ignore** (`--gift-play-half`): the givers grew 0.82 against 0.80 but won 17 games against 21; Arzawa
-  (0.74 against 1.02) and Assyria (0.23 against 0.34) fare worse giving. **Not yet paying.**
+- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): E7REPLAY.
+- **Kings build, give and campaign; they do not sit on their treasure:** works and jobs go on to the end, every Great
+  King but Alashiya marches in the first two seasons (Egypt later), and the treasury holds about an eighth of the realm's
+  wealth from the middle on, rising neither to the end nor falling.
 
-### Where to pick up
+### Readings taken
 
-1. The investment's first guesses overrate what a gift buys a small kingdom beside a great one: try `attackPerHostility`
-   lower, or count the receiver's means to attack (his strength against ours) in `atRisk`, until the givers come out
-   ahead on `--gift-play-half` (seeds 1-50), Arzawa and Assyria above all.
-2. The darkest seasons: hoards are never seized and fees never withheld by script kings, and kings still hire then (the
-   table); say so in the readings, and check whether seizing a hoard should ever pay a king.
-3. The courts' openings: distinct between courts, nearly fixed per court across seeds; a reading, or vary them (item 18:
-   "different openings, trade and wars rather than one strategy everywhere").
-4. "How close their best options are" (the scripts report the margin of a call, for the model budget) is not started.
-5. Then the report's readings, save version (next free), the reviews, the milestone.
+- **The darkest seasons' grabs** (the item: raising taxes, keeping grain from hungry towns, seizing hoards, leaving fees
+  unpaid): the script kings take a higher share of the harvest a little more often in the last seasons (0.31 against
+  0.28) and hold back troops' pay a little more, but seize no hoards and withhold no fees; and they still hire, 0.32
+  jobs a season at the end against 0.33 in the middle. The random ending keeps the seasons a king believes are left long
+  (about 86 at the start, 48 at season 60, 41 at season 80: `seasonsLeft`), so a good name never stops paying, and a rule
+  to grab at the end would grab nearly as readily in the middle. Principle: the kings know only what the omens tell them
+  ("never the drawn last season"); a grab that pays only to one who knows the end is not taken, and none was built.
+- **The courts' openings** follow the map: each Great King's first march is on the same weak neighbour in most games
+  (Assyria on Arrapha in 50 of 50, Babylonia on Elam in 49, Mitanni on Isuwa in 48, Hatti on Carchemish in 39, Arzawa on
+  Lukka in 41; Egypt late, Alashiya never). With kings' traits rolled per game (`--rolled-traits`), the timing moves
+  (Egypt's first march from season 18 to 4 on the median, Arzawa's from 1 to 6, its foe now Lukka 24, Seha 18, Mira 7)
+  more than the foe. Principle: the script kings are the strongest sparring partners we can make, and the strongest
+  first move is the map's; variety comes after the opening ("Each court plays differently": floods, roads and rivals'
+  temperaments). A matter of taste, so to the owner: #840.
+- **How close their best options are** ("What a call is worth"; "Shadow scripts") is model-game plumbing, read by the
+  budget and the log, apart from what script kings spend: it goes in its own pull request after this one (part E2).
+
+### Questions for the owner
+
+- [#840](https://github.com/HaakTuah/amarna-letters/issues/840): each Great King's first war is nearly always on the same
+  neighbour; keep the map-driven opening, or vary the start within the sources' ranges (new)?
+- [#836](https://github.com/HaakTuah/amarna-letters/issues/836), [#837](https://github.com/HaakTuah/amarna-letters/issues/837),
+  [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
+  and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).

@@ -55,3 +55,16 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   `hoardFee`), lending's rates (`interest*`), the pool's baseline, the markets' purses, and the gift threshold of routine
   audiences (the standing answers' backstop, a quarter of the treasury), which only model kings meet.
 - Save version 90: a person's price at a dangerous court, so who is hired, and what follows, differ from version 89's.
+
+## Part E: script kings' spending as investment (`bots/investment.ts`, `game/src/spending-report.ts`)
+
+- **Gifts, bribes and tribute are investments** ("Gold is a lifeline"): the rule is in
+  [the script kings' letters and gifts](07-script-kings/15-letters-and-gifts.md), "Gifts as investments". It replaces
+  the spare-gold, generosity and chance thresholds; `--gift-play-half` measures it (the report).
+- **The spending report** (`spendingReport`), in every batch summary: per Great King and season, in the opening (seasons
+  1-20), the middle and the last 8, gold given abroad, jobs offered, levies, works, ransoms, the treasury's share of the
+  realm's wealth and the darkest seasons' four grabs; and each court's first march into another's land across the seeds.
+- **Kept as built**, by the measure: no grab at the end of the age (the seasons a king believes are left stay long under
+  the random ending, so a good name keeps paying), and openings that follow the map (#840 to the owner).
+- Save version 91: script kings give by the receiver's odds against them, so play from the same seed differs from
+  version 90's.
