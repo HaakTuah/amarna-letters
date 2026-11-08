@@ -11,8 +11,9 @@ and a ruler risen in play as a middling one.
 
 **Temperament is a setting** (item 18, `GameConfig.rolledTraits`, off by default; `--rolled-traits` in the batch runner,
 "Kings' temperaments rolled" under Customize). On, every king's traits are rolled for the game, each from 15 to 85
-(`rolledNature`) before the usual variation, and a record heir keeps his name and what is known of him but not the
-record's nature; no court knows a rival by his history (`SeatView.rolledTraits`), so a king pictures every rival as a
+(`RolledRange`, `rolledNature`) before the usual variation, a record heir's too; a record heir keeps his name and his kin,
+but not the record's nature nor what it tells of his deeds; every king's rulebook says the temperaments were drawn
+(HOW YOU WIN), and the god view shows each king's traits without the sources' epithet; no court knows a rival by his history (`SeatView.rolledTraits`), so a king pictures every rival as a
 middling one (`unknownKing`) and judges him by what he does, through its records of trust, attacks and treaties. The
 table below is for the sources' kings.
 

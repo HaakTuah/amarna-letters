@@ -42,13 +42,16 @@ Started from `develop` at 4a7be3d (17b's milestone merged, #827).
 
 ### First guesses (later parts tune them)
 
-- A rolled trait is drawn from 15 to 85, so no rolled king is as extreme as the sources' most extreme.
+- A rolled trait is drawn from 15 to 85 (`RolledRange`), for record heirs too, so no rolled king is as extreme as the
+  sources' most extreme.
 
 ### Readings taken
 
-- **Rolled means only the temperament** ("Temperament becomes a setting", item 18; "games with rolled temperaments" in
-  "What keeps them different"): names, the record of heirs and what it says of them stay, since they are history, not
-  nature; the attested characters keep theirs ("every attested character set the same way", item 17b, is the default).
+- **Rolled means the kings' temperament, and nothing that would tell it** ("Temperament becomes a setting", item 18;
+  "games with rolled temperaments" in "What keeps them different"; the design check's first round): names and the
+  record's order of heirs stay, but not what the record says of an heir's deeds, which would tell every court a nature
+  he does not have; every king is told the temperaments were drawn, since a model knows the kings of history; the
+  attested characters keep theirs ("every attested character set the same way", item 17b, is the default).
 - **The frozen baseline is a yardstick, not a player**: it plays only in benchmarks against the current scripts, never
   in a game a player sees, and changing it would break every benchmark's comparison.
 - **A middling picture, not inference from deeds**: a rival's picture is only the look-ahead's prior; what he does

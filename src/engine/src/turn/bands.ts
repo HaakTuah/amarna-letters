@@ -160,16 +160,16 @@ P.newHead = function (province, rose, rng, court = null) {
   const how: Record<Rose, string> = {
     crowd: `Rose among the loose men of ${this.map.get(province).name} and gathered them into a band.`,
     mutiny: `Led the mutineers of a king's army in ${this.map.get(province).name} when it broke.`,
-    refugees: `Led the refugees of the fallen court of ${land(court ?? "Egypt")} at ${this.map.get(province).name}.`,
+    refugees: `Led the refugees of the fallen court of ${land(court!)} at ${this.map.get(province).name}.`,
     successor: `Took over a band in ${this.map.get(province).name} when its chief was lost.`,
     split: `Walked off from a band in ${this.map.get(province).name} with the men who followed him.`,
     outlaw: `Took to the hills with the loose men of ${this.map.get(province).name}.`,
-    captain: `Rose from the ranks of the army of the fallen kingdom of ${land(court ?? "Egypt")} in ${this.map.get(province).name} to lead it.`,
+    captain: `Rose from the ranks of the army of the fallen kingdom of ${land(court!)} in ${this.map.get(province).name} to lead it.`,
     elder: `Raised by the people of ${this.map.get(province).name} to rule them when no one else did.`,
   };
   c.facts.push(newFact({ id: newId(S, "f"), text: how[rose], secrecy: "Public", tag: "rose" }));
   // What he speaks is in what he says he speaks (item 12); of the fallen court he led out, he knows its ways too.
-  if (rose === "refugees") c.facts.push(newFact({ id: newId(S, "f"), text: `Knows the ways of the court of ${land(court ?? "Egypt")}.`, secrecy: "Public", tag: "tongue" }));
+  if (rose === "refugees") c.facts.push(newFact({ id: newId(S, "f"), text: `Knows the ways of the court of ${land(court!)}.`, secrecy: "Public", tag: "tongue" }));
   if (rose !== "elder") c.facts.push(newFact({ id: newId(S, "f"), text: "Rode with the Habiru.", secrecy: "Hidden", tag: "outlaw" }));
   c.arrived = S.turn;
   c.status = "Free";

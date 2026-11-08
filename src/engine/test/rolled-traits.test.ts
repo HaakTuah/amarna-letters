@@ -36,5 +36,10 @@ describe("RolledTraitsTests", () => {
     Assert.equal(sources.reigns.get("Hatti").name, rolled.reigns.get("Hatti").name);
     Assert.equal(record.name, rolled.reigns.get("Hatti").name);
     if (record.traits !== undefined) Assert.notEqual(sources.reigns.get("Hatti").traits, rolled.reigns.get("Hatti").traits);
+    // What the record says of his deeds is told only of the sources' man: rolled, his kin alone.
+    if (record.about !== "") {
+      Assert.contains(record.about, sources.reigns.get("Hatti").about);
+      Assert.false(rolled.reigns.get("Hatti").about.includes(record.about));
+    }
   });
 });
