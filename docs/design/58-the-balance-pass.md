@@ -31,7 +31,7 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **Kept**: the age's median (80 seasons) and cap (140 to 160), the owner's of 30 October 2026, since most ages pass the
   length test; the gate a starving city keeps (`UnrestData.gate` 1); the people's help on rough ground (twice).
 - **The war report** (`warReport` in `game/src/batch.ts`) measures pillar 8: a letter from each fallen court to its
-  conqueror's and the reply (`FallMeasure.reply`, twice the couriers' seasons between them at the game's end, where
-  the conqueror still reigns), the falls sooner than that after his entry, by kingdom; and the games in which a
+  conqueror's and the reply (`FallMeasure.reply`, the couriers' seasons there and back, each way by its own road, at the
+  game's end, where the conqueror still reigns), the falls sooner than that after his entry, by kingdom; and the games in which a
   Great King's realm fell (held nothing, item 17b), a lower bound on the games in which his capital was taken.
 - Save version 89: the slower breach.

@@ -60,7 +60,7 @@ export interface FallMeasure {
   conqueror: Power | null;
   fromConquerorEntry: number | null;
   fromFirstEntry: number | null;
-  /** Seasons for a letter from the fallen court to its conqueror's and the reply back (pillar 8), at the game's end; older summaries have none. */
+  /** Seasons for a letter from the fallen court to its conqueror's and the reply back, each leg by its own road (pillar 8), at the game's end; older summaries have none. */
   reply?: number | null;
 }
 
@@ -275,12 +275,14 @@ export function greatWarOf(s: GameState): string | null {
 
 export function fallsOf(s: GameState, engine: TurnEngine): FallMeasure[] {
   return s.falls.map((f) => {
-    const there = f.conqueror !== null && isAlive(s, f.conqueror) ? engine.travelTurnsBetween(f.capital, engine.courtAt(f.conqueror)) : null;
+    // The letter there and the reply back: each leg by its own road, since the winds and currents differ.
+    const court = f.conqueror !== null && isAlive(s, f.conqueror) ? engine.courtAt(f.conqueror) : null;
+    const there = court === null ? null : engine.travelTurnsBetween(f.capital, court) + engine.travelTurnsBetween(court, f.capital);
     const by = s.invaded.tryGet(f.power) ?? null;
     const since = (entry: number | null): number | null => (entry !== null ? f.turn - entry + 1 : null);
     const mine = f.conqueror !== null && by !== null ? (by.tryGet(f.conqueror) ?? null) : null;
     const first = by !== null && by.size > 0 ? min([...by.values()], (x) => x) : null;
-    return { power: f.power, turn: f.turn, conqueror: f.conqueror, fromConquerorEntry: since(mine), fromFirstEntry: since(first), reply: there !== null && Number.isFinite(there) ? 2 * there : null };
+    return { power: f.power, turn: f.turn, conqueror: f.conqueror, fromConquerorEntry: since(mine), fromFirstEntry: since(first), reply: there !== null && Number.isFinite(there) ? there : null };
   });
 }
 
