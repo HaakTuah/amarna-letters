@@ -92,7 +92,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 
 - **Tablets** by their clauses (`againstIn`, `givesAwayIn`): one with clauses gives something away only if it asks for
   gold, tribute, land or a withdrawal; one in words alone is read as before.
-- **Letters** (`answerLetter`, at the audience): `askGold`, from a friend, up to a quarter of what is spare above 100
+- **Letters** (`answerLetter`, at the audience): `askGold`, from a friend, what pays to give him up to what he asks ([gifts as investments](07-script-kings/15-letters-and-gifts.md))
   (sent home with the envoy; a counter if less than asked), refused otherwise; `askTribute`, `askCede` refused;
   `askWithdraw` accepted only where none of our troops stand; `askHelp` remembered as a plea (it was read from words only
   before) and accepted where we would fight the besieger; `askSupport` accepted for a friend's move against a king we

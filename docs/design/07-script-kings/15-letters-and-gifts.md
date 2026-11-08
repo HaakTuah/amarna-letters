@@ -24,8 +24,7 @@ Since item 8 every letter, tablet and answer of theirs is also set out in clause
 | Grievance | grudge of 3 or more, fresh | 0.3 + 0.5 × vengeance |
 | Peace | a neighbour, no treaty, not hostile, fresh | (0.3 + caution) × hostility + 0.2 × diplomacy, + 0.3 for Arzawa and Alashiya |
 | Full alliance | see Rivals for the crown | 0.5 × diplomacy + 0.2 × trust, + 0.15 if small |
-| Gift | a friend, spare above 150, in 30% of seasons | 0.4 × generosity |
-| Tribute | from Arzawa or Alashiya to a neighbour of a stronger tier with hostility above 0.35, not hostile, fresh, spare above 100 | 0.35 + 0.4 × caution |
+| Gift (tribute from a small kingdom to a great one) | not hostile, fresh, not besieged, and a gift to it returns more than it costs (below) | 0.4 |
 | Plea for relief (since the script players' audit of the siege package) | a city of ours besieged by a king who is no friend (the most valuable such city, the capital first), to each friend we would not betray who is a neighbour or a full ally, not the besieger, at most once in three seasons | 0.9 |
 
 - **Pleas** ask the friend to send troops to drive the besiegers out ("My brother, the troops of Babylonia besiege my city of
@@ -38,11 +37,21 @@ Since item 8 every letter, tablet and answer of theirs is also set out in clause
   anyone for help.
 
 - **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, gifts and tribute, and pleas for relief go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
-- **Gifts.** At most one gift-bearing letter goes out a season, and only with spare of at least 100.
+- **Gifts as investments** (item 18 part E; `bots/investment.ts`; "Gold is a lifeline"). Every gift, bribe and gift in
+  return is judged by what it buys against what it costs, the same shekels off the king's score. The king pictures the
+  receiver as a court like his own: gold weighed warms its trust in him (a shekel 1/400, at most 0.25 for 100), trust
+  cools its hostility (0.3 a point) and fades 5% a season, and less hostility is a smaller chance each season (0.1 of the
+  hostility) that it marches on what of his lies next to its land or troops, an attack taking half of it, over the
+  seasons he believes are left. The gift that returns most beyond its cost is sent, up to what is spare; none if none
+  pays, so gifts go to dangerous neighbours rather than far friends, and stop as the omens darken. Generosity is how much
+  a king believes goodwill is worth: he counts a gift's warmth from half (the stingiest) to half as much again (the most
+  generous). A bribe to an envoy is weighed the same way at a quarter of a gift's warmth (his good word in his report),
+  a gift in return to a friend's envoy at most half of what he brought, gold a friend asks for at most what he asks,
+  and a host's gift to a person who claims to be an envoy at most 30. What is given comes off what is spare that season.
+- **Gifts.** At most one gift-bearing letter goes out a season.
   - **Debased gold** (purity 55-85%) is sent by a king with honesty below 0.45 only to a friend whose trust, as its own in him shows it, is 0.3 or more, who has no cause to assay it; everything else it sends is fine (since the fix pass after item 4). Courts assay gold from those they trust little, so gold debased for anyone else is found and costs more trust than it saves gold: before the fix pass 406 debased lots went out in seeds 1-100, and nearly every one was found. The host's gold back, debased by the same kings (75%), follows the same rule.
-  - Amount: 10 + spare × share × 0.5, clamped between 20 and the larger of 20 and min(60, income ÷ 3), then rounded down to tens. Gifts are therefore 20–60 shekels.
-  - Share is 0.06 + 0.08 × generosity for gifts and tribute, and 0.08 + 0.1 × generosity for peace (+ 0.06 if the sender is weaker).
-  - A peace letter carries gold only if the sender holds less land yield than the recipient, or its generosity is above 0.6.
+  - Amount: as above; a peace letter carries one where it pays. (Until item 18 part E: 20 to 60 shekels from a share of
+    what was spare, the share and whether a peace letter carried gold set by generosity and which king was weaker.)
 - **Tablets.**
   - Peace: "brothers. Neither king shall send troops into the lands of the other."
   - Full alliance: "allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other." This is an alliance oath. (Until 18 October 2026 it ended "and they shall share in the victory".)

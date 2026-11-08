@@ -336,3 +336,48 @@ On the same seeds, before (part C's rules) and after:
   than the courts want (a bug, new; for part F).
 - [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
+
+## Part E: script kings' spending as investment (in progress)
+
+Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/balance-e`, draft #839.
+
+### Built so far
+
+- **The spending report** (`game/src/spending-report.ts`, in every batch summary): per Great King and season, gold given
+  abroad, jobs offered, levies, works, ransoms, the treasury's share of the realm's wealth, and the darkest seasons'
+  grabs (a higher share of a harvest, troops' pay held back, hoards seized, fees withheld), in the opening (seasons
+  1-20), the middle and the last 8 seasons; and each court's first march into another's land across the seeds.
+- **Gifts, bribes and tribute judged by their expected return** (`bots/investment.ts`), replacing the spare-gold,
+  generosity and chance thresholds at every place a script king sends gold of its own choosing (letters, peace gifts,
+  tribute, bribes and the second offer, gold back, a friend's `askGold`, a false envoy's host's gift); generosity is how
+  much a king believes goodwill is worth (×0.5 to ×1.5). `--gift-play-half` measures it. The design notes (07-script-kings
+  15, 16 and 14; 14-structured-press) describe it.
+
+### Measured (seeds 1-50)
+
+| | Part D's rules | Investment |
+|---|---|---|
+| Gold given abroad a king-season: opening / middle / last 8 | 0.6 / 0.6 / 0.7 | 6.5 / 3.1 / 2.6 |
+| Jobs offered a king-season | 0.50 / 0.33 / 0.28 | 0.53 / 0.32 / 0.30 |
+| Treasury, % of the realm's wealth | 8.2 / 12.1 / 11.9 | 7.9 / 11.7 / 11.7 |
+| A higher share of a harvest a king-season | 0.16 / 0.28 / 0.27 | 0.16 / 0.27 / 0.29 |
+| Hoards seized, fees withheld | none | none |
+
+- The first march into another's land differs by court but hardly by seed: Babylonia against Elam in 49 of 50 games,
+  Assyria against Arrapha in 50, Mitanni against Isuwa in 48, Hatti against Carchemish in 39; Egypt late (season 18 to 28
+  on the median, against Shasu, Libya and Ashkelon); Alashiya almost never.
+- The regression run replayed all 50 games exactly; wins hardly moved.
+- **Use against ignore** (`--gift-play-half`): the givers grew 0.82 against 0.80 but won 17 games against 21; Arzawa
+  (0.74 against 1.02) and Assyria (0.23 against 0.34) fare worse giving. **Not yet paying.**
+
+### Where to pick up
+
+1. The investment's first guesses overrate what a gift buys a small kingdom beside a great one: try `attackPerHostility`
+   lower, or count the receiver's means to attack (his strength against ours) in `atRisk`, until the givers come out
+   ahead on `--gift-play-half` (seeds 1-50), Arzawa and Assyria above all.
+2. The darkest seasons: hoards are never seized and fees never withheld by script kings, and kings still hire then (the
+   table); say so in the readings, and check whether seizing a hoard should ever pay a king.
+3. The courts' openings: distinct between courts, nearly fixed per court across seeds; a reading, or vary them (item 18:
+   "different openings, trade and wars rather than one strategy everywhere").
+4. "How close their best options are" (the scripts report the margin of a call, for the model budget) is not started.
+5. Then the report's readings, save version (next free), the reviews, the milestone.
