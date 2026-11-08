@@ -198,9 +198,9 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 |---|---|---|---|
 | 17b B | A captive king ransomed or put to death, and one's own ransomed (`--king-play-half`) | 0.76 growth to 0.77, 29 wins to 21, in 50 games; kings taken 1,178 times, 72 escapes, 6 deaths | Pays in wins |
 | 17b C1 | A king who goes to the front without his court when his army fights where the court's couriers come late (`--field-play-half`) | 0.76 growth to 0.73, 29 wins to 21, in 50 games; kings went alone 736 times in 44 of 50 games (regression run) | Pays in wins |
-| 18 C | Commanders granted away from court, with mandates, on the slower breach (`--command-play-half`) | 0.79 growth to 0.90, 12 wins to 27, in 50 games | Pays |
 | 17b C2 | Granting land, now also to a fallen realm's king or heir in exile at the court (`--grant-play-half`) | 0.79 growth to 0.75, 28 wins to 22, in 50 games; heirs in exile 124 times in 39 games, fallen realms' kings or heirs made king again 26 times in 20 games (regression run) | Pays |
 | 17b D | One scoreboard of every person: no lever of its own (it changes what is counted, not what a player can do) | a character first on the board in 1 of 50 regression games, a king in 49 | No lever |
+| 18 C | Commanders granted away from court, with mandates, on the slower breach (`--command-play-half`) | 0.79 growth to 0.90, 12 wins to 27, in 50 games | Pays |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".

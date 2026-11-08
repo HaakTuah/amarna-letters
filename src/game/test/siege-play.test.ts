@@ -298,7 +298,7 @@ describe("SiegePlayTests", () => {
       ]),
     );
     Assert.equal(["Captured", "Babylonia"], [envoy.status, envoy.heldBy]);
-    // Worn nearly through (since item 9+a, three seasons a level): the supported season breaches the walls. Ashur is all
+    // Worn nearly through (`breachPerLevel` steps a level): the supported season breaches the walls. Ashur is all
     // Assyria holds, its other land Babylonia's, its people indifferent (since item 17b a realm falls only when it holds
     // nothing).
     single(s.sieges).progress = 3 * EconomyData.breachPerLevel - 2;
