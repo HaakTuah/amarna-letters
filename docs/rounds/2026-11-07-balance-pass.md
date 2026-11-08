@@ -188,7 +188,8 @@ refuses this account; the copy on `develop` has not changed since part A began.
 
 ### Script players and the measure
 
-All on seeds 1-50, before (part B's rules) and after:
+All on seeds 1-50, before (part B's rules) and after; the built rules' regression run (`--verify-replay`) replayed all 50
+games exactly, with the same results as the column for them:
 
 | | Before | Gate 3 | Breach 6 (built) | Breach 6, rough ×3 |
 |---|---|---|---|---|
