@@ -290,6 +290,12 @@ describe("BandTests", () => {
     Assert.true(basePrice(c, "Assyria") > before);
     // The court that put a man to death is feared too.
     Assert.true(basePrice(c, "Hatti") > beforeHatti);
+    // The timid ask most for that danger, the bravest nothing more (item 18 part D: dangerous service goes to the bold).
+    const timid = basePrice(c, "Assyria");
+    c.traits.courage = 60;
+    Assert.true(basePrice(c, "Assyria") < timid);
+    c.traits.courage = 100;
+    Assert.equal(basePrice(c, "Assyria"), before);
   });
 
   test("Personas speak of experience, never of age", () => {
