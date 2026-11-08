@@ -400,6 +400,10 @@ export function warReport(games: readonly GameSummary[]): string[] {
       : `median ${median(xs)}, range ${min(xs, (x) => x)}-${max(xs, (x) => x)}, ${fmt((100.0 * xs.filter((x) => x >= 5 && x <= 10).length) / xs.length, "0")}% within 5-10`;
   out.push(`  Seasons from the conqueror's first entry into the fallen king's land to the fall: ${spread(falls.filter((f) => f.fromConquerorEntry !== null).map((f) => f.fromConquerorEntry!))}.`);
   out.push(`  From anyone's first entry into it: ${spread(falls.filter((f) => f.fromFirstEntry !== null).map((f) => f.fromFirstEntry!))}.`);
+  // Pillar 8 ("War is slower than diplomacy"; item 18, part C): the kingdoms that fell within four seasons of their conqueror's entry.
+  const quick = falls.filter((f) => f.fromConquerorEntry !== null && f.fromConquerorEntry < 5);
+  const quickBy = sortBy([...new Set(quick.map((f) => f.power))], [(p: Power) => -quick.filter((f) => f.power === p).length, cmpNum], [(p: Power) => p, cmpStr]);
+  out.push(`  Fallen within four seasons of the conqueror's entry: ${quick.length}${quick.length > 0 ? ` (${quickBy.map((p) => `${p} ${quick.filter((f) => f.power === p).length}`).join(", ")})` : ""}.`);
   out.push(`  Kingdoms fallen: ${AllPowers.map((p) => `${p} ${falls.filter((f) => f.power === p).length}`).join(", ")}.`);
   return out;
 }
