@@ -371,11 +371,13 @@ Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/b
 | The same, seeds 101-150 | 0.78 / 0.79 | 15 / 22 | 1.7 |
 | And the gold counted again on a rival's score (reverted) | 0.82 / 0.81 | 14 / 24 | 0.7 |
 | **And the receiver's odds against us weighed (built)** | **0.79 / 0.77** | **20 / 14** | 1.0 |
-| The same, seeds 101-150 | E6GROWTH | E6WINS | E6GOLD |
+| The same, seeds 101-150 | 0.77 / 0.79 | 17 / 14 | 1.0 |
 
 The investment model first counted every province a neighbour could reach as at risk whether or not he could win there;
 the script kings' war choice weighs a target by the odds of its troops against his (`statecraft-strategy.ts`), so a gift
-to a weak neighbour bought little and one to a strong neighbour too little. Weighing the same odds made gifts pay.
+to a weak neighbour bought little and one to a strong neighbour too little. Weighing the same odds made gifts pay in wins on both seed sets (37 games to 28 over the hundred), with growth about
+even (0.78 against 0.78); gold given is small, about a shekel a Great King's season, so its effect on growth is small
+beside the noise of 50 games.
 
 ### Measured (seeds 1-50, the rules as built)
 
@@ -389,7 +391,7 @@ to a weak neighbour bought little and one to a strong neighbour too little. Weig
 | Troops' pay held back | | 0.09 / 0.04 / 0.06 |
 | Hoards seized, fees withheld | none | none |
 
-- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): E7REPLAY.
+- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games replayed exactly; first place a king's in 41 games, a character's in 9; Assyria won 10, Arzawa 3, Hatti 2, Egypt and Alashiya 1 each.
 - **Kings build, give and campaign; they do not sit on their treasure:** works and jobs go on to the end, every Great
   King but Alashiya marches in the first two seasons (Egypt later), and the treasury holds about an eighth of the realm's
   wealth from the middle on, rising neither to the end nor falling.
