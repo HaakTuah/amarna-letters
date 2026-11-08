@@ -47,7 +47,7 @@ export interface RoadMeasure {
 
 /** A game's money measures, gathered season by season while it plays. */
 export interface MoneyMeasure {
-  /** The stocks at each of {@link MoneyMarks} the game reached. */
+  /** The stocks at each of {@link MoneyMarks} the game reached (at the first season read from it). */
   stocks: GoldStocks[];
   /** Per window of {@link FeeWindow} seasons: jobs agreed, their fees a season summed, and the living characters in service and free, summed over its seasons. */
   fees: { jobs: number; perSeason: number; serving: number; free: number }[];
@@ -60,7 +60,8 @@ export class MoneyWatch {
   private readonly seen = new Set<string>();
 
   season(s: GameState): void {
-    if ((MoneyMarks as readonly number[]).includes(s.turn)) this.m.stocks.push(goldStocks(s));
+    // The first season read at or after each mark (a runner's season may pass more than one).
+    if (this.m.stocks.length < MoneyMarks.length && s.turn >= MoneyMarks[this.m.stocks.length]) this.m.stocks.push(goldStocks(s));
     const w = Math.floor((s.turn - 1) / FeeWindow);
     while (this.m.fees.length <= w) this.m.fees.push({ jobs: 0, perSeason: 0, serving: 0, free: 0 });
     const f = this.m.fees[w];
