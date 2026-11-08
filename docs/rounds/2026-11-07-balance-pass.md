@@ -395,23 +395,24 @@ measure, so the margin is within the noise of 50 games; part F measures every fe
 **Vassal play** (`--vassal-play-half`, seeds 1-50), with the tribute judged by its return: growth 0.78 against 0.74,
 wins 19 against 21 (before: "not paying yet", the progress file's table).
 
-### Measured (seeds 1-50, the rules as built)
+### Measured (seeds 1-50, the rules as built: the regression run)
 
 | A Great King's season: opening / middle / grave or darker omens | Part E |
 |---|---|
-| Gold given abroad (with what was paid at audiences) | 0.9 / 0.4 / 0.2 |
-| Jobs offered | 0.49 / 0.35 / 0.27 |
-| Works ordered | 0.55 / 0.29 / 0.26 |
-| Treasury, % of the realm's wealth | 8.1 / 11.8 / 12.7 |
-| A higher share of a harvest | 0.16 / 0.24 / 0.28 |
-| A hungry countryside left unfed while its stores held grain | 0.05 / 0.09 / 0.14 |
+| Gold given abroad (with what was paid at audiences) | 2.2 / 0.9 / 0.4 |
+| Jobs offered | 0.50 / 0.35 / 0.25 |
+| Works ordered | 0.55 / 0.32 / 0.27 |
+| Treasury, % of the realm's wealth | 8.1 / 11.7 / 12.3 |
+| Provinces whose share of the harvest rose | 0.53 / 0.27 / 0.28 |
+| A hungry countryside left unfed while its stores held grain | 0.04 / 0.10 / 0.16 |
 | Troops' pay held back | 0.08 / 0.04 / 0.04 |
 | Hoards seized, fees withheld | none |
 
-(From the `--gift-play-half` run, whose half of the kings give no gifts; part D's rules were measured by the last 8
-seasons, not by the omens, so they are not set beside these.)
+(Part D's rules were measured by the last 8 seasons and by the orders, not by the omens and the shares in force, so they
+are not set beside these.)
 
-- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): R3REPLAY.
+- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games replayed exactly; first
+  place a king's in 41 games, a character's in 9.
 - **Kings build and campaign, give little, and do not sit on their treasure:** works and jobs go on under the darkest
   omens, though fewer; every Great King marches on another's land, most in the first two seasons, Egypt later (season 23
   on the median), Alashiya almost never; the treasury holds about an eighth of the realm's wealth from the middle on.
@@ -420,9 +421,10 @@ seasons, not by the omens, so they are not set beside these.)
 ### Readings taken
 
 - **The darkest seasons' grabs** (the item: raising taxes, keeping grain from hungry towns, seizing hoards, leaving fees
-  unpaid): under grave or darker omens the script kings raise a share of the harvest more often (0.28 a season against
-  0.24 in the middle) and leave a hungry countryside unfed more often (0.14 against 0.09), but seize no hoards and
-  withhold no fees; and they still hire, 0.27 jobs a season against 0.35. The random ending keeps the seasons a king
+  unpaid): under grave or darker omens the script kings raise a province's share of the harvest about as often as in the
+  middle (0.28 a season against 0.27; most rises come in the opening, 0.53, as they set their first taxes) and leave a
+  hungry countryside unfed more often (0.16 against 0.10), but seize no hoards and withhold no fees; and they still hire,
+  0.25 jobs a season against 0.35. The random ending keeps the seasons a king
   believes are left long (about 86 at the start, 48 at season 60, 41 at season 80: `seasonsLeft`), so a good name never
   stops paying, and a rule to grab at the end would grab nearly as readily in the middle. Principle: the kings know only
   what the omens tell them ("never the drawn last season"); a grab that pays only to one who knows the end is not taken,
