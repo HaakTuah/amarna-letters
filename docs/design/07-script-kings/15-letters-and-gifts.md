@@ -42,7 +42,8 @@ Since item 8 every letter, tablet and answer of theirs is also set out in clause
   receiver as a court like his own: gold weighed warms its trust in him (a shekel 1/400, at most 0.25 for 100), trust
   cools its hostility (0.3 a point) and fades 5% a season, and less hostility is a smaller chance each season (0.1 of the
   hostility) that it marches on what of his lies next to its land or troops, an attack taking half of it, over the
-  seasons he believes are left. The gift that returns most beyond its cost is sent, up to what is spare; none if none
+  seasons he believes are left. A gift cools no more than the receiver's hostility, as the king reckons it, has left to
+  fall to its floor (`HostilityFloor`, 0.05): gold to a king who already means him no harm buys nothing. The gift that returns most beyond its cost is sent, up to what is spare; none if none
   pays, so gifts go to dangerous neighbours rather than far friends, and stop as the omens darken. Generosity is how much
   a king believes goodwill is worth: he counts a gift's warmth from half (the stingiest) to half as much again (the most
   generous). A bribe to an envoy is weighed the same way at a quarter of a gift's warmth (his good word in his report),
