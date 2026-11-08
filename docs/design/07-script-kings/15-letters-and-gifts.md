@@ -22,7 +22,7 @@ Since item 8 every letter, tablet and answer of theirs is also set out in clause
 | Defence pact | see Coalitions | 0.55 × diplomacy + 0.2 × (1 − pride) |
 | Lull | to the war target, fresh, cunning × (1 − honesty) above 0.3 | cunning × (1 − honesty) |
 | Grievance | grudge of 3 or more, fresh | 0.3 + 0.5 × vengeance |
-| Peace | a neighbour, no treaty, not hostile, fresh | (0.3 + caution) × hostility + 0.2 × diplomacy, + 0.3 for Arzawa and Alashiya |
+| Peace | a neighbour, no treaty, not hostile, fresh | (0.3 + caution) × hostility + 0.2 × diplomacy, + 0.3 for a small kingdom (by rank) |
 | Full alliance | see Rivals for the crown | 0.5 × diplomacy + 0.2 × trust, + 0.15 if small |
 | Gift (tribute from a small kingdom to a great one) | not hostile, fresh, not besieged, and a gift to it returns more than it costs (below) | 0.4 |
 | Plea for relief (since the script players' audit of the siege package) | a city of ours besieged by a king who is no friend (the most valuable such city, the capital first), to each friend we would not betray who is a neighbour or a full ally, not the besieger, at most once in three seasons | 0.9 |
@@ -44,7 +44,8 @@ Since item 8 every letter, tablet and answer of theirs is also set out in clause
   hostility) that it marches on what of his lies next to its land or troops, an attack taking half of it, over the
   seasons he believes are left. A gift cools no more than the receiver's hostility, as the king reckons it, has left to
   fall to its floor (`HostilityFloor`, 0.05): gold to a king who already means him no harm buys nothing. The gift that returns most beyond its cost is sent, up to what is spare; none if none
-  pays, so gifts go to dangerous neighbours rather than far friends, and stop as the omens darken. Generosity is how much
+  pays, so gifts go to dangerous neighbours rather than far friends (#841 to the owner), and their worth falls as the
+  seasons a king believes are left grow fewer. Generosity is how much
   a king believes goodwill is worth: he counts a gift's warmth from half (the stingiest) to half as much again (the most
   generous). A bribe to an envoy is weighed the same way at a quarter of a gift's warmth (his good word in his report),
   a gift in return to a friend's envoy at most half of what he brought, gold a friend asks for at most what he asks,

@@ -6,10 +6,12 @@
  * `trustPerShekel`, at most `trustMost`), trust cools his hostility (`Brain.hostility`: `hostilityPerTrust` a point), and
  * trust fades back by `trustFades` a season. Less hostility is a smaller chance each season that he marches on what of
  * ours lies within his reach, and the gift is worth that over the seasons the king believes are left (`Board.horizon`),
- * against its cost: the same shekels off his own score. A gift that returns less than it costs is not sent, so gifts stop
- * as the omens darken. How much a king believes goodwill is worth is his own: a generous king counts a gift's warmth for
- * half as much again as a middling one, a stingy one for half ({@link goodwillOf}). First guesses: a season's chance of an attack is `attackPerHostility` of his hostility, and an
- * attack takes `lostIfAttacked` of what it reaches.
+ * against its cost: the same shekels off his own score. A gift that returns less than it costs is not sent, and a gift's
+ * worth falls as the seasons he believes are left grow fewer. How much a king believes goodwill is worth is his own: a
+ * generous king counts a gift's warmth for half as much again as a middling one, a stingy one for half
+ * ({@link goodwillOf}). First guesses (`InvestData`, untuned): a season's chance of an attack is `attackPerHostility` of
+ * his hostility, and an attack takes `lostIfAttacked` of what it reaches. A vassal's sealed tribute is judged the same
+ * way, by the peace it buys ({@link tributeReturn}).
  */
 import { Board } from "./board.ts";
 import type { Power } from "@amarna/engine";
