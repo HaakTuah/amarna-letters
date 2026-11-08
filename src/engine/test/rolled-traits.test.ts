@@ -8,17 +8,17 @@ describe("RolledTraitsTests", () => {
   const near = (traits: readonly number[], nature: readonly number[]): boolean => traits.every((v, i) => Math.abs(v - nature[i]) <= ReignData.vary);
 
   test("By default each king's traits are the sources', varied a little; rolled, they are the game's own", () => {
-    const sources = newGame(3);
-    const rolled = newGame(3, newGameConfig({ rolledTraits: true }));
+    const sources = smallWorld(newGame(3), "Egypt", "Hatti", "Babylonia", "Mitanni");
+    const rolled = smallWorld(newGame(3, newGameConfig({ rolledTraits: true })), "Egypt", "Hatti", "Babylonia", "Mitanni");
     for (const p of ["Egypt", "Hatti", "Babylonia"] as const) Assert.true(near(sources.reigns.get(p).traits, Natures[p].traits));
     Assert.true((["Egypt", "Hatti", "Babylonia", "Mitanni"] as const).some((p) => !near(rolled.reigns.get(p).traits, Natures[p].traits)));
     // Rolled the same way for the same seed, so a game replays.
-    Assert.equal(rolled.reigns.get("Egypt").traits, newGame(3, newGameConfig({ rolledTraits: true })).reigns.get("Egypt").traits);
+    Assert.equal(rolled.reigns.get("Egypt").traits, smallWorld(newGame(3, newGameConfig({ rolledTraits: true })), "Egypt").reigns.get("Egypt").traits);
   });
 
   test("A seat knows whether rivals are known by their history", () => {
-    Assert.false(Views.for(newGame(3), "Egypt").rolledTraits);
-    Assert.true(Views.for(newGame(3, newGameConfig({ rolledTraits: true })), "Egypt").rolledTraits);
+    Assert.false(Views.for(smallWorld(newGame(3), "Egypt"), "Egypt").rolledTraits);
+    Assert.true(Views.for(smallWorld(newGame(3, newGameConfig({ rolledTraits: true })), "Egypt"), "Egypt").rolledTraits);
   });
 
   test("Rolled, a record heir keeps his name but not his nature from the sources", () => {
