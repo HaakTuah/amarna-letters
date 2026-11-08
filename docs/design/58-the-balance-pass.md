@@ -69,7 +69,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   seized, fees withheld (and troops' pay held back beside them); and each court's first march into land another held
   when the season began.
 - **Kept as built**, by the measure: no grab at the end of the age (the seasons a king believes are left stay long under
-  the random ending, so a good name keeps paying), openings that follow the map (#840 to the owner), and gifts that buy a
+  the random ending, so a good name keeps paying; a hungry countryside goes unfed more often late in the age because the
+  troops' depots and sieges hold its stores, not by any reckoning of the end), openings that follow the map (#840 to the owner), and gifts that buy a
   neighbour's peace but not a far friend's favour (#841 to the owner).
 - **A vassal's tribute** is judged by the peace it buys: [city-states as powers](26-city-states-as-powers.md).
 - Save version 91: script kings give, and vassals pay, by what it returns, so play from the same seed differs from
