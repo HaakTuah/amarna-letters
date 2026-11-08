@@ -9,6 +9,14 @@ himself. The god view lists each king under Standings, naming the three traits f
 pictures a rival in the look-ahead, it uses that rival's ruler of 1346 as the sources show him, unvaried (`archetype`),
 and a ruler risen in play as a middling one.
 
+**Temperament is a setting** (item 18, `GameConfig.rolledTraits`, off by default; `--rolled-traits` in the batch runner,
+"Kings' temperaments rolled" under Customize). On, every king's traits are rolled for the game, each from 15 to 85
+(`RolledRange`, `rolledNature`) before the usual variation, a record heir's too; a record heir keeps his name and his kin,
+but not the record's nature nor what it tells of his deeds; every king's rulebook says the temperaments were drawn
+(HOW YOU WIN), and the god view shows each king's traits without the sources' epithet; no court knows a rival by his history (`SeatView.rolledTraits`), so a king pictures every rival as a
+middling one (`unknownKing`) and judges him by what he does, through its records of trust, attacks and treaties. The
+table below is for the sources' kings.
+
 Most behaviour switches on at a threshold. This table gives the share of games in which each king of 1346 crosses it
 (the forgery and lull rows weigh two traits together):
 

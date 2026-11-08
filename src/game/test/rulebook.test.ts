@@ -14,4 +14,9 @@ describe("RulebookTests", () => {
     Assert.contains("Shared victory: two powers that sealed a tablet marked as a sworn alliance win together", leaderRules(true, on));
     Assert.contains("shared victory", JSON.stringify(Schemas.leaderOrders(on)));
   });
+
+  test("A table that rolled the kings' temperaments tells every king so", () => {
+    Assert.doesNotContain("temperaments were drawn for this game", leaderRules(true, newGameConfig()));
+    Assert.contains("temperaments were drawn for this game", leaderRules(true, newGameConfig({ rolledTraits: true })));
+  });
 });

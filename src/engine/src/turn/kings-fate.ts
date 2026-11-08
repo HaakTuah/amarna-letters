@@ -12,7 +12,7 @@ import type { Rng } from "../core/rng.ts";
 import { Dict } from "../core/collections.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { HeirData, Lines, type Heir } from "../model/heirs.ts";
-import { KingTraitValues, ReignData, type Reign } from "../model/kings.ts";
+import { KingTraitValues, ReignData, RolledRange, type KingTrait, type Reign } from "../model/kings.ts";
 import { newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, setCrowned, type Power } from "../model/power.ts";
 import { newJourney, type Journey } from "../model/records.ts";
@@ -400,10 +400,14 @@ function nextHeir(e: TurnEngine, p: Power, dead: Character, was: Reign): { at: n
   while (at < line.length && living(line[at]) === undefined) at++;
   const h: Heir | null = at < line.length ? line[at] : null;
   const kin = h?.kin ?? (rng.chance(HeirData.son / 100) ? "son" : "brother");
-  const traits = KingTraitValues.map((k) => clamp((h?.traits?.[k] ?? 50 + rng.range(-HeirData.spread, HeirData.spread)) + rng.range(-ReignData.vary, ReignData.vary), 0, 100));
+  // Item 18: with rolled traits, the record names him but does not set his nature.
+  const rolled = S.config.rolledTraits;
+  const base = (k: KingTrait): number => (rolled ? rng.range(RolledRange[0], RolledRange[1]) : (h?.traits?.[k] ?? 50 + rng.range(-HeirData.spread, HeirData.spread)));
+  const traits = KingTraitValues.map((k) => clamp(base(k) + rng.range(-ReignData.vary, ReignData.vary), 0, 100));
   const name = h?.name ?? drawnName(e, p, rng);
   const kinLine = kin.startsWith("of ") ? `Followed ${dead.name}, ${kin}.` : kin.startsWith("a ") || kin.startsWith("an ") || kin.startsWith("the ") ? `${upper(kin)}, who followed ${dead.name}.` : `${upper(kin)} of ${dead.name}.`;
-  const about = h === null || h.about === "" ? kinLine : `${kinLine} ${h.about}`;
+  // Rolled, what the record says of his deeds would tell every court a nature he does not have: his kin only.
+  const about = h === null || h.about === "" || rolled ? kinLine : `${kinLine} ${h.about}`;
   // A man of the record already on the map is the heir himself, wherever he is.
   const there = h !== null ? (living(h) ?? null) : null;
   return { at, traits, name, about, there };

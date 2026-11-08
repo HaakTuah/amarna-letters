@@ -444,6 +444,10 @@ export function Home() {
                   <input type="checkbox" checked={settings.sharedVictory} onChange={(e) => set("sharedVictory", e.target.checked)} /> Shared victory for sworn
                   allies
                 </label>
+                <label title="Off, each king plays as the sources show the man of 1346. On, every king's temperament is rolled for the game, his heirs' too, and no court knows a rival by his history, only by what he does.">
+                  <input type="checkbox" checked={settings.rolledTraits} onChange={(e) => set("rolledTraits", e.target.checked)} /> Kings' temperaments rolled
+                  for the game
+                </label>
                 <label title="A player whose kingdom falls watches the rest of the game seeing everything. Off, a fallen player watches with what his kingdom knew when it fell, so he cannot pass hidden facts to a friend still playing.">
                   <input type="checkbox" checked={settings.fallenSeeAll} onChange={(e) => set("fallenSeeAll", e.target.checked)} /> A fallen player watches in
                   god view

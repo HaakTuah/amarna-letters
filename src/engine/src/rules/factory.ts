@@ -19,7 +19,7 @@ import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
 import { newCharacter, newContract, newFact, newJobErrand, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
 import { AllPowers, PowerValues, isGreatKing, land, setCrowned, setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { Natures, drawTraits, newReign } from "../model/kings.ts";
+import { Natures, drawTraits, newReign, rolledNature } from "../model/kings.ts";
 import { newTreasury, newGameState, logEvent, newId, notify, type GameState } from "../model/state.ts";
 import { newUnit, unitReport } from "../model/units.ts";
 import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
@@ -43,8 +43,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   const s = newGameState({ seed, config: config ?? newGameConfig(), turn: 1 });
   // The last season, drawn once in secret from its own stream before anything else is rolled.
   const last = drawFinalSeason(seed, s.config);
-  // Item 17b: each king as the person the sources show, his traits varied a little in every game.
-  for (const p of PowerValues) s.reigns.set(p, newReign({ traits: drawTraits(seed, p, Natures[p].traits) }));
+  // Item 17b: each king as the person the sources show, his traits varied a little in every game; item 18: or rolled.
+  for (const p of PowerValues) s.reigns.set(p, newReign({ traits: drawTraits(seed, p, s.config.rolledTraits ? rolledNature(seed, p) : Natures[p].traits) }));
   s.finalSeason = last?.season ?? null;
   s.finalByCap = last?.byCap ?? false;
 

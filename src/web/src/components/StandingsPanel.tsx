@@ -180,7 +180,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
         <>
           <h4 style={{ marginTop: "1rem" }}>The kings</h4>
           <p className="muted">
-            Script kings play as the king on their throne: each ruler has traits of his own, set from what the sources show of him and varied a little in every game. A model king falls back on the same script temperament
+            Script kings play as the king on their throne: each ruler has traits of his own, {state.config.rolledTraits ? "drawn for this game (the table rolled the kings' temperaments)" : "set from what the sources show of him and varied a little in every game"}. A model king falls back on the same script temperament
             whenever a call to the model fails.
           </p>
           <ul className="kings">
@@ -196,7 +196,13 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
                   {seat !== "Human" && (
                     <div>
                       {seat.endsWith("leader") ? "Stand-in: " : ""}
-                      <em>{t.epithet}</em> ({highlights(t).join(", ")}). <span className="muted">{t.description}</span>
+                      {state.config.rolledTraits ? (
+                        <>{highlights(t).join(", ")}.</>
+                      ) : (
+                        <>
+                          <em>{t.epithet}</em> ({highlights(t).join(", ")}). <span className="muted">{t.description}</span>
+                        </>
+                      )}
                     </div>
                   )}
                   {sleep !== undefined && <div className="muted">{sleepSummary(sleep)}</div>}

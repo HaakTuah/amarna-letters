@@ -271,12 +271,11 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       continue;
     }
     // The likeliest attacker; the ground's help against his blow counts with our troop.
-    const attacker =
-      sortBy(
-        [...b.alive].filter((x) => x !== me && b.muster(x, prov) === t[0]),
-        [(x: Power) => hostility.get(x), desc(cmpNum)],
-      )[0] ?? "Egypt";
-    const needed = t[0] - 1 - b.groundAgainst(prov, attacker);
+    const attacker: Power | undefined = sortBy(
+      [...b.alive].filter((x) => x !== me && b.muster(x, prov) === t[0]),
+      [(x: Power) => hostility.get(x), desc(cmpNum)],
+    )[0];
+    const needed = t[0] - 1 - (attacker === undefined ? 0 : b.groundAgainst(prov, attacker));
     if (needed <= 0) continue;
     const helpers = helpersFor(prov, prov).slice(0, needed);
     const worth = (b.isMine(prov) ? b.value(prov) : 0) + (hasUnit ? 120 : 0);

@@ -196,6 +196,15 @@ export const ReignEndedSchema: ObjSchema<ReignEnded> = obj("ReignEnded", (init: 
   how: S,
 });
 
+/** Item 18: the range a rolled trait is drawn from (`GameConfig.rolledTraits`), a first guess. */
+export const RolledRange = [15, 85] as const;
+
+/** Item 18: a king's nature rolled for the game, each trait within `RolledRange`, in place of the sources'. */
+export function rolledNature(seed: number, p: Power): number[] {
+  const r = Rng.for(seed, 0, "rolled-nature", p);
+  return KingTraitValues.map(() => r.range(RolledRange[0], RolledRange[1]));
+}
+
 /** A king's traits for a game: his nature's, each moved by a seeded amount within `ReignData.vary`. */
 export function drawTraits(seed: number, p: Power, nature: readonly number[]): number[] {
   const r = Rng.for(seed, 0, "reign", p);
