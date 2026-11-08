@@ -39,6 +39,7 @@ import {
   type GameConfig,
   type GameState,
   type InboxItem,
+  type PersonScore,
   type Power,
   UnheardOutcome,
   UnheardOnArrival,
@@ -88,6 +89,12 @@ export interface GameSummary {
   firstIsKing?: boolean;
   /** Each character's result against par (`characterResult`), kings apart, for `CharacterPar`; older summaries have none. */
   characterResults?: number[];
+  /**
+   * Bold and careful characters ("Bold or careful, one goal"; item 18): of the five best-placed living characters, how
+   * many took the bold road; and of every character in the game, how many were bold and how many there were in all.
+   * Older summaries have none.
+   */
+  roads?: { topBold: number; top: number; bold: number; all: number };
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
   /**
@@ -332,6 +339,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     topWealth: Math.max(0, ...characters.filter((x) => !x.dead).map((x) => x.holding)),
     firstIsKing: board.length > 0 && board[0].power !== null,
     characterResults: characters.map((x) => characterResult(x.character)),
+    roads: roadsOf(characters),
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
@@ -597,6 +605,12 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
   return lines.join("\n");
 }
 
+/** Bold and careful characters on the board (item 18): the five best-placed living ones' roads, and every character's. */
+function roadsOf(characters: readonly PersonScore[]): NonNullable<GameSummary["roads"]> {
+  const top = characters.filter((x) => !x.dead).slice(0, 5);
+  return { topBold: count(top, (x) => x.character.bold), top: top.length, bold: count(characters, (x) => x.character.bold), all: characters.length };
+}
+
 /** The scoreboard over many games: who stood first, how rich the richest character was at the end, and where all characters' gold came from. */
 export function scoreboardReport(games: readonly GameSummary[]): string[] {
   const top = games.map((g) => g.topWealth);
@@ -607,10 +621,19 @@ export function scoreboardReport(games: readonly GameSummary[]): string[] {
   return [
     "Every person on one scoreboard (item 17b, part D):",
     `  First place: a king in ${count(games, (g) => g.firstIsKing === true)} of ${games.length} games, a character in ${count(games, (g) => g.firstIsKing === false)}.`,
+    roadsLine(games),
     `  The richest character held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
     `  All the gold characters gained, ${total} shekels: fees ${share(gained.fees)}, lending and dealing ${share(gained.dealt)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal or capture ${share(gained.carried)}, savings brought in ${share(gained.savings)}, loot ${share(gained.loot)}, news and carrying ${share(gained.news)}; they spent ${gained.spent}.`,
     "  " + Wealth.WhatCounts,
   ];
+}
+
+/** Whether bold and careful characters reach the top at comparable rates ("Bold or careful, one goal"; item 18). */
+function roadsLine(games: readonly GameSummary[]): string {
+  const r = games.flatMap((g) => (g.roads === undefined ? [] : [g.roads]));
+  const pct = (a: number, b: number): string => (b === 0 ? "-" : `${fmt((100.0 * a) / b, "0")}%`);
+  const [topBold, top, bold, all] = [sum(r, (x) => x.topBold), sum(r, (x) => x.top), sum(r, (x) => x.bold), sum(r, (x) => x.all)];
+  return `  Bold and careful: of the five best-placed living characters in each game, ${pct(topBold, top)} were bold (${topBold} of ${top}), against ${pct(bold, all)} of all characters (${bold} of ${all}).`;
 }
 
 /**
