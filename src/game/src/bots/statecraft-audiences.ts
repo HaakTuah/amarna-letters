@@ -189,7 +189,7 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
 
   // A gift to the messenger, to colour what he tells his lord: a cunning king's way, where his good word is worth its cost
   // (investment.ts).
-  const bribe = p.cunning > 0.6 && !friend ? bestGift(b, brain, sender, brain.spareGold, InvestData.bribeEffect) : 0;
+  const bribe = p.cunning > 0.6 && !friend ? bestGift(b, brain, sender, brain.spareGold, InvestData.bribeEffect, 1) : 0;
   if (bribe > 0) {
     brain.spareGold -= bribe;
     reply.bribe = bribe;

@@ -82,13 +82,27 @@ export function giftReturn(
   return d.attackPerHostility * cooled * kept * d.lostIfAttacked * risk;
 }
 
-/** The gift to `x` that returns most beyond its cost, at most `spare`; 0 when none returns more than it costs. */
+/**
+ * What a shekel given to `x` costs us in the race for first place: the shekel off our score, and the same shekel on his,
+ * which counts for as much more as he has less to grow from (his start against ours) and as he is a rival for the lead
+ * (his growth's share of his and ours). A small king's tribute to a great one costs little more than its gold; a great
+ * king's gift to an equal who is ahead of him nearly twice.
+ */
+export function giftCost(b: Board, x: Power): number {
+  const mine = b.growth(b.me);
+  const his = b.growth(x);
+  const race = mine + his > 0 ? his / (mine + his) : 0;
+  return 1 + (b.startStrength(b.me) / b.startStrength(x)) * race;
+}
+
+/** The gift to `x` that returns most beyond its cost (`rivalry` a shekel; 1 for gold that goes to his envoy, not to him), at most `spare`; 0 when none returns more than it costs. */
 export function bestGift(
   b: Board,
   brain: Brain,
   x: Power,
   spare: number,
   effect = 1,
+  rivalry = giftCost(b, x),
 ): number {
   if (!GiftPlay.on(b.me)) return 0;
   const d = InvestData;
@@ -100,7 +114,7 @@ export function bestGift(
     g <= Math.min(spare, d.trustMost / d.trustPerShekel);
     g += d.step
   ) {
-    const net = giftReturn(b, brain, x, g, effect, risk) - g;
+    const net = giftReturn(b, brain, x, g, effect, risk) - g * rivalry;
     if (net > gain) [best, gain] = [g, net];
   }
   return best;
