@@ -345,22 +345,32 @@ Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/b
 
 ### What was built
 
-- **The spending report** (`game/src/spending-report.ts`, in every batch summary): per Great King and season, gold given
-  abroad, jobs offered, levies, works, ransoms, the treasury's share of the realm's wealth, and the darkest seasons'
-  grabs (a higher share of a harvest, troops' pay held back, hoards seized, fees withheld), in the opening (seasons
-  1-20), the middle and the last 8 seasons; and each court's first march into another's land across the seeds.
+- **The spending report** (`game/src/spending-report.ts`, in every batch summary): per Great King and season, in the
+  opening (seasons 1-20), the middle and the seasons of grave or darker omens (`omenTier`, what every court reads), gold
+  given abroad (envoys' gold, gifts to persons, and at audiences the gifts envoys took and gold sent back), jobs offered,
+  levies, works, ransoms, the treasury's share of the realm's wealth, and the four grabs the item names (provinces whose
+  share of the harvest rose, a hungry countryside left unfed while its stores held grain, hoards seized, fees withheld),
+  with troops' pay held back beside them; and each court's first march into land another held when the season began.
 - **Gifts, bribes and tribute judged by their expected return** (`bots/investment.ts`), replacing the spare-gold,
   generosity and chance thresholds at every place a script king sends gold of its own choosing (letters, peace gifts,
-  tribute, bribes and the second offer, gold back, a friend's `askGold`, a false envoy's host's gift). The king pictures
-  the receiver as a court like his own: gold warms its trust, trust cools its hostility, and less hostility is a smaller
-  chance that it marches on what of ours it can reach, weighed by its troops against ours (`warOdds`, the odds its own
-  war choice weighs), over the seasons the king believes are left. A gift cools no more than the receiver's hostility has
-  left to fall (`HostilityFloor`). Generosity is how much a king believes goodwill is worth (×0.5 to ×1.5).
-  `--gift-play-half` measures it. The design notes (07-script-kings 15, 16 and 14; 14-structured-press; 58) describe it.
-- **Shared, not copied:** a rival's troops as a court reckons them (`Brain.force`) and a war's odds (`warOdds`) are one
-  function each, for the war choice and the gift alike.
-- **A test's seed:** the standing-order test's search starts at seed 7, whose order fires in its tenth season under
-  these rules (only its seed choice moved).
+  a small kingdom's tribute, bribes and the second offer, gold back, a friend's `askGold`, a false envoy's host's gift).
+  The king pictures the receiver as a court like his own, by the rules its own trust follows (`TrustRules`): gold warms
+  its trust, trust cools its hostility, and less hostility is a smaller chance that it marches on what of ours it can
+  reach, weighed by its troops against ours (`warOdds`, the odds its own war choice weighs), over the seasons the king
+  believes are left. A gift cools no more than the receiver's hostility has left to fall (`HostilityFloor`). Generosity
+  is how much a king believes goodwill is worth (×0.5 to ×1.5). `--gift-play-half` measures it.
+- **A vassal's sealed tribute judged the same way** (`tributeReturn`; "tribute buys peace"), in place of a weighted
+  score of awe and traits: it keeps paying while the peace with its overlord and his protection against the king who
+  threatens it most return more than the tribute over the seasons left; nothing if he attacked it within the year; its
+  honesty is how much it believes its sealed word is worth (×0.5 to ×1.5).
+- **One place for each rule:** the trust rules (`TrustRules` in `bots/brain.ts`), a rival's troops as a court reckons
+  them (`Brain.force`) and a war's odds (`warOdds`) serve the script kings' play and the investment alike.
+- **First guesses** (not tuned): `InvestData` (an attack's chance a point of hostility 0.1, what an attack takes 0.5, a
+  bribe a quarter of a gift's warmth, steps of 10 shekels), a host's gift at most 30 and gold back at most half of what was
+  brought; the design notes list them (`07-script-kings/15-letters-and-gifts.md`).
+- **Tests** (`game/test/investment.test.ts`) for the investment and the report; the standing-order test's search starts
+  at seed 7, whose order fires in its tenth season under these rules (only its seed choice moved).
+- The design notes: 07-script-kings 14, 15 and 16; 14-structured-press; 26-city-states-as-powers; 58.
 
 ### The levers tried (`--gift-play-half`, seeds 1-50 unless said)
 
@@ -370,48 +380,66 @@ Started from `develop` at a7abf52 (part D's milestone, #838, merged), on `item/b
 | A gift cools no more than hostility has left to fall | 0.83 / 0.80 | 17 / 22 | 1.8 |
 | The same, seeds 101-150 | 0.78 / 0.79 | 15 / 22 | 1.7 |
 | And the gold counted again on a rival's score (reverted) | 0.82 / 0.81 | 14 / 24 | 0.7 |
-| **And the receiver's odds against us weighed (built)** | **0.79 / 0.77** | **20 / 14** | 1.0 |
+| And the receiver's odds against us weighed | 0.79 / 0.77 | 20 / 14 | 1.0 |
 | The same, seeds 101-150 | 0.77 / 0.79 | 17 / 14 | 1.0 |
+| **And the vassal's tribute judged by its return (built)** | **0.85 / 0.79** | **24 / 15** | 0.9 |
 
 The investment model first counted every province a neighbour could reach as at risk whether or not he could win there;
 the script kings' war choice weighs a target by the odds of its troops against his (`statecraft-strategy.ts`), so a gift
-to a weak neighbour bought little and one to a strong neighbour too little. Weighing the same odds made gifts pay in wins on both seed sets (37 games to 28 over the hundred), with growth about
-even (0.78 against 0.78); gold given is small, about a shekel a Great King's season, so its effect on growth is small
-beside the noise of 50 games.
+to a weak neighbour bought little and one to a strong neighbour too little. Weighing the same odds made gifts come out
+ahead in wins on both seed sets, with growth even; with the vassal's tribute judged by its return, the givers lead in
+both. Gold given stays small, about a shekel a Great King's season, and the model was chosen among these by the same
+measure, so the margin is within the noise of 50 games; part F measures every feature on the item's full seed sets
+(1-100 and 101-200).
+
+**Vassal play** (`--vassal-play-half`, seeds 1-50), with the tribute judged by its return: growth 0.78 against 0.74,
+wins 19 against 21 (before: "not paying yet", the progress file's table).
 
 ### Measured (seeds 1-50, the rules as built)
 
-| A Great King's season | Part D's rules | Part E |
-|---|---|---|
-| Gold given abroad: opening / middle / last 8 | 0.6 / 0.6 / 0.7 | 1.0 / 0.5 / 0.9 |
-| Jobs offered | 0.50 / 0.33 / 0.28 | 0.51 / 0.33 / 0.32 |
-| Works ordered | | 0.55 / 0.32 / 0.32 |
-| Treasury, % of the realm's wealth | 8.2 / 12.1 / 11.9 | 8.3 / 12.6 / 12.0 |
-| A higher share of a harvest | 0.16 / 0.28 / 0.27 | 0.16 / 0.28 / 0.31 |
-| Troops' pay held back | | 0.09 / 0.04 / 0.06 |
-| Hoards seized, fees withheld | none | none |
+| A Great King's season: opening / middle / grave or darker omens | Part E |
+|---|---|
+| Gold given abroad (with what was paid at audiences) | 0.9 / 0.4 / 0.2 |
+| Jobs offered | 0.49 / 0.35 / 0.27 |
+| Works ordered | 0.55 / 0.29 / 0.26 |
+| Treasury, % of the realm's wealth | 8.1 / 11.8 / 12.7 |
+| A higher share of a harvest | 0.16 / 0.24 / 0.28 |
+| A hungry countryside left unfed while its stores held grain | 0.05 / 0.09 / 0.14 |
+| Troops' pay held back | 0.08 / 0.04 / 0.04 |
+| Hoards seized, fees withheld | none |
 
-- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): all 50 games replayed exactly; first place a king's in 41 games, a character's in 9; Assyria won 10, Arzawa 3, Hatti 2, Egypt and Alashiya 1 each.
-- **Kings build, give and campaign; they do not sit on their treasure:** works and jobs go on to the end, every Great
-  King but Alashiya marches in the first two seasons (Egypt later), and the treasury holds about an eighth of the realm's
-  wealth from the middle on, rising neither to the end nor falling.
+(From the `--gift-play-half` run, whose half of the kings give no gifts; part D's rules were measured by the last 8
+seasons, not by the omens, so they are not set beside these.)
+
+- **The regression run** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): R3REPLAY.
+- **Kings build and campaign, give little, and do not sit on their treasure:** works and jobs go on under the darkest
+  omens, though fewer; every Great King marches on another's land, most in the first two seasons, Egypt later (season 23
+  on the median), Alashiya almost never; the treasury holds about an eighth of the realm's wealth from the middle on.
+  Giving is small (#841, below).
 
 ### Readings taken
 
 - **The darkest seasons' grabs** (the item: raising taxes, keeping grain from hungry towns, seizing hoards, leaving fees
-  unpaid): the script kings take a higher share of the harvest a little more often in the last seasons (0.31 against
-  0.28) and hold back troops' pay a little more, but seize no hoards and withhold no fees; and they still hire, 0.32
-  jobs a season at the end against 0.33 in the middle. The random ending keeps the seasons a king believes are left long
-  (about 86 at the start, 48 at season 60, 41 at season 80: `seasonsLeft`), so a good name never stops paying, and a rule
-  to grab at the end would grab nearly as readily in the middle. Principle: the kings know only what the omens tell them
-  ("never the drawn last season"); a grab that pays only to one who knows the end is not taken, and none was built.
+  unpaid): under grave or darker omens the script kings raise a share of the harvest more often (0.28 a season against
+  0.24 in the middle) and leave a hungry countryside unfed more often (0.14 against 0.09), but seize no hoards and
+  withhold no fees; and they still hire, 0.27 jobs a season against 0.35. The random ending keeps the seasons a king
+  believes are left long (about 86 at the start, 48 at season 60, 41 at season 80: `seasonsLeft`), so a good name never
+  stops paying, and a rule to grab at the end would grab nearly as readily in the middle. Principle: the kings know only
+  what the omens tell them ("never the drawn last season"); a grab that pays only to one who knows the end is not taken,
+  and none was built.
+- **Gifts buy a neighbour's peace, not a far friend's favour:** in the script kings' play a far court's trust buys little
+  (a troop handed over or a province ceded, between neighbours only), so the investment counts only the attacks a gift
+  makes less likely, and gifts go to dangerous neighbours. Principle: a return is counted only where the play pays it
+  ("Gold is a lifeline": "nobody hands gold out unless he believes it buys a greater benefit"). Against the letters'
+  gold between far courts, so to the owner: #841.
 - **The courts' openings** follow the map: each Great King's first march is on the same weak neighbour in most games
   (Assyria on Arrapha in 50 of 50, Babylonia on Elam in 49, Mitanni on Isuwa in 48, Hatti on Carchemish in 39, Arzawa on
-  Lukka in 41; Egypt late, Alashiya never). With kings' traits rolled per game (`--rolled-traits`), the timing moves
-  (Egypt's first march from season 18 to 4 on the median, Arzawa's from 1 to 6, its foe now Lukka 24, Seha 18, Mira 7)
-  more than the foe. Principle: the script kings are the strongest sparring partners we can make, and the strongest
-  first move is the map's; variety comes after the opening ("Each court plays differently": floods, roads and rivals'
-  temperaments). A matter of taste, so to the owner: #840.
+  Lukka in 39 to 41; Egypt late, Alashiya almost never). With kings' traits rolled per game (`--rolled-traits`), the
+  timing moves (Egypt's first march from season 18 to 4 on the median, Arzawa's from 1 to 6, its foe now Lukka 24, Seha
+  18, Mira 7) more than the foe. Principle: the script kings are the strongest sparring partners we can make, and the
+  strongest first move is the map's. Only the first march is measured; whether trade and later wars vary from game to
+  game, as "Each court plays differently" sets for a test target, part F measures. To the owner: #840.
+- **A bond with no tribute is always kept** (nothing to weigh against its peace).
 - **How close their best options are** ("What a call is worth"; "Shadow scripts") is model-game plumbing, read by the
   budget and the log, apart from what script kings spend: it goes in its own pull request after this one (part E2).
 
@@ -419,6 +447,8 @@ beside the noise of 50 games.
 
 - [#840](https://github.com/HaakTuah/amarna-letters/issues/840): each Great King's first war is nearly always on the same
   neighbour; keep the map-driven opening, or vary the start within the sources' ranges (new)?
+- [#841](https://github.com/HaakTuah/amarna-letters/issues/841): script kings send gifts only to dangerous neighbours;
+  should a far friend's favour count as a return (new)?
 - [#836](https://github.com/HaakTuah/amarna-letters/issues/836), [#837](https://github.com/HaakTuah/amarna-letters/issues/837),
   [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
