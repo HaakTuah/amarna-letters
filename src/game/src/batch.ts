@@ -96,7 +96,7 @@ export interface GameSummary {
   characterResults?: number[];
   /** Item 18, part D: where the gold sat, the fees agreed and the two roads ({@link MoneyWatch}). */
   money?: MoneyMeasure;
-  /** Item 18, part E: what the Great Kings spent on, and their first sieges ({@link SpendingWatch}). */
+  /** Item 18, part E: what the Great Kings spent on, and their first marches ({@link SpendingWatch}). */
   spending?: SpendingMeasure;
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];

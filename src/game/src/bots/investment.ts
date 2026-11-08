@@ -56,10 +56,20 @@ export function atRisk(b: Board, x: Power): number {
 }
 
 /**
+ * What a season of `x`'s hostility costs us, a point of it: the chance it brings an attack (`attackPerHostility`), weighed
+ * by his troops against ours as his own war choice weighs them (`warOdds`), times what an attack takes of what of ours he
+ * can reach (`risk`, {@link atRisk}).
+ */
+function lossPerHostility(b: Board, brain: Brain, x: Power, risk: number): number {
+  const d = InvestData;
+  return d.attackPerHostility * warOdds(brain.force(x, b), b.mine.length) * d.lostIfAttacked * risk;
+}
+
+/**
  * The shekels a gift of `gold` to `x` is worth to us over the seasons left: the attacks it makes less likely. `effect`
  * scales its warmth (1 for gold in his hand), and the king's own belief in goodwill ({@link goodwillOf}) scales it again.
- * A gift cools no more than his hostility has left to fall (`Brain.hostility`, never below `HostilityFloor`): a king
- * who means us no harm is not made safer by gold.
+ * A gift cools no more than the receiver's hostility, as we reckon it, has left to fall (`Brain.hostility`, never below
+ * `HostilityFloor`): a king who means us no harm is not made safer by gold.
  */
 export function giftReturn(
   b: Board,
@@ -77,11 +87,29 @@ export function giftReturn(
       effect *
       goodwillOf(brain.p),
   );
-  // He marches where his troops outweigh ours, by the odds his own war choice weighs (`statecraft-strategy.ts`).
-  const odds = warOdds(brain.force(x, b), b.mine.length);
   const seasons = Math.max(1, b.horizon);
   const kept = (1 - (1 - d.trustFades) ** seasons) / d.trustFades;
-  return d.attackPerHostility * odds * cooled * kept * d.lostIfAttacked * risk;
+  return cooled * kept * lossPerHostility(b, brain, x, risk);
+}
+
+/**
+ * What a vassal's tribute to `over` buys over the seasons left ("tribute buys peace"): an overlord who is paid never makes
+ * war on us (`bondWar`), one who is not may, as hostile as we reckon him without the bond; and his troops stand between us
+ * and another king who threatens us, by his troops against that king's. Nothing, if he attacked us within `year` seasons
+ * all the same. How much a vassal believes his sealed word is worth is his own: an honest one counts it from half again
+ * (the most honest) down to half (the least).
+ */
+export function tributeReturn(b: Board, brain: Brain, over: Power, year: number): number {
+  if (brain.rel.get(over).lastAttackedUs >= b.v.turn - year) return 0;
+  const seasons = Math.max(1, b.horizon);
+  const peace = brain.hostility(over, b) * lossPerHostility(b, brain, over, atRisk(b, over));
+  let shield = 0;
+  for (const x of b.alive) {
+    if (x === b.me || x === over) continue;
+    const share = Math.min(1, warOdds(brain.force(over, b), brain.force(x, b)));
+    shield = Math.max(shield, share * brain.hostility(x, b) * lossPerHostility(b, brain, x, atRisk(b, x)));
+  }
+  return (peace + shield) * seasons * (0.5 + brain.p.honesty);
 }
 
 /** The gift to `x` that returns most beyond its cost, at most `spare`; 0 when none returns more than it costs. */

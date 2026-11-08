@@ -17,6 +17,7 @@
 import { HSet, StartVassals, clause, cmpPower, sortBy, vassalTerms, type Clause, type Power, type TabletProposal, type VassalTerms } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
+import { tributeReturn } from "./investment.ts";
 
 /** Script players play vassalage (`--no-vassal-play`), or half of them leave it alone (`--vassal-play-half`). */
 export const VassalPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -86,19 +87,17 @@ export function vassalSeason(b: Board, brain: Brain): void {
   brain.tributeDue = null;
   if (!VassalPlay.on(b.me)) return;
   const me = b.me;
-  const p = brain.p;
   for (const bond of brain.bonds) {
     if (bond.vassal === me) {
       const over = bond.overlord;
-      const r = brain.rel.get(over);
       // Re-weighed once a year, so the choice does not turn with every season's news.
       const last = brain.weighed.getOrDefault(over, -99);
       if (b.v.turn - last >= Year) {
         brain.weighed.set(over, b.v.turn);
-        // What the bond is worth to us: the overlord's power over us, and his protection against another who threatens us.
-        const threat = Math.max(0, ...[...b.alive].filter((x) => x !== me && x !== over).map((x) => (brain.hostility(x, b) > 0.5 ? awe(b, me, x) : 0)));
-        const keep = awe(b, me, over) + 0.5 * threat + 0.25 * p.honesty + 0.15 * p.caution - 0.2 * p.greed - (r.lastAttackedUs >= b.v.turn - Year ? 0.6 : 0);
-        if (keep >= 0.3) brain.serving.add(over);
+        // Item 18 part E: the tribute is kept while the peace and protection it buys return more than it costs over the
+        // seasons left (investment.ts, "tribute buys peace"); a bond with no tribute is always kept.
+        const cost = (bond.tribute * Math.max(1, b.horizon)) / Year;
+        if (bond.tribute <= 0 || tributeReturn(b, brain, over, Year) >= cost) brain.serving.add(over);
         else brain.serving.delete(over);
       }
       if (!brain.serving.has(over)) continue;
