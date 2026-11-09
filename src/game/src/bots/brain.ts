@@ -12,6 +12,7 @@ import {
   StartGold,
   StartUnits,
   clamp,
+  count,
   cmpNum,
   cmpOpt,
   cmpPower,
@@ -62,6 +63,16 @@ export class Relation {
 }
 
 const WagesGuess = 25;
+/** The least hostility {@link Brain.hostility} ever reckons: some danger from every king. */
+export const HostilityFloor = 0.05;
+/**
+ * How a script court's trust moves (one place, for its audiences and for the gifts it weighs as investments): gold weighed
+ * warms it `perShekel` a shekel, at most `giftMost` a gift; it drifts back towards indifference by `fades` a season; and a
+ * point of it cools the hostility the court reckons by `hostilityPerTrust`.
+ */
+export const TrustRules = { perShekel: 1 / 400, giftMost: 0.25, fades: 0.05, hostilityPerTrust: 0.3 } as const;
+/** A war's odds as a king weighs them: his troops against his foe's, from a quarter to 1.6. */
+export const warOdds = (ours: number, theirs: number): number => clamp((ours + 0.5) / (theirs + 0.5), 0.25, 1.6);
 
 /**
  * A book of every king we know, that opens a page for a king risen in play (items 13+ and 17) the first time we look him
@@ -266,7 +277,7 @@ export class Brain {
     // Wrongs fade; trust drifts back towards indifference.
     for (const r of this.rel.values()) {
       r.grudge *= 1 - 0.12 * (1 - P.vengeance);
-      r.trust += (0 - r.trust) * 0.05;
+      r.trust += (0 - r.trust) * TrustRules.fades;
       r.treaty = false;
       r.allied = false;
       r.against = null;
@@ -367,7 +378,7 @@ export class Brain {
             const weighed = Weighed.exec(item.body);
             if (weighed !== null) {
               const w = shekels(weighed[1]);
-              if (w > 0) r.trust = Math.min(1, r.trust + Math.min(0.25, w / 400.0));
+              if (w > 0) r.trust = Math.min(1, r.trust + Math.min(TrustRules.giftMost, w * TrustRules.perShekel));
             }
             r.trust += sentiment(item.body) * 0.05;
             break;
@@ -508,7 +519,12 @@ export class Brain {
     }
   }
 
-  /** How likely another king is to attack us this season. */
+  /** Another king's troops as this court reckons them: those in sight, or the most it has heard he has. */
+  force(x: Power, b: Board): number {
+    return Math.max(count(b.others, (u) => u.power === x), this.armySeen.tryGet(x)?.[0] ?? 0);
+  }
+
+  /** How likely another king is to attack us this season, never below {@link HostilityFloor}. */
   hostility(other: Power, b: Board): number {
     const r = this.rel.get(other);
     let h = 0.3;
@@ -522,11 +538,11 @@ export class Brain {
     if (r.lastAttackedUs >= this.turn - 3) h += 0.35;
     if (r.lastWeAttacked >= this.turn - 3) h += 0.3;
     h += Math.min(0.3, r.grudge * 0.04);
-    h -= r.trust * 0.3;
+    h -= r.trust * TrustRules.hostilityPerTrust;
     if (r.treaty && r.oathsBroken === 0) h -= 0.3;
     if (r.allied && r.oathsBroken === 0) h -= 0.2;
     if (b.leader() === this.me) h += 0.15;
-    return clamp(h, 0.05, 0.95);
+    return clamp(h, HostilityFloor, 0.95);
   }
 
   /**

@@ -55,3 +55,23 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   `hoardFee`), lending's rates (`interest*`), the pool's baseline, the markets' purses, and the gift threshold of routine
   audiences (the standing answers' backstop, a quarter of the treasury), which only model kings meet.
 - Save version 90: a person's price at a dangerous court, so who is hired, and what follows, differ from version 89's.
+
+## Part E: script kings' spending as investment (`bots/investment.ts`, `game/src/spending-report.ts`)
+
+- **Gifts, bribes and tribute are investments** ("Gold is a lifeline"): the rule is in
+  [the script kings' letters and gifts](07-script-kings/15-letters-and-gifts.md), "Gifts as investments". It replaces
+  the spare-gold, generosity and chance thresholds; `--gift-play-half` measures it (the report).
+- **The spending report** (`SpendingWatch`, `spendingReport`), in every batch summary: per Great King and season, in
+  the opening (seasons 1-20), the middle, and the seasons of grave or darker omens (`omenTier`, what every court reads),
+  gold given abroad (envoys' gold, gifts to persons, and at audiences the gifts envoys took and gold sent back), jobs
+  offered, levies, works, ransoms, the treasury's share of the realm's wealth, and the four grabs: provinces whose share
+  of the harvest rose, provinces whose countryside went hungry while their stores held grain and none was sent, hoards
+  seized, fees withheld (and troops' pay held back beside them); and each court's first march into land another held
+  when the season began.
+- **Kept as built**, by the measure: no grab at the end of the age (the seasons a king believes are left stay long under
+  the random ending, so a good name keeps paying; a hungry countryside goes unfed more often late in the age because the
+  troops' depots and sieges hold its stores, not by any reckoning of the end), openings that follow the map (#840 to the owner), and gifts that buy a
+  neighbour's peace but not a far friend's favour (#841 to the owner).
+- **A vassal's tribute** is judged by the peace it buys: [city-states as powers](26-city-states-as-powers.md).
+- Save version 91: script kings give, and vassals pay, by what it returns, so play from the same seed differs from
+  version 90's.

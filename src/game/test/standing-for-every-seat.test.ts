@@ -460,8 +460,9 @@ describe("StandingForEverySeatTests", () => {
     // against as many men as the land's, at most a native house's standing) blows come later: the first to fire is seed 16's,
     // in its fourteenth season, so the search starts there; since item 17++'s yields as last reaped and levies by share,
     // seed 1's fires in its fifth season, so the search starts at seed 1 again; since item 17b's kings by their own traits,
-    // seed 5's fires in its sixth season, so the search starts there.
-    for (let seed = 5; seed <= 8; seed++) {
+    // seed 5's fires in its sixth season, so the search starts there; since item 18 part E's gifts judged as investments,
+    // seed 7's fires in its tenth season, so the search starts there.
+    for (let seed = 7; seed <= 10; seed++) {
       let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
@@ -487,6 +488,6 @@ describe("StandingForEverySeatTests", () => {
       Assert.equal(hash(GameStateSchema, state), hash(GameStateSchema, replay.state));
       return;
     }
-    Assert.fail("no standing order fired in the first 24 seasons of seeds 5-8");
+    Assert.fail("no standing order fired in the first 24 seasons of seeds 7-10");
   });
 });
