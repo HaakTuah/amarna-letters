@@ -206,7 +206,7 @@ P.turnOutlaw = function (c, province) {
   if (men < BandData.least) return;
   x.loose -= men;
   this.looseLeave(province, 0);
-  const why = `${c.waited} seasons without work, ${c.purse} shekels left`;
+  const why = `${c.idle} seasons without work, ${c.purse} shekels left`;
   remember(c, S.turn, `I took to the hills with the loose men of ${this.map.get(province).name}: ${why}.`);
   if (!c.facts.some((f) => f.tag === "outlaw")) c.facts.push(newFact({ id: newId(S, "f"), text: "Rode with the Habiru.", secrecy: "Hidden", tag: "outlaw" }));
   const b = newBand({ id: newId(S, "b"), leaderId: c.id, province, men, since: S.turn, rose: "outlaw" });

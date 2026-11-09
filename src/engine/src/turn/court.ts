@@ -225,6 +225,8 @@ P.hireAll = function (hires, carriedTo = null) {
     c.heldBy = null;
     c.waited = 0;
     c.pitches.clear();
+    // Item 18 (#837): the price it pitched at its new master's court is spent; a new job there is asked at its reckoning.
+    c.askingPrice.delete(winner);
     c.offers.clear();
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
     // A court that takes people on is a court that is hiring, as those who hear of it know.

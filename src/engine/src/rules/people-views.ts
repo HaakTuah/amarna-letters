@@ -145,8 +145,8 @@ export function characterView(s: GameState, c: Character, viewer: Power): Charac
     // servant away its master knows only what it said before it went, and is not told it again here.
     speaks: here || c.pitches.has(viewer) ? tongueClaimsAs(c) : [],
     claimsToServe: alias?.employer ?? null,
-    // Item 18 (#837): your own servant at your court tells you what it asks for a new job now (in person: of one away you
-    // know nothing new); never an old price from before it was hired.
+    // Item 18 (#837): your own servant at your court tells you what it asks for a new job (in person: of one away you know
+    // nothing new); the price it pitched before you hired it was spent on the hire.
     askingPrice: ours ? (k !== null && here ? askingPrice(c, viewer) : null) : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,
     ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
     heldByYou: c.heldBy === viewer,

@@ -567,6 +567,26 @@ On seeds 1-50 (before against after): fees a season 27.1, 28.0, 28.0, 28.6 again
 price by the seasons waited at one court (`waited`) moved nothing: a seeker moves on after its patience, and the count
 starts again.
 
+### Readings taken (F1)
+
+- **The fall is the person's own concession, not an engine-set rate.** The owner's answers to item 11a rule out a going
+  rate and a floor set by the engine; each person lowering what it asks the longer it goes unhired is its own
+  reckoning, as its greed and what it heard are. Principle: "Fees clear the market" in the design, within the owner's
+  ruling.
+- **The 40% cap is the most one person concedes,** not a market floor: what is agreed still follows what each asks and
+  hears. Principle: the same.
+- **Patience marks where the fall starts:** the seasons a candidate waits before it may move on are the seasons it
+  waits before it doubts its price. Principle: one fact, one place (no second number for the same patience).
+- **A servant tells his price only in person:** of one away his master hears nothing new, so no hidden fact reaches
+  the court by it (the twin canary). Principle: "Every rule a king needs is in the rulebook or the seat view", and
+  nothing he could not know.
+- **A price pitched at a court is spent on the hire there,** so renewals and the view go by the servant's reckoning;
+  a pitch elsewhere, and a pitch to a court that has not hired it, stands until it pitches again (the rulebook says so).
+- **Part F in two pull requests,** as above: its measurements run for hours. Principle: "Split by meaning", and a
+  session ends at a passed gate with a note on where to pick up.
+
+Questions for the owner: none new (#840, #841, #836, #825, #832, #806 stay open; #837 is fixed here).
+
 ### Split, and where to pick up (F2)
 
 Part F is built in two pull requests, since its measurements run for hours and a session's context would not hold

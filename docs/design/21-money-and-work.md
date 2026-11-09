@@ -35,8 +35,7 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
   character's pitch follows it and a model's pitch stays its own; `MoneyData.waitFall`, `waitFallMost`, first guesses),
   and what it takes is heard by those at the court, so the fees agreed fall. A master sees what his own servant at
   his court asks for a new job (`CharacterView.askingPrice`; of one away he hears nothing new); script kings renew at it, and only where the view says nothing
-  at the last fee a season and a tenth more. (An earlier "going rate" scaling every price was described here but never
-  built.)
+  at the last fee a season and a tenth more.
 - **Quitting**: a servant at its master's court may quit (its own season, below); it is recorded as a public fact, a
   broken promise of its own, and 20 off its name there. An envoy who goes over to a host at an audience takes a six-season
   job there, half handed over now (`jobOffer` is a fee a season).
