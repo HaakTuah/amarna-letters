@@ -1,8 +1,9 @@
 import { describe, test } from "vitest";
-import { type GameState, OrderValidator, inboxOf, type Power, captive, cede, heldKing, hold, move, newTurnSubmission, ownedBy, payRansom, writeLetter } from "@amarna/engine";
+import { type GameState, OrderValidator, inboxOf, type Power, captive, cede, giftUnit, heldKing, hold, move, newSleepState, newTurnSubmission, ownedBy, payRansom, placeSpy, writeLetter } from "@amarna/engine";
 import { inMandate } from "../src/turn/held-king.ts";
 import { lettersKept } from "../src/rules/court.ts";
 import { newJourney } from "../src/model/records.ts";
+import { newWordHome } from "../src/model/held-king.ts";
 import { Assert, egyptHeld } from "./support.ts";
 
 // #806: a captive king plays the captive; a caretaker keeps his realm within a narrow mandate.
@@ -22,9 +23,9 @@ describe("HeldKingTests", () => {
     const foreign = ownedBy(s, "Hatti")[0];
     const care = newTurnSubmission({ orders: [hold(own), move(own, own), move(own, foreign)], standing: [] });
     const out = e.heldSeason("Egypt", newTurnSubmission({ orders: [move(own, foreign)], caretaker: care }));
-    Assert.equal(2, out.orders.length);
-    Assert.equal(null, out.caretaker);
-    Assert.true(out.orders.every((o) => o.type !== "move" || o.to === own));
+    Assert.empty(out.orders);
+    Assert.equal(2, out.caretaker!.orders.length);
+    Assert.true(out.caretaker!.orders.every((o) => o.type !== "move" || o.to === own));
     Assert.true(inboxOf(s, "Egypt").some((i) => i.title === "Held at a foreign court"));
   });
 
@@ -73,6 +74,38 @@ describe("HeldKingTests", () => {
     const out = e.heldSeason("Egypt", newTurnSubmission({ caretaker: newTurnSubmission() }));
     Assert.equal(["payRansom"], out.orders.map((o) => o.type));
     Assert.empty(s.wordHome);
+  });
+
+  test("What his word home agreed to is given now: before his scheduled orders, and the caretaker's only fill what it leaves", () => {
+    const { s, e } = egyptHeld();
+    const u = s.units.find((x) => x.power === "Egypt" && e.wordTo("Egypt", x.province) === 0)!;
+    const sl = newSleepState({ asleep: true, wakeAt: 50 });
+    s.sleep.set("Egypt", sl);
+    sl.scheduled.push(e.bind("Egypt", s.turn, hold(u.province), [])[0]!);
+    s.wordHome.push(newWordHome({ power: "Egypt", order: giftUnit(u.province, "Hatti") }));
+    const plan = e.planSeason("Egypt", e.sendOrders("Egypt", e.heldSeason("Egypt", newTurnSubmission({ caretaker: newTurnSubmission({ orders: [hold(u.province)] }) }))));
+    Assert.equal(["giftUnit"], e.compose("Egypt", plan, []).orders.filter((o) => "unit" in o && o.unit === u.province).map((o) => o.type));
+  });
+
+  test("A spy his word home posts at his captor's court goes to free him only once he is sent", () => {
+    const { s, e } = egyptHeld();
+    const k = kingOf(s, "Egypt");
+    const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
+    Object.assign(spy, { duty: "SpyPosted", at: "Hatti" });
+    const post = placeSpy(spy.id, "Hatti");
+    s.wordHome.push(newWordHome({ power: "Egypt", order: post }));
+    // Posted there already, he is not sent: the order is refused, and he takes no letter out that season.
+    const out = e.heldSeason("Egypt", newTurnSubmission({ orders: [writeLetter("Egypt", "Come for me.")], caretaker: newTurnSubmission() }));
+    Assert.single(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: out.orders })).rejected);
+    Assert.empty(s.freeing);
+    Assert.equal(k.id, Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter")).characterId);
+    // Sent from home by any other order, he is not on that errand; by his word, he is.
+    Object.assign(spy, { duty: "None", at: "Egypt" });
+    e.placeSpy("Egypt", placeSpy(spy.id, "Hatti"));
+    Assert.empty(s.freeing);
+    Object.assign(spy, { duty: "None", at: "Egypt" });
+    e.placeSpy("Egypt", post);
+    Assert.equal([spy.id], s.freeing);
   });
 
   test("His word home may give in: land ceded goes home with his letter", () => {

@@ -21,8 +21,8 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   gold and caravans move only within the realm; a dispatch goes only if it keeps a bond (tribute paid or asked,
   protection asked, an oath recalled) and carries no proposal; a ransom only for someone else. Nothing else: no war, march
   abroad, treaty, grant, hire, building or court move. His standing orders stand: the caretaker gives, changes and
-  cancels none, and its orders only fill what his scheduled and standing orders leave free, as a stand-in's do
-  (`compose`).
+  cancels none, and its orders only fill what his word home and his scheduled and standing orders leave free, as a
+  stand-in's do (`planSeason`, `compose`).
 - **The player plays the captive.** The seat's own orders are his: letters (order `write`, to any court, his own included)
   and, in a letter home, his ransom (`payRansom` for himself), giving in (`cede`, `giftUnit`, or a `dispatch` his court
   sends with the tablet he names), or a spy hired or posted at his captor's court (`hire` or `renew` as a
@@ -34,9 +34,10 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   `GameState.lettersStopped`): a kept letter goes nowhere and the captive is not told. A letter home that a spy of his
   realm posted at that court takes out (`spyWith`) goes as the spy's report does, unread and not to be kept.
 - **What he agreed to** rides with the letter (`GameState.wordHome`) and his court carries it out in the season after it
-  arrives, as its own business, beside the caretaker's orders; a letter lost or kept takes it with it.
-- **Getting away:** a spy posted at the captor's court by the king's own word home goes on the errand to free him
-  (`GameState.freeing`, `spyWith`): his skill at going unseen adds to the king's in the chance each season
+  arrives, as its own business and as orders given now, before his scheduled orders and the caretaker's (a stand-in's
+  too, once he is free); a letter lost or kept takes it with it.
+- **Getting away:** a spy his court sends to the captor's court by the king's own word home goes on the errand to free
+  him once he is sent (`GameState.freeing`, `placeSpy`, `spyWith`): his skill at going unseen adds to the king's in the chance each season
   (`kingsHeld`), and each season he is caught at it 40 times in a thousand (`AidData.caught`); one of loyalty below 35
   and greed of 60 or more sells his king out instead, telling the captor (`AidData`, first guesses, a script character's
   choice by his traits). Spies posted for anything else do not help.

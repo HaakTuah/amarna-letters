@@ -54,7 +54,8 @@ export interface TurnSubmission {
   council: string;
   /**
    * #806: while the seat's king is held, the caretaker's orders for his realm, asked by the runner beside the seat's own
-   * (which are then the captive's: `turn/held-king.ts`). Null otherwise.
+   * (which are then the captive's: `turn/held-king.ts`). Null otherwise. Once the engine has read them (`heldSeason`), the
+   * stand-in's orders, kept apart from those his own word gives now, which come before them.
    */
   caretaker: TurnSubmission | null;
 }

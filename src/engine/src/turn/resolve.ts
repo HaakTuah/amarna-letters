@@ -79,6 +79,7 @@ P.resolveSeason = function (submissions) {
   const validator = new OrderValidator(S, this.map, (o) => this._goneNow.get(o) ?? null);
   const valid = new Dict<Power, ValidationResult>();
   this._stealing.clear();
+  this._freeingNow.clear();
   this._scheduledNow.clear();
   this._standingNow.clear();
   this._firedNow.clear();

@@ -121,15 +121,19 @@ P.heldSeason = function (p, sub) {
   // What his letters home agreed to, arrived: carried out this season, as the court's own business, held or free.
   const arrived = S.wordHome.filter((w) => w.power === p && w.journey === "").map((w) => w.order);
   S.wordHome = S.wordHome.filter((w) => !(w.power === p && w.journey === ""));
-  if (king === null) return arrived.length === 0 && sub.caretaker === null ? sub : newTurnSubmission({ ...sub, orders: [...arrived, ...sub.orders], caretaker: null });
-  // A spy his word posts at his captor's court goes on the errand to free him.
-  for (const o of arrived) if (o.type === "spy" && o.court === king.heldBy && !S.freeing.includes(o.character)) S.freeing.push(o.character);
+  // His word is his own, given now; a script king standing in after the seat's call failed only fills what it leaves free.
+  if (king === null)
+    return arrived.length === 0 && sub.caretaker === null
+      ? sub
+      : newTurnSubmission({ ...sub, orders: sub.fromFallback ? arrived : [...arrived, ...sub.orders], caretaker: sub.fromFallback ? newTurnSubmission({ orders: sub.orders }) : null });
+  // A spy his word posts at his captor's court goes on the errand to free him, once he is sent (`placeSpy`).
+  for (const o of arrived) if (o.type === "spy" && o.court === king.heldBy) this._freeingNow.add(o);
   this.captiveWrites(p, king, sub.orders);
   const care = sub.caretaker ?? newTurnSubmission();
   const kept = care.orders.filter((o) => inMandate(S, p, king.id, o));
   // His standing orders stand as he left them: the caretaker gives, changes and cancels none; and its orders, as a
-  // stand-in's, only fill what his own scheduled and standing orders leave free (`compose`).
-  return newTurnSubmission({ orders: [...arrived, ...kept], notes: care.notes, summary: care.summary, fromFallback: true });
+  // stand-in's, only fill what his word and his own scheduled and standing orders leave free (`planSeason`, `compose`).
+  return newTurnSubmission({ orders: arrived, caretaker: newTurnSubmission({ orders: kept }), notes: care.notes, summary: care.summary, fromFallback: true });
 };
 
 declare module "./core.ts" {
