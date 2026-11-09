@@ -1020,7 +1020,11 @@ export function notify(s: GameState, p: Power, kind: InboxKind, title: string, b
     title = title.replace(own, alias);
     body = body.replace(own, alias);
   }
-  const lag = atCourt && CourtKinds.has(kind) ? s.courtLag.getOrDefault(p, 0) : 0;
+  // #806: to a king held abroad every word from his court comes late, but what befalls him there himself.
+  const reign = s.reigns.tryGet(p);
+  const king = reign === undefined ? null : findCharacter(s, reign.character);
+  const held = king !== null && king.status === "Captured" && subject !== king.id;
+  const lag = atCourt && (CourtKinds.has(kind) || held) ? s.courtLag.getOrDefault(p, 0) : 0;
   inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset + lag, kind, title, body, subject }));
 }
 

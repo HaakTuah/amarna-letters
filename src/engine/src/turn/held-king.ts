@@ -118,12 +118,12 @@ const P = TurnEngine.prototype;
 P.heldSeason = function (p, sub) {
   const S = this.s;
   const king = heldKing(S, p);
-  if (king === null) return sub.caretaker === null ? sub : newTurnSubmission({ ...sub, caretaker: null });
-  // What his letters home agreed to, arrived: carried out this season, as the court's own business.
+  // What his letters home agreed to, arrived: carried out this season, as the court's own business, held or free.
   const arrived = S.wordHome.filter((w) => w.power === p && w.journey === "").map((w) => w.order);
+  S.wordHome = S.wordHome.filter((w) => !(w.power === p && w.journey === ""));
+  if (king === null) return arrived.length === 0 && sub.caretaker === null ? sub : newTurnSubmission({ ...sub, orders: [...arrived, ...sub.orders], caretaker: null });
   // A spy his word posts at his captor's court goes on the errand to free him.
   for (const o of arrived) if (o.type === "spy" && o.court === king.heldBy && !S.freeing.includes(o.character)) S.freeing.push(o.character);
-  S.wordHome = S.wordHome.filter((w) => !(w.power === p && w.journey === ""));
   this.captiveWrites(p, king, sub.orders);
   const care = sub.caretaker ?? newTurnSubmission();
   const kept = care.orders.filter((o) => inMandate(S, p, king.id, o));

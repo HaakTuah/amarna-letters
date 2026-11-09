@@ -53,7 +53,8 @@ export function standsAt(s: GameState, map: WorldMap, p: Power): string {
  */
 export function courtLagOf(s: GameState, map: WorldMap, p: Power): number {
   const at = kingAfield(s, p);
-  if (at === undefined) return 0;
+  // #806: a king held abroad hears his court's word as a courier brings it to his captor's court.
+  if (at === undefined) return heldLagOf(s, map, p);
   const t = wordHomeAt(s, map, at, courtOf(s, map, p), s.turn);
   return Number.isFinite(t) && t > s.turn ? t - s.turn : 0;
 }
@@ -91,8 +92,11 @@ export function lettersKept(s: GameState, king: string, to: Power): boolean {
  * `GameState.freeing`): he carries the king's letters home unread and helps him get away.
  */
 export function spyWith(s: GameState, p: Power, host: Power): Character | null {
-  return s.characters.find((c) => s.freeing.includes(c.id) && c.status === "Employed" && c.employer === p && c.duty === "SpyPosted" && c.at === host && c.heldBy === null) ?? null;
+  return s.characters.find((c) => s.freeing.includes(c.id) && c.status === "Employed" && c.employer === p && c.duty === "SpyPosted" && c.at === host && c.heldBy === null && c.secretMaster === null) ?? null;
 }
+
+/** #806: the most seasons word from his court is late to a held king (where no road leads, it comes by the long way). */
+export const HeldLagMost = 12;
 
 /**
  * #806: the seasons word from a held king's court takes to reach him at his captor's court, beyond the next (0 while not
@@ -102,7 +106,7 @@ export function heldLagOf(s: GameState, map: WorldMap, p: Power): number {
   const k = heldKing(s, p);
   if (k === null) return 0;
   const t = wordHomeAt(s, map, courtOf(s, map, k.heldBy!), courtOf(s, map, p), s.turn);
-  return t === Infinity ? Number.MAX_SAFE_INTEGER : t > s.turn ? t - s.turn : 0;
+  return t === Infinity ? HeldLagMost : t > s.turn ? Math.min(HeldLagMost, t - s.turn) : 0;
 }
 
 /** Whether the court is on the road (`alone`: whether the king is, without it). */

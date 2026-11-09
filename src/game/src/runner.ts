@@ -151,10 +151,10 @@ export class GameRunner {
     const king = heldKing(S_, p);
     if (king === null) return null;
     const seen = this.courtViews.tryGet(p) ?? [now];
-    const lag = heldLagOf(S_, WorldMap.default, p);
+    const lag = Math.min(heldLagOf(S_, WorldMap.default, p), seen.length - 1);
     const then = seen[Math.max(0, seen.length - 1 - lag)];
-    const own = now.inbox.filter((i) => i.subject === king.id && i.turn > then.turn);
-    return { ...then, turn: now.turn, season: now.season, heldAt: now.heldAt, heldOnRoad: now.heldOnRoad, inbox: [...then.inbox, ...own] };
+    // His inbox is the court's, every word from it late by the courier (`notify`), what befell him himself at once.
+    return { ...then, turn: now.turn, season: now.season, heldAt: now.heldAt, heldOnRoad: now.heldOnRoad, inbox: now.inbox };
   }
   /** Item 16: the royal council of the seats played by a model or a human. */
   private readonly council: Council;

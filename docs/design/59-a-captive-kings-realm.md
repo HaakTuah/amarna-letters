@@ -7,9 +7,12 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
 - **Held** (`heldKing`): the king is a captive at a foreign court (or on the road to it under guard) and his court has
   heard of it (no `KingTaken` word still on the road). Until it hears, the court goes on as before
   ([57](57-every-person.md), part C1). The seat's view says so (`PowerView.heldAt`, the request's COURT line).
-- **What he knows:** his court's view as it stood when its last courier could reach him at his captor's court
-  (`heldLagOf`, the runner's `captiveView`, from the realm's views kept since his capture), with the notices about
-  himself there (subject: the king). The caretaker reads the court's own view.
+- **What he knows:** every word from his court comes to him as late as a courier from it to his captor's court
+  (`heldLagOf`, at most 12 seasons, `HeldLagMost`; `courtLagOf` and `notify` apply it to the realm's whole inbox and to
+  the people come to his court, so every panel of his seat shows the same), but what befalls him there himself
+  (notices whose subject is the king) at once; and the rest of what his seat is shown to decide on is his court's view
+  as it stood then (the runner's `captiveView`, from the realm's views kept since his capture). The caretaker reads the
+  same late inbox, with the court's own view of the land and troops.
 - **The caretaker keeps the realm.** The runner asks a script of its own (`GameRunner.caretaker`, a `ScriptLeader` that
   sees the realm's view without `heldAt`) for the realm's orders every season, whether the seat sleeps or not, logged as
   `t<turn>/caretaker/<power>`, and hands them to the engine in `TurnSubmission.caretaker`. The engine keeps those within

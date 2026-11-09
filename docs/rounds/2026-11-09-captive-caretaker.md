@@ -42,8 +42,11 @@ passing out, like spies and such."
 
 - **The captive knows his realm only by word from his court:** his court's view as it stood when its last courier could
   reach him at his captor's court, kept season by season since his capture, with what befell him there himself. The
-  caretaker reads the court's own view. Principle: "Everything is somewhere, and everything travels" (the one page), as
-  for a king away from his court (item 17b, part C).
+  caretaker reads the same late inbox (one inbox per realm), with the court's own view of its land and troops, which is
+  all its narrow mandate acts on. Principle: "Everything is somewhere, and everything travels" (the one page), as for a
+  king away from his court (item 17b, part C).
+- **What he agreed to is carried out when it arrives, held or free:** his word stands once it reached his court.
+  Principle: "Keeping a promise is an act", and his court's act once it has his word.
 - **What he may agree to in a letter home** is his ransom, giving in (land ceded, troops given, or an envoy his court
   sends with the tablet he names, a treaty sealed as any is) and a spy at his captor's court to free him; the rest of his
   realm's business is the caretaker's. Principle: the owner's "give in or die ... So he can be pressured" and "spies and

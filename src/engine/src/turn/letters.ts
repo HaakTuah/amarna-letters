@@ -59,7 +59,7 @@ function courtAt(engine: TurnEngine, province: string): Power | null {
  * A letter its writer's spy sends: a spy's report, or a captive king's letter home that a spy of his realm posted at his
  * captor's court took out unread (#806).
  */
-const bySpy = (S: GameState, j: Journey): boolean => j.kind === "SpyReport" || (j.kind === "CaptiveLetter" && j.to === j.from && findCharacter(S, j.characterId)?.duty === "SpyPosted");
+const bySpy = (S: GameState, j: Journey): boolean => j.kind === "SpyReport" || (j.kind === "CaptiveLetter" && j.characterId !== S.reigns.tryGet(j.from)?.character);
 
 P.carryLetters = function () {
   const S = this.s;
