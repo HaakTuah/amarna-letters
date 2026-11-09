@@ -52,6 +52,7 @@ import {
   GameRunner,
   callSizes,
   characterReport,
+  kingShadowReport,
   playGame,
   seatReport,
   type GameSummary,
@@ -429,6 +430,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   if (keep !== null && (o.folders.length > 0 || o.characterFolders.length > 0 || keep.state.sleep.size > 0 || choices.usesModels)) out.push(seatReport(keep));
   // Model or file characters beside the script with the same traits, and how large each kind of request was.
   if (keep !== null && keep.log.shadows.length > 0) out.push(characterReport(keep.log));
+  // Model kings beside the shadow script (item 18, "Shadow scripts").
+  if (keep !== null && keep.log.kingShadows.length > 0) out.push(kingShadowReport(keep.log));
   if (keep !== null && keep.log.calls.length > 0) out.push(callSizes(keep.log));
   if (o.detail && keep !== null) {
     const st = keep.state;

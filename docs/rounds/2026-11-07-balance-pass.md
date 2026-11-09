@@ -467,42 +467,54 @@ are not set beside these.)
   [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
 
-## Part E2: how close the scripts' best options are, and shadow scripts (in progress)
+## Part E2: how close the scripts' best options are, and shadow scripts
 
 Started from `develop` at 93f97a1 (part E, #839, merged), on `item/balance-e2`. The item's sentence: "The scripts report
 how close their best options are, so the budget can tell a close call from an obvious one ('What a call is worth'
 under 'Minds follow what is at stake'), and the script decides beside every model decision, out of play, logged by kind
-('Shadow scripts')." The design came from the planning-design helper (Fable), as below.
+('Shadow scripts')." The design came from the planning-design helper (Fable); the design notes hold what was built
+(`docs/design/04-models.md`, "How close the script's call was" and "Shadow scripts").
 
-### Built so far
+### What was built
 
 - **The margin** (`Brain.margins`, `closeness`, `WarMarginScale` 200 and `PlanMarginScale` 10, first guesses): the war
-  choice reports its best war against the next or the bar it had to clear (1 when the target is kept); the plan search
-  (`Search.improve`) reports its plan against the best one turned down; `ScriptLeader.marginOf` gives the closer of the
-  two, or null. Out of play: nothing reads it in a script game, so replays are unchanged.
-- **The budget reads it** (`Stakes.margin`, `Spending.quality(kind, rung, margin)`, `MarginPull` 0.8): an obvious call
-  closes each rung's gap to the large rung's quality by up to four fifths, so it climbs less.
+  choice reports its best war against the next or the bar it had to clear (1 when there is no war to weigh); the plan
+  search (`Search.improve`) reports its plan against the best one turned down; `ScriptLeader.marginOf` gives the closer
+  of the two, or null. Nothing reads it in a script game, so script games are unchanged.
+- **The budget reads it** (`Stakes.margin`, `Spending.quality(kind, rung, margin)`, `MarginPull` 0.8, a first guess): an
+  obvious call closes each rung's gap to the large rung's quality by up to four fifths, so it climbs less.
+- **The shadow king** (`KingRungs.shadow`): the seats' script player, whose brains are by power, so the kings it shadows
+  are apart from those it plays and from the runner's stand-in. It reads each season's view of its king
+  (`ISeat.observe`, called beside the stand-in's, never in a replay), decides his orders before the climb (its margin
+  goes into the stakes) and answers each envoy he answers. Its memory drifts by its own imagined choices, never the
+  model's.
+- **The record** (`king-shadows.ts`: `KingShadow`, a "king-shadow" line, `GameLog.kingShadows`; the export gives it under
+  the shadows filter, `ExportFields.kingShadow`): key, turn, kind, power, rung, model, margin, differ, mattered, each
+  side in brief (orders and clause kinds, never words) and the failure kind. One differ for orders,
+  `submissionsDiffer` (the Jaccard that was `ordersDiffer`'s, which now parses then uses it), and `hostDiffer` for an
+  answer. Where the model decided, `Ladder.recordShadow` moves the script rung's rates as an audit would (mattered =
+  differ times what the decision could move, at most 1). A batch prints the records by kind (`kingShadowReport`).
+- **Left out, as the design says:** margins for courts, alerts and characters (they stay on the audits); the script
+  rung playing the shadow's orders; tuning. No save version: no rule changed, script games replay as before, and a
+  model game replays from its logged decisions.
 
-### Where to pick up
+### Measured
 
-1. **The shadow king** (`game/src/bots/shadow-king.ts`): a second `ScriptLeader(gameSeed)` of its own, apart from the
-   runner's `fallbackSeat`, with `observe(view)`, `orders(view)` returning the submission and `marginOf`, and
-   `host(view, seen)`; its memory drifts by its own imagined choices (say so in its doc).
-2. **The record** (`game/src/log.ts` or its own file): `KingShadow` {key, turn, kind "orders" | "court", power, rung,
-   model, margin, differ, mattered, script, model's summary, error}, `GameLog.kingShadows`, `addKingShadow`, a jsonl type
-   "king-shadow", the export's field list (`export.ts`, `ExportFields`, the shadows filter) and the canary test; the
-   summaries clause-level, never prose. One differ for orders: `submissionsDiffer(a, b: TurnSubmission)` (move the
-   Jaccard of `king-ladder.ts` `ordersDiffer` there, `ordersDiffer` becoming parse-then-that), and `hostDiffer`.
-3. **The wiring:** `KingRungs.shadow` made in `llm/src/seat-setup.ts`; in `LlmLeaderSeat.decide`, the shadow decides
-   before the climb, `ordersStakes` takes its margin, and after the parse the record is logged and
-   `ladder.spending.learn("orders", "script", mattered)` (mattered = min(1, differ × worth)); a thrown call is logged with
-   its error and rethrown. The same in `holdCourt` per envoy (no margin). An optional `ISeat.observe?(view)` called beside
-   `fallbackSeat.observe` in `runner.ts` (~line 761, not in a replay).
-4. **Left out, as the design says:** margins for courts, alerts and characters (they stay on the audits); the script
-   rung playing the shadow's orders; tuning.
-5. **Tests:** `Spending.choose` climbs less at margin 1 than 0, `quality` grows with the margin; a who-decides-style game
-   on the simulated API gives a record per model orders call and per hosted envoy, replays exactly, and a script game's
-   hash is unchanged. A batch on `--simulate-api` reports per kind the records, the share that differed and the mean
-   mattered (`play.ts`). Then the design notes (`docs/design/04-models.md`, "What a call is worth" and the export), the
-   reviews and the milestone.
+- **A batch on the simulated API** (`scripts/sim.sh --games 2 --seed 1 --simulate-api --leaders sonnet --cap 12
+  --verify-replay`): 115 and 118 orders records, every one differing (the simulated replier orders little, so this says
+  only that the record works: mean differ 0.66 and 0.63, mean mattered 0.70 and 0.67); both games replay exactly. No
+  court records there, since no king sent an envoy; `king-shadows.test.ts` checks one per hosted envoy on a small map
+  with script kings beside a model one.
+- **Script games:** unchanged, since nothing reads the margin there (the suite's replay and hash checks).
+
+### Readings taken
+
+- **The shadow is the seats' script player, not a second one.** The design asked for a script king of the shadow's own,
+  apart from the runner's stand-in; the seats' script player already keeps each power's brain apart and plays no model
+  king, so it serves without a second object (keep it lean). Principle: one fact, one place.
+- **A court reports no margin, and an answer's differ is by its keys** (clause kinds, gifts, gold, seal, detention,
+  service, a tablet of its own), the same keys the brief shows, since words are a model's own and the design keeps
+  them out of the record.
+
+Questions for the owner: none new (#840, #841, #836, #837, #825, #832 and #806 stay open; each was taken as built).
 

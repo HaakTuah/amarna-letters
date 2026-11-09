@@ -268,12 +268,14 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
     client = new ModelClient(providers, (call) => log().addCall(call), prices);
     // The ladder of every job, and the budget it spends ("Minds follow what is at stake").
     const spending = new Spending(choices.spending, state.config, state.seed, () => log().totalCost);
-    ladder = new Ladder(client, spending, prices, { route: (key, r) => log().route(key, r), audit: (a) => log().addAudit(a) });
+    ladder = new Ladder(client, spending, prices, { route: (key, r) => log().route(key, r), audit: (a) => log().addAudit(a), shadow: (k) => log().addKingShadow(k) });
   }
   // Local play: every local agent king goes through the one bridge, as a file seat whose files the bridge writes.
   const bridge = choices.usesLocalAgents ? new LocalBridge(choices.bridgeAddress, Math.min(Math.max(choices.localAgentMinutes, 1), 24 * 60) * 60000) : null;
 
   const bridgeCharacters = new Set(choices.bridgeCharacters);
+  // The script seats; and, item 18's "Shadow scripts", the script beside every model king (its brains are by power, so
+  // the kings it shadows are apart from those it plays, and apart from the runner's stand-in).
   const script = new ScriptLeader(state.seed);
   const seats = new Dict<Power, ISeat>();
   for (const p of AllPowers) {
@@ -299,6 +301,7 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
                 small: smallModel(choices, p),
                 plays: choices.plays,
                 planning: rungModel(choices.planning),
+                shadow: script,
               })
             : script,
     );
