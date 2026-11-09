@@ -15,6 +15,10 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
+- **First: the music follows the state** (archive item 241; the design document's 19+++b under Build order, in the
+  copy from its next refresh; for Opus, since it takes an ear's judgement): the mood from a heat that rises fast and
+  cools slow, god view by the world's temperature, in a new file beside `src/web/src/audio/situation.ts`, with
+  `docs/design/45-the-music-and-the-sounds.md` updated in the same PR.
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
