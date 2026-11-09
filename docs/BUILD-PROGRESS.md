@@ -148,6 +148,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     to march and whom to help, so far gifts pay and the script kings send them where they serve both; each king and
     character weighs favour, force and trade by his own traits. World, "Each court plays differently".
   - **Openings (#840):** kept; judged again by part F's audit of trade and later wars.
+  - **The people fight back (#832; archive item 237):** wherever an army stands in a province whose people are hostile
+    to it, before it holds it and after, its men of fighting age attack it each season as a leaderless rising, on their
+    own ground, so it bleeds men while it stays and its force is what it has left; and a court with no town takes to the
+    hills or the ships instead of falling with its province. Replaces no time rule. War, "The people defend their land".
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
