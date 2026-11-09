@@ -96,6 +96,9 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
   a file past about 50 KB, that file is split by meaning first, in its own PR; and new work for a file past the mark
   goes in as a new file, never as more lines in it (archive item 172). The workshop check and the file-by-file reviews
   still run.
+- **The workshop check runs weekly** (archive item 239): at the first milestone seven days or more after the last
+  check, not at every milestone, since milestones come daily and what it measures changes slowly; this stands in for
+  "At every milestone" in the builder rules until their next refresh.
 - **Principles over rules** (archive item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
   in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
   keys and secrets, spending, and no model games until the build order is done.
@@ -104,9 +107,10 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
   the few tests that guard the whole (replays, the save round trip, a smoke game), and long measurements (benchmarks,
   use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world, the tests'
   default does not grow with it. The workshop check measures against code-PR checks of about 10 minutes (29 October).
-- **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
-  in the archive (`docs/archive/instructions.md` says which file), numbered and dated, leaving out personal details as
-  `SECURITY.md`, point 11, says. A standing rule goes where it applies in this file
+- **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the archive
+  (`docs/archive/instructions.md` says which file), numbered and dated, leaving out personal details as `SECURITY.md`,
+  point 11, says; reports, PRs, issues, the progress file and the design notes point to its archive item and never
+  quote it again, since every copy is read again (archive item 239). A standing rule goes where it applies in this file
   (or `CLAUDE.md`, if only Claude uses it), as briefly as it can be said, with what it is for and its archive item; it
   moves into the builder rules at the next refresh of the design document's copy, and leaves this file in the same PR.
   Rule files state rules, never quotes or dated history (a date a measurement or a status needs may stay),

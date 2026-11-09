@@ -43,6 +43,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
+- **Trim what every session reads** (archive item 239; a routine docs lane, for Sonnet): this file back under about
+  20 KB, finished items and done follow-ups moved to the archive with a pointer; `AGENTS.md` keeps a pointer where it
+  repeats the builder rules (the usage brake, branches, milestones); and `docs/claude-and-codex.md` (22 KB) moves its
+  Codex setup, "For Codex" and "Setup", into a file of its own, read only when setting Codex up.
 - **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
   common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
   and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
@@ -131,27 +135,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
     games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is
     the fix.
-- **A captive king's realm under a caretaker** (the owner, 9 November 2026, #806; archive items 234 and 235): replaces
-  17b part B's reading that his court rules as before. His player plays the captive, bargaining for his release, his
-  letters home going through his captor's court, which may read or stop them; his realm is held by a script that keeps
-  his standing orders, defends, collects, keeps his treaties and pays what he agrees to, but starts no war, treaty or
-  campaign of its own. A spy or other hired man may help his escape or carry his letters out unread, an errand like any
-  other, and may be caught or sell him out. Holding a king forever is measured in item 18, not ruled against. The
-  design document's live text: Victory, "One scoreboard for every person".
-- **The owner's answers of 9 November** (archive item 236), for the balance pass (item 18):
-  - **The weight of size (#825):** 5 in a hundred is only the start; the weight is set by testing, against his test:
-    anyone can win, the seven Great Kings have roughly an equal shot at the least, ideally every state does, and a state
-    still left behind counts as a harder difficulty. Victory, "One scoreboard for every person".
-  - **A resident hires a carrier (#836):** one who stays at his post, as Pharaoh's commissioners do, hires a carrier at
-    the nearest court from his master's purse when no traveller has come for a while. Diplomacy, "Messengers are errands".
-  - **Favour is repaid (#841):** a king who likes a giver weighs the giver's enemies partly as his own when choosing where
-    to march and whom to help, so far gifts pay and the script kings send them where they serve both; each king and
-    character weighs favour, force and trade by his own traits. World, "Each court plays differently".
-  - **Openings (#840):** kept; judged again by part F's audit of trade and later wars.
-  - **The people fight back (#832; archive item 237):** wherever an army stands in a province whose people are hostile
-    to it, before it holds it and after, its men of fighting age attack it each season as a leaderless rising, on their
-    own ground, so it bleeds men while it stays and its force is what it has left; and a court with no town takes to the
-    hills or the ships instead of falling with its province. Replaces no time rule. War, "The people defend their land".
+- **The owner's answers of 7 and 9 November** (archive items 234 to 237), for item 18; each is written in the design
+  document, which is the spec: a captive king's realm under a caretaker (#806; Victory, "One scoreboard for every
+  person"); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
+  "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
+  the people fight back (#832; War, "The people defend their land").
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
