@@ -561,9 +561,9 @@ more, to at most 40% less (`MoneyData.waitFall`, `waitFallMost`, first guesses),
 owner's answers to item 11a: no going rate; a model's pitch stays its own); a master sees what his own servant at his court
 asks for a new job (`CharacterView.askingPrice`; of one away he hears nothing new), and script kings renew at it. The rulebook's "Prices" says so.
 
-On seeds 1-50 (before against after): fees a season 27.1, 28.0, 28.0, 28.6 against 23.7, 24.3, 23.9, 23.2 in seasons
-21-40 to 81-100; jobs agreed 2543 against 3546 in seasons 21-40; the living in service 17%, 12%, 9%, 8% against 18%, 14%,
-11%, 9%. The fees agreed now sit about a sixth lower and drift down as more wait. A first attempt that lowered the
+On seeds 1-50 (before against after, the final code): fees a season 27.1, 28.0, 28.0, 28.6 against 23.8, 24.0, 23.8,
+23.8 in seasons 21-40 to 81-100; jobs agreed 2543 against 3529 in seasons 21-40; the living in service 17%, 12%, 9%, 8%
+against 18%, 14%, 11%, 9%. The fees agreed now sit about a sixth lower and no longer climb as more wait. A first attempt that lowered the
 price by the seasons waited at one court (`waited`) moved nothing: a seeker moves on after its patience, and the count
 starts again.
 
@@ -582,6 +582,7 @@ starts again.
   nothing he could not know.
 - **A price pitched at a court is spent on the hire there,** so renewals and the view go by the servant's reckoning;
   a pitch elsewhere, and a pitch to a court that has not hired it, stands until it pitches again (the rulebook says so).
+  Principle: "Fees clear the market": a price offered for one hire is no standing claim on the next.
 - **Part F in two pull requests,** as above: its measurements run for hours. Principle: "Split by meaning", and a
   session ends at a passed gate with a note on where to pick up.
 
@@ -600,8 +601,8 @@ tuned play, from a fresh branch off `develop` once F1 is merged:
 2. **Par refreshed** on the tuned play, and **win rates per power** on seeds 1-100 and 101-200; Assyria's 19 wins of
    100 in the baseline (standing 1.19) is the first thing to look into; Mitanni below par (0.98); why a Great King
    stands first more often than a city-state at a weight of size of 0.
-3. **Bold and careful** in the top five and twenty, and the careful dying more often (after F1, seeds 1-50: bold 147 of
-   the top five and 466 of the top twenty, 13% dead; careful 103 and 534, 17% dead).
+3. **Bold and careful** in the top five and twenty, and the careful dying more often (after F1, seeds 1-50: bold 132 of
+   the top five and 467 of the top twenty, 13% dead; careful 118 and 533, 18% dead; a character first in 17 of 50).
 4. **The people 17+ added** judged by what they did (the list to the owner); **starting positions, banditry and far
    provinces** against the sources; **commanders' worth** by the distance of the front and the realm's size.
 5. Then **stop for review**: the review questions and readings to the owner as `question` issues, and on to item 18a.
