@@ -43,6 +43,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
+- **Trim what every session reads** (archive item 239; a routine docs lane, for Sonnet): this file back under about
+  20 KB, finished items and done follow-ups moved to the archive with a pointer; `AGENTS.md` keeps a pointer where it
+  repeats the builder rules (the usage brake, branches, milestones); and `docs/claude-and-codex.md` (22 KB) moves its
+  Codex setup, "For Codex" and "Setup", into a file of its own, read only when setting Codex up.
 - **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
   common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
   and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
@@ -131,6 +135,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
     games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is
     the fix.
+- **The owner's answers of 7 and 9 November** (archive items 234 to 237), for item 18; each is written in the design
+  document, which is the spec: a captive king's realm under a caretaker (#806; Victory, "One scoreboard for every
+  person"); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
+  "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
+  the people fight back (#832; War, "The people defend their land").
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
