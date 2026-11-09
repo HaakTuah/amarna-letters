@@ -138,6 +138,16 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   campaign of its own. A spy or other hired man may help his escape or carry his letters out unread, an errand like any
   other, and may be caught or sell him out. Holding a king forever is measured in item 18, not ruled against. The
   design document's live text: Victory, "One scoreboard for every person".
+- **The owner's answers of 9 November** (archive item 236), for the balance pass (item 18):
+  - **The weight of size (#825):** 5 in a hundred is only the start; the weight is set by testing, against his test:
+    anyone can win, the seven Great Kings have roughly an equal shot at the least, ideally every state does, and a state
+    still left behind counts as a harder difficulty. Victory, "One scoreboard for every person".
+  - **A resident hires a carrier (#836):** one who stays at his post, as Pharaoh's commissioners do, hires a carrier at
+    the nearest court from his master's purse when no traveller has come for a while. Diplomacy, "Messengers are errands".
+  - **Favour is repaid (#841):** a king who likes a giver weighs the giver's enemies partly as his own when choosing where
+    to march and whom to help, so far gifts pay and the script kings send them where they serve both; each king and
+    character weighs favour, force and trade by his own traits. World, "Each court plays differently".
+  - **Openings (#840):** kept; judged again by part F's audit of trade and later wars.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
