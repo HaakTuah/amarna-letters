@@ -357,7 +357,7 @@ export interface CharacterView {
   claimsToServe: Power | null;
   /**
    * What someone asks you a season of a job's term: named in a pitch, asked by a free person at your court, or asked by your
-   * own servant for a new job.
+   * own servant at your court for a new job.
    */
   askingPrice: number | null;
   /** In your service, at your court, with no task: can be sent somewhere this season. */

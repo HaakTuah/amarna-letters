@@ -75,3 +75,6 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **A vassal's tribute** is judged by the peace it buys: [city-states as powers](26-city-states-as-powers.md).
 - Save version 91: script kings give, and vassals pay, by what it returns, so play from the same seed differs from
   version 90's.
+- **Fees that fall when many wait** (part F, #837): one seeking service unhired past its patience asks less, a master
+  sees his servant's price for a new job, and script kings renew at it: [money and work](21-money-and-work.md), "Fees
+  clear the market". Save version 92.

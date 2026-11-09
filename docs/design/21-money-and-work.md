@@ -33,8 +33,8 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
   courts compete, they bid up what is heard. When many wait for work, one seeking service past its patience (3 seasons)
   asks 5% less for each season more it waits, to at most 40% less (in `basePrice`, its own reckoning, so a script
   character's pitch follows it and a model's pitch stays its own; `MoneyData.waitFall`, `waitFallMost`, first guesses),
-  and what it takes is heard by those at the court, so the fees agreed fall. A master sees what his own servant
-  asks for a new job now (`CharacterView.askingPrice`); script kings renew at it, and only where the view says nothing
+  and what it takes is heard by those at the court, so the fees agreed fall. A master sees what his own servant at
+  his court asks for a new job (`CharacterView.askingPrice`; of one away he hears nothing new); script kings renew at it, and only where the view says nothing
   at the last fee a season and a tenth more. (An earlier "going rate" scaling every price was described here but never
   built.)
 - **Quitting**: a servant at its master's court may quit (its own season, below); it is recorded as a public fact, a

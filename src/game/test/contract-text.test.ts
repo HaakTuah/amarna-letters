@@ -54,9 +54,9 @@ describe("ContractTextTests", () => {
       line(),
     );
     Assert.doesNotContain("until turn", line());
-    // What it asked before it was hired (here, or rehired after a notice ran out) means nothing now: one's own servant shows no asking price.
+    // Item 18 (#837): one's own servant at court says what it asks for a new job, the price a new job must reach.
     c.askingPrice.set("Mitanni", 40);
-    Assert.doesNotContain("asks", line());
+    Assert.contains("asks 40 a season of a job's term", line());
 
     c.contract.errand = newJobErrand({ what: "envoy", where: "Hatti" });
     c.contract.payOnDone = true;
