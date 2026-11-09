@@ -466,3 +466,43 @@ are not set beside these.)
 - [#836](https://github.com/HaakTuah/amarna-letters/issues/836), [#837](https://github.com/HaakTuah/amarna-letters/issues/837),
   [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
+
+## Part E2: how close the scripts' best options are, and shadow scripts (in progress)
+
+Started from `develop` at 93f97a1 (part E, #839, merged), on `item/balance-e2`. The item's sentence: "The scripts report
+how close their best options are, so the budget can tell a close call from an obvious one ('What a call is worth'
+under 'Minds follow what is at stake'), and the script decides beside every model decision, out of play, logged by kind
+('Shadow scripts')." The design came from the planning-design helper (Fable), as below.
+
+### Built so far
+
+- **The margin** (`Brain.margins`, `closeness`, `WarMarginScale` 200 and `PlanMarginScale` 10, first guesses): the war
+  choice reports its best war against the next or the bar it had to clear (1 when the target is kept); the plan search
+  (`Search.improve`) reports its plan against the best one turned down; `ScriptLeader.marginOf` gives the closer of the
+  two, or null. Out of play: nothing reads it in a script game, so replays are unchanged.
+- **The budget reads it** (`Stakes.margin`, `Spending.quality(kind, rung, margin)`, `MarginPull` 0.8): an obvious call
+  closes each rung's gap to the large rung's quality by up to four fifths, so it climbs less.
+
+### Where to pick up
+
+1. **The shadow king** (`game/src/bots/shadow-king.ts`): a second `ScriptLeader(gameSeed)` of its own, apart from the
+   runner's `fallbackSeat`, with `observe(view)`, `orders(view)` returning the submission and `marginOf`, and
+   `host(view, seen)`; its memory drifts by its own imagined choices (say so in its doc).
+2. **The record** (`game/src/log.ts` or its own file): `KingShadow` {key, turn, kind "orders" | "court", power, rung,
+   model, margin, differ, mattered, script, model's summary, error}, `GameLog.kingShadows`, `addKingShadow`, a jsonl type
+   "king-shadow", the export's field list (`export.ts`, `ExportFields`, the shadows filter) and the canary test; the
+   summaries clause-level, never prose. One differ for orders: `submissionsDiffer(a, b: TurnSubmission)` (move the
+   Jaccard of `king-ladder.ts` `ordersDiffer` there, `ordersDiffer` becoming parse-then-that), and `hostDiffer`.
+3. **The wiring:** `KingRungs.shadow` made in `llm/src/seat-setup.ts`; in `LlmLeaderSeat.decide`, the shadow decides
+   before the climb, `ordersStakes` takes its margin, and after the parse the record is logged and
+   `ladder.spending.learn("orders", "script", mattered)` (mattered = min(1, differ × worth)); a thrown call is logged with
+   its error and rethrown. The same in `holdCourt` per envoy (no margin). An optional `ISeat.observe?(view)` called beside
+   `fallbackSeat.observe` in `runner.ts` (~line 761, not in a replay).
+4. **Left out, as the design says:** margins for courts, alerts and characters (they stay on the audits); the script
+   rung playing the shadow's orders; tuning.
+5. **Tests:** `Spending.choose` climbs less at margin 1 than 0, `quality` grows with the margin; a who-decides-style game
+   on the simulated API gives a record per model orders call and per hosted envoy, replays exactly, and a script game's
+   hash is unchanged. A batch on `--simulate-api` reports per kind the records, the share that differed and the mean
+   mattered (`play.ts`). Then the design notes (`docs/design/04-models.md`, "What a call is worth" and the export), the
+   reviews and the milestone.
+
