@@ -210,6 +210,7 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 | 18 C | Commanders granted away from court, with mandates, on the slower breach (`--command-play-half`) | 0.79 growth to 0.90, 12 wins to 27, in 50 games | Pays |
 | 18 E | Gifts, bribes and tribute judged by their expected return (`--gift-play-half`) | 0.79 growth to 0.85, 15 wins to 24 (seeds 1-50, with the vassal's tribute judged too); before that, 14 to 20 and 14 to 17 (seeds 101-150) | Ahead, within the noise of 50 games; part F re-measures on the full seed sets |
 | 18 E | A vassal's tribute judged by the peace it buys (`--vassal-play-half`) | 0.74 growth to 0.78, 21 wins to 19 | Growth ahead, wins even |
+| #806 | A captive king under a caretaker: his ransom by his word home, a spy sent to free him, letters to his sworn friends, and a captor keeping his letters, with 17b's ransoms (`--king-play-half`) | 0.83 growth to 0.78, 24 wins to 17, in 50 games; 418 kings held, 23 still held at the age's end; 150 escapes, 6 helped by a spy; 4 letters smuggled, 6 kept | Pays |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".

@@ -76,8 +76,15 @@ A first look on seeds 1-8 (`--verify-replay`, all eight replayed exactly): 70 ki
 every game; held 13.7 seasons on average, the median 8, the longest 67; at the age's end 49 free again, 16 dead, 5 still
 held. Letters from captivity: 117 sent through the captor, 3 smuggled out by a spy, 4 kept by the captor; 40 kings got
 away, 5 of them helped by a spy of theirs. Before the script captives asked for a spy and wrote to their sworn friends,
-no letter was smuggled or kept and no spy helped (the patch, as "Every weakness found is patched" asks). Use against
-ignore, with `--king-play-half`, and the captive kings' line on the full seed sets come in item 18 part F2.
+no letter was smuggled or kept and no spy helped (the patch, as "Every weakness found is patched" asks).
+
+**Use against ignore** (`--king-play-half`, seeds 1-50, at 1c541ec; the escalation's fix after it only orders the king's
+word before scheduled orders and counts a spy once sent): kings that play captivity (ransom their own by their word,
+send for a spy, write to their sworn friends, keep a captive's letters) grow 0.83 against 0.78 and win 24 games to 17.
+418 kings were held while their courts knew it, 6.4 seasons on average (median 3, longest 59); at the age's end 289 free
+again, 106 dead, 23 still held. Letters: 235 sent through the captor, 4 smuggled, 6 kept; 150 kings got away, 6 helped
+by a spy. Holding a king to the end happens (23 in 50 games) without a rule against it, as the owner asked; item 18
+part F2 measures it on the full seed sets.
 
 ## Questions for the owner
 
