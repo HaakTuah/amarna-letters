@@ -5,8 +5,10 @@
  * as a forgery or true gold, so being given its own mind never tells a king that something matters.
  */
 import { AnswerGoldShare, WorldMap, type AudienceView, type GameConfig, type Power, type SeatView } from "@amarna/engine";
+import { hostDiffer, submissionsDiffer } from "@amarna/game";
 import { z } from "zod";
-import { fieldsDiffer, type Ladder } from "./ladder.ts";
+import type { Ladder } from "./ladder.ts";
+import { Parse } from "./parse.ts";
 import { Replies } from "./schemas.ts";
 import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import type { Stakes } from "./spending.ts";
@@ -113,24 +115,14 @@ export function ordersCommit(json: JsonObject, v: SeatView): string | null {
   return null;
 }
 
-/** How far two orders replies differ: by what each orders, unit by unit and action by action. */
+/** How far two orders replies differ: as the orders they parse to ({@link submissionsDiffer}). */
 export function ordersDiffer(a: JsonObject, b: JsonObject): number {
-  const key = (x: JsonObject[], f: (o: JsonObject) => string): Set<string> => new Set(x.map(f));
-  const units = (j: JsonObject) => key(list(j.units).filter((u) => u.order !== "hold"), (u) => `${String(u.unit)} ${String(u.order)} ${String(u.target)}`);
-  const acts = (j: JsonObject) => key([...list(j.other_orders), ...list(j.letters).map((l) => ({ action: `letter ${String(l.to)}` }))], (o) => String(o.action));
-  const jaccard = (x: Set<string>, y: Set<string>): number => {
-    const all = new Set([...x, ...y]);
-    if (all.size === 0) return 0;
-    let same = 0;
-    for (const k of all) if (x.has(k) && y.has(k)) same++;
-    return 1 - same / all.size;
-  };
-  return (jaccard(units(a), units(b)) + jaccard(acts(a), acts(b))) / 2;
+  return submissionsDiffer(Parse.orders(a), Parse.orders(b));
 }
 
-/** How far two answers to one envoy differ: what is given, sealed and done. */
+/** How far two answers to one envoy differ: as the answers they parse to ({@link hostDiffer}). */
 export function answerDiffer(a: JsonObject, b: JsonObject): number {
-  return fieldsDiffer(a, b, ["gift_to_envoy", "send_gold_back", "seal_tablet", "detain_envoy", "offer_service_wage"]);
+  return hostDiffer(Parse.host(a), Parse.host(b));
 }
 
 /**

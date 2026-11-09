@@ -35,7 +35,7 @@ import {
   type Unit,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
-import { Brain } from "./brain.ts";
+import { Brain, PlanMarginScale, closeness } from "./brain.ts";
 import { archetype, unknownKing, type Personality } from "./personality.ts";
 import { Statecraft } from "./statecraft.ts";
 import { picturedHeld } from "./occupy.ts";
@@ -72,8 +72,12 @@ interface Ctx {
   runs: number;
 }
 
-export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): void {
-  if (b.mine.length === 0) return;
+/**
+ * Improves the plan by the pictured seasons, and returns how close its call was (item 18, "What a call is worth"): the
+ * chosen plan's score against the best one turned down, 0 to 1, or null where there was nothing to choose between.
+ */
+export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): number | null {
+  if (b.mine.length === 0) return null;
   const me = b.me;
   const p = brain.p;
   const ctx = picture(b, brain, rng);
@@ -89,13 +93,16 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
 
   let best = candidates[0];
   let bestScore = evaluate(ctx, best);
+  // The best plan turned down, for how close the call was (item 18, "What a call is worth").
+  let runnerUp = -Number.MAX_VALUE;
   for (const c of candidates.slice(1)) {
     if (same(c, best)) continue;
     const sc = evaluate(ctx, c);
     if (sc > bestScore + 1) {
+      runnerUp = Math.max(runnerUp, bestScore);
       best = c;
       bestScore = sc;
-    }
+    } else runnerUp = Math.max(runnerUp, sc);
   }
 
   // Then each unit in turn: would another order (or a move with a supporter) do better?
@@ -116,14 +123,17 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
         if (same(trial, best)) continue;
         const sc = evaluate(ctx, trial);
         if (sc > bestScore + 2) {
+          runnerUp = Math.max(runnerUp, bestScore);
           best = trial;
           bestScore = sc;
           improved = true;
-        }
+        } else runnerUp = Math.max(runnerUp, sc);
       }
     }
     if (!improved || ctx.runs + Samples > Budget) break;
   }
+
+  const margin = runnerUp === -Number.MAX_VALUE ? null : closeness(bestScore - runnerUp, PlanMarginScale);
 
   // Write the chosen orders back into the plan. A winter stroke (Tactics, item 9) stands, which the pictured seasons cannot
   // picture, unless another troop of ours now moves where it was going.
@@ -155,6 +165,7 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
   }
   plan.destinations.clear();
   for (const m of plan.orders.values()) if (m.type === "move") plan.destinations.add(m.to);
+  return margin;
 }
 
 /**

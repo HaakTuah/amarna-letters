@@ -55,6 +55,12 @@ export interface Stakes {
   /** Seasons the decision has already waited for a call: what waits grows in worth. */
   waited?: number;
   /**
+   * How close the script's own call was (item 18, "What a call is worth"): 0 when its best options were a coin toss, 1
+   * when its best led far, so a model would rarely choose otherwise; absent where the script reports none, and the kind
+   * goes by its audits alone.
+   */
+  margin?: number;
+  /**
    * Foreign troops stand in or next to the mind's own capital, as far as it can see: the decision is always paid, from the
    * reserve if need be, and never left to the script (the owner, answering item 6c's review, 27 October 2026).
    */
@@ -66,6 +72,11 @@ export interface Stakes {
  * matters, before any audit says otherwise. The audits replace them kind by kind as the game goes.
  */
 export const RungQuality: Readonly<Record<Rung, number>> = { script: 0.4, small: 0.75, large: 1 };
+/**
+ * How far an obvious call closes the gap between a rung's quality and the large rung's (first guess, not tuned): at a
+ * margin of 1 the gap shrinks to a fifth, so even an obvious call keeps some worth in a model.
+ */
+export const MarginPull = 0.8;
 /** How many audits' worth of weight the first guesses carry against what the audits find. */
 const PriorWeight = 5;
 /** The going rate a game starts at: worth per dollar (first guess; it moves each season). */
@@ -161,12 +172,16 @@ export class Spending {
     this.seasonAudits = { n: 0, mattered: 0 };
   }
 
-  /** How often a rung decides as the large one would, for a kind of decision: the first guess, moved by the audits. */
-  quality(kind: string, rung: Rung): number {
+  /**
+   * How often a rung decides as the large one would, for a kind of decision: the first guess, moved by the audits; and the
+   * closer the script's own call was to obvious (`margin`), the less any rung differs from the large one.
+   */
+  quality(kind: string, rung: Rung, margin = 0): number {
     if (rung === "large") return 1;
     const a = this.audits.get(`${kind}/${rung}`);
     const prior = 1 - RungQuality[rung];
-    return 1 - (prior * PriorWeight + (a?.mattered ?? 0)) / (PriorWeight + (a?.n ?? 0));
+    const gap = (prior * PriorWeight + (a?.mattered ?? 0)) / (PriorWeight + (a?.n ?? 0));
+    return 1 - gap * (1 - MarginPull * Math.min(1, Math.max(0, margin)));
   }
 
   /** What a decision is worth: what it can move, grown by each season it has waited. */
@@ -195,7 +210,7 @@ export class Spending {
     const spentOut = this.spentOut;
     let at = options[0];
     for (const next of options.slice(1)) {
-      const added = worth * (this.quality(stakes.kind, next.rung) - this.quality(stakes.kind, at.rung));
+      const added = worth * (this.quality(stakes.kind, next.rung, stakes.margin) - this.quality(stakes.kind, at.rung, stakes.margin));
       const cost = (next.cost ?? 0) - (at.cost ?? 0);
       if (cost <= 0 ? added >= 0 : !(stakes.capital === true ? this.allSpent : spentOut) && added / cost >= rate) at = next;
     }
@@ -220,7 +235,7 @@ export class Spending {
     return this.settings.auditShare > 0 && Rng.for(this.seed, 0, "audit", key).chance(this.settings.auditShare);
   }
 
-  /** What an audit found: the rung's rates for the kind move, and a target counts it. */
+  /** What an audit or a shadow script found: the rung's rates for the kind move, and a target counts it. */
   learn(kind: string, rung: Rung, mattered: number): void {
     const k = `${kind}/${rung}`;
     const a = this.audits.get(k) ?? { n: 0, mattered: 0 };

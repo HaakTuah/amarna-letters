@@ -39,6 +39,7 @@ import {
   ScriptMind,
   MindPageSchema,
   ShadowDecisionSchema,
+  KingShadowSchema,
   TemplateNarrator,
   ThreadSchema,
   WordFields,
@@ -52,6 +53,7 @@ import {
   newCharacterChoice,
   newModelCall,
   newShadowDecision,
+  newKingShadow,
   type ISeat,
   type ModelCall,
 } from "@amarna/game";
@@ -135,6 +137,7 @@ describe("ExportTests", () => {
       [AuthorshipSchema, ExportFields.authorship],
       [ModelCallSchema, ExportFields.call],
       [ShadowDecisionSchema, ExportFields.shadow],
+      [KingShadowSchema, ExportFields.kingShadow],
       [CharacterChoiceSchema, ExportFields.choice],
       [AuditSchema, ExportFields.audit],
       [MindPageSchema, ExportFields.mind],
@@ -147,15 +150,16 @@ describe("ExportTests", () => {
     log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1 }));
     log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice() }));
     log.addAudit(newAudit({ key: "t1/orders/Egypt", turn: 1, kind: "orders" }));
+    log.addKingShadow(newKingShadow({ key: "t1/orders/Egypt", turn: 1, kind: "orders", power: "Egypt" }));
     log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "script", name: "Script" }));
     log.minds.keep(1, "Egypt", { notes: "Watch Hatti." });
     const types = (text: string): string[] => [...new Set(text.split("\n").filter((l) => l.length > 0).map((l) => (JSON.parse(l) as { type: string }).type))].sort();
     Assert.equal(log.toJsonl().split("\n").length, exportJsonl(log).split("\n").length);
-    Assert.equal(["audit", "call", "decision", "header", "mind", "shadow"], types(exportJsonl(log)));
+    Assert.equal(["audit", "call", "decision", "header", "king-shadow", "mind", "shadow"], types(exportJsonl(log)));
     // A model king's own pages go with the calls.
-    Assert.equal(["audit", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
+    Assert.equal(["audit", "decision", "header", "king-shadow", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
     Assert.equal(["audit", "call", "decision", "header", "mind"], types(exportJsonl(log, { ...Everything, shadows: false })));
-    Assert.equal(["call", "decision", "header", "mind", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
+    Assert.equal(["call", "decision", "header", "king-shadow", "mind", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
   });
 
   /** The string fields a human's orders and answers hold that are orders the engine reads: ids, names it knows, kinds. */

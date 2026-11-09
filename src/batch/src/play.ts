@@ -52,6 +52,7 @@ import {
   GameRunner,
   callSizes,
   characterReport,
+  kingShadowReport,
   playGame,
   seatReport,
   type GameSummary,
@@ -374,7 +375,9 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
       let seats = set.seats;
       for (const [p, folder] of o.folders) {
         const exchange = new FileExchange(folder, o.fileTimeoutMinutes * 60000, (call) => last!.log.addCall(call), (line) => console.log(line));
-        seats.set(p, new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat"));
+        const seat = new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat");
+        seat.shadow = set.shadowing;
+        seats.set(p, seat);
       }
       if (o.sleepingScripts)
         seats = new Dict<Power, ISeat>(
@@ -429,6 +432,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   if (keep !== null && (o.folders.length > 0 || o.characterFolders.length > 0 || keep.state.sleep.size > 0 || choices.usesModels)) out.push(seatReport(keep));
   // Model or file characters beside the script with the same traits, and how large each kind of request was.
   if (keep !== null && keep.log.shadows.length > 0) out.push(characterReport(keep.log));
+  // Model kings beside the shadow script (item 18, "Shadow scripts").
+  if (keep !== null && keep.log.kingShadows.length > 0) out.push(kingShadowReport(keep.log));
   if (keep !== null && keep.log.calls.length > 0) out.push(callSizes(keep.log));
   if (o.detail && keep !== null) {
     const st = keep.state;

@@ -18,7 +18,7 @@ const DidNotFit = "did not fit: ";
 export interface ExportParts {
   /** Every model call: what was asked, what came back, its tokens, cost and errors; and a model king's own pages by season. */
   calls: boolean;
-  /** The shadow scripts' decisions beside the model characters'. */
+  /** The shadow scripts' decisions beside the model characters' and the model kings'. */
   shadows: boolean;
   /** The audits of lower rungs' decisions. */
   audits: boolean;
@@ -37,6 +37,7 @@ export const ExportFields = {
   authorship: ["kind", "name", "reason", "rung", "model", "why"],
   call: ["key", "turn", "role", "model", "system", "prompt", "output", "inputTokens", "outputTokens", "cacheReadTokens", "cacheWriteTokens", "costUsd", "usedFallback", "error", "requestChars", "attempt", "unpriced"],
   shadow: ["key", "turn", "kind", "character", "name", "traits", "goldCarried", "giftOffered", "serviceOffered", "known", "model", "script", "error"],
+  kingShadow: ["key", "turn", "kind", "power", "rung", "model", "margin", "differ", "mattered", "script", "modelSaid", "error"],
   choice: ["text", "kept", "swap", "acceptGift", "acceptService", "commitments", "price", "dropped", "flags"],
   audit: ["key", "turn", "kind", "rung", "model", "above", "differ", "mattered"],
   mind: ["turn", "who", "page", "text"],
@@ -193,6 +194,13 @@ function given(node: Node, parts: ExportParts, blanker: Blanker | null): Node | 
       }
       shadow.error = failure(shadow.error);
       return { ...shadow, type: "shadow" };
+    }
+    case "king-shadow": {
+      // Each side in brief is orders and clauses as the engine reads them, never words, so the filter leaves them.
+      if (!parts.shadows) return null;
+      const shadow = pick(node, ExportFields.kingShadow);
+      shadow.error = failure(shadow.error);
+      return { ...shadow, type: "king-shadow" };
     }
     case "audit":
       return parts.audits ? { ...pick(node, ExportFields.audit), type: "audit" } : null;

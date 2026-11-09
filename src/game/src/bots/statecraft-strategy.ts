@@ -45,7 +45,7 @@ import { censusOrders, corveeShares, demandOrders, levyOrder } from "./counts.ts
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import { WarPlay, keptBond } from "./siege-tactics.ts";
-import { warOdds, type Brain } from "./brain.ts";
+import { WarMarginScale, closeness, warOdds, type Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
 // ================================================================= strategy
@@ -144,13 +144,20 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
           bondWar(b, brain, x);
         return [x, score];
       });
-    const best = sortBy(scored, [(t: [Power, number]) => t[1], desc(cmpNum)], [(t: [Power, number]) => t[0], cmpPower])[0];
+    const ranked = sortBy(scored, [(t: [Power, number]) => t[1], desc(cmpNum)], [(t: [Power, number]) => t[0], cmpPower]);
+    const best = ranked[0];
     // In the first year, letters are still on the road: only the warlike or the wronged start a war.
     const patience = b.v.turn <= 3 ? 80 * (1 - p.aggression) : 0;
-    if (best[1] > 140 * (1 - p.aggression) + 40 + patience) {
+    const bar = 140 * (1 - p.aggression) + 40 + patience;
+    if (best[1] > bar) {
       brain.warTarget = best[0];
       brain.warSince = b.v.turn;
     }
+    // How close the call was (item 18, "What a call is worth"): the best war against the next, or against the bar it had
+    // to clear; standing in peace, the bar against the best war. With no war weighed it stays null: the season's call is the
+    // plan's, or one beyond the formulas.
+    const next = ranked.length > 1 ? ranked[1][1] : -Number.MAX_VALUE;
+    brain.margins.war = closeness(best[1] > bar ? best[1] - Math.max(next, bar) : bar - best[1], WarMarginScale);
   }
 
   // Betrayal: only for the faithless, only when an ally's land lies open, never against a sworn partner near the end.
