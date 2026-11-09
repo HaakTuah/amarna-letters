@@ -494,9 +494,9 @@ under 'Minds follow what is at stake'), and the script decides beside every mode
   `ordersDiffer` and `answerDiffer` now parse and use them. A batch prints the records by kind and the orders by the
   script's margin (`kingShadowReport`). The record moves no rates; it is read offline.
 - **Left out:** margins for courts, alerts and characters (they stay on the audits, as the design says); a shadow for
-  the wake decision and the plan (the script makes neither); tuning. The script rung keeps item 7a's reading (orders
-  the budget leaves to it: his units hold), so it does not play the shadow's orders. No save version: no rule changed,
-  script games replay as before, and a model game replays from its logged decisions.
+  the wake decision, the plan and standing answers (the script makes none of them); tuning. The script rung keeps item
+  7a's reading (orders the budget leaves to it: his units hold), so it does not play the shadow's orders. No save
+  version: no rule changed, script games replay as before, and a model game replays from its logged decisions.
 
 ### Measured
 
@@ -518,6 +518,10 @@ under 'Minds follow what is at stake'), and the script decides beside every mode
   from an audit; but that rung never plays the shadow's orders (item 7a: units hold), and in target mode every model
   decision would count against the target. The design reads the shadows offline ("Script against model"), so they
   stay a record. Principle: no description left untrue, and the budget learns only from rungs that decided.
+- **Standing answers are no part of the orders' differ, and have no shadow** (the design check): the script gives none
+  (it answers each envoy as he comes), so they would read as a difference every time; an envoy a standing answer
+  answers meets no call of the king's, so there is no decision to set beside the script's there either. Principle:
+  compare like with like ("Shadow scripts": "whether the two differed").
 - **No war weighed is no margin, not an obvious call:** a season the script's formulas do not decide is one where "a
   model is worth more" ("What a call is worth").
 - **The shadow is the seats' script player, not a second one.** The design asked for a script king of the shadow's own,

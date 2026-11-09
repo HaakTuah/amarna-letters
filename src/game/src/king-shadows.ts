@@ -69,8 +69,9 @@ function orderKey(o: Order): string | null {
 
 /**
  * A submission as keys, in three parts: the season's unit orders that do something (holds left out), its other orders,
- * and what it leaves to run later (scheduled and standing orders, standing answers, and what it cancels). Its words
- * (notes, summary, ledger, an answer's speech) are never compared.
+ * and what it leaves to run later (scheduled and standing orders, and the standing orders it cancels). Its words (notes,
+ * summary, ledger) are never compared, nor its standing answers, which the script never gives: it answers each envoy
+ * as he comes.
  */
 function orderKeys(s: TurnSubmission): Set<string>[] {
   const units = new Set<string>();
@@ -82,9 +83,7 @@ function orderKeys(s: TurnSubmission): Set<string>[] {
   }
   for (const x of s.scheduled) for (const o of x.orders) later.add(`in season ${x.turn}: ${orderKey(o) ?? describe(o)}`);
   for (const x of s.standing) for (const o of x.orders) later.add(`standing, ${x.when} ${x.power ?? ""} ${x.province}: ${orderKey(o) ?? describe(o)}`);
-  for (const a of s.answers) later.add(`answer to ${a.from ?? "any"} bringing ${a.brings}${a.seal ? ", seals" : ""}${a.goldBack > 0 ? `, ${a.goldBack} gold back` : ""}`);
   for (const id of s.cancelStanding) later.add(`cancel standing ${id}`);
-  for (const id of s.cancelAnswers) later.add(`cancel answer ${id}`);
   return [units, acts, later];
 }
 

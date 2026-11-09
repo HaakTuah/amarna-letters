@@ -368,14 +368,16 @@
     which reads the king's view every season (`ISeat.observe`, never in a replay) and remembers its own choices, never
     the model's. The log keeps by kind whether the two differed (`submissionsDiffer`: the mean, over the parts either
     side holds, of how far its unit orders, its other actions (a letter by where it goes; holds left out) and what it
-    leaves to run later (scheduled and standing orders, standing answers, cancellations) differ; `hostDiffer`, which the
+    leaves to run later (scheduled and standing orders, and those it cancels) differ; standing answers are left out,
+    since the script gives none; `hostDiffer`, which the
     court audits use too: what the answer does (clauses, seal, detention, a tablet of its own, reopening its orders, its
     letters) and how far its gift, gold sent back and wage of service lie apart), that weighed by what the decision
     could move, each side in brief (orders and clause kinds, never words), the rung that decided ("own" for a king with
     no ladder) and the failure kind of a call that gave none (a "king-shadow" line). The record is read offline ("Script
     against model" under Tests) and moves no rates: the script rung never plays the shadow's orders (where the budget
     leaves orders to the script his units hold, and nothing is logged), so its agreement says nothing of that rung. A
-    king's wake decision on light alerts and his plan have no shadow, since the script makes neither. A batch prints the
+    king's wake decision on light alerts, his plan and his standing answers have no shadow, since the script makes none
+    of them; an envoy a standing answer answers is answered by the engine, with no call to set beside the script's. A batch prints the
     records by kind, and orders by the script's margin (`kingShadowReport`). The model characters' shadows are in
     `06-file-seats-and-the-agent-simulation.md`.
   - **Audits.** One small-rung decision in twenty (`auditShare`; a seeded draw by the call's key) is also put to the rung
