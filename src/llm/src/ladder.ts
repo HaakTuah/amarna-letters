@@ -7,7 +7,7 @@
  * answer is never used, and the log keeps how far the two differed. Nothing in a request tells a mind which rung it is
  * playing on beyond what the small rung may do; the log records the rung of every decision and why.
  */
-import { newAudit, type Audit, type KingShadow, type Route } from "@amarna/game";
+import { newAudit, type Audit, type Route } from "@amarna/game";
 import { z } from "zod";
 import type { CallSpec, JsonAsker } from "./client.ts";
 import type { PriceTable } from "./models.ts";
@@ -70,8 +70,6 @@ export interface Climbed {
 export interface LadderHooks {
   route(key: string, r: Route): void;
   audit(a: Audit): void;
-  /** Item 18, "Shadow scripts": a model king's decision beside the script's. */
-  shadow?(k: KingShadow): void;
 }
 
 export class Ladder {
@@ -117,15 +115,6 @@ export class Ladder {
   recordAudit(a: Audit): void {
     this.spending.learn(a.kind, a.rung as Rung, a.mattered);
     this.hooks.audit(a);
-  }
-
-  /**
-   * Logs a shadow script's record (item 18, "Shadow scripts"), and, where the model decided, moves the script rung's rates
-   * by it as an audit would: the script is checked against every model, as a cheaper model is against a larger one.
-   */
-  recordShadow(k: KingShadow): void {
-    if (k.error === null) this.spending.learn(k.kind, "script", k.mattered);
-    this.hooks.shadow?.(k);
   }
 
   /** The small rung's request: its model, its fields, and what it may do. */

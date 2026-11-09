@@ -5,9 +5,9 @@
  * as a forgery or true gold, so being given its own mind never tells a king that something matters.
  */
 import { AnswerGoldShare, WorldMap, type AudienceView, type GameConfig, type Power, type SeatView } from "@amarna/engine";
-import { submissionsDiffer, type ScriptLeader } from "@amarna/game";
+import { hostDiffer, submissionsDiffer } from "@amarna/game";
 import { z } from "zod";
-import { fieldsDiffer, type Ladder } from "./ladder.ts";
+import type { Ladder } from "./ladder.ts";
 import { Parse } from "./parse.ts";
 import { Replies } from "./schemas.ts";
 import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
@@ -22,12 +22,6 @@ export interface KingRungs {
   plays: "large" | "small";
   /** The model that writes the king's plan, or null: planning is off. */
   planning: string | null;
-  /**
-   * Item 18, "Shadow scripts": the script that decides beside the king's model, out of play, with a memory of its own
-   * apart from the stand-in's (it remembers its own choices, never the model's); its margin tells the budget how close
-   * the call is. Null: no shadow.
-   */
-  shadow: ScriptLeader | null;
 }
 
 const own = (v: SeatView): string[] => [...v.owner].filter(([, o]) => o === v.power).map(([k]) => k);
@@ -126,9 +120,9 @@ export function ordersDiffer(a: JsonObject, b: JsonObject): number {
   return submissionsDiffer(Parse.orders(a), Parse.orders(b));
 }
 
-/** How far two answers to one envoy differ: what is given, sealed and done. */
+/** How far two answers to one envoy differ: as the answers they parse to ({@link hostDiffer}). */
 export function answerDiffer(a: JsonObject, b: JsonObject): number {
-  return fieldsDiffer(a, b, ["gift_to_envoy", "send_gold_back", "seal_tablet", "detain_envoy", "offer_service_wage"]);
+  return hostDiffer(Parse.host(a), Parse.host(b));
 }
 
 /**

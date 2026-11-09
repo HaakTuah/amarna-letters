@@ -28,6 +28,7 @@ import {
   submissionBrief,
   submissionsDiffer,
   type ISeat,
+  type KingShadowing,
   type PhraseRequest,
 } from "@amarna/game";
 import type { CallSpec, JsonAsker } from "./client.ts";
@@ -52,7 +53,7 @@ import {
   type KingRungs,
   type PlanMark,
 } from "./king-ladder.ts";
-import { fieldsDiffer, type Climbed } from "./ladder.ts";
+import { fieldsDiffer } from "./ladder.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { courtBrief, identity, ordersLine, realmBrief, situation, sleepLine } from "./prompts.ts";
@@ -91,6 +92,11 @@ export class LlmLeaderSeat implements ISeat {
   private readonly phrasing: string | null;
   /** Its ladder ("Minds follow what is at stake"); null for a file seat or local agent, whose own mind decides everything. */
   private readonly rungs: KingRungs | null;
+  /**
+   * Item 18, "Shadow scripts": the script deciding beside the king, out of play, and where its records go; null for none.
+   * Set for every king a model, a local agent or a file plays (`buildSeats`, the batch's file seats).
+   */
+  shadow: KingShadowing | null = null;
   /** Seasons its orders have waited for a call the budget could not pay. */
   private waited = 0;
   /** The rung that took each audience at its first exchange, so that the same mind answers it to the end. */
@@ -172,14 +178,18 @@ export class LlmLeaderSeat implements ISeat {
     this.planAnswers = plan;
     const spec = this.ordersCall(view);
     let json: JsonObject;
-    let shadowed: ((sub: TurnSubmission) => void) | null = null;
-    if (this.rungs === null) json = await this.client.askJson(spec, signal);
+    const shadow = this.shadowOrders(view, spec.key);
+    // The rung and model that decided: a seat without a ladder decides by its own mind ("own").
+    let by = { rung: "own", model: this.model };
+    const failedCall = (ex: unknown): never => {
+      if (!(ex instanceof Error && ex.name === "AbortError")) shadow.log(null, null, failureOf(ex));
+      throw ex;
+    };
+    if (this.rungs === null) json = await this.client.askJson(spec, signal).catch(failedCall);
     else {
       const r = this.rungs;
-      const shadow = this.shadowOrders(view, spec.key, r);
-      let c: Climbed;
-      try {
-        c = await r.ladder.climb(
+      const c = await r.ladder
+        .climb(
           {
             spec,
             small: r.small,
@@ -192,13 +202,10 @@ export class LlmLeaderSeat implements ISeat {
             differ: ordersDiffer,
           },
           signal,
-        );
-      } catch (ex) {
-        if (!(ex instanceof Error && ex.name === "AbortError")) shadow.log(null, null, failureOf(ex));
-        throw ex;
-      }
-      // Where the budget leaves the orders to the script, no model decided: nothing to set beside it.
-      if (c.json !== null) shadowed = (sub) => shadow.log(c, sub, null);
+        )
+        .catch(failedCall);
+      // Where the budget leaves the orders to the script, no model decided: nothing is set beside it.
+      by = { rung: c.rung, model: c.model };
       if (c.json === null) {
         // The budget cannot pay for its orders this season: what stands is carried out (its schedule and standing orders),
         // its units hold, and it is asked again next season, its orders worth more for the wait. It has not seen the
@@ -211,7 +218,7 @@ export class LlmLeaderSeat implements ISeat {
     }
     this.waited = 0;
     const sub = Parse.orders(json);
-    shadowed?.(sub);
+    shadow.log(by, sub, null);
     if (plan !== null) {
       sub.answers = [...plan.answers, ...sub.answers];
       sub.cancelAnswers = [...plan.cancel, ...sub.cancelAnswers];
@@ -224,18 +231,19 @@ export class LlmLeaderSeat implements ISeat {
   }
 
   /**
-   * Item 18, "Shadow scripts": the script decides the king's orders first, out of play; how close its call was goes into
-   * the stakes the budget reads ("What a call is worth"), and `log` sets the model's orders beside the script's, or the
-   * error its call gave, and teaches the budget how often the script would have done as well. No shadow: the stakes alone.
+   * Item 18, "Shadow scripts": the shadow decides the king's orders first, out of play; how close its call was goes into
+   * the stakes the budget reads ("What a call is worth"), and `log` sets the king's orders beside the shadow's, or the
+   * error his call gave. No shadow: the stakes alone, and nothing logged.
    */
-  private shadowOrders(view: SeatView, key: string, r: KingRungs): { stakes: Stakes; log: (by: { rung: string; model: string } | null, sub: TurnSubmission | null, error: string | null) => void } {
-    const script = r.shadow?.decideNow(view) ?? null;
-    const margin = r.shadow?.marginOf(this.power) ?? null;
+  private shadowOrders(view: SeatView, key: string): { stakes: Stakes; log: (by: { rung: string; model: string } | null, sub: TurnSubmission | null, error: string | null) => void } {
+    const sh = this.shadow;
+    const script = sh?.script.decideNow(view) ?? null;
+    const margin = sh?.script.marginOf(this.power) ?? null;
     const stakes: Stakes = { ...ordersStakes(view, this.waited), ...(margin !== null ? { margin } : {}) };
     const log = (by: { rung: string; model: string } | null, sub: TurnSubmission | null, error: string | null): void => {
-      if (script === null) return;
+      if (sh === null || script === null) return;
       const differ = sub === null ? 0 : submissionsDiffer(sub, script);
-      r.ladder.recordShadow(
+      sh.log(
         newKingShadow({
           key,
           turn: view.turn,
@@ -539,21 +547,21 @@ export class LlmLeaderSeat implements ISeat {
    * the king's mind gave, or the error that left him to the stand-in. Courts report no margin; the audits stand in for it.
    */
   private async shadowCourt(views: AudienceView[], court: SeatView, out: Map<string, HostReply | null>, error: string | null): Promise<void> {
-    const r = this.rungs;
-    if (r === null || r.shadow === null) return;
+    const sh = this.shadow;
+    if (sh === null) return;
     for (const v of views) {
-      const script = await r.shadow.hostAudience(v, court);
+      const script = await sh.script.hostAudience(v, court);
       const reply = out.get(v.audienceId) ?? null;
-      const rung = reply === null ? "" : (this.courtRung.get(v.audienceId) ?? "large");
+      const rung = reply === null ? "" : this.rungs === null ? "own" : (this.courtRung.get(v.audienceId) ?? "large");
       const differ = reply === null ? 0 : hostDiffer(reply, script);
-      r.ladder.recordShadow(
+      sh.log(
         newKingShadow({
           key: courtKey(v),
           turn: v.turn,
           kind: "court",
           power: this.power,
           rung,
-          model: rung === "small" ? r.small! : rung === "" ? "" : this.model,
+          model: rung === "small" ? this.rungs!.small! : rung === "" ? "" : this.model,
           differ,
           mattered: Math.min(1, differ * Spending.worth(courtStakes([v], court))),
           script: hostBrief(script),
@@ -566,7 +574,7 @@ export class LlmLeaderSeat implements ISeat {
 
   /** Reads a season's view it gives no orders for (asleep, or before its orders), so that its shadow script remembers it. */
   observe(view: SeatView): void {
-    this.rungs?.shadow?.observe(view);
+    this.shadow?.script.observe(view);
   }
 
   /**

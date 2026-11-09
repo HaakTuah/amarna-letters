@@ -71,9 +71,9 @@ export const HostilityFloor = 0.05;
  * point of it cools the hostility the court reckons by `hostilityPerTrust`.
  */
 export const TrustRules = { perShekel: 1 / 400, giftMost: 0.25, fades: 0.05, hostilityPerTrust: 0.3 } as const;
-/** First guesses (untuned): the gap between two options' scores at which a call counts as obvious, in each score's units. */
-export const WarMarginScale = 200;
-export const PlanMarginScale = 10;
+/** First guesses (untuned), about the median gap measured between the best option and the next (part E2): the gap at which a call counts as obvious, in each score's units. */
+export const WarMarginScale = 450;
+export const PlanMarginScale = 260;
 /** How close a call was, from the gap between the best option and the next (or the bar it had to clear): 0 to 1. */
 export const closeness = (gap: number, scale: number): number => clamp(gap / scale, 0, 1);
 /** A war's odds as a king weighs them: his troops against his foe's, from a quarter to 1.6. */

@@ -375,7 +375,9 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
       let seats = set.seats;
       for (const [p, folder] of o.folders) {
         const exchange = new FileExchange(folder, o.fileTimeoutMinutes * 60000, (call) => last!.log.addCall(call), (line) => console.log(line));
-        seats.set(p, new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat"));
+        const seat = new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat");
+        seat.shadow = set.shadowing;
+        seats.set(p, seat);
       }
       if (o.sleepingScripts)
         seats = new Dict<Power, ISeat>(

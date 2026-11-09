@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
-import { GameStateSchema, hash, newGame, newHostReply, newTurnSubmission, newGameConfig, type Power } from "@amarna/engine";
-import { GameLog, GameRunner, hostDiffer, submissionsDiffer } from "@amarna/game";
-import { SeatChoices, SimulatedApi, Spending, buildSeats, newSpendingSettings, providersFor } from "@amarna/llm";
+import { GameStateSchema, Views, hash, newGame, newHostReply, newScheduledOrders, newTurnSubmission, newGameConfig, type Power } from "@amarna/engine";
+import { GameLog, GameRunner, ScriptLeader, hostDiffer, submissionsDiffer } from "@amarna/game";
+import { LlmLeaderSeat, SeatChoices, SimulatedApi, Spending, buildSeats, newSpendingSettings, providersFor } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 import { Near, smallSeats, seasons } from "./small-world.ts";
 
@@ -14,13 +14,13 @@ describe("Shadow scripts and the script's margins (item 18)", () => {
     Assert.equal(1, s.quality("orders", "large", 0));
     const options = [
       { rung: "script" as const, model: "", cost: 0 },
-      { rung: "large" as const, model: "m", cost: 0.05 },
+      { rung: "large" as const, model: "m", cost: 0.5 },
     ];
     const rank = { script: 0, small: 1, large: 2 };
     // Stakes high enough that a coin toss pays for the model; the same stakes on an obvious call climb no higher.
     const close = s.choose(1, { kind: "orders", moved: 3, margin: 0 }, options, "large");
     const obvious = s.choose(1, { kind: "orders", moved: 3, margin: 1 }, options, "large");
-    Assert.true(rank[obvious] <= rank[close]);
+    Assert.true(rank[obvious] < rank[close]);
     Assert.equal("large", close);
   });
 
@@ -29,9 +29,16 @@ describe("Shadow scripts and the script's margins (item 18)", () => {
     const b = newTurnSubmission({ orders: [{ type: "move", unit: "u1", to: "harran" }] });
     Assert.equal(0, submissionsDiffer(a, b));
     const c = newTurnSubmission({ orders: [{ type: "move", unit: "u1", to: "nineveh" }] });
-    Assert.equal(0.5, submissionsDiffer(a, c));
+    Assert.equal(1, submissionsDiffer(a, c));
+    // What is left to run later counts too: an attack scheduled for next season is not the same as nothing.
+    const later = newTurnSubmission({ ...b, scheduled: [newScheduledOrders({ turn: 2, orders: [{ type: "move", unit: "u1", to: "nineveh" }] })] });
+    Assert.equal(0.5, submissionsDiffer(b, later));
     Assert.equal(0, hostDiffer(newHostReply(), newHostReply()));
     Assert.equal(1, hostDiffer(newHostReply({ sealProposal: true }), newHostReply()));
+    // Sums by how far apart they are, and reopening one's orders is a decision of its own.
+    Assert.true(hostDiffer(newHostReply({ goldBack: 1 }), newHostReply({ goldBack: 10000 })) > 0.9);
+    Assert.equal(0, hostDiffer(newHostReply({ goldBack: 50 }), newHostReply({ goldBack: 50 })));
+    Assert.equal(1, hostDiffer(newHostReply({ reopenOrders: true }), newHostReply()));
   });
 
   test("Beside every model king's orders and every envoy it answers, the script's decision is logged; the game replays exactly", async () => {
@@ -59,5 +66,21 @@ describe("Shadow scripts and the script's margins (item 18)", () => {
     await replay.prepare();
     for (let i = 0; i < 6 && (await replay.playTurn()); i++) {}
     Assert.equal(hash(GameStateSchema, runner.state), hash(GameStateSchema, replay.state));
+  });
+
+  test("A king with no ladder, as a file seat or local agent plays, is shadowed too, by its own mind's rung", async () => {
+    const state = newGame(3, seasons(4));
+    const log = new GameLog();
+    const king = new LlmLeaderSeat("Assyria", { askJson: () => Promise.resolve({}) }, "file", "medium", true, state.config, "File seat");
+    king.shadow = { script: new ScriptLeader(3), log: (k) => log.addKingShadow(k) };
+    await king.decide(Views.for(state, "Assyria"));
+    Assert.equal(1, log.kingShadows.length);
+    Assert.equal("own", log.kingShadows[0].rung);
+    Assert.null(log.kingShadows[0].error);
+    // A call that fails is logged with its kind, and the failure goes on to the runner's stand-in.
+    const failing = new LlmLeaderSeat("Assyria", { askJson: () => Promise.reject(new Error("boom")) }, "file", "medium", true, state.config, "File seat");
+    failing.shadow = king.shadow;
+    await failing.decide(Views.for(state, "Assyria")).catch(() => undefined);
+    Assert.equal("failed", log.kingShadows[1].error);
   });
 });
