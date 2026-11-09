@@ -356,7 +356,8 @@ export interface CharacterView {
   /** Item 10: the king a person at your court says it serves as his envoy, though it brought no letter; null if none. */
   claimsToServe: Power | null;
   /**
-   * What someone not in your service asks you a season: named in a pitch, or asked by a free person at your court.
+   * What someone asks you a season of a job's term: named in a pitch, asked by a free person at your court, or asked by your
+   * own servant for a new job.
    */
   askingPrice: number | null;
   /** In your service, at your court, with no task: can be sent somewhere this season. */
