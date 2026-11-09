@@ -131,6 +131,13 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
     games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is
     the fix.
+- **A captive king's realm under a caretaker** (the owner, 9 November 2026, #806; archive items 234 and 235): replaces
+  17b part B's reading that his court rules as before. His player plays the captive, bargaining for his release, his
+  letters home going through his captor's court, which may read or stop them; his realm is held by a script that keeps
+  his standing orders, defends, collects, keeps his treaties and pays what he agrees to, but starts no war, treaty or
+  campaign of its own. A spy or other hired man may help his escape or carry his letters out unread, an errand like any
+  other, and may be caught or sell him out. Holding a king forever is measured in item 18, not ruled against. The
+  design document's live text: Victory, "One scoreboard for every person".
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
