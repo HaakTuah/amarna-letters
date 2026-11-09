@@ -274,6 +274,8 @@ P.debtsSeason = function () {
  */
 P.livingSeason = function () {
   const S = this.s;
+  // Item 18 (#837): the seasons each has sought service unhired, wherever it went.
+  for (const c of S.characters) c.idle = c.status === "Free" && c.seeking ? c.idle + 1 : 0;
   for (const c of sortBy(
     S.characters.filter((c) => c.status === "Free"),
     [(c: Character) => idNumber(c.id), cmpNum],

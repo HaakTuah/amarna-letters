@@ -24,6 +24,8 @@ import { AllPowers, type Power } from "./power.ts";
  *   tenths of a percent: from its impatience, more for each broken promise of the borrower, for a borrower at war, besieged
  *   at its capital, or shrunk below its start (since item 17b part D, an heir's: what he inherited).
  * - `patience`: the seasons a candidate waits unhired at a court before it may move on.
+ * - `waitFall`: how much less one seeking service asks for each season it waits past its patience, in percent, to at most
+ *   `waitFallMost` (item 18, first guesses).
  */
 export const MoneyData = {
   heardWeight: 50,
@@ -46,6 +48,8 @@ export const MoneyData = {
   interestBesieged: 40,
   interestShrunk: 20,
   patience: 3,
+  waitFall: 5,
+  waitFallMost: 40,
 } as const;
 
 /** Whether a party is a power (else a character's id). */

@@ -414,8 +414,13 @@ export interface Character {
   errand: Errand | null;
   /** Item 11a: the season it came through a door onto the map, or rose from the crowd; null for one there from the start. */
   arrived: number | null;
-  /** Item 11a: seasons it has waited unhired at the court where it stands, seeking work. */
+  /** Item 11a: seasons it has waited unhired at the court where it stands, seeking work (`idle` counts them wherever it went). */
   waited: number;
+  /**
+   * Item 18 (#837): seasons it has sought service unhired, wherever it went (`waited` counts those at one court), kept in
+   * the season's living; what it asks falls with them (`basePrice`).
+   */
+  idle: number;
   /** Item 11a, "Working for oneself": a free person seeking service; false while it works for itself. */
   seeking: boolean;
   /** Item 11a: what it held, purse and hoard, when it died (a king, since item 17b part D: his realm); null while it lives. */
@@ -672,6 +677,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     errand: null,
     arrived: null,
     waited: 0,
+    idle: 0,
     seeking: true,
     diedWith: null,
     lastLife: null,
@@ -755,6 +761,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   errand: () => ErrandSchema,
   arrived: opt(I),
   waited: I,
+  idle: I,
   seeking: B,
   diedWith: opt(I),
   lastLife: opt(I),

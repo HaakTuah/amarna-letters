@@ -28,9 +28,14 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
   can be hired there; candidates are those seeking service at the court, and asking for candidates marks the court as
   hiring (`GameState.hiring`) for those who would travel to it. A pitch may cite a real offer from another court that
   season (`Character.offers`), or a greedy, disloyal script character invents one; it asks at least that much.
-- **Fees clear the market** (`GameState.goingRate`): what everyone asks is scaled by the going rate, which moves 5 a
-  season, up when more hires, renewals and calls for candidates were made than people seek service at the courts, down
-  when fewer than half as many were, between 50 and 300 (`goingRateMoves`).
+- **Fees clear the market** (item 18, #837; save version 92): each person asks by its own name, traits and debts, moved
+  half way to what it has heard jobs pay (`basePrice`, `heardRate`), or what it named in a pitch (`askingPrice`). When
+  courts compete, they bid up what is heard. When many wait for work, one seeking service past its patience (3 seasons)
+  asks 5% less for each season more it waits, to at most 40% less (in `basePrice`, its own reckoning, so a script
+  character's pitch follows it and a model's pitch stays its own; `MoneyData.waitFall`, `waitFallMost`, first guesses),
+  and what it takes is heard by those at the court, so the fees agreed fall. A master sees what his own servant at
+  his court asks for a new job (`CharacterView.askingPrice`; of one away he hears nothing new); script kings renew at it, and only where the view says nothing
+  at the last fee a season and a tenth more.
 - **Quitting**: a servant at its master's court may quit (its own season, below); it is recorded as a public fact, a
   broken promise of its own, and 20 off its name there. An envoy who goes over to a host at an audience takes a six-season
   job there, half handed over now (`jobOffer` is a fee a season).

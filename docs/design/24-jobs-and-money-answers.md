@@ -48,7 +48,8 @@ dead on the road.
 
 `GameState.goingRate` and `goingRateMoves` are gone. What a person asks is its own price moved half way
 (`heardWeight`) towards what it has heard jobs pay a season (`heardFee`): every person standing where a job is agreed,
-and the man hired, hear its rate. It asks more of a court it heard seized hoards (`WarySeized`).
+and the man hired, hear its rate. It asks more of a court it heard seized hoards (`WarySeized`), and, since item 18
+(#837), less the longer it has sought service past its patience (`21-money-and-work.md`, "Fees clear the market").
 
 ### Records, a tablet's end and grants as news
 

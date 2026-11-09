@@ -106,7 +106,8 @@
     captive drew no wage and its line named none.) The web app's people lists use the same words, and its orders panel offers renew
     beside each servant at court or on notice, with a term for hiring and renewing. A free person
     at the court shows what it asks there (its pitch's price, or its base price), whether or not it
-    pitched, and can be hired from the panel; one's own servants show no asking price.
+    pitched, and can be hired from the panel; one's own servant at court shows what it asks for a new
+    job (since item 18, part F), and one away shows none.
   (Until the simulation-fixes round a servant who wanted more quit at once, the view read "wage 12
   until turn 10" with no word of what came then, no order could renew a contract, models could not
   name a term, and kings who tried to rehire their own envoys were told "not available for hire".)
