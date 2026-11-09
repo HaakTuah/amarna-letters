@@ -186,7 +186,7 @@ export class ScriptLeader implements ISeat {
     // #806: a king held abroad plays the captive: his ransom and a spy at his captor's court go home in his letter, the
     // rest is the caretaker's, which keeps the realm.
     if (view.heldAt !== null)
-      return newTurnSubmission({ orders: orders.filter((o) => o.type === "payRansom" || (o.type === "spy" && o.court === view.heldAt)), notes: `Held at the court of ${view.heldAt}.` });
+      return newTurnSubmission({ orders: orders.filter((o) => o.type === "payRansom" || o.type === "write" || (o.type === "spy" && o.court === view.heldAt) || ((o.type === "hire" || o.type === "renew") && o.what === "spy" && o.where === view.heldAt)), notes: `Held at the court of ${view.heldAt}.` });
     // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
     const [cancel, give] = Contingencies.plan(board, brain, plan, orders);
 

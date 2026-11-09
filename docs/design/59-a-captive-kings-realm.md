@@ -17,7 +17,7 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   abroad, treaty, grant, hire, building or court move. His standing orders stand: the caretaker gives, changes and
   cancels none (his scheduled orders, given before, run as given).
 - **The player plays the captive.** The seat's own orders are his: letters (order `write`, to any court, his own included)
-  and, in a letter home, his ransom (`payRansom` for himself) or a spy hired or posted at his captor's court (`hire` as a
+  and, in a letter home, his ransom (`payRansom` for himself) or a spy hired or posted at his captor's court (`hire` or `renew` as a
   spy there, `spy`). Everything else is not carried out, and a notice says so. A word home with no letter of its own goes
   in a letter home of a line. On the road under guard he writes nothing.
 - **His letters leave through his captor's court** (journey `CaptiveLetter`, waiting there for a carrier): the captor
@@ -28,10 +28,11 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
 - **What he agreed to** rides with the letter (`GameState.wordHome`) and his court carries it out in the season after it
   arrives, as its own business, beside the caretaker's orders; a letter lost or kept takes it with it.
 - **Getting away:** the spy's own skill at going unseen adds to the king's in the chance each season (`kingsHeld`).
-- **Script players:** a script captor holding a king for ransom keeps his letters to every court it is at odds with,
-  once each; a script captive pays his ransom whatever it costs (his word home) and, with a servant at hand, asks for a
-  spy at his captor's court (both under `--king-play-half`).
+- **Script players:** a script captor holding a king for ransom keeps his letters to every court but his own,
+  once each; a script captive pays his ransom whatever it costs (his word home), with a servant at hand asks for a spy at
+  his captor's court, and writes once to each king sworn to him to pay for him or come for him (all under
+  `--king-play-half`).
 - **Holding a king forever** is allowed and measured, not ruled against: the batch's "Captive kings" line
   (`captives-report.ts`) gives the kings held while their courts knew it, how long, how it stood at the age's end, and
-  the letters sent, smuggled and kept.
+  the letters sent, smuggled and kept, and the kings who got away, with those a spy helped.
 - Save version 93.

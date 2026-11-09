@@ -32,8 +32,8 @@ passing out, like spies and such."
 - His letters leave through his captor's court, read there and carried as a ransom demand is; the captor may keep them
   (new captive fates "StopLetters" and "PassLetters", for all or one court). A spy of his realm posted at that court
   takes his letters home unread and adds his own skill to the king's chance of getting away.
-- Script players: a captor holding a king for ransom keeps his letters to the courts it is at odds with; a captive pays
-  his ransom by his word home and asks for a spy at his captor's court.
+- Script players: a captor holding a king for ransom keeps his letters to every court but his own; a captive pays
+  his ransom by his word home, asks for a spy at his captor's court, and writes once to each king sworn to him.
 - The measure of holding a king forever: the batch's "Captive kings" line.
 - Rulebook (`rules-intelligence.ts`), the request's COURT line, the About page and the design notes ([57](../design/57-every-person.md),
   [59](../design/59-a-captive-kings-realm.md)) say so. Save version 93.
@@ -62,7 +62,12 @@ passing out, like spies and such."
 
 ## Script players and the measure
 
-Measured in item 18 part F2 with `--king-play-half`, together with the captive kings' line, on the seeds F2 runs.
+A first look on seeds 1-8 (`--verify-replay`, all eight replayed exactly): 70 kings held while their courts knew it, in
+every game; held 13.7 seasons on average, the median 8, the longest 67; at the age's end 49 free again, 16 dead, 5 still
+held. Letters from captivity: 117 sent through the captor, 3 smuggled out by a spy, 4 kept by the captor; 40 kings got
+away, 5 of them helped by a spy of theirs. Before the script captives asked for a spy and wrote to their sworn friends,
+no letter was smuggled or kept and no spy helped (the patch, as "Every weakness found is patched" asks). Use against
+ignore, with `--king-play-half`, and the captive kings' line on the full seed sets come in item 18 part F2.
 
 ## Questions for the owner
 

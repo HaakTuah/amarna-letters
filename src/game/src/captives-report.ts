@@ -11,6 +11,8 @@ export interface HeldMeasure {
   kings: [number, string][];
   /** Letters from captivity: sent through the captor, smuggled out, kept by the captor. */
   letters: [number, number, number];
+  /** Kings who got away, and of them those a spy of theirs helped. */
+  escapes: [number, number];
 }
 
 /** Watches a game season by season for the kings held. */
@@ -30,7 +32,7 @@ export class HeldWatch {
       return [n, c === undefined || c.status === "Dead" ? "dead" : c.status === "Captured" ? "held" : "home"];
     });
     const count = (signal: string): number => s.events.filter((e) => e.signal === signal).length;
-    return { kings, letters: [count("captive-letter-sent"), count("captive-letter-smuggled"), count("captive-letter-kept")] };
+    return { kings, letters: [count("captive-letter-sent"), count("captive-letter-smuggled"), count("captive-letter-kept")], escapes: [count("king-escapes") + count("king-escapes-aided"), count("king-escapes-aided")] };
   }
 }
 
@@ -44,6 +46,7 @@ export function heldReport(games: readonly HeldMeasure[]): string[] {
     `Captive kings (#806): ${kings.length} held while their courts knew it, in ${games.filter((g) => g.kings.length > 0).length} of ${games.length} games; ` +
       `held ${fmt(sum(long, (n) => n) / long.length, "0.0")} seasons on average, the median ${long[Math.floor(long.length / 2)]}, the longest ${long[long.length - 1]}; ` +
       `at the age's end ${of("home")} free again, ${of("dead")} dead, ${of("held")} still held. ` +
-      `Letters from captivity: ${sum(games, (g) => g.letters[0])} sent through the captor, ${sum(games, (g) => g.letters[1])} smuggled out by a spy, ${sum(games, (g) => g.letters[2])} kept by the captor.`,
+      `Letters from captivity: ${sum(games, (g) => g.letters[0])} sent through the captor, ${sum(games, (g) => g.letters[1])} smuggled out by a spy, ${sum(games, (g) => g.letters[2])} kept by the captor. ` +
+      `Kings who got away: ${sum(games, (g) => g.escapes[0])}, ${sum(games, (g) => g.escapes[1])} of them helped by a spy of theirs.`,
   ];
 }

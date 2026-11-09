@@ -289,7 +289,7 @@ P.kingsHeld = function () {
     remember(c, S.turn, `I got away from my guards in ${land(host)}${aid !== null ? `, with the help of ${aid.name}` : ""}.`);
     S.lettersStopped = S.lettersStopped.filter((x) => x !== c.id && !x.startsWith(`${c.id}|`));
     notify(S, host, "Notice", "A king escapes", `${c.name}, the ${rulerStyle(p)} of ${powerName(p)} you held, has got away from your guards.`, c.id);
-    logEvent(S, "king-escapes", `${c.name}, king of ${p}, escaped from ${host}.`, [host], "king-escapes");
+    logEvent(S, "king-escapes", `${c.name}, king of ${p}, escaped from ${host}.`, [host], aid !== null ? "king-escapes-aided" : "king-escapes");
     this.kingGoesHome(c, p, this.courtAt(host));
   }
 };

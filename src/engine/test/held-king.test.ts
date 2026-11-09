@@ -1,34 +1,21 @@
 import { describe, test } from "vitest";
-import { type GameState, OrderValidator, inboxOf, type Power, TurnEngine, captive, heldKing, hold, move, newGame, newGameConfig, newTurnSubmission, ownedBy, payRansom, writeLetter } from "@amarna/engine";
+import { type GameState, OrderValidator, inboxOf, type Power, captive, heldKing, hold, move, newTurnSubmission, ownedBy, payRansom, writeLetter } from "@amarna/engine";
 import { inMandate } from "../src/turn/held-king.ts";
-import { Assert, smallWorld } from "./support.ts";
+import { Assert, egyptHeld } from "./support.ts";
 
 // #806: a captive king plays the captive; a caretaker keeps his realm within a narrow mandate.
 describe("HeldKingTests", () => {
   const kingOf = (s: GameState, p: Power) => s.characters.find((c) => c.id === s.reigns.get(p).character)!;
 
-  /** Egypt's king taken by Hatti and held at its court, his court having heard. */
-  function held(): { s: GameState; e: TurnEngine } {
-    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
-    const e = new TurnEngine(s);
-    s.owner.set("akhetaten", "Hatti");
-    e.kingTaken("Egypt", "Hatti", false);
-    e.courtFlees("Egypt", "Hatti", false);
-    const c = kingOf(s, "Egypt");
-    s.journeys = s.journeys.filter((j) => j.characterId !== c.id);
-    c.duty = "None";
-    c.at = "Hatti";
-    return { s, e };
-  }
 
   test("A king held is his court's to keep by a caretaker; a free king is not held", () => {
-    const { s } = held();
+    const { s } = egyptHeld();
     Assert.equal("Hatti", heldKing(s, "Egypt")?.heldBy);
     Assert.equal(null, heldKing(s, "Hatti"));
   });
 
   test("The caretaker defends its own land and begins nothing; the captive's own orders are not carried out", () => {
-    const { s, e } = held();
+    const { s, e } = egyptHeld();
     const own = ownedBy(s, "Egypt")[0];
     const foreign = ownedBy(s, "Hatti")[0];
     const care = newTurnSubmission({ orders: [hold(own), move(own, own), move(own, foreign)], standing: [] });
@@ -40,7 +27,7 @@ describe("HeldKingTests", () => {
   });
 
   test("The mandate keeps tribute and his own ransom only by his word", () => {
-    const { s } = held();
+    const { s } = egyptHeld();
     const k = kingOf(s, "Egypt");
     Assert.false(inMandate(s, "Egypt", k.id, payRansom(k.id)));
     Assert.true(inMandate(s, "Egypt", k.id, payRansom("someone-else")));
@@ -50,7 +37,7 @@ describe("HeldKingTests", () => {
   });
 
   test("His letters leave through his captor's court, which reads them; kept, they go nowhere", () => {
-    const { s, e } = held();
+    const { s, e } = egyptHeld();
     e.heldSeason("Egypt", newTurnSubmission({ orders: [writeLetter("Mitanni", "Brother, come for me.")], caretaker: newTurnSubmission() }));
     const j = Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter"));
     Assert.equal(["Mitanni", e.courtAt("Hatti")], [j.to, j.waitAt]);
@@ -63,7 +50,7 @@ describe("HeldKingTests", () => {
   });
 
   test("His ransom rides home in his letter and his court pays it when the letter comes; his own spy takes it out unread", () => {
-    const { s, e } = held();
+    const { s, e } = egyptHeld();
     const k = kingOf(s, "Egypt");
     const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
     spy.duty = "SpyPosted";
@@ -82,7 +69,7 @@ describe("HeldKingTests", () => {
   });
 
   test("A free king does not write so, and a captor keeps only a king's letters", () => {
-    const { s } = held();
+    const { s } = egyptHeld();
     const v = new OrderValidator(s).validate("Mitanni", newTurnSubmission({ orders: [writeLetter("Egypt", "Hello.")] }));
     Assert.contains("only a king held captive", Assert.single(v.rejected).reason);
     const stop = new OrderValidator(s).validate("Hatti", newTurnSubmission({ orders: [captive(kingOf(s, "Egypt").id, "StopLetters")] }));

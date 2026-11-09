@@ -134,6 +134,8 @@ export class Brain {
   readonly stripped = new HSet<string>();
   /** #806: the captive kings' letters we keep, as `king|court`. */
   readonly lettersKept = new HSet<string>();
+  /** #806: the captors' courts our king has written from to his sworn friends, once each. */
+  readonly wroteFrom = new HSet<Power>();
   readonly handedOver = new HSet<string>();
   readonly hosted = new HSet<string>();
   readonly lastSteal = new Dict<string, number>();

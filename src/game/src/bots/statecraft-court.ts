@@ -24,6 +24,7 @@ import {
   parsePower,
   payFee,
   payRansom,
+  writeLetter,
   placeSpy,
   recall,
   release,
@@ -294,6 +295,12 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     orders.push(placeSpy(agent.id, held));
     busy.add(agent.id);
   }
+  // And writes once to each king sworn to him, to pay for him or come for him.
+  if (held !== null && KingPlay.on(b.me) && !brain.wroteFrom.has(held)) {
+    brain.wroteFrom.add(held);
+    for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== held && brain.rel.tryGet(x)?.allied === true), [(x: Power) => x, cmpPower]))
+      orders.push(writeLetter(x, `I am held at the court of ${held}. By the oath between us, pay for me or come for me.`));
+  }
 
   // Spies come home from a court that has fallen, or, when nobody is left at court to send, from a court watched for eight
   // seasons that is no longer the war, the leader or hostile.
@@ -454,9 +461,9 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
             : p.honesty > 0.5 || p.greed > 0.5
               ? captive(c.id, "Ransom", Math.trunc(60 + 60 * p.greed))
               : captive(c.id, "Release");
-    // #806: a king held for ransom writes to nobody we are at odds with: those letters stay at our court.
+    // #806: a king held for ransom writes home, to beg his ransom, and to nobody else: those letters stay at our court.
     if (c.kingOf !== null && fate.fate === "Ransom" && KingPlay.on(b.me))
-      for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== c.kingOf && brain.rel.tryGet(x)?.hostile === true), [(x: Power) => x, cmpPower]))
+      for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== c.kingOf), [(x: Power) => x, cmpPower]))
         if (!brain.lettersKept.has(`${c.id}|${x}`)) {
           orders.push({ ...captive(c.id, "StopLetters"), to: x });
           brain.lettersKept.add(`${c.id}|${x}`);

@@ -83,6 +83,7 @@ function homeWord(o: Order, king: Character): boolean {
     case "payRansom":
       return o.character === king.id;
     case "hire":
+    case "renew":
       return o.what === "spy" && o.where === host;
     case "spy":
       return o.court === host;

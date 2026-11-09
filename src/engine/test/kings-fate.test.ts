@@ -2,25 +2,12 @@ import { describe, test } from "vitest";
 import { Dict, type GameState, OrderValidator, type Power, TurnEngine, captive, crownedIn, dismiss, king, kingFor, newGame, newGameConfig, newTurnSubmission, ownedBy, payRansom, realmOfKing, setCrowned } from "@amarna/engine";
 import { Lines } from "../src/model/heirs.ts";
 import { KingData } from "../src/turn/kings-fate.ts";
-import { Assert, smallWorld, subs, courtGoing } from "./support.ts";
+import { Assert, smallWorld, subs, courtGoing, egyptHeld } from "./support.ts";
 
 // Item 17b, part B: every king a person, his fate his captor's when he is taken, and his heir from the record when he dies.
 describe("KingsFateTests", () => {
   const kingOf = (s: GameState, p: Power) => s.characters.find((c) => c.id === s.reigns.get(p).character)!;
 
-  /** Egypt's king taken by Hatti and held at its court (as his convoy would bring him). */
-  function held(): { s: GameState; e: TurnEngine } {
-    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
-    const e = new TurnEngine(s);
-    s.owner.set("akhetaten", "Hatti");
-    e.kingTaken("Egypt", "Hatti", false);
-    e.courtFlees("Egypt", "Hatti", false);
-    const c = kingOf(s, "Egypt");
-    s.journeys = s.journeys.filter((j) => j.characterId !== c.id);
-    c.duty = "None";
-    c.at = "Hatti";
-    return { s, e };
-  }
 
   function season(s: GameState, orders = new Dict<Power, ReturnType<typeof newTurnSubmission>>()): void {
     const e = new TurnEngine(s);
@@ -54,7 +41,7 @@ describe("KingsFateTests", () => {
   });
 
   test("A king put to death: his heir is the next name on the record, inheriting a third of his standing", () => {
-    const { s } = held();
+    const { s } = egyptHeld();
     const dead = kingOf(s, "Egypt");
     season(s, subs({ Hatti: { orders: [captive(dead.id, "Execute")] } }));
     Assert.equal("Dead", dead.status);
@@ -89,7 +76,7 @@ describe("KingsFateTests", () => {
   });
 
   test("A man of the record already on the map takes the throne himself; past the record a son or brother is drawn", () => {
-    const { s, e } = held();
+    const { s, e } = egyptHeld();
     // Ay, the God's Father at Pharaoh's court, is third on Egypt's line: the two before him are passed by.
     s.reigns.get("Egypt").line = 1;
     const ay = s.characters.find((c) => c.name === "Ay")!;
@@ -110,7 +97,7 @@ describe("KingsFateTests", () => {
   });
 
   test("A king ransomed walks home and reigns again at his court", () => {
-    const { s } = held();
+    const { s } = egyptHeld();
     const c = kingOf(s, "Egypt");
     season(s, subs({ Hatti: { orders: [captive(c.id, "Ransom", 50)] } }));
     // #806: he agrees to it in a letter home, which his court carries out when it arrives; his captor asks again while
@@ -148,7 +135,7 @@ describe("KingsFateTests", () => {
   });
 
   test("A king walking home is not taken with his court's city", () => {
-    const { s, e } = held();
+    const { s, e } = egyptHeld();
     const c = kingOf(s, "Egypt");
     // Set free and on his way home.
     s.characters.find((x) => x.id === c.id)!.status = "Employed";
@@ -163,7 +150,7 @@ describe("KingsFateTests", () => {
   });
 
   test("A king held may get away by his skill at going unseen, and walks home", () => {
-    const { s, e } = held();
+    const { s, e } = egyptHeld();
     const c = kingOf(s, "Egypt");
     c.skills.stealth = 99;
     // About a tenth of seasons at the best skill (KingData.escape, a thousandth a point).

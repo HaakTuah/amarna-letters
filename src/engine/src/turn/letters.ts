@@ -76,6 +76,7 @@ P.carryLetters = function () {
     if (letter.kind === "CaptiveLetter" && !bySpy(S, letter) && lettersKept(S, letter.characterId ?? "", letter.to)) {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       S.wordHome = S.wordHome.filter((w) => w.journey !== letter.id);
+      logEvent(S, "captive-letter", `${courtAt(this, letter.waitAt!) ?? "A captor"} kept a captive king's letter to ${letter.to}.`, [], "captive-letter-kept");
       continue;
     }
     if (!isAlive(S, letter.to)) {
