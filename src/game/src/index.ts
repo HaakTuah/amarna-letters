@@ -1,6 +1,7 @@
 export * from "./contracts.ts";
 export * from "./log.ts";
 export * from "./minds.ts";
+export * from "./king-shadows.ts";
 export * from "./threads.ts";
 export { threadNames, threadWords } from "./bots/thread-words.ts";
 export * from "./runner.ts";

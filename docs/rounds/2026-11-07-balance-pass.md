@@ -466,3 +466,71 @@ are not set beside these.)
 - [#836](https://github.com/HaakTuah/amarna-letters/issues/836), [#837](https://github.com/HaakTuah/amarna-letters/issues/837),
   [#825](https://github.com/HaakTuah/amarna-letters/issues/825), [#832](https://github.com/HaakTuah/amarna-letters/issues/832)
   and [#806](https://github.com/HaakTuah/amarna-letters/issues/806) (still open).
+
+## Part E2: how close the scripts' best options are, and shadow scripts
+
+Started from `develop` at 93f97a1 (part E, #839, merged), on `item/balance-e2`. The item's sentence: "The scripts report
+how close their best options are, so the budget can tell a close call from an obvious one ('What a call is worth'
+under 'Minds follow what is at stake'), and the script decides beside every model decision, out of play, logged by kind
+('Shadow scripts')." The design came from the planning-design helper (Fable); the design notes hold what was built
+(`docs/design/04-models.md`, "How close the script's call was" and "Shadow scripts").
+
+### What was built
+
+- **The margin** (`Brain.margins`, `closeness`, `WarMarginScale` 450 and `PlanMarginScale` 260, first guesses): the
+  war choice reports its best war against the next or the bar it had to clear (none when there is no war to weigh); the
+  plan search (`Search.improve`) reports its plan against the best one turned down; `ScriptLeader.marginOf` gives the
+  closer of the two, or null. Nothing reads it in a script game, so script games are unchanged.
+- **The budget reads it** (`Stakes.margin`, `Spending.quality(kind, rung, margin)`, `MarginPull` 0.8, a first guess): an
+  obvious call closes each rung's gap to the large rung's quality by up to four fifths, so it climbs less.
+- **The shadow king** (`LlmLeaderSeat.shadow`, `KingShadowing`): the seats' script player, whose brains are by power,
+  beside every king a model, a local agent or a file plays. It reads each season's view of its king (`ISeat.observe`,
+  called beside the stand-in's, never in a replay), decides his orders first (its margin goes into the stakes) and
+  answers each envoy he answers. Its memory drifts by its own imagined choices, never the model's.
+- **The record** (`king-shadows.ts`: `KingShadow`, a "king-shadow" line, `GameLog.kingShadows`; the export gives it under
+  the shadows filter, `ExportFields.kingShadow`): key, turn, kind, power, rung, model, margin, differ, mattered (differ
+  times what the decision could move, at most 1), each side in brief (orders and clause kinds, never words) and the
+  failure kind. One differ for orders, `submissionsDiffer`, and one for an answer, `hostDiffer`; the audits'
+  `ordersDiffer` and `answerDiffer` now parse and use them. A batch prints the records by kind and the orders by the
+  script's margin (`kingShadowReport`). The record moves no rates; it is read offline.
+- **Left out:** margins for courts, alerts and characters (they stay on the audits, as the design says); a shadow for
+  the wake decision, the plan and standing answers (the script makes none of them); tuning. The script rung keeps item
+  7a's reading (orders the budget leaves to it: his units hold), so it does not play the shadow's orders. No save
+  version: no rule changed, script games replay as before, and a model game replays from its logged decisions.
+
+### Measured
+
+- **The margins' scales:** in two 16-season script games (seeds 1 and 2), the war choice's gaps had quartiles 179, 439
+  and 654 (197 of 14,185 at 0) and the plan search's 0, 0 and 146 (428 of 715 a tie; the gaps above 0 had a median of
+  259). At the first guesses 200 and 10 the margin was a switch (the design check found 588 of 705 war margins at 1);
+  450 and 260 put the median gap at about the middle. A plan search's tie stays a coin toss (margin 0).
+- **A batch on the simulated API** (`scripts/sim.sh --games 2 --seed 1 --simulate-api --leaders sonnet --cap 12
+  --verify-replay`): 115 and 118 orders records, every one differing (the simulated replier orders nothing, so this says
+  only that the record works); the script's margins fell 61, 8 and 46 (seed 1) and 60, 13 and 45 (seed 2) across close,
+  middling and obvious; both games replay exactly. No court records there, since no king sent an envoy;
+  `king-shadows.test.ts` checks one per hosted envoy on a small map with script kings beside a model one, and a king
+  with no ladder (a file seat) shadowed too.
+- **Script games:** unchanged, since nothing reads the margin there (the suite's replay and hash checks).
+
+### Readings taken
+
+- **The record moves no rates** (the design check). The planning design had the script rung learn from each shadow as
+  from an audit; but that rung never plays the shadow's orders (item 7a: units hold), and in target mode every model
+  decision would count against the target. The design reads the shadows offline ("Script against model"), so they
+  stay a record. Principle: no description left untrue, and the budget learns only from rungs that decided.
+- **Standing answers are no part of the orders' differ, and have no shadow** (the design check): the script gives none
+  (it answers each envoy as he comes), so they would read as a difference every time; an envoy a standing answer
+  answers meets no call of the king's, so there is no decision to set beside the script's there either. Principle:
+  compare like with like ("Shadow scripts": "whether the two differed").
+- **No war weighed is no margin, not an obvious call:** a season the script's formulas do not decide is one where "a
+  model is worth more" ("What a call is worth").
+- **The shadow is the seats' script player, not a second one.** The design asked for a script king of the shadow's own,
+  apart from the runner's stand-in; the seats' script player already keeps each power's brain apart and plays no model
+  king, so it serves without a second object (keep it lean). Principle: one fact, one place.
+- **A court reports no margin, and the differ compares only what the engine acts on:** for orders, the season's
+  orders and what is left to run later; for an answer, what it does and how far its sums lie apart. Words are a
+  model's own, and the design keeps them out of the record. Each differ is the mean over the parts either side holds,
+  so a king who orders only troops is not counted half alike for writing no letters.
+
+Questions for the owner: none new (#840, #841, #836, #837, #825, #832 and #806 stay open; each was taken as built).
+

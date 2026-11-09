@@ -354,6 +354,32 @@
     capital (`Stakes.capital`, from what he sees) are always paid: they start above the script whatever the rate, and
     may spend a reserve of the limit (`reserveShare`, a tenth, a first guess) that ordinary decisions stop short of, until
     the whole limit is spent (the owner's answer to item 6c's review, built in item 7a).
+  - **How close the script's call was** (item 18, `Brain.margins`, `ScriptLeader.marginOf`, `Stakes.margin`). The
+    script king reports, 0 for a coin toss to 1 for an obvious call, the closer of two margins: its war choice (the best
+    war against the next, or the bar it had to clear; standing in peace, the bar against the best war; none with no war
+    to weigh), over `WarMarginScale` 450, and its plan search (the plan chosen against the best turned down; a tie is a
+    coin toss) over `PlanMarginScale` 260 (first guesses, about the median gaps measured). With neither, it reports
+    none: a season beyond its formulas. A king's orders carry it from his shadow script (below): the gap between each
+    rung's quality and the large rung's shrinks by up to `MarginPull` (0.8) as the margin nears 1, so an obvious call
+    climbs less. Courts, alerts and characters report no margin and go by their audits.
+  - **Shadow scripts** (item 18, `LlmLeaderSeat.shadow`, `KingShadowing`, `KingShadow`). Beside every decision a model,
+    a local agent or a file takes for a king, his orders and each envoy he answers, the script decides too, out of play:
+    the seats' script player (its brains are by power, so apart from the kings it plays and from the runner's stand-in),
+    which reads the king's view every season (`ISeat.observe`, never in a replay) and remembers its own choices, never
+    the model's. The log keeps by kind whether the two differed (`submissionsDiffer`: the mean, over the parts either
+    side holds, of how far its unit orders, its other actions (a letter by where it goes; holds left out) and what it
+    leaves to run later (scheduled and standing orders, and those it cancels) differ; standing answers are left out,
+    since the script gives none; `hostDiffer`, which the
+    court audits use too: what the answer does (clauses, seal, detention, a tablet of its own, reopening its orders, its
+    letters) and how far its gift, gold sent back and wage of service lie apart), that weighed by what the decision
+    could move, each side in brief (orders and clause kinds, never words), the rung that decided ("own" for a king with
+    no ladder) and the failure kind of a call that gave none (a "king-shadow" line). The record is read offline ("Script
+    against model" under Tests) and moves no rates: the script rung never plays the shadow's orders (where the budget
+    leaves orders to the script his units hold, and nothing is logged), so its agreement says nothing of that rung. A
+    king's wake decision on light alerts, his plan and his standing answers have no shadow, since the script makes none
+    of them; an envoy a standing answer answers is answered by the engine, with no call to set beside the script's. A batch prints the
+    records by kind, and orders by the script's margin (`kingShadowReport`). The model characters' shadows are in
+    `06-file-seats-and-the-agent-simulation.md`.
   - **Audits.** One small-rung decision in twenty (`auditShare`; a seeded draw by the call's key) is also put to the rung
     above out of play: the answer is never used, the log keeps how far the two differed and how much that weighed
     (`Audit`, `GameLog.audits`, an "audit" line), and the rates move.
