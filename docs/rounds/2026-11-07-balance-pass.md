@@ -534,3 +534,76 @@ under 'Minds follow what is at stake'), and the script decides beside every mode
 
 Questions for the owner: none new (#840, #841, #836, #837, #825, #832 and #806 stay open; each was taken as built).
 
+
+## Part F: the audit (F1 built; F2 to come)
+
+Started from `develop` at bd7b715 (part E2, #843, and its milestone #844, merged), on `item/balance-f`. The plan is the
+line "F. The audit" at the head of this report.
+
+### The baseline (develop at bd7b715, seeds 1-100)
+
+`scripts/sim.sh --games 100 --seed 1` (97 minutes, sharing the machine): 85.2 seasons on average; a king first in 74
+games, a character in 26. Assyria wins 19 (standing 1.19, growth 0.51, 56 survivors); the other Great Kings win 0 or 1
+(standings Egypt 0.92, Hatti 0.81, Babylonia 0.82, Mitanni 0.98); a city-state wins 51 games, a weak power 3. Fees: 18.0
+a season in seasons 1-20, then 27.6, 28.3 and 28.5, with 37%, 16%, 12% and 9% of the living in service. Bold: 293 of
+the top five, 923 of the top twenty, 13% dead; careful: 207, 1077, 17% dead. The log is kept for the comparisons below.
+
+### Fees that fall when many wait (#837)
+
+Why they held: a person's price is its own reckoning (traits, name, debts) moved half way to what it hears jobs pay,
+and nothing in it answered how many wait; script kings, who could not see what their own servants ask, renewed them at
+the last fee a season and a tenth more, so each servant's price climbed to his own reckoning and stayed there. The
+design note's "going rate" that scaled every price was never built (`21-money-and-work.md` described it).
+
+Built (save version 92): one who has sought service unhired past its patience (3 seasons), wherever it went
+(`Character.idle`, kept in the season's living, since `waited` restarts at each court), asks 5% less for each season
+more, to at most 40% less (`MoneyData.waitFall`, `waitFallMost`, first guesses), in `basePrice`, its own reckoning (the
+owner's answers to item 11a: no going rate; a model's pitch stays its own); a master sees what his own servant at his court
+asks for a new job (`CharacterView.askingPrice`; of one away he hears nothing new), and script kings renew at it. The rulebook's "Prices" says so.
+
+On seeds 1-50 (before against after, the final code): fees a season 27.1, 28.0, 28.0, 28.6 against 23.8, 24.0, 23.8,
+23.8 in seasons 21-40 to 81-100; jobs agreed 2543 against 3529 in seasons 21-40; the living in service 17%, 12%, 9%, 8%
+against 18%, 14%, 11%, 9%. The fees agreed now sit about a sixth lower and no longer climb as more wait. A first attempt that lowered the
+price by the seasons waited at one court (`waited`) moved nothing: a seeker moves on after its patience, and the count
+starts again.
+
+### Readings taken (F1)
+
+- **The fall is the person's own concession, not an engine-set rate.** The owner's answers to item 11a rule out a going
+  rate and a floor set by the engine; each person lowering what it asks the longer it goes unhired is its own
+  reckoning, as its greed and what it heard are. Principle: "Fees clear the market" in the design, within the owner's
+  ruling.
+- **The 40% cap is the most one person concedes,** not a market floor: what is agreed still follows what each asks and
+  hears. Principle: the same.
+- **Patience marks where the fall starts:** the seasons a candidate waits before it may move on are the seasons it
+  waits before it doubts its price. Principle: one fact, one place (no second number for the same patience).
+- **A servant tells his price only in person:** of one away his master hears nothing new, so no hidden fact reaches
+  the court by it (the twin canary). Principle: "Every rule a king needs is in the rulebook or the seat view", and
+  nothing he could not know.
+- **A price pitched at a court is spent on the hire there,** so renewals and the view go by the servant's reckoning;
+  a pitch elsewhere, and a pitch to a court that has not hired it, stands until it pitches again (the rulebook says so).
+  Principle: "Fees clear the market": a price offered for one hire is no standing claim on the next.
+- **Part F in two pull requests,** as above: its measurements run for hours. Principle: "Split by meaning", and a
+  session ends at a passed gate with a note on where to pick up.
+
+Questions for the owner: none new (#840, #841, #836, #825, #832, #806 stay open; #837 is fixed here).
+
+### Split, and where to pick up (F2)
+
+Part F is built in two pull requests, since its measurements run for hours and a session's context would not hold
+them all: **F1** (this one) the fees that fall (#837) and the baseline above; **F2** the rest of the plan line, on the
+tuned play, from a fresh branch off `develop` once F1 is merged:
+
+1. **Use against ignore for every feature** on seeds 1-100 (and 101-200 where a result is close): the "not paying yet"
+   and "even or barely" lists in `docs/BUILD-PROGRESS.md`, "Use against ignore", each by its `--*-play-half` switch;
+   each that does not pay is taught to play better or the feature redesigned, as the item says. One 100-game batch takes
+   about 50 minutes alone on this machine (97 sharing it), so run them one at a time in the background.
+2. **Par refreshed** on the tuned play, and **win rates per power** on seeds 1-100 and 101-200; Assyria's 19 wins of
+   100 in the baseline (standing 1.19) is the first thing to look into; Mitanni below par (0.98); why a Great King
+   stands first more often than a city-state at a weight of size of 0.
+3. **Bold and careful** in the top five and twenty, and the careful dying more often (after F1, seeds 1-50: bold 132 of
+   the top five and 467 of the top twenty, 13% dead; careful 118 and 533, 18% dead; a character first in 17 of 50).
+4. **The people 17+ added** judged by what they did (the list to the owner); **starting positions, banditry and far
+   provinces** against the sources; **commanders' worth** by the distance of the front and the realm's size.
+5. Then **stop for review**: the review questions and readings to the owner as `question` issues, and on to item 18a.
+

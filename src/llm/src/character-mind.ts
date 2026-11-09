@@ -737,7 +737,7 @@ export class LlmCharacterMind implements ICharacterMind {
         const court = requestFor(req);
         const user =
           `${Views.capitalized(courtOf(court, court))} is looking for envoys and agents, and you have come before the king. ` +
-          `Present yourself in a few sentences and name what you ask a season of a job's term (the king offers a whole fee for a term, part of it now and the rest when the job is done). Someone like you usually asks about ${ctx.basePrice} shekels a season at the going rate; ` +
+          `Present yourself in a few sentences and name what you ask a season of a job's term (the king offers a whole fee for a term, part of it now and the rest when the job is done). By your own reckoning, from what you have heard jobs pay, you would ask about ${ctx.basePrice} shekels a season; ` +
           `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.` +
           // Item 11a, "Hiring as a negotiation": real offers it may cite, or not; a claimed offer is words, true or false.
           ([...c.offers.keys()].length > 0 ? ` Real offers made to you last season: ${[...c.offers.entries()].map(([p, r]) => `the king of ${land(p)}, ${r} a season`).join("; ")}. You may cite one, or invent one; the king cannot check it here.` : "") +

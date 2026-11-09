@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, basePrice, first, hire, newContract, newGame, newGameConfig, newJobErrand, renew, single } from "@amarna/engine";
+import { Views, askingPrice, basePrice, first, hire, newContract, newGame, newGameConfig, newJobErrand, renew, single } from "@amarna/engine";
 import { type JsonObject, Parse, Replies, Schemas, leaderRules, person, problems } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
@@ -54,9 +54,8 @@ describe("ContractTextTests", () => {
       line(),
     );
     Assert.doesNotContain("until turn", line());
-    // What it asked before it was hired (here, or rehired after a notice ran out) means nothing now: one's own servant shows no asking price.
-    c.askingPrice.set("Mitanni", 40);
-    Assert.doesNotContain("asks", line());
+    // Item 18 (#837): one's own servant at court says what it asks for a new job, the price a new job must reach.
+    Assert.contains(`asks ${askingPrice(c, "Mitanni")} a season of a job's term`, line());
 
     c.contract.errand = newJobErrand({ what: "envoy", where: "Hatti" });
     c.contract.payOnDone = true;

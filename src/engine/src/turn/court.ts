@@ -225,6 +225,8 @@ P.hireAll = function (hires, carriedTo = null) {
     c.heldBy = null;
     c.waited = 0;
     c.pitches.clear();
+    // Item 18 (#837): the price it pitched at its new master's court is spent; a new job there is asked at its reckoning.
+    c.askingPrice.delete(winner);
     c.offers.clear();
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
     // A court that takes people on is a court that is hiring, as those who hear of it know.
@@ -456,7 +458,8 @@ export const WaryMost = 120;
  * ("Seeing oneself"), by its greed, by its name at that court ("A name has a price"), and by the debts that press on its
  * purse; less at the court it favours, or where its lover or family is. Then it bargains from what it has heard a job pays
  * (the owner's answers to item 11a: no going rate, no floor set by the engine; "what others were paid is only what a
- * character has heard, and he bargains from it"), and asks more of a court it heard loses its people or seizes hoards.
+ * character has heard, and he bargains from it"), asks more of a court it heard loses its people or seizes hoards, and
+ * less the longer it has waited for work.
  */
 export function basePrice(c: Character, court: Power): number {
   const rep = reputationAt(c, court);
@@ -475,7 +478,10 @@ export function basePrice(c: Character, court: Power): number {
   const seized = Math.trunc((Math.min(WarySeizedMost, WarySeized * heard.seized) * (100 - Math.trunc(c.traits.courage / 2))) / 100);
   const wary = danger + seized;
   price += Math.trunc((price * wary) / 100);
-  return price;
+  // Item 18 (#837, "when supply is greater, they fall"): one who has sought service unhired past its patience, wherever it
+  // went, asks less for each season more it seeks, to at most `waitFallMost` percent less.
+  const fall = c.status === "Free" && c.seeking ? Math.min(MoneyData.waitFallMost, MoneyData.waitFall * Math.max(0, c.idle - MoneyData.patience)) : 0;
+  return Math.max(1, price - Math.trunc((price * fall) / 100));
 }
 
 P.tasksDue = function () {
