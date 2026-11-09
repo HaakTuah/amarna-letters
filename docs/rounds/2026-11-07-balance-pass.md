@@ -534,3 +534,8 @@ under 'Minds follow what is at stake'), and the script decides beside every mode
 
 Questions for the owner: none new (#840, #841, #836, #837, #825, #832 and #806 stay open; each was taken as built).
 
+
+## Part F: the audit (in progress)
+
+Started from `develop` at bd7b715 (part E2, #843, and its milestone #844, merged), on `item/balance-f`. The plan is the
+line "F. The audit" at the head of this report.
