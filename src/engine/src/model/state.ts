@@ -352,6 +352,8 @@ export interface GameState {
   lettersStopped: string[];
   /** #806: what captive kings agreed to in their letters home, on the road or arrived ({@link WordHome}). */
   wordHome: WordHome[];
+  /** #806: the spies posted at a captor's court by their captive king's word home, on the errand to free him. */
+  freeing: string[];
   /** Item 17+: each king's standing order to pay and feed his troops, where he changed it (absent: pay and feed them all). */
   upkeep: Dict<Power, TroopUpkeep>;
   /**
@@ -582,6 +584,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payCarriers: [],
     lettersStopped: [],
     wordHome: [],
+    freeing: [],
     upkeep: new Dict(),
     councilOff: [],
     hunts: [],
@@ -726,6 +729,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payCarriers: list(S),
   lettersStopped: list(S),
   wordHome: list(() => WordHomeSchema),
+  freeing: list(S),
   upkeep: dict(() => TroopUpkeepSchema),
   councilOff: list(S),
   hunts: list(() => StandingHuntSchema),

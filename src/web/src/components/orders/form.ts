@@ -91,6 +91,9 @@ export interface Form {
   questionSpend: number;
   giftGold: number;
   handTo: Power;
+  /** #806: a held king's letter from captivity, and the court it goes to. */
+  writeTo: Power;
+  writeText: string;
   releaseWords: string;
   forgeWho: string;
   forgeText: string;
@@ -179,6 +182,8 @@ export function newForm(me: Power): Form {
     questionSpend: 40,
     giftGold: 20,
     handTo: first,
+    writeTo: first,
+    writeText: "",
     releaseWords: "",
     forgeWho: "",
     forgeText: "",

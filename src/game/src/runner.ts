@@ -45,6 +45,8 @@ import {
   requestFor,
   alive,
   heldKing,
+  heldLagOf,
+  findCharacter,
   newTurnSubmission,
   serialize,
   sortBy,
@@ -137,6 +139,23 @@ export class GameRunner {
   private readonly fallbackSeat: ScriptLeader;
   /** #806: the script that holds a realm while its king is held, a mind of its own (`turn/held-king.ts`). */
   private readonly caretaker: ScriptLeader;
+  /** #806: each realm's view, season by season, since its king was taken: what word from his court can bring him. */
+  private readonly courtViews = new Dict<Power, SeatView[]>();
+
+  /**
+   * #806: what a held king knows: his court's view as it stood when its word could last reach him at his captor's court,
+   * with what befell him there himself; null for a king who is not held.
+   */
+  private captiveView(p: Power, now: SeatView): SeatView | null {
+    const S_ = this.state;
+    const king = heldKing(S_, p);
+    if (king === null) return null;
+    const seen = this.courtViews.tryGet(p) ?? [now];
+    const lag = heldLagOf(S_, WorldMap.default, p);
+    const then = seen[Math.max(0, seen.length - 1 - lag)];
+    const own = now.inbox.filter((i) => i.subject === king.id && i.turn > then.turn);
+    return { ...then, turn: now.turn, season: now.season, heldAt: now.heldAt, inbox: [...then.inbox, ...own] };
+  }
   /** Item 16: the royal council of the seats played by a model or a human. */
   private readonly council: Council;
   private readonly fallbackMind: ICharacterMind = new ScriptMind();
@@ -760,6 +779,20 @@ export class GameRunner {
     const engine = new TurnEngine(S_);
     const living = alive(S_).filter((p) => !engine.isAsleep(p));
     const views = new Dict(living.map((p) => [p, Views.for(S_, p)] as const));
+    // #806: a realm's views are kept from its king's capture until he is free, for what word brings him (`captiveView`).
+    for (const p of alive(S_)) {
+      const k = findCharacter(S_, S_.reigns.get(p).character);
+      if (k === null || k.status !== "Captured") {
+        this.courtViews.delete(p);
+        continue;
+      }
+      const kept = this.courtViews.tryGet(p) ?? [];
+      kept.push(views.tryGet(p) ?? Views.for(S_, p));
+      if (kept.length > 12) kept.shift();
+      this.courtViews.set(p, kept);
+    }
+    // The seat of a held king sees what he knows; the caretaker, the court's own view.
+    const seatView = (p: Power): SeatView => this.captiveView(p, views.get(p)) ?? views.get(p);
     // A shadow brain: the stand-in reads every model or file seat's view each season, asleep or awake, so that when a call
     // fails it plays a king who remembers. Its reading changes nothing in the game, so replays stay exact; a strict replay
     // asks no seat and skips it.
@@ -784,10 +817,10 @@ export class GameRunner {
         this.recorded<TurnSubmission>(
           `t${turn}/orders/${p}`,
           TurnSubmissionSchema,
-          () => this.seatOf(p).decide(views.get(p), signal),
+          () => this.seatOf(p).decide(seatView(p), signal),
           async () => {
             // The script king stands in; the seat itself has not seen this season (its digest is kept for it).
-            const stand = await this.fallbackSeat.decide(views.get(p), signal);
+            const stand = await this.fallbackSeat.decide(seatView(p), signal);
             stand.fromFallback = true;
             return stand;
           },

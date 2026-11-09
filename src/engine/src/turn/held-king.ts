@@ -1,9 +1,10 @@
 /**
  * A captive king's realm under a caretaker (#806; the owner, 7 and 9 November 2026; Victory, "One scoreboard for every
  * person"). Once his court has heard that he is held, his player plays the captive: he may write letters, which leave
- * through his captor's court, read there and stopped if the captor says so, and agree in a letter home to his ransom or
- * to a spy hired or posted at his captor's court, which his court carries out when the letter arrives. A spy of his realm
- * posted at that court carries his letters home unread, and helps him get away (`kingsHeld`). Meanwhile a script holds
+ * through his captor's court, read there and stopped if the captor says so, and agree in a letter home to his ransom, to
+ * giving in (land ceded, troops given, an envoy sent with a tablet), or to a spy hired or posted at his captor's court,
+ * which his court carries out when the letter arrives. A spy so posted carries his letters home unread and helps him get
+ * away, at his own risk, and may sell him out instead (`kingsHeld`). Meanwhile a script holds
  * the realm with a narrow mandate (the runner asks it, `TurnSubmission.caretaker`): his standing orders stand, his troops
  * defend his own land, his taxes, debts, fees and tribute are kept, and nothing new is started, no war, treaty or
  * campaign ({@link Mandate}).
@@ -56,6 +57,7 @@ export function inMandate(s: GameState, p: Power, king: string, o: Order): boole
     case "huntBands":
     case "counterIntel":
     case "demand":
+    case "returnRunaways":
       return true;
     case "move":
     case "convoy":
@@ -76,12 +78,19 @@ export function inMandate(s: GameState, p: Power, king: string, o: Order): boole
   }
 }
 
-/** What a held king may agree to in a letter home: his own ransom, or a spy hired or posted at his captor's court. */
+/**
+ * What a held king may agree to in a letter home: his own ransom; giving in, by land ceded or troops given, or by an envoy
+ * his court sends with the tablet he names; or a spy hired or posted at his captor's court to free him.
+ */
 function homeWord(o: Order, king: Character): boolean {
   const host = king.heldBy;
   switch (o.type) {
     case "payRansom":
       return o.character === king.id;
+    case "cede":
+    case "giftUnit":
+    case "dispatch":
+      return true;
     case "hire":
     case "renew":
       return o.what === "spy" && o.where === host;
@@ -112,6 +121,8 @@ P.heldSeason = function (p, sub) {
   if (king === null) return sub.caretaker === null ? sub : newTurnSubmission({ ...sub, caretaker: null });
   // What his letters home agreed to, arrived: carried out this season, as the court's own business.
   const arrived = S.wordHome.filter((w) => w.power === p && w.journey === "").map((w) => w.order);
+  // A spy his word posts at his captor's court goes on the errand to free him.
+  for (const o of arrived) if (o.type === "spy" && o.court === king.heldBy && !S.freeing.includes(o.character)) S.freeing.push(o.character);
   S.wordHome = S.wordHome.filter((w) => !(w.power === p && w.journey === ""));
   this.captiveWrites(p, king, sub.orders);
   const care = sub.caretaker ?? newTurnSubmission();
@@ -140,7 +151,7 @@ P.captiveWrites = function (p, king, orders) {
       p,
       "Rejected",
       "Held at a foreign court",
-      `You are held at the court of ${powerName(host)}, and your realm is kept in your name: your standing orders stand, your troops defend your land and your debts, fees and tribute are kept, but nothing new is begun. From here you may only write letters (order write), and in a letter home agree to your ransom or to a spy hired or posted at this court. Not carried out: ${refused.join("; ")}.`,
+      `You are held at the court of ${powerName(host)}, and your realm is kept in your name: your standing orders stand, your troops defend your land and your debts, fees and tribute are kept, but nothing new is begun. From here you may only write letters (order write), and in a letter home agree to your ransom, to giving in (land ceded, troops given, an envoy sent with a tablet), or to a spy hired or posted at this court to free you. Not carried out: ${refused.join("; ")}.`,
       king.id,
     );
   if (king.duty === "UnderGuard") {

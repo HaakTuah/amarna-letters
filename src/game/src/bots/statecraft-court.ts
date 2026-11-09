@@ -461,8 +461,9 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
             : p.honesty > 0.5 || p.greed > 0.5
               ? captive(c.id, "Ransom", Math.trunc(60 + 60 * p.greed))
               : captive(c.id, "Release");
-    // #806: a king held for ransom writes home, to beg his ransom, and to nobody else: those letters stay at our court.
-    if (c.kingOf !== null && fate.fate === "Ransom" && KingPlay.on(b.me))
+    // #806: a cunning captor lets a king held for ransom write home, to beg his ransom, and to nobody else: those letters
+    // stay at our court. Others let his letters go.
+    if (c.kingOf !== null && fate.fate === "Ransom" && KingPlay.on(b.me) && p.cunning > 0.5)
       for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== c.kingOf), [(x: Power) => x, cmpPower]))
         if (!brain.lettersKept.has(`${c.id}|${x}`)) {
           orders.push({ ...captive(c.id, "StopLetters"), to: x });

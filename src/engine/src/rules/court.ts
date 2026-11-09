@@ -86,9 +86,23 @@ export function lettersKept(s: GameState, king: string, to: Power): boolean {
   return s.lettersStopped.includes(king) || s.lettersStopped.includes(`${king}|${to}`);
 }
 
-/** A spy of `p`'s posted at the court of `host`, who may carry the captive king's letters and help him get away. */
+/**
+ * A spy of `p`'s posted at the court of `host` on the errand his captive king gave him in a letter home (#806,
+ * `GameState.freeing`): he carries the king's letters home unread and helps him get away.
+ */
 export function spyWith(s: GameState, p: Power, host: Power): Character | null {
-  return s.characters.find((c) => c.status === "Employed" && c.employer === p && c.duty === "SpyPosted" && c.at === host && c.heldBy === null) ?? null;
+  return s.characters.find((c) => s.freeing.includes(c.id) && c.status === "Employed" && c.employer === p && c.duty === "SpyPosted" && c.at === host && c.heldBy === null) ?? null;
+}
+
+/**
+ * #806: the seasons word from a held king's court takes to reach him at his captor's court, beyond the next (0 while not
+ * held, or held at his own court's city), as `courtLagOf` reckons it for a king away from his court.
+ */
+export function heldLagOf(s: GameState, map: WorldMap, p: Power): number {
+  const k = heldKing(s, p);
+  if (k === null) return 0;
+  const t = wordHomeAt(s, map, courtOf(s, map, k.heldBy!), courtOf(s, map, p), s.turn);
+  return t === Infinity ? Number.MAX_SAFE_INTEGER : t > s.turn ? t - s.turn : 0;
 }
 
 /** Whether the court is on the road (`alone`: whether the king is, without it). */

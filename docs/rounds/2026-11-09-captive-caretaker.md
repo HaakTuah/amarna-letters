@@ -40,12 +40,21 @@ passing out, like spies and such."
 
 ## Readings taken
 
-- **The captive sees what his court sees,** as before: a view of his own, made only of what letters bring him at his
-  captor's court, would be a second seat view to build and keep; the request and the rules tell him that he is held and
-  what he may do. Principle: keep it lean; pillar 4 is kept for what he can act on (his orders travel as letters).
-- **What he may agree to in a letter home** is his ransom and a spy at his captor's court, the two things the owner's
-  words name (the ransom, "spies and such"); the rest of his realm's business is the caretaker's. Principle: the
-  caretaker "holds the realm and does not steer it" (archive item 234), so the captive steers only his own release.
+- **The captive knows his realm only by word from his court:** his court's view as it stood when its last courier could
+  reach him at his captor's court, kept season by season since his capture, with what befell him there himself. The
+  caretaker reads the court's own view. Principle: "Everything is somewhere, and everything travels" (the one page), as
+  for a king away from his court (item 17b, part C).
+- **What he may agree to in a letter home** is his ransom, giving in (land ceded, troops given, or an envoy his court
+  sends with the tablet he names, a treaty sealed as any is) and a spy at his captor's court to free him; the rest of his
+  realm's business is the caretaker's. Principle: the owner's "give in or die ... So he can be pressured" and "spies and
+  such" (archive items 234 and 235); the caretaker "holds the realm and does not steer it".
+- **A spy helps only on the errand his king gave him:** one posted at the captor's court by the king's own word home.
+  He is caught at it now and then, and a disloyal, greedy one sells his king out by telling the captor, his own choice
+  by his traits, as a script character's choices are (a model character's request does not ask it yet; it joins the
+  characters' requests with the next work on them). Principle: "Nothing happens unless someone orders it" and "Not: a
+  post whose errands come free" (the one page); "Skills set the odds; the character decides".
+- **On the road under guard he writes nothing:** he is not yet at a court whose people could carry a letter. Principle:
+  "Everything is somewhere".
 - **The caretaker is a script of its own,** not the seat's: it does not carry the king's ledger or memory. Principle:
   "there is no character in the game you want to make a regent", and a script taking over is "the most natural way"
   (the owner, item 234).
@@ -57,8 +66,6 @@ passing out, like spies and such."
   physical time.
 - **A spy smuggles only letters home:** he sends them as his own reports go, to his master's court. Principle:
   "Everything is somewhere": the spy's road is home.
-- **A spy who helps an escape risks only what a posted spy always risks** (the captor's watchmen); selling his king out
-  is his to do as any servant's report is, with no rule of its own. Principle: "Don't prohibit; give it its real cost."
 
 ## Script players and the measure
 

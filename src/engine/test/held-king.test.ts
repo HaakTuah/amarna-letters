@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, OrderValidator, inboxOf, type Power, captive, heldKing, hold, move, newTurnSubmission, ownedBy, payRansom, writeLetter } from "@amarna/engine";
+import { type GameState, OrderValidator, inboxOf, type Power, captive, cede, heldKing, hold, move, newTurnSubmission, ownedBy, payRansom, writeLetter } from "@amarna/engine";
 import { inMandate } from "../src/turn/held-king.ts";
 import { Assert, egyptHeld } from "./support.ts";
 
@@ -55,6 +55,11 @@ describe("HeldKingTests", () => {
     const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
     spy.duty = "SpyPosted";
     spy.at = "Hatti";
+    // Posted for anything else, he takes nothing out: only on the errand his king's word gave him.
+    e.heldSeason("Egypt", newTurnSubmission({ orders: [writeLetter("Egypt", "Hold fast.")], caretaker: newTurnSubmission() }));
+    Assert.equal(k.id, Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter")).characterId);
+    s.journeys = [];
+    s.freeing.push(spy.id);
     const before = inboxOf(s, "Hatti").length;
     e.heldSeason("Egypt", newTurnSubmission({ orders: [payRansom(k.id)], caretaker: newTurnSubmission() }));
     const j = Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter"));
@@ -66,6 +71,26 @@ describe("HeldKingTests", () => {
     const out = e.heldSeason("Egypt", newTurnSubmission({ caretaker: newTurnSubmission() }));
     Assert.equal(["payRansom"], out.orders.map((o) => o.type));
     Assert.empty(s.wordHome);
+  });
+
+  test("His word home may give in: land ceded goes home with his letter", () => {
+    const { s, e } = egyptHeld();
+    const own = ownedBy(s, "Egypt")[0];
+    e.heldSeason("Egypt", newTurnSubmission({ orders: [cede(own, "Hatti")], caretaker: newTurnSubmission() }));
+    Assert.equal(["cede"], s.wordHome.map((w) => w.order.type));
+  });
+
+  test("A disloyal, greedy spy sent to free him sells him out to his captor", () => {
+    const { s, e } = egyptHeld();
+    const k = kingOf(s, "Egypt");
+    const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
+    Object.assign(spy, { duty: "SpyPosted", at: "Hatti" });
+    spy.traits.loyalty = 20;
+    spy.traits.greed = 80;
+    s.freeing.push(spy.id);
+    e.kingsHeld();
+    Assert.empty(s.freeing);
+    Assert.true(inboxOf(s, "Hatti").some((i) => i.title === "A plot to free your captive"));
   });
 
   test("A free king does not write so, and a captor keeps only a king's letters", () => {

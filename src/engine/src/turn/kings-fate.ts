@@ -36,6 +36,13 @@ import { spyWith } from "../rules/court.ts";
  */
 export const KingData = { competence: 60, escape: 1 } as const;
 
+/**
+ * #806, first guesses: the chance in a thousand each season that a spy on the errand to free his king is caught at it by
+ * the captor's guards; and the spy who sells his king out instead, by his own traits (a script character's choice): one
+ * of loyalty below `sellLoyalty` and greed of `sellGreed` or more tells the captor.
+ */
+export const AidData = { caught: 40, sellLoyalty: 35, sellGreed: 60 } as const;
+
 declare module "./core.ts" {
   interface TurnEngine {
     /** The game's start: each power's king as a person, reigning. */
@@ -279,8 +286,20 @@ P.kingsHeld = function () {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Captured" || c.heldBy === null || c.duty === "UnderGuard") continue;
     const host = c.heldBy;
-    // #806: a spy of his realm posted at his captor's court adds his own skill at going unseen to the king's.
-    const aid = spyWith(S, p, host);
+    // #806: a spy his word posted at his captor's court to free him adds his own skill at going unseen to the king's, at
+    // the risk of being caught at it; or sells him out.
+    let aid = spyWith(S, p, host);
+    if (aid !== null && aid.traits.loyalty < AidData.sellLoyalty && aid.traits.greed >= AidData.sellGreed) {
+      S.freeing = S.freeing.filter((x) => x !== aid!.id);
+      notify(S, host, "Notice", "A plot to free your captive", `${aid.name}, at your court in the service of ${powerName(p)}, tells you that he was sent to free ${c.name} and carry his letters out.`, aid.id);
+      remember(aid, S.turn, `I told the court of ${land(host)} that I was sent to free my king.`);
+      logEvent(S, "king-sold-out", `${aid.name} sold out ${c.name}, held by ${host}.`, [host], "king-sold-out");
+      aid = null;
+    } else if (aid !== null && this.r("king-aid", aid.id).chance(AidData.caught / 1000)) {
+      this.capture(aid, host, this.r("king-aid-caught", aid.id));
+      logEvent(S, "king-aid-caught", `${aid.name} was caught trying to free ${c.name} from ${host}.`, [host], "king-aid-caught");
+      continue;
+    }
     if (!this.r("king-escape", c.id).chance(((c.skills.stealth + (aid?.skills.stealth ?? 0)) * KingData.escape) / 1000)) continue;
     S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
     c.status = "Employed";
