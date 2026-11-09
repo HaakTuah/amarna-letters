@@ -50,7 +50,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
   common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
   and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
-  by hand, as this repository treats `docs/intent/`. What moves: the security baseline, the four pillars, the one inbox,
+  by hand, as this repository treats `docs/intent/`. It comes in two layers (archive item 240): a safety floor every project takes whole and can never edit
+  or leave out, and practice modules each project picks in a small manifest of its own; this game takes them all. What moves: the security baseline, the four pillars, the one inbox,
   keeping the owner's words, the roles and reviews, helpers, models and effort, the Git flow, usage, updates and "No
   description left untrue". What stays here: what the game is, its build order and builder rules, its commands and
   whatever only it has, each rule file cut to that, with pointers into `core/`. The steps: (1) the owner creates the
