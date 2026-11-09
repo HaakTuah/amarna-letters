@@ -42,8 +42,8 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   free him on the road. He was no spy at a post: his captor may put him to death, ransom him (his realm pays), question,
   hand over or release him, never turn him. Script captors ask a king's ransom (300 shekels and 300 more by greed, a first
   guess) or, vengeful (above 0.7) against a foe, put him to death; a script king ransoms its own whatever it costs.
-- **His court flees** to the nearest city his realm still holds, and rules in his name from there: the seat goes on
-  giving orders. A realm that holds nothing has fallen (`fall`, as before), and its king lives on as a free man, a former
+- **His court flees** to the nearest city his realm still holds, and keeps his realm in his name from there, under a
+  caretaker once it has heard ([59](59-a-captive-kings-realm.md), #806). A realm that holds nothing has fallen (`fall`, as before), and its king lives on as a free man, a former
   ruler. Since part C the court is lost with its own city, the king with his (`courtFlees`, `kingTaken`).
 - **He may get away**: each season he is held at a court, with a chance of his skill at going unseen in a thousand
   (`KingData.escape`; about one season in seventeen for a king of middling skill). Set free or escaped, he walks home like
@@ -87,7 +87,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   people, captives, tolls on all his land, moving the court) go to the court with his couriers (`sendOrders`), carried out
   there when they arrive.
 - **His court learns of his capture or death by word** (`kingLostWord`, `kingLostHeard`, news `KingTaken`; `KingDead`):
-  taken or killed apart from it, he stands nowhere (`standsAt` is the court, which rules in his name), but it believes
+  taken or killed apart from it, he stands nowhere (`standsAt` is the court, which keeps his realm in his name), but it believes
   him where he was (`GameState.kingHeard`, read by `kingAfield` and `seatOf`): its orders go out, its reports and the
   court's business come, its view and its order checks are drawn, as from there, its own king is shown as last known, and
   it sees nothing of it (the event is his captor's) until the word comes; a king back at his court, or his court come to

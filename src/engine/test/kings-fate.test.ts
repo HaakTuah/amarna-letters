@@ -113,9 +113,13 @@ describe("KingsFateTests", () => {
     const { s } = held();
     const c = kingOf(s, "Egypt");
     season(s, subs({ Hatti: { orders: [captive(c.id, "Ransom", 50)] } }));
-    for (let i = 0; i < 12 && c.status === "Captured"; i++) {
-      const demand = s.tasks.find((t) => t.kind === "RansomDemand" && t.characterId === c.id && t.announced);
-      season(s, demand !== undefined ? subs({ Egypt: { orders: [payRansom(c.id)] } }) : new Dict());
+    // #806: he agrees to it in a letter home, which his court carries out when it arrives; his captor asks again while
+    // no demand stands.
+    for (let i = 0; i < 24 && c.status === "Captured"; i++) {
+      const demand = s.tasks.find((t) => t.kind === "RansomDemand" && t.characterId === c.id);
+      const asked = demand === undefined ? { Hatti: { orders: [captive(c.id, "Ransom", 50)] } } : {};
+      const agree = demand?.announced === true && !s.wordHome.some((w) => w.power === "Egypt") ? { Egypt: { orders: [payRansom(c.id)] } } : {};
+      season(s, subs({ ...asked, ...agree }));
     }
     Assert.equal("Employed", c.status);
     for (let i = 0; i < 12 && c.duty !== "Ruling"; i++) season(s);

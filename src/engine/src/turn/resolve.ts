@@ -93,7 +93,7 @@ P.resolveSeason = function (submissions) {
   this.seeLand();
   // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
   // Item 13: orders for places beyond the season's reach set out with couriers; those arriving now join the season's.
-  const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, this.sendOrders(p, submissions.tryGet(p) ?? newTurnSubmission()))] as const));
+  const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, this.sendOrders(p, this.heldSeason(p, submissions.tryGet(p) ?? newTurnSubmission())))] as const));
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);

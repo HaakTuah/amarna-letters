@@ -27,7 +27,7 @@ import { type CaravanView, newBandSeen, newDebtView, newLotView, newSeatView, ne
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { season } from "./calendar.ts";
-import { broughtToKing, courtLagOf, courtOf, kingAfield, seatOf } from "./court.ts";
+import { broughtToKing, courtLagOf, courtOf, heldKing, kingAfield, seatOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -132,6 +132,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     courtTo: s.kingRoads.find((r) => r.power === p && !r.alone)?.to ?? null,
     // Where the court believes him: while word of his loss is on the road, where he was.
     kingAt: kingAfield(s, p) ?? null,
+    heldAt: heldKing(s, p)?.heldBy ?? null,
     kingTo: s.kingRoads.find((r) => r.power === p && r.alone)?.to ?? null,
     seat: seatOf(s, m, p),
     traits: s.reigns.tryGet(p)?.traits ?? [],

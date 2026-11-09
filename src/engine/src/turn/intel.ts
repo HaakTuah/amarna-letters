@@ -549,6 +549,15 @@ P.captive = function (host, co) {
   }
   const employer = c.employer;
   switch (co.fate) {
+    case "StopLetters":
+    case "PassLetters":
+      // #806: the captive king's letters, kept at this court or let go, from now until the captor says otherwise.
+      {
+        const key = co.to === undefined || co.to === null ? c.id : `${c.id}|${co.to}`;
+        S.lettersStopped = S.lettersStopped.filter((x) => (key === c.id ? x !== c.id && !x.startsWith(`${c.id}|`) : x !== key));
+        if (co.fate === "StopLetters") S.lettersStopped.push(key);
+      }
+      break;
     case "Execute": {
       // Its master goes on believing what it believed until the rumour of the death arrives; a king's realm knows at once,
       // for his heir reigns from this season (item 17b).

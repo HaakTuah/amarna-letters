@@ -160,13 +160,19 @@ export function describe(o: Order): string {
           ? `hand the captive ${o.character} over to ${o.to !== undefined && o.to !== null ? powerName(o.to) : "?"}`
           : o.fate === "TakePurse"
             ? `take the purse of the captive ${o.character}`
-            : `${o.fate.toLowerCase()} the captive ${o.character}`;
+            : o.fate === "StopLetters"
+              ? `keep the letters of the captive ${o.character}${o.to != null ? ` to ${powerName(o.to)}` : ""} at your court`
+              : o.fate === "PassLetters"
+                ? `let the letters of the captive ${o.character}${o.to != null ? ` to ${powerName(o.to)}` : ""} go`
+                : `${o.fate.toLowerCase()} the captive ${o.character}`;
     case "steal":
       return `have ${o.character} steal a tablet from the archive they watch`;
     case "gift":
       return `give ${o.character} a gift of ${o.gold} shekels`;
     case "payRansom":
       return `pay the ransom for ${o.character}`;
+    case "write":
+      return `write from captivity to the court of ${powerName(o.to)}`;
     case "letter":
       return o.fate === "Send" ? `send the offer of ${o.province}'s people to ${powerName(o.to)}` : `ask ${powerName(o.to)} ${o.price} shekels for the offer of ${o.province}'s people`;
     case "buyLetter":

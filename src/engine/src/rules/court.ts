@@ -9,6 +9,7 @@ import { CourtData, KingAloneData } from "../model/command.ts";
 import { seasonOfTurn, type WorldMap } from "../model/map.ts";
 import type { CourtOrder } from "../model/orders.ts";
 import type { Crowned, Power } from "../model/power.ts";
+import type { Character } from "../model/people.ts";
 import { findCharacter, type GameState } from "../model/state.ts";
 import { PointsPerDay, cheapestRoute, legPoints } from "../model/travel.ts";
 import type { Checking } from "./validator-context.ts";
@@ -39,7 +40,7 @@ export function seatOf(s: GameState, map: WorldMap, p: Power): string {
 
 /**
  * Where the king physically stands for the rules of the world (item 17b, part C): apart from his court, or with it; one
- * taken or dead away from it is no longer where he was, and his court rules in his name. A unit he stands with carries
+ * taken or dead away from it is no longer where he was, and his court keeps his realm in his name (under a caretaker once it hears, #806). A unit he stands with carries
  * out a standing order, his presence holds a city's gate, and a battle or a city lost there takes him.
  */
 export function standsAt(s: GameState, map: WorldMap, p: Power): string {
@@ -68,6 +69,26 @@ export function broughtToKing(s: GameState, turn: number, lag: number): boolean 
 /** Item 17b, part C: whether word that a power's king was taken or died away from his court is still on its way to it. */
 export function kingLossUnheard(s: GameState, p: Power): boolean {
   return s.journeys.some((j) => j.kind === "Word" && j.to === p && (j.news === "KingTaken" || j.news === "KingDead"));
+}
+
+/**
+ * A power's king, held where his court has heard of it (#806): his player plays the captive and a caretaker the realm.
+ * One taken whose word is still on the road is not yet: his court goes on as before until it hears.
+ */
+export function heldKing(s: GameState, p: Power): Character | null {
+  const r = s.reigns.tryGet(p);
+  const c = r === undefined ? null : findCharacter(s, r.character);
+  return c !== null && c.status === "Captured" && c.heldBy !== null && !kingLossUnheard(s, p) ? c : null;
+}
+
+/** Whether a captive king's captor keeps his letters to the court `to` (#806). */
+export function lettersKept(s: GameState, king: string, to: Power): boolean {
+  return s.lettersStopped.includes(king) || s.lettersStopped.includes(`${king}|${to}`);
+}
+
+/** A spy of `p`'s posted at the court of `host`, who may carry the captive king's letters and help him get away. */
+export function spyWith(s: GameState, p: Power, host: Power): Character | null {
+  return s.characters.find((c) => c.status === "Employed" && c.employer === p && c.duty === "SpyPosted" && c.at === host && c.heldBy === null) ?? null;
 }
 
 /** Whether the court is on the road (`alone`: whether the king is, without it). */

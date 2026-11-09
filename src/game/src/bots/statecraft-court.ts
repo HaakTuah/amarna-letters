@@ -287,6 +287,14 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   );
   const leader = b.leader();
 
+  // #806: our king held abroad wants a spy of ours at his captor's court, to take his letters out and help him get away.
+  const held = v.heldAt;
+  if (held !== null && KingPlay.on(b.me) && ready.length > 0 && ![...brain.posted.values()].some(([post]) => post === held)) {
+    const agent = ready.shift()!;
+    orders.push(placeSpy(agent.id, held));
+    busy.add(agent.id);
+  }
+
   // Spies come home from a court that has fallen, or, when nobody is left at court to send, from a court watched for eight
   // seasons that is no longer the war, the leader or hostile.
   for (const [id, [post, since]] of sortBy([...brain.posted], [(x: [string, [string, number]]) => x[0], cmpStr])) {
@@ -446,6 +454,13 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
             : p.honesty > 0.5 || p.greed > 0.5
               ? captive(c.id, "Ransom", Math.trunc(60 + 60 * p.greed))
               : captive(c.id, "Release");
+    // #806: a king held for ransom writes to nobody we are at odds with: those letters stay at our court.
+    if (c.kingOf !== null && fate.fate === "Ransom" && KingPlay.on(b.me))
+      for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== c.kingOf && brain.rel.tryGet(x)?.hostile === true), [(x: Power) => x, cmpPower]))
+        if (!brain.lettersKept.has(`${c.id}|${x}`)) {
+          orders.push({ ...captive(c.id, "StopLetters"), to: x });
+          brain.lettersKept.add(`${c.id}|${x}`);
+        }
     if (fate.fate === "Ransom") {
       // A demand stands until it is paid or lapses: asking again would only replace it. In case the word that it lapsed
       // never comes, it asks again after six seasons.

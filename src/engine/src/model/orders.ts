@@ -617,7 +617,11 @@ export interface ForgeOrder {
   clauses?: Clause[] | null;
 }
 
-export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver", "TakePurse"] as const;
+/**
+ * #806: "StopLetters" keeps a captive king's letters at the captor's court (read there, sent nowhere), those to the court
+ * `to` or, with none, all of them; "PassLetters" lets them go again, which they do until stopped.
+ */
+export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver", "TakePurse", "StopLetters", "PassLetters"] as const;
 export type CaptiveFate = (typeof CaptiveFateValues)[number];
 
 /** Decide the fate of a caught spy held at this court. */
@@ -634,6 +638,15 @@ export interface CaptiveOrder {
 export interface PayRansomOrder {
   type: "payRansom";
   character: string;
+}
+/**
+ * #806: a captive king's letter to a court (his own included): it leaves through his captor's court, which reads it and
+ * may stop it, unless a spy of his realm posted there carries it out unread (`turn/held-king.ts`).
+ */
+export interface WriteOrder {
+  type: "write";
+  to: Power;
+  letter: string;
 }
 /**
  * #592: what to do with a province's offer the court holds, caught on the road: send it to `to` (its claimant or the
@@ -729,6 +742,7 @@ export type Order =
   | ForgeOrder
   | CaptiveOrder
   | PayRansomOrder
+  | WriteOrder
   | LetterOrder
   | BuyLetterOrder
   | SeizeHoardOrder

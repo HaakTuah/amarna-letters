@@ -3,7 +3,7 @@
  * a character with the duty Ruling, as a ruler risen in play already was. Taken where he stands or on the road, he is his
  * captor's captive, his fate the captor's to decide by the orders for any captive (put to death, ransomed, released, handed
  * over), and his skill at going unseen may get him out; his court flees to the nearest city his realm still holds, and
- * rules in his name until he is back. He dies only by a cause where he is, never by dice: put to death, or on the road. When
+ * keeps his realm in his name under a caretaker until he is back (#806, `held-king.ts`). He dies only by a cause where he is, never by dice: put to death, or on the road. When
  * he dies his player is out, and the next name on his realm's record of the kings who followed reigns (`model/heirs.ts`),
  * or past it a son or brother drawn as facts, from that season, inheriting a third of his father's standing.
  */
@@ -28,6 +28,7 @@ import { drawSkills } from "../rules/skills.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { upper } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
+import { spyWith } from "../rules/court.ts";
 
 /**
  * First guesses (item 18 tunes them): a king's competence as a person, from which his skills are drawn; the chance in a
@@ -51,7 +52,7 @@ declare module "./core.ts" {
     courtFlees(p: Power, by: Power | null, road: boolean): void;
     /** Item 17b, part C: word that the king was taken (`text`) sets out from `where` to his court, unless he was with it. */
     kingLostWord(p: Power, where: string, text: string): void;
-    /** Item 17b, part C: word that the king was taken reaches his court, which rules in his name from now. */
+    /** Item 17b, part C: word that the king was taken reaches his court, which keeps his realm in his name under a caretaker from now (#806). */
     kingLostHeard(p: Power, text: string): void;
     /** Item 17b, part C: a king whose side lost a battle where he stood dies in it, is taken, or gets away with his men. */
     kingsInBattle(result: AdjudicationResult): void;
@@ -183,7 +184,7 @@ P.kingLostHeard = function (p, text) {
   const S = this.s;
   S.kingHeard.delete(p);
   const c = findCharacter(S, S.reigns.get(p).character);
-  const still = c !== null && c.status === "Captured" ? " Your court rules in his name until he is back." : "";
+  const still = c !== null && c.status === "Captured" ? " Your court keeps the realm in his name under a caretaker until he is back: his standing orders stand, his land is defended and his dues kept, and nothing new is begun; he may write from captivity." : "";
   notify(S, p, "Notice", "The king taken", `${text}${still}`);
   logEvent(S, "king-taken-heard", text, [p]);
 };
@@ -277,13 +278,16 @@ P.kingsHeld = function () {
   for (const p of alive(S)) {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Captured" || c.heldBy === null || c.duty === "UnderGuard") continue;
-    if (!this.r("king-escape", c.id).chance((c.skills.stealth * KingData.escape) / 1000)) continue;
     const host = c.heldBy;
+    // #806: a spy of his realm posted at his captor's court adds his own skill at going unseen to the king's.
+    const aid = spyWith(S, p, host);
+    if (!this.r("king-escape", c.id).chance(((c.skills.stealth + (aid?.skills.stealth ?? 0)) * KingData.escape) / 1000)) continue;
     S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
     c.status = "Employed";
     c.heldBy = null;
     c.intercepted = false;
-    remember(c, S.turn, `I got away from my guards in ${land(host)}.`);
+    remember(c, S.turn, `I got away from my guards in ${land(host)}${aid !== null ? `, with the help of ${aid.name}` : ""}.`);
+    S.lettersStopped = S.lettersStopped.filter((x) => x !== c.id && !x.startsWith(`${c.id}|`));
     notify(S, host, "Notice", "A king escapes", `${c.name}, the ${rulerStyle(p)} of ${powerName(p)} you held, has got away from your guards.`, c.id);
     logEvent(S, "king-escapes", `${c.name}, king of ${p}, escaped from ${host}.`, [host], "king-escapes");
     this.kingGoesHome(c, p, this.courtAt(host));

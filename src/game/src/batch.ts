@@ -51,6 +51,7 @@ import { GameRunner } from "./runner.ts";
 import { SignalDetector } from "./signals.ts";
 import { MoneyWatch, moneyReport, type MoneyMeasure } from "./money-report.ts";
 import { SpendingWatch, spendingReport, type SpendingMeasure } from "./spending-report.ts";
+import { HeldWatch, heldReport, type HeldMeasure } from "./captives-report.ts";
 
 /**
  * A kingdom's fall as the pace of war measures it: the season, the conqueror, and the seasons from the conqueror's first
@@ -98,6 +99,8 @@ export interface GameSummary {
   money?: MoneyMeasure;
   /** Item 18, part E: what the Great Kings spent on, and their first marches ({@link SpendingWatch}). */
   spending?: SpendingMeasure;
+  /** #806: the kings held captive and how long ({@link HeldWatch}); older summaries have none. */
+  held?: HeldMeasure;
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
   /**
@@ -318,12 +321,14 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   await runner.prepare();
   const watch = new MoneyWatch();
   const spent = new SpendingWatch(runner.state);
+  const captives = new HeldWatch();
   // Each season read once it is played, by its own number, the last (when playTurn says the age is over) included.
   for (let more = true; more; ) {
     const played = runner.state.turn;
     more = await runner.playTurn();
     watch.season(runner.state, played);
     spent.season(runner.state, played, runner.log);
+    captives.season(runner.state);
   }
   const s = runner.state;
 
@@ -362,6 +367,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     characterResults: characters.map((x) => characterResult(x.character)),
     money: watch.end(characters),
     spending: spent.end(),
+    held: captives.end(s),
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
@@ -773,6 +779,7 @@ export function batchReport(games: readonly GameSummary[]): string {
   lines.push(...scoreboardReport(games));
   lines.push(...moneyReport(games.flatMap((g) => (g.money !== undefined ? [g.money] : []))));
   lines.push(...spendingReport(games.flatMap((g) => (g.spending !== undefined ? [g.spending] : []))));
+  lines.push(...heldReport(games.flatMap((g) => (g.held !== undefined ? [g.held] : []))));
   const cost = sum(games, (g) => g.costUsd);
   if (cost > 0) lines.push(`\nModel cost: $${fmt(cost, "0.00")} total, $${fmt(cost / games.length, "0.00")} per game.`);
   const errors = sum(games, (g) => g.errors);

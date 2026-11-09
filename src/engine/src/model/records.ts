@@ -36,7 +36,7 @@ export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, 
   offerAgain: B,
 });
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer", "LetterPrice"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer", "LetterPrice", "CaptiveLetter"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**

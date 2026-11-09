@@ -191,7 +191,9 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         if (v.omens !== ``) sb.appendLine(`OMENS: ${v.omens}`);
         // Item 13: where the court is, and (item 17b, part C) where the king stands apart from it, from where his orders go out.
         const courtRoad = v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``;
-        if (v.courtAt !== `` && v.kingAt === null) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${courtRoad}; your orders go out from here (see COMMAND AT A DISTANCE).`);
+        // #806: a king held abroad plays the captive; a caretaker keeps his realm.
+        if (v.heldAt !== null) sb.appendLine(`COURT: you are held captive at the court of ${v.heldAt}; your court, in ${v.courtAt}, keeps your realm in your name under a caretaker, and your orders are only letters, your ransom and a spy at that court (see the rules on a king taken).`);
+        else if (v.courtAt !== `` && v.kingAt === null) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${courtRoad}; your orders go out from here (see COMMAND AT A DISTANCE).`);
         else if (v.courtAt !== ``)
           sb.appendLine(`COURT: you are in ${v.kingAt}${v.kingTo !== null ? `, on the road to ${v.kingTo}` : ``}, apart from your court, and your orders go out from there; your court, with your treasury and archive, is in ${v.courtAt}${courtRoad}, where envoys and letters come (see COMMAND AT A DISTANCE).`);
         const rank = rankLine(v);

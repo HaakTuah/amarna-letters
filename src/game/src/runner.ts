@@ -44,6 +44,8 @@ import {
   newSleepState,
   requestFor,
   alive,
+  heldKing,
+  newTurnSubmission,
   serialize,
   sortBy,
   type AudienceRecord,
@@ -133,6 +135,8 @@ export class GameRunner {
   private readonly strict: boolean;
   /** The script king that stands in when a seat's call fails. It keeps up with every model and file seat (see orders). */
   private readonly fallbackSeat: ScriptLeader;
+  /** #806: the script that holds a realm while its king is held, a mind of its own (`turn/held-king.ts`). */
+  private readonly caretaker: ScriptLeader;
   /** Item 16: the royal council of the seats played by a model or a human. */
   private readonly council: Council;
   private readonly fallbackMind: ICharacterMind = new ScriptMind();
@@ -195,6 +199,7 @@ export class GameRunner {
     this.narrator = narrator;
     this.replay = replay;
     this.fallbackSeat = new ScriptLeader(state.seed);
+    this.caretaker = new ScriptLeader(state.seed);
     this.council = new Council(state.seed);
     // Who may sleep: on replay, whoever could in the recorded game; live, the seats that can.
     const sleepers = !state.config.sleepingSeats
@@ -790,7 +795,13 @@ export class GameRunner {
         ),
       ),
     );
-    return new Dict(living.map((p, i) => [p, results[i]] as const));
+    const out = new Dict(living.map((p, i) => [p, results[i]] as const));
+    // #806: a realm whose king is held is kept by the caretaker, asked whether its seat sleeps or not; the seat's own
+    // orders are the captive's.
+    const held = alive(S_).filter((p) => heldKing(S_, p) !== null);
+    const cares = await Promise.all(held.map((p) => this.recorded<TurnSubmission>(`t${turn}/caretaker/${p}`, TurnSubmissionSchema, () => this.caretaker.decide({ ...(views.tryGet(p) ?? Views.for(S_, p)), heldAt: null }, signal), null, this.caretaker.label)));
+    held.forEach((p, i) => out.set(p, newTurnSubmission({ ...(out.tryGet(p) ?? newTurnSubmission()), caretaker: cares[i] })));
+    return out;
   }
 
   /**

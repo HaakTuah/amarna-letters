@@ -132,6 +132,8 @@ export class Brain {
   readonly questioned = new HSet<string>();
   /** Captives whose purse it took (the owner's answers to item 11a: a captive's purse stays on him until his captor takes it). */
   readonly stripped = new HSet<string>();
+  /** #806: the captive kings' letters we keep, as `king|court`. */
+  readonly lettersKept = new HSet<string>();
   readonly handedOver = new HSet<string>();
   readonly hosted = new HSet<string>();
   readonly lastSteal = new Dict<string, number>();

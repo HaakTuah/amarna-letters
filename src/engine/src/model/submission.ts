@@ -1,5 +1,5 @@
 /** A seat's submission for a season: its orders, the ones refused, its ledger of dealings, and its plans for the seasons it sleeps. */
-import { B, S, list, obj } from "../core/json.ts";
+import { B, S, list, obj, opt, type ObjSchema, type Schema } from "../core/json.ts";
 import { ScheduledOrdersSchema, StandingRequestSchema, type ScheduledOrders, type StandingRequest } from "./sleep.ts";
 import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import type { Power } from "./power.ts";
@@ -52,13 +52,18 @@ export interface TurnSubmission {
   stayAwake: boolean;
   /** Item 16: a model, file or human seat turns its royal council "on" or "off" from next season ("" leaves it as it is). */
   council: string;
+  /**
+   * #806: while the seat's king is held, the caretaker's orders for his realm, asked by the runner beside the seat's own
+   * (which are then the captive's: `turn/held-king.ts`). Null otherwise.
+   */
+  caretaker: TurnSubmission | null;
 }
 
 export function newTurnSubmission(init: Partial<TurnSubmission> = {}): TurnSubmission {
-  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, stayAwake: false, council: "", ...init };
+  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, stayAwake: false, council: "", caretaker: null, ...init };
 }
 
-export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTurnSubmission, {
+export const TurnSubmissionSchema: ObjSchema<TurnSubmission> = obj<TurnSubmission>("TurnSubmission", newTurnSubmission, {
   orders: list(OrderSchema),
   notes: S,
   summary: S,
@@ -71,4 +76,5 @@ export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTur
   fromFallback: B,
   stayAwake: B,
   council: S,
+  caretaker: opt((): Schema => TurnSubmissionSchema),
 });
