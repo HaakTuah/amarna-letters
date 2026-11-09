@@ -290,13 +290,13 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
 
   // #806: our king held abroad wants a spy of ours at his captor's court, to take his letters out and help him get away.
   const held = v.heldAt;
-  if (held !== null && KingPlay.on(b.me) && ready.length > 0 && ![...brain.posted.values()].some(([post]) => post === held)) {
+  if (held !== null && !v.heldOnRoad && KingPlay.on(b.me) && ready.length > 0 && ![...brain.posted.values()].some(([post]) => post === held)) {
     const agent = ready.shift()!;
     orders.push(placeSpy(agent.id, held));
     busy.add(agent.id);
   }
   // And writes once to each king sworn to him, to pay for him or come for him.
-  if (held !== null && KingPlay.on(b.me) && !brain.wroteFrom.has(held)) {
+  if (held !== null && !v.heldOnRoad && KingPlay.on(b.me) && !brain.wroteFrom.has(held)) {
     brain.wroteFrom.add(held);
     for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== held && brain.rel.tryGet(x)?.allied === true), [(x: Power) => x, cmpPower]))
       orders.push(writeLetter(x, `I am held at the court of ${held}. By the oath between us, pay for me or come for me.`));

@@ -854,6 +854,8 @@ export interface SeatView {
    * (letters, and in a letter home his ransom or a spy at that court), and a caretaker keeps the realm.
    */
   heldAt: Power | null;
+  /** #806: whether the king held is still on the road to that court under guard, where he can write nothing. */
+  heldOnRoad: boolean;
   /** Item 17b, part C: where the king commands from: where he stands apart from his court, else the court. */
   seat: string;
   /** Item 17b: the king's own traits as this game drew them (0 to 100, in `KingTraitValues`' order): who he is. */
@@ -1093,6 +1095,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     courtTo: null,
     kingAt: null,
     heldAt: null,
+    heldOnRoad: false,
     kingTo: null,
     seat: "",
     traits: [],
@@ -1195,6 +1198,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   courtTo: opt(S),
   kingAt: opt(S),
   heldAt: opt(S),
+  heldOnRoad: B,
   kingTo: opt(S),
   seat: S,
   traits: list(I),

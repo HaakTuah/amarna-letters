@@ -133,6 +133,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     // Where the court believes him: while word of his loss is on the road, where he was.
     kingAt: kingAfield(s, p) ?? null,
     heldAt: heldKing(s, p)?.heldBy ?? null,
+    heldOnRoad: heldKing(s, p)?.duty === "UnderGuard",
     kingTo: s.kingRoads.find((r) => r.power === p && r.alone)?.to ?? null,
     seat: seatOf(s, m, p),
     traits: s.reigns.tryGet(p)?.traits ?? [],

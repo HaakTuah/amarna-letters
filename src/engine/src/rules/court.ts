@@ -83,7 +83,7 @@ export function heldKing(s: GameState, p: Power): Character | null {
 
 /** Whether a captive king's captor keeps his letters to the court `to` (#806). */
 export function lettersKept(s: GameState, king: string, to: Power): boolean {
-  return s.lettersStopped.includes(king) || s.lettersStopped.includes(`${king}|${to}`);
+  return s.lettersStopped.includes(`${king}|${to}`) || (s.lettersStopped.includes(king) && !s.lettersStopped.includes(`${king}|!${to}`));
 }
 
 /**

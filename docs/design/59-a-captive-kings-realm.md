@@ -18,7 +18,8 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   gold and caravans move only within the realm; a dispatch goes only if it keeps a bond (tribute paid or asked,
   protection asked, an oath recalled) and carries no proposal; a ransom only for someone else. Nothing else: no war, march
   abroad, treaty, grant, hire, building or court move. His standing orders stand: the caretaker gives, changes and
-  cancels none (his scheduled orders, given before, run as given).
+  cancels none, and its orders only fill what his scheduled and standing orders leave free, as a stand-in's do
+  (`compose`).
 - **The player plays the captive.** The seat's own orders are his: letters (order `write`, to any court, his own included)
   and, in a letter home, his ransom (`payRansom` for himself), giving in (`cede`, `giftUnit`, or a `dispatch` his court
   sends with the tablet he names), or a spy hired or posted at his captor's court (`hire` or `renew` as a

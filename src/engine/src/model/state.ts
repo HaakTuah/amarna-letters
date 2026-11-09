@@ -347,7 +347,7 @@ export interface GameState {
   payCarriers: Power[];
   /**
    * #806: the captive kings whose captors keep their letters at court (`captive` with "StopLetters"): the king's id for all
-   * of them, or `id|court` for those to one court.
+   * of them, `id|court` for those to one court, and `id|!court` for one court let through while all the rest are kept.
    */
   lettersStopped: string[];
   /** #806: what captive kings agreed to in their letters home, on the road or arrived ({@link WordHome}). */

@@ -553,9 +553,17 @@ P.captive = function (host, co) {
     case "PassLetters":
       // #806: the captive king's letters, kept at this court or let go, from now until the captor says otherwise.
       {
-        const key = co.to === undefined || co.to === null ? c.id : `${c.id}|${co.to}`;
-        S.lettersStopped = S.lettersStopped.filter((x) => (key === c.id ? x !== c.id && !x.startsWith(`${c.id}|`) : x !== key));
-        if (co.fate === "StopLetters") S.lettersStopped.push(key);
+        // For all his letters: the word for each court is cleared. For one court: its keeping, or its exception to a
+        // keeping of all of them (`id|!court`).
+        const stop = co.fate === "StopLetters";
+        if (co.to === undefined || co.to === null) {
+          S.lettersStopped = S.lettersStopped.filter((x) => x !== c.id && !x.startsWith(`${c.id}|`));
+          if (stop) S.lettersStopped.push(c.id);
+        } else {
+          S.lettersStopped = S.lettersStopped.filter((x) => x !== `${c.id}|${co.to}` && x !== `${c.id}|!${co.to}`);
+          if (stop) S.lettersStopped.push(`${c.id}|${co.to}`);
+          else if (S.lettersStopped.includes(c.id)) S.lettersStopped.push(`${c.id}|!${co.to}`);
+        }
       }
       break;
     case "Execute": {

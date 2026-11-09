@@ -63,6 +63,12 @@ const bySpy = (S: GameState, j: Journey): boolean => j.kind === "SpyReport" || (
 
 P.carryLetters = function () {
   const S = this.s;
+  // #806: a captive king's letter its captor now keeps goes nowhere, before any carrier takes letters from there.
+  for (const letter of S.journeys.filter((j) => j.kind === "CaptiveLetter" && j.waitAt !== null && j.carrier === null && !bySpy(S, j) && lettersKept(S, j.characterId ?? "", j.to))) {
+    S.journeys.splice(S.journeys.indexOf(letter), 1);
+    S.wordHome = S.wordHome.filter((w) => w.journey !== letter.id);
+    logEvent(S, "captive-letter", `${courtAt(this, letter.waitAt!) ?? "A captor"} kept a captive king's letter to ${letter.to}.`, [], "captive-letter-kept");
+  }
   const waiting = sortBy(
     S.journeys.filter((j) => j.waitAt !== null && j.carrier === null && j.caravan === null),
     [(j: Journey) => idNumber(j.id), cmpNum],
@@ -72,13 +78,6 @@ P.carryLetters = function () {
     if (letter.carrier !== null) continue;
     // Item 17++, part D: a province's offer to an absent power finds its own carriers, after the other letters (below).
     if (letter.kind === "Offer") continue;
-    // #806: a captive king's letter its captor now keeps goes nowhere.
-    if (letter.kind === "CaptiveLetter" && !bySpy(S, letter) && lettersKept(S, letter.characterId ?? "", letter.to)) {
-      S.journeys.splice(S.journeys.indexOf(letter), 1);
-      S.wordHome = S.wordHome.filter((w) => w.journey !== letter.id);
-      logEvent(S, "captive-letter", `${courtAt(this, letter.waitAt!) ?? "A captor"} kept a captive king's letter to ${letter.to}.`, [], "captive-letter-kept");
-      continue;
-    }
     if (!isAlive(S, letter.to)) {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;

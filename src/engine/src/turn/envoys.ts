@@ -22,6 +22,7 @@ import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import type { Clause } from "../model/clauses.ts";
 import { Views } from "../rules/views.ts";
 import { addLetters } from "./sleep.ts";
+import { heldKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
 export const MaxSpeech = 1500;
@@ -416,6 +417,10 @@ P.applyAudience = function (record) {
   const trail = this.trail(d.trailId)!;
   const host = a.host;
   const sender = a.from;
+  // #806: a court whose king is held receives envoys by its caretaker, who seals, offers, bribes and writes nothing new.
+  if (heldKing(S, host) !== null)
+    for (const round of record.rounds)
+      if (round.host !== null) round.host = { ...round.host, sealProposal: false, bribe: 0, jobOffer: 0, letters: [], reopenOrders: false };
 
   // A host holding court while its orders stand: the letters it sent and whether it chose to reopen its orders, kept for
   // courtsHeld and resolve. Anywhere else a reply's letters and reopening mean nothing. A reply the stand-in gave because

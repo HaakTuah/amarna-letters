@@ -154,7 +154,7 @@ export class GameRunner {
     const lag = heldLagOf(S_, WorldMap.default, p);
     const then = seen[Math.max(0, seen.length - 1 - lag)];
     const own = now.inbox.filter((i) => i.subject === king.id && i.turn > then.turn);
-    return { ...then, turn: now.turn, season: now.season, heldAt: now.heldAt, inbox: [...then.inbox, ...own] };
+    return { ...then, turn: now.turn, season: now.season, heldAt: now.heldAt, heldOnRoad: now.heldOnRoad, inbox: [...then.inbox, ...own] };
   }
   /** Item 16: the royal council of the seats played by a model or a human. */
   private readonly council: Council;
@@ -556,7 +556,8 @@ export class GameRunner {
       const court = engine.isAsleep(host) ? new Court() : null;
       const runs: AudienceRun[] = [];
       for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) runs.push(await this.openAudience(engine, a, turn, signal));
-      const seat = this.seatOf(host);
+      // #806: a held king's court receives envoys by its caretaker.
+      const seat: ISeat = heldKing(this.state, host) !== null ? this.caretaker : this.seatOf(host);
       // Envoys the king's standing answers cover are answered first, for it, in one exchange each.
       for (const r of runs) if (r.a.answer !== null) await this.answered(engine, r, turn, court, signal);
       // A seat that answers its whole court in one call ("One call per wake-up") is asked once for each exchange, every
@@ -675,7 +676,7 @@ export class GameRunner {
    */
   private async answered(engine: TurnEngine, r: AudienceRun, turn: number, court: Court | null, signal?: AbortSignal): Promise<void> {
     const a = r.a;
-    const seat = this.seatOf(a.host);
+    const seat: ISeat = heldKing(this.state, a.host) !== null ? this.caretaker : this.seatOf(a.host);
     const view = this.audienceView(engine, r, 1, court);
     const reply = await this.recorded<HostReply>(
       `${r.key}/host/1`,

@@ -127,8 +127,9 @@ P.heldSeason = function (p, sub) {
   this.captiveWrites(p, king, sub.orders);
   const care = sub.caretaker ?? newTurnSubmission();
   const kept = care.orders.filter((o) => inMandate(S, p, king.id, o));
-  // His standing orders stand as he left them: the caretaker gives, changes and cancels none.
-  return newTurnSubmission({ orders: [...kept, ...arrived], notes: care.notes, summary: care.summary, fromFallback: care.fromFallback });
+  // His standing orders stand as he left them: the caretaker gives, changes and cancels none; and its orders, as a
+  // stand-in's, only fill what his own scheduled and standing orders leave free (`compose`).
+  return newTurnSubmission({ orders: [...arrived, ...kept], notes: care.notes, summary: care.summary, fromFallback: true });
 };
 
 declare module "./core.ts" {

@@ -1,6 +1,8 @@
 import { describe, test } from "vitest";
 import { type GameState, OrderValidator, inboxOf, type Power, captive, cede, heldKing, hold, move, newTurnSubmission, ownedBy, payRansom, writeLetter } from "@amarna/engine";
 import { inMandate } from "../src/turn/held-king.ts";
+import { lettersKept } from "../src/rules/court.ts";
+import { newJourney } from "../src/model/records.ts";
 import { Assert, egyptHeld } from "./support.ts";
 
 // #806: a captive king plays the captive; a caretaker keeps his realm within a narrow mandate.
@@ -78,6 +80,19 @@ describe("HeldKingTests", () => {
     const own = ownedBy(s, "Egypt")[0];
     e.heldSeason("Egypt", newTurnSubmission({ orders: [cede(own, "Hatti")], caretaker: newTurnSubmission() }));
     Assert.equal(["cede"], s.wordHome.map((w) => w.order.type));
+  });
+
+  test("A captor who keeps all his letters may let those to one court go; a kept letter goes with no carrier", () => {
+    const { s, e } = egyptHeld();
+    const k = kingOf(s, "Egypt");
+    const order = (fate: "StopLetters" | "PassLetters", to: Power | null) => ({ ...captive(k.id, fate), to });
+    e.captive("Hatti", order("StopLetters", null));
+    e.captive("Hatti", order("PassLetters", "Egypt"));
+    Assert.equal([false, true], [lettersKept(s, k.id, "Egypt"), lettersKept(s, k.id, "Mitanni")]);
+    // A letter kept is gone before any carrier takes letters from that court, with whatever waits beside it.
+    s.journeys.push({ ...newJourney({ id: "j-k", kind: "CaptiveLetter", from: "Egypt", to: "Mitanni", characterId: k.id, text: "", waitAt: e.courtAt("Hatti") }), arriveTurn: 1_000_000 });
+    e.carryLetters();
+    Assert.empty(s.journeys.filter((x) => x.id === "j-k"));
   });
 
   test("A disloyal, greedy spy sent to free him sells him out to his captor", () => {
