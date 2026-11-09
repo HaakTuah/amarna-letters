@@ -444,6 +444,15 @@ are not set beside these.)
   18, Mira 7) more than the foe. Principle: the script kings are the strongest sparring partners we can make, and the
   strongest first move is the map's. Only the first march is measured; whether trade and later wars vary from game to
   game, as "Each court plays differently" sets for a test target, part F measures. To the owner: #840.
+- **Bribes and debased gifts grow rare.** A bribe buys an envoy's good word, counted at a quarter of a gift's warmth
+  (`bribeEffect`, a first guess), and pays only at very high stakes: the batch summaries count 0 to 5 bribes in 50 games
+  (none in the regression run). A faithless king debases only the gold it sends a friend who trusts it, and such a friend's
+  hostility is already near its floor, so a gift to him seldom pays and debased gold seldom goes out. Principle: gold goes
+  only where it pays ("Gold is a lifeline"); whether an envoy's good word is worth more than the first guess, and whether
+  the script kings use bribes and debasement enough for those features to pay, is part F's audit of every feature (use
+  against ignore). Three tests that counted on a bribe, a debased gift or a gift to a far city-state going out
+  (`feature-audit.test.ts`, `siege-play.test.ts`) now set the stakes so that one pays, and check the same rules as
+  before; one of them waited on a bribe by chance, and so hung CI's fourth test shard once bribes stopped being drawn.
 - **A bond with no tribute is always kept** (nothing to weigh against its peace).
 - **How close their best options are** ("What a call is worth"; "Shadow scripts") is model-game plumbing, read by the
   budget and the log, apart from what script kings spend: it goes in its own pull request after this one (part E2).

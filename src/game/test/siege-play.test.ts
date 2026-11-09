@@ -2,6 +2,7 @@ import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { Contingencies } from "../src/bots/contingencies.ts";
+import { InvestData } from "../src/bots/investment.ts";
 import { CapitalAtStake, Search } from "../src/bots/search.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { MilitaryPlan, Tactics } from "../src/bots/tactics.ts";
@@ -10,6 +11,9 @@ import {
   type Character,
   Dict,
   type DispatchOrder,
+  HSet,
+  type Order,
+  Rng,
   type GameState,
   type MoveOrder,
   OrderValidator,
@@ -43,7 +47,7 @@ import {
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
 import { removeAll, Assert, holds, orderBy, walled, oldWorld, unruled, speaksAll } from "../../engine/test/support.ts";
-import { Natures, move as moveOrder } from "@amarna/engine";
+import { move as moveOrder } from "@amarna/engine";
 
 // The script players' audit of the siege package (Build order item 5, "Every feature is every seat's"): weaknesses found in
 // script games on the new rules, each patched and tested here.
@@ -215,14 +219,25 @@ describe("SiegePlayTests", () => {
     Assert.contains(loyal.id, after.provenLoyal);
     Assert.doesNotContain(loyal.id, before.provenLoyal);
 
-    // Among the equally reliable it is the first sent with a tablet or gold: here, with a gift to a friend, or a peace tablet.
-    // Since item 7a free Gaza and Jerusalem lie between Egypt and every great king: Babylonia's Jerusalem makes a neighbour.
-    treaty(s, "Egypt", "Hatti", false);
+    // Among the equally reliable it is the first sent with a tablet or gold. Since item 7a free Gaza and Jerusalem lie
+    // between Egypt and every great king: here Babylonia holds both, a neighbour. Gold goes only where it pays (item 18,
+    // part E): here Babylonia is reckoned hostile and an attack far likelier, so that a gift goes out with the letter.
     s.owner.set("jerusalem", "Babylonia");
-    // Item 17b: a king who sends gifts and tablets (Tushratta's nature on Egypt's throne), since Akhenaten seldom does.
-    s.reigns.get("Egypt").traits = [...Natures.Mitanni.traits];
-    let sub = await new ScriptLeader(1).decide(Views.for(s, "Egypt"));
-    let trusted = sub.orders.filter((o): o is DispatchOrder => o.type === "dispatch").filter((d) => d.proposal !== null || d.gold > 0);
+    s.owner.set("gaza", "Babylonia");
+    v = Views.for(s, "Egypt");
+    after.learn(v, new Board(v));
+    after.spareGold = 1000;
+    const reckoned = after.hostility.bind(after);
+    after.hostility = (x, board) => (x === "Babylonia" ? 0.5 : reckoned(x, board));
+    const attack = InvestData.attackPerHostility;
+    (InvestData as { attackPerHostility: number }).attackPerHostility = 50;
+    const orders: Order[] = [];
+    try {
+      Statecraft.letters(new Board(v, after.remembered(v), after.treasury), after, orders, new HSet<string>(), Rng.for(1, 4, "test", "letters"));
+    } finally {
+      (InvestData as { attackPerHostility: number }).attackPerHostility = attack;
+    }
+    let trusted = orders.filter((o): o is DispatchOrder => o.type === "dispatch").filter((d) => d.proposal !== null || d.gold > 0);
     Assert.notEmpty(trusted);
     Assert.equal(loyal.id, trusted[0].envoy);
   });
