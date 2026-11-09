@@ -116,6 +116,7 @@ const o: BatchOptions = {
   noWorksPlay: false,
   worksPlayHalf: false,
   cofferPlayHalf: false,
+  giftPlayHalf: false,
   noCaravanPlay: false,
   caravanPlayHalf: false,
   clausePlay: true,
@@ -297,6 +298,10 @@ for (let i = 0; i < args.length; i++) {
     case "--works-play-half":
       // Half the script kings build only walls and keep what stands by corvée (item 15), alternating by seed.
       o.worksPlayHalf = true;
+      break;
+    case "--gift-play-half":
+      // Half the script kings send no gifts, bribes or tribute of their own choosing (item 18 part E), alternating by seed.
+      o.giftPlayHalf = true;
       break;
     case "--coffer-play-half":
       // Half the script kings send no gold ahead to their far coffers (#587), alternating by seed.
@@ -781,6 +786,8 @@ if (o.seasonPlayHalf && results.length > 0)
   console.log("\nScript kings that reckon the tax and famines by the granaries, raise smaller levies, choose how many mouths to put out, deport by safe roads, grant passage by order, post watching spies and strike by sea in winter (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.worksPlayHalf && results.length > 0)
   console.log("\nScript kings that build relay stations and roads to their far provinces, police their bandit country, raise harbours for their fleets, dig water works, repair their walls under siege and raze a besieged foe's stations (\"current\") against those that build only walls (\"baseline\"):" + versusReport(results, sides));
+if (o.giftPlayHalf && results.length > 0)
+  console.log("\nScript kings that give gifts, bribes and tribute where they judge they return more than they cost (\"current\") against those that give none (\"baseline\"):" + versusReport(results, sides));
 if (o.cofferPlayHalf && results.length > 0)
   console.log("\nScript kings that send gold ahead to their far provinces' coffers (\"current\") against those that leave them to pay their own way and run on credit (\"baseline\"):" + versusReport(results, sides));
 if (o.wallPlayHalf && results.length > 0)

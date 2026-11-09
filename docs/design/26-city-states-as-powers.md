@@ -83,9 +83,13 @@ dossier's table; generated names, marked so). The city-states' rulers get no hou
 `--no-vassal-play`, `--vassal-play-half`. Each season (`vassalSeason`, before strategy) a script player reads every bond
 it knows (the opening bonds, public, and the tablets it holds):
 
-- **As vassal**, it weighs each bond once a year: the overlord's power over it (strength against its own, nearer counts
-  more), his protection against a third king who threatens it, its honesty and caution against its greed, and whether the
-  overlord attacked it. While it serves, it sends the tribute its tablet names once a year (a humble letter, the gold,
+- **As vassal**, it weighs each bond once a year as an investment (item 18 part E; `tributeReturn` in
+  `bots/investment.ts`, "tribute buys peace"): it keeps serving while what the tribute buys over the seasons it believes
+  are left returns more than the tribute costs over them. It buys peace with the overlord, who never makes war on a vassal
+  that pays but may, as hostile as it reckons him, on one that does not; and his troops between it and the third king who
+  threatens it most, by his troops against that king's; each weighed as a gift's return is (what an attack would take of
+  what the king can reach, by his odds). Nothing, if the overlord attacked it within the year. Its honesty is how much it
+  believes its sealed word is worth (×0.5 to ×1.5). A bond with no tribute is always kept. While it serves, it sends the tribute its tablet names once a year (a humble letter, the gold,
   `tribute` and `askProtect`), and never makes war on that overlord.
 - **As overlord**, it notes the gold a vassal's envoy brings; a vassal that paid within a year and the road's grace is a
   friend (`Brain.bondFriends`, counted by `isFriend`), worth more paying than conquered; one in arrears hears a demand
