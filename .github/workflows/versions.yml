@@ -30,7 +30,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TITLE: Versions Dependabot cannot see are behind
         run: |
-          [ -f "$RUNNER_TEMP/versions.md" ] || { echo "Every version is current."; exit 0; }
+          [ -f "$RUNNER_TEMP/versions.md" ] || { echo "No issue body written: nothing behind, or the check failed above."; exit 0; }
           # No pipe: a failed call stops the step (bash -e) instead of reading as "no issue yet" and opening a second.
           open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" \
             --jq '.[] | select(.title == env.TITLE and .pull_request == null and .user.login == "github-actions[bot]") | .number')
