@@ -406,7 +406,8 @@ export class Brain {
             break;
         }
       }
-      if (item.kind === "Notice" && item.title === "A spy is caught") this.lastSpyCaught = v.turn;
+      // #806: a plot to free a king we hold, told us by the man sent for it, is a spy at our court too.
+      if (item.kind === "Notice" && (item.title === "A spy is caught" || item.title === "A plot to free your captive")) this.lastSpyCaught = v.turn;
       // Our envoy's word that a host offered it a post and that it refused: the host tried to buy our servant, a small
       // slight, and the servant proved true, so it is the first chosen, among the equally reliable, for the letters that
       // carry tablets or gold.

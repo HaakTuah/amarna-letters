@@ -230,10 +230,10 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   }
 
   // Watchmen when spies have been caught lately, or for the careful and rich while spies are likely to come: to a leader, or
-  // to a court attacked in the last three seasons; and while we hold a king, to guard him (#806).
+  // to a court attacked in the last three seasons. A king we hold is guarded by them only then (#806): against his ransom
+  // alone, a season's watch costs more than the escape it prevents is worth (the measure in docs/rounds/2026-11-09-captive-caretaker.md).
   const spiedOn = b.leader() === b.me || [...brain.rel.values()].some((r) => r.lastAttackedUs >= v.turn - 3);
-  const guarding = KingPlay.on(b.me) && v.known.some((c) => c.status === "your captive" && c.kingOf !== null);
-  if ((v.turn - brain.lastSpyCaught <= 3 || guarding || (p.caution > 0.7 && spare > 500 && spiedOn)) && spare > 40) {
+  if ((v.turn - brain.lastSpyCaught <= 3 || (p.caution > 0.7 && spare > 500 && spiedOn)) && spare > 40) {
     const spend = Math.trunc(20 + 30 * p.caution);
     orders.push(counterIntel(spend));
     spare -= spend;

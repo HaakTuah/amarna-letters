@@ -54,8 +54,10 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
 - **Freed by force:** a court taken, in its city or on the road (`courtFlees`), lets go every captive it held but those
   still on the road to it under guard, kings among them, as a fallen realm's are (`fall`); troops of his own may also free
   him on the road ([57](57-every-person.md)).
-- **Script players:** a script captor holding a king keeps watchmen to guard him
-  ([14](07-script-kings/14-court-and-intelligence.md)), and a cunning one (above 0.5) holding him for ransom keeps his
+- **Script players:** a script captor guards a king it holds with watchmen only once it has found a plot to free him or
+  caught a spy lately ([14](07-script-kings/14-court-and-intelligence.md)): against his ransom alone a season's watch
+  costs more than the escape it prevents is worth (1,197 seasons guarded in 50 games, when it always guarded, cost the
+  kings who played captivity their lead). A cunning one (above 0.5) holding him for ransom keeps his
   letters to every court but his own, once each; a script captive pays his ransom whatever it costs (his word home), or, his treasury short of it, gives in once:
   the least province he holds beyond his homeland, next to his captor's land if he can, ceded to his captor with a letter
   saying so; an honest script captor (0.3 and above) lets a king go whose realm ceded him land in the last three seasons.
