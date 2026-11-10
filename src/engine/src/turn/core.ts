@@ -23,10 +23,11 @@ import { type UnitKind, WorldMap } from "../model/map.ts";
 import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
-import { courtOf } from "../rules/court.ts";
+import { courtOf, seatOf, crownedIn } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
-import { powerName, setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState, type Unit } from "../model/state.ts";
+import { powerName, setCrowned, setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
@@ -47,6 +48,8 @@ export class TurnEngine {
     setRisen(state.risen);
     // And the names they claim (item 17+), which the functions naming a power read.
     setNameClaims(state.names, state.eliminated, state.nameGiven, state.namesHeard, state.fallsHeard);
+    // And the heirs reigning (item 17b), who go by their own names.
+    setCrowned(crownedIn(state));
   }
 
   /** The stream for a roll this season. */
@@ -104,6 +107,8 @@ export class TurnEngine {
   beginTurn(): void {
     const S = this.s;
     if (S.ended) return;
+    // Item 17b, part C: how late the court's business reaches a king away from it this season.
+    this.courtLags();
     this.mindRequests.length = 0;
     S.audiences.length = 0;
     S.counterIntel.clear();
@@ -136,7 +141,10 @@ export class TurnEngine {
     // Item 11b: news travels with people.
     this.newsSeason();
     this.naturalLosses();
+    // Item 17b: a king held at his captor's court may get away.
+    this.kingsHeld();
     this.newcomers();
+    this.cameToCourts();
     // Item 12: the dice of who understands whom fall before any model is called.
     this.settleSpeech();
     this.lifeRequests();
@@ -435,9 +443,14 @@ export class TurnEngine {
     this.coversAtCourt();
   }
 
-  /** The province where a king is, his court and capital (item 13, "The capital is wherever the king is"). */
+  /** The province where a king's court is, his capital (item 13, "The capital is wherever the king is"). */
   courtAt(p: Power): string {
     return courtOf(this.s, this.map, p);
+  }
+
+  /** The province a king commands from as his court knows it (item 17b, part C, `seatOf`). */
+  seatAt(p: Power): string {
+    return seatOf(this.s, this.map, p);
   }
 
   travelTurns(from: Power, to: Power): number {

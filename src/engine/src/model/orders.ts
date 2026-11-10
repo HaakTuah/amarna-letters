@@ -450,12 +450,25 @@ export interface EnlistOrder {
   term: number;
 }
 /**
- * Item 13 ("The capital is wherever the king is"): the king himself sets out for `to`, a province of his own or any he may
- * reach, with his court; it costs gold and takes the road's time, and his orders travel from wherever he is.
+ * Item 17++++a ("Raiders from beyond the map": paid off): offer the chief of the band in `province`, carried as an
+ * enlistment is, `fee` shekels, paid now, to take his band out of the king's land and keep out of it for `term`
+ * seasons; a band based beyond the map goes home. The chief takes it or not, and keeps his word or not, by his own lights.
+ */
+export interface PayOffOrder {
+  type: "payOff";
+  province: string;
+  fee: number;
+  term: number;
+}
+/**
+ * Item 13 ("The capital is wherever the king is"): the court sets out for `to`, a province of his own or any he may reach,
+ * with the king if he is with it; it costs gold and takes the road's time. Item 17b, part C: `alone`, the king sets out
+ * without his court, with his guard, and commands from wherever he is; to where his court is, he goes back to it.
  */
 export interface CourtOrder {
   type: "court";
   to: string;
+  alone?: boolean;
 }
 export interface HuntOrder {
   type: "hunt";
@@ -661,6 +674,7 @@ export type Order =
   | UnseatOrder
   | CourtOrder
   | EnlistOrder
+  | PayOffOrder
   | HoldOrder
   | MoveOrder
   | SupportOrder

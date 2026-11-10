@@ -57,10 +57,10 @@ export function jobsForErrands(v: SeatView, orders: Order[], free: CharacterView
     let ask: number;
     if (ours !== null) {
       if (ours.errandWhat === null || (ours.errandWhat === what && ours.errandWhere === where && !ours.errandDone)) continue;
-      // A new job: what the last one paid a season, and a tenth more.
+      // A new job: what the man asks for one now (item 18, #837), or, where the view does not say, what the last one paid
+      // a season and a tenth more (its fee may carry the rest of an earlier job: never more than a free man's price).
       const span = Math.max(1, (ours.contractUntil ?? v.turn) - (ours.contractFrom ?? v.turn));
-      // (Its fee may carry the rest of an earlier job: never more than a free man's price.)
-      ask = Math.min(40, Math.max(3, Math.ceil(((ours.fee ?? 60) / span) * 1.1)));
+      ask = ours.askingPrice ?? Math.min(40, Math.max(3, Math.ceil(((ours.fee ?? 60) / span) * 1.1)));
     } else {
       const c = free.find((x) => x.id === id) ?? null;
       if (c === null) {

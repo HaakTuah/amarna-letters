@@ -15,7 +15,8 @@ import { LandData, menAvailable, unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { BuildOrder, RazeOrder } from "../model/orders.ts";
 import { AllPowers, type Power, whose } from "../model/power.ts";
-import { alive, logEvent, notify, ownedBy, siegeOf, unitAt, type Unit, loseUnit } from "../model/state.ts";
+import { alive, logEvent, notify, ownedBy, siegeOf, unitAt } from "../model/state.ts";
+import { type Unit, loseUnit } from "../model/units.ts";
 import {
   buildGold,
   buildMen,

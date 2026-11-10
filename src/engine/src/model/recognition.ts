@@ -1,9 +1,10 @@
-import { I, type ObjSchema, S, obj, opt } from "../core/json.ts";
+import { I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 
 /**
  * A claim to the rank of Great King that is still new ("Recognition is earned", build order item 8): Assyria's at the start,
- * which Babylonia, holding Assyria its vassal, does not grant. It becomes established once most Great Kings have called the
+ * which Babylonia, holding Assyria its vassal, does not grant, and any made in play by a king outside the seven who names
+ * himself Great King in a greeting (bug #777). It becomes established once most Great Kings have called the
  * claimant brother for a few years. Recognition changes no rule and no score: it is a fact kings read.
  */
 export interface Claim {
@@ -12,16 +13,22 @@ export interface Claim {
   overlord: Power | null;
   /** The season it became established, or null while it is new. */
   established: number | null;
+  /**
+   * The courts that know of the claim: the claimant's own and those that have read a greeting of his claiming the rank;
+   * null: every court (a claim the game starts with, or one established, which every court hears of).
+   */
+  heardBy: Power[] | null;
 }
 
 export function newClaim(init: Partial<Claim> & Pick<Claim, "power">): Claim {
-  return { overlord: null, established: null, ...init };
+  return { overlord: null, established: null, heardBy: null, ...init };
 }
 
 export const ClaimSchema: ObjSchema<Claim> = obj("Claim", () => newClaim({ power: "Assyria" }), {
   power: S,
   overlord: opt(S),
   established: opt(I),
+  heardBy: opt(list(S)),
 });
 
 /**

@@ -7,7 +7,8 @@
  */
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
-import { type GameState, UnitSchema, type Unit } from "./state.ts";
+import { type GameState } from "./state.ts";
+import { UnitSchema, type Unit } from "./units.ts";
 import { type Word, WordSchema, newWord } from "./word.ts";
 
 export interface Market {

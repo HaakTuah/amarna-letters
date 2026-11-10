@@ -62,9 +62,8 @@
   wages, food, mutiny and caravans; `16-the-economy-at-home.md`); arrivals, then back pay paid
   to everyone at the court that owes it; the court (candidates, checks and examinations, contract
   ends and notices, a servant still owed back pay giving notice); audiences; orders;
-  movement and battles; sieges (since the siege package); land changes hands; a kingdom falls with
-  its capital (since the siege package, in place of "kingdoms with no land fall" after the
-  catastrophes); cessions and gifts of troops; purchases, then walls strengthened; disbanding;
+  movement and battles; sieges (since the siege package); land changes hands; kings taken (since item 17b, part B: a realm that holds nothing falls; from the siege package
+  to then, a kingdom fell with its capital); cessions and gifts of troops; purchases, then walls strengthened; disbanding;
   levies; envoys set out, releases, dismissals, candidates sent for and checks paid, then hiring and
   renewals; intelligence (watchmen, captors, spies sent and recalled, assays, examinations,
   forgeries, ransoms, then spies caught or reporting); catastrophes;
@@ -138,7 +137,7 @@
     gave it a support to hold that was not cut (`AdjudicationResult.holdSupported`); a season in
     which it supports, convoys or tries to move adds nothing. One order is enough: the siege goes
     on while the army holds there. Since item 9+a the walls price the storm, not the clock: the city
-    **surrenders** by hunger (it could not feed its people as the season began) or once it is worn down three steps for
+    **surrenders** by hunger (it could not feed its people as the season began) or once it is worn down six steps for
     each level of its walls, a breach (`16-the-economy-at-home.md`, "Sieges"); until 9+a it surrendered when worn down as
     far as its walls were high, at the end of that season (`TurnEngine.sieges`, after movement and
     before land changes hands) and its walls fall a level; a city stormed falls a level too. Before 9+a a
@@ -316,30 +315,16 @@
   or plays on (`handLimitNeeded`: the setup refuses to begin while the limit is the suggested one, and playing on asks
   for a limit above what the game has spent). Save
   version 8.
-- **A kingdom falls with its capital** (the design document's rule, built with the siege package, Build order item 5;
-  until then a kingdom fell only when it held no land, so a king who lost his capital fought on from his last
-  provinces). After the moves, sieges and the change of hands, a king whose capital another power now holds has
-  fallen (`TurnEngine.capitalsTaken`, step 10 of HOW A SEASON RESOLVES): his remaining land passes to the power that
-  took the capital, every troop of his disbands (no army has a commander yet to choose for itself, so all of them do),
-  his sieges are lifted, a siege the conqueror pressed against land that is now his is over, and his debts die with him
-  (back pay owed by him is lost, as before; debt tablets do not exist yet). His prisoners are let go, his servants are
-  free, and none of his orders after the moves is carried out (levies, purchases, envoys, intelligence). The kingdoms
-  that fall in one season are found first, so one fall revives nobody. Land passing to a capital's taker that itself
-  falls that season passes on with the taker's own land to whoever took his capital, and so on down the chain; a ring of
-  kings who took each other's capitals leaves the land free. Every heir is found before any land passes, so the order in
-  which the falls are reckoned changes nothing (since the review of the siege package, which found that when A took B's
-  capital while B took C's, C's land went to A or was left free as that order fell); the conqueror down the chain reads
-  "Assyria took Washukanni, the capital of Mitanni, but fell himself in the same season, and the kingdom of Mitanni
-  passes to you with his: ...", and the rulebook's HOW YOU WIN says "(if he falls too in the same season, it passes on
-  with his own land)". The
-  conqueror reads "A kingdom falls to you" ("With Apasa you took the kingdom of Arzawa: its king has fallen, his troops
-  have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
-  kingdom of Arzawa is no more: Hatti took its capital, Apasa.", at once if it sees the capital, else when word of it
-  arrives (item 7b, [travel and news](13-travel-and-news.md)). The game records each
-  fall (`GameState.falls`: the season, the conqueror, the capital and the land that passed). A king cedes his own capital
-  only by agreement on a sealed tablet, and his kingdom with it (item 11d, [29](29-answers-to-11plus.md)); a capital that is no longer its king's (his
-  kingdom has fallen) can be ceded like any city, and its archive goes with it. The rulebook says so under HOW YOU WIN
-  ("A kingdom falls with its capital. If another king takes your capital, ... your game is over").
+- **A realm that holds nothing falls** (until item 17b, part B, a kingdom fell with its capital, from the siege package,
+  Build order item 5; since part B a king taken is his captor's captive and a court taken flees to a city its realm still
+  holds: [57](57-every-person.md)). After the moves, sieges and the change of hands, a realm left holding nothing has
+  fallen (`TurnEngine.fall`, step 10 of HOW A SEASON RESOLVES): its sieges are lifted, its debts die with it (back pay owed
+  by it is lost), its prisoners are let go, its servants are free, its king lives on as a free man, a former ruler, and none
+  of its orders after the moves is carried out. Every other living court hears the rumour "Word spreads that ... its
+  kingdom is no more", at once if it sees the city, else when word of it arrives (item 7b, [travel and
+  news](13-travel-and-news.md)). The game records each fall (`GameState.falls`). A king cedes his own capital only by
+  agreement on a sealed tablet, and his kingdom with it (item 11d, [29](29-answers-to-11plus.md)); a capital that is no
+  longer its king's (his kingdom has fallen) can be ceded like any city, and its archive goes with it.
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
@@ -364,13 +349,14 @@
   objects of that kind exist in the world (copies made at other courts, for instance); the shared
   counter told the same of all kinds together. Left as it is.
 - **Shared victory is off** (since 18 October 2026; see `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 23). One
-  power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
+  wins: the first on the scoreboard ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)). A tablet can still be marked as a sworn alliance,
   and the script kings still treat it as a full alliance, but it shares nothing (the order schema
   says the mark "changes no rule and binds nobody"). The rulebook and
   the order schema mention shared victory only when the house rule is on (`--shared-victory` in the
   batch runner, "Customize" in the browser). With it on, two powers holding a sealed tablet marked
-  as a sworn alliance win together if their combined growth beats every other power's growth; only
-  pairs count, never three or more.
+  as a sworn alliance win together if their score together, each partner's weighed by its starting strength, beats every
+  other living person's, king or character ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts));
+  only pairs count, never three or more.
 - **Convoys** follow Diplomacy, with Kruijswijk's guess-and-check adjudication; circular movement
   succeeds, and convoy paradoxes are resolved by the Szykman rule (the convoyed army stays put).
 - **News of a season is read the next season.** Battles, purchases, rejected orders and notices

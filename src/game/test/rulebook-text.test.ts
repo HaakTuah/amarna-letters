@@ -184,7 +184,7 @@ describe("SeasonRulebookTests", () => {
       "7. Movement and battles",
       "8. Sieges",
       "9. Walls stormed",
-      "10. A kingdom falls with its capital",
+      "10. Kings taken",
       "11. Cessions and gifts of troops",
       "12. Building",
       "13. Disbanding",
@@ -228,12 +228,13 @@ describe("SeasonRulebookTests", () => {
     ],
     ["You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them"],
     [
-      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 3 steps for each level of its walls, when they are breached.",
+      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 6 steps for each level of its walls, when they are breached.",
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
-      "A kingdom falls with its capital, which is wherever you are. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you have fallen and your game is over: your realm comes apart (step 10 of how a season resolves, below), and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it",
-    ],
+      "You are a person, like every character: you die only by a cause where you are (put to death by a king who holds you, in a battle your side loses where you stand, in the fall of the city where you are, or on the road), never of age"],
+    ["If another king takes you, by taking the city where you are (storming its walls or by a siege), in a battle or on the road, you are his captive and your fate is his to decide;"],
+    ["Travelling without your court (other order travel_alone"],
   ] as const)("The rulebook states each rule %s", (rule: string) => {
     Assert.contains(rule, Rules);
   });
@@ -404,7 +405,7 @@ describe("ViewTextTests", () => {
       text,
     );
     Assert.contains(
-      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job as envoy to Hatti, for`,
+      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job as envoy to Hatti: `,
       text,
     );
   });

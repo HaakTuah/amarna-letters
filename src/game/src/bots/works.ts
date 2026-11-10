@@ -5,6 +5,7 @@
  * to his besieged walls, and an army in a foe's land razing the relay stations his couriers ride by. Walls themselves are
  * the strategy's (`fortification` in statecraft-strategy.ts). Every figure it reckons with is the engine's own.
  */
+import { heeded } from "./raiders.ts";
 import {
   BandData,
   build,
@@ -77,21 +78,22 @@ export function knownWays(v: SeatView): Ways {
 }
 const waysKnown = new WeakMap<SeatView, Ways>();
 
-/** The seasons beyond the first a courier takes from the court to each province, by the ways the king knows. */
+/** The seasons beyond the first a courier takes from the king, wherever he commands, to each province, by the ways the king knows. */
 export function courierSeasonsFrom(v: SeatView, ways: Ways): Map<string, { seasons: number; route: string[] }> {
   const out = new Map<string, { seasons: number; route: string[] }>();
+  const seat = v.seat;
   for (const [id, holder] of v.owner) {
-    if (holder !== v.power || id === v.courtAt) continue;
+    if (holder !== v.power || id === seat) continue;
     const r = courierRoute(v, ways, id);
     if (r !== null) out.set(id, r);
   }
   return out;
 }
 
-/** The courier's road from the court to `to` this season, in whole seasons, or null where none is known. */
-export function courierRoute(v: SeatView, ways: Ways, to: string): { seasons: number; route: string[] } | null {
+/** The courier's road to `to` this season from `from` (by default the king, wherever he commands), in whole seasons, or null where none is known. */
+export function courierRoute(v: SeatView, ways: Ways, to: string, from: string = v.seat): { seasons: number; route: string[] } | null {
   const season = seasonOfTurn(v.turn);
-  const r = cheapestRoute(Board.Map, v.courtAt, to, (a, c) => legPoints(Board.Map, a, c, season, { sneaking: false, ways }));
+  const r = cheapestRoute(Board.Map, from, to, (a, c) => legPoints(Board.Map, a, c, season, { sneaking: false, ways }));
   return r === null ? null : { seasons: Math.floor(r.cost / SeasonPoints), route: r.route };
 }
 
@@ -147,7 +149,7 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     if (policed >= 2) break;
     const loose = v.provinces.find((p) => p.province === id)?.loose ?? 0;
     const bands = sum(
-      v.bands.filter((x) => x.province === id),
+      heeded(b.me, v.bands).filter((x) => x.province === id),
       (x) => x.men,
     );
     if (loose < BandData.crowd / 2 && bands === 0) continue;

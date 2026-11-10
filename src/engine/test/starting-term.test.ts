@@ -25,7 +25,8 @@ describe("StartingTermTests", () => {
     });
     return hash(
       list(person),
-      s.characters.map((c) => ({
+      // The kings (item 17b), persons since, come after everyone else and change no other draw.
+      s.characters.filter((c) => c.duty !== "Ruling").map((c) => ({
         name: c.name,
         origin: c.origin,
         calling: c.calling,
@@ -59,12 +60,15 @@ describe("StartingTermTests", () => {
   // history check: Akhetaten no generated Egyptian's birthplace, so every draw after it moves, and the people of 1346 "Of"
   // where they served; the texts the history checks corrected before it are now the fingerprint's own), and for save version 54
   // (item 17++a: the realms named by their lands, Tjehenu, Kaska, Seir and Sutu, in the cast's texts), and for the slop
-  // audit's biographies (#764: the cast's lines rewritten, the letters' envoys royal envoys, governors of their court's style).
+  // audit's biographies (#764: the cast's lines rewritten, the letters' envoys royal envoys, governors of their court's style),
+  // and for its interface (#772: a calling said once beside the sources' line, the residents' line reworded), and for #765 (a
+  // post of 1346 with none of its court's style free given a man made one of its people), and for the audit of the requests
+  // (save version 78: a template persona's voice by its temper, its facts beside it rather than in it).
   //
   test.each([
-    [1, "71e2fdac8e42ea3a"],
-    [7, "7512fe8e99d7f3c6"],
-    [42, "8b425a73c29fbee6"],
+    [1, "5c6662753319a54c"],
+    [7, "15b4be8dc4dc87fa"],
+    [42, "1ee14de6cd5bd982"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     // Since item 17++ Pharaoh's commissioners stay at their posts for years: residents, not the starting corps.

@@ -2,6 +2,7 @@
 import { pulseOf, pulseReport, type Pulse } from "./pulse.ts";
 import {
   ClauseKindValues,
+  isAlive,
   standingOf,
   type Clause,
   AllPowers,
@@ -10,6 +11,9 @@ import {
   Wealth,
   addEarnings,
   align,
+  boardLine,
+  characterResult,
+  count,
   cmpNum,
   cmpStr,
   courtDecided,
@@ -36,6 +40,7 @@ import {
   type GameConfig,
   type GameState,
   type InboxItem,
+  type PersonScore,
   type Power,
   UnheardOutcome,
   UnheardOnArrival,
@@ -44,6 +49,8 @@ import type { ModelCall, ShadowDecision, CharacterChoice } from "./log.ts";
 import { GameLog } from "./log.ts";
 import { GameRunner } from "./runner.ts";
 import { SignalDetector } from "./signals.ts";
+import { MoneyWatch, moneyReport, type MoneyMeasure } from "./money-report.ts";
+import { SpendingWatch, spendingReport, type SpendingMeasure } from "./spending-report.ts";
 
 /**
  * A kingdom's fall as the pace of war measures it: the season, the conqueror, and the seasons from the conqueror's first
@@ -55,6 +62,8 @@ export interface FallMeasure {
   conqueror: Power | null;
   fromConquerorEntry: number | null;
   fromFirstEntry: number | null;
+  /** Seasons for a letter from the fallen court to its conqueror's and the reply back, each leg by its own road (pillar 8), at the game's end; older summaries have none. */
+  reply?: number | null;
 }
 
 export interface GameSummary {
@@ -77,10 +86,18 @@ export interface GameSummary {
   /** Standing orders every seat kept over the game, and how many of them fired. */
   standingKept: number;
   standingFired: number;
-  /** The living characters at the end, richest first, one line each. */
-  richest: string[];
-  /** The richest character's wealth at the end. */
+  /** Every person on the scoreboard at the end (item 17b, part D), first place first, one line each (`boardLine`). */
+  board: string[];
+  /** The richest living character's wealth at the end, kings apart. */
   topWealth: number;
+  /** Whether a king or a character stood first on the scoreboard; older summaries have none. */
+  firstIsKing?: boolean;
+  /** Each character's result against par (`characterResult`), kings apart, for `CharacterPar`; older summaries have none. */
+  characterResults?: number[];
+  /** Item 18, part D: where the gold sat, the fees agreed and the two roads ({@link MoneyWatch}). */
+  money?: MoneyMeasure;
+  /** Item 18, part E: what the Great Kings spent on, and their first marches ({@link SpendingWatch}). */
+  spending?: SpendingMeasure;
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
   /**
@@ -97,6 +114,8 @@ export interface GameSummary {
   /** The characters' decisions ("Characters sleep like kings", item 8): calls, wake-ups (character-seasons asked), pool, seasons. */
   characterCalls: number;
   characterWakeups: number;
+  /** The most characters woken in any one season ("How many characters": the spike, not the average, is what to watch). */
+  characterPeak?: number;
   characterPool: number;
   /** Item 17+: each attested person, by name: the seasons it was asked to decide, the times it was sent anywhere, and whether it served a court. */
   people?: Record<string, [number, number, number]>;
@@ -155,7 +174,7 @@ export function risenReport(games: readonly GameSummary[]): string[] {
   ];
   if (all.length === 0) return ["Seats risen in play (items 13+ and 17): none rose.", ...free];
   const used = all.filter((r) => r.envoys > 0).length;
-  const how = ["governor", "turned", "revolt", "chief", "elder"].map((h) => `${h} ${all.filter((r) => (r.how ?? "governor") === h).length}`).join(", ");
+  const how = ["turned", "revolt", "chief", "elder", "granted"].map((h) => `${h} ${all.filter((r) => r.how === h).length}`).join(", ");
   return [
     ...free,
     `Seats risen in play (items 13+ and 17; by how: ${how}): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
@@ -256,13 +275,16 @@ export function greatWarOf(s: GameState): string | null {
   return f <= b ? "capital" : "vassal";
 }
 
-export function fallsOf(s: GameState): FallMeasure[] {
+export function fallsOf(s: GameState, engine: TurnEngine): FallMeasure[] {
   return s.falls.map((f) => {
+    // The letter there and the reply back: each leg by its own road, since the winds and currents differ.
+    const court = f.conqueror !== null && isAlive(s, f.conqueror) ? engine.courtAt(f.conqueror) : null;
+    const there = court === null ? null : engine.travelTurnsBetween(f.capital, court) + engine.travelTurnsBetween(court, f.capital);
     const by = s.invaded.tryGet(f.power) ?? null;
     const since = (entry: number | null): number | null => (entry !== null ? f.turn - entry + 1 : null);
     const mine = f.conqueror !== null && by !== null ? (by.tryGet(f.conqueror) ?? null) : null;
     const first = by !== null && by.size > 0 ? min([...by.values()], (x) => x) : null;
-    return { power: f.power, turn: f.turn, conqueror: f.conqueror, fromConquerorEntry: since(mine), fromFirstEntry: since(first) };
+    return { power: f.power, turn: f.turn, conqueror: f.conqueror, fromConquerorEntry: since(mine), fromFirstEntry: since(first), reply: there !== null && Number.isFinite(there) ? there : null };
   });
 }
 
@@ -279,6 +301,13 @@ export function courtsOf(s: GameState): [number, number, number] {
   return [held, reopened, stoodIn];
 }
 
+/** The most characters woken in one season, from each character's seasons asked. */
+function peakOf(asks: ReadonlyMap<string, readonly number[]>): number {
+  const per = new Map<number, number>();
+  for (const turns of asks.values()) for (const t of new Set(turns)) per.set(t, (per.get(t) ?? 0) + 1);
+  return Math.max(0, ...per.values());
+}
+
 /** Plays one game to its end (and, with verifyReplay, replays its log and compares the final states). */
 export async function playGame(seed: number, build: (state: GameState) => GameRunner, verifyReplay: boolean, config: GameConfig | null = null, log: ((line: string) => void) | null = null): Promise<[GameSummary, GameRunner]> {
   const runner = build(newGame(seed, config));
@@ -287,8 +316,14 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   // Nor shows the threads to watch: nobody watches a batch.
   runner.tellThreads = false;
   await runner.prepare();
-  while (await runner.playTurn()) {
-    /* the whole game */
+  const watch = new MoneyWatch();
+  const spent = new SpendingWatch(runner.state);
+  // Each season read once it is played, by its own number, the last (when playTurn says the age is over) included.
+  for (let more = true; more; ) {
+    const played = runner.state.turn;
+    more = await runner.playTurn();
+    watch.season(runner.state, played);
+    spent.season(runner.state, played, runner.log);
   }
   const s = runner.state;
 
@@ -308,7 +343,8 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
 
   const engine = new TurnEngine(s);
   const [held, reopened, stoodIn] = courtsOf(s);
-  const ranking = Wealth.ranking(s);
+  const board = engine.scoreboard();
+  const characters = board.filter((x) => x.power === null);
   const gained = newEarnings();
   for (const c of s.characters) addEarnings(gained, c.earned);
   const growth: Record<string, number> = {};
@@ -320,12 +356,17 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   let standingKept = 0;
   for (const b of s.standing.values()) standingKept += b.last;
   const summary: GameSummary = {
-    richest: ranking.map(Wealth.line),
-    topWealth: ranking.length === 0 ? 0 : ranking[0].total,
+    board: board.map(boardLine),
+    topWealth: Math.max(0, ...characters.filter((x) => !x.dead).map((x) => x.holding)),
+    firstIsKing: board.length > 0 && board[0].power !== null,
+    characterResults: characters.map((x) => characterResult(x.character)),
+    money: watch.end(characters),
+    spending: spent.end(),
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
     characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
+    characterPeak: peakOf(runner.characterAsks),
     characterPool: s.characters.length,
     people: Object.fromEntries(
       s.characters.filter((c) => c.attested).map((c) => [c.name, [new Set(runner.characterAsks.get(c.id) ?? []).size, c.sent, c.employer !== null || c.formerEmployer !== null ? 1 : 0] as [number, number, number]]),
@@ -339,7 +380,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     standingKept,
     standingFired: sum(AllPowers, (p) => inboxOf(s, p).filter((i) => i.kind === "Resolution" && i.title.startsWith("Standing order ") && i.title.endsWith(" fired")).length),
     seed,
-    falls: fallsOf(s),
+    falls: fallsOf(s, engine),
     greatWar: greatWarOf(s),
     pulse: pulseOf(s),
     turns: s.scores.length === 0 ? 0 : max(s.scores, (x) => x.turn),
@@ -382,6 +423,15 @@ export function warReport(games: readonly GameSummary[]): string[] {
       : `median ${median(xs)}, range ${min(xs, (x) => x)}-${max(xs, (x) => x)}, ${fmt((100.0 * xs.filter((x) => x >= 5 && x <= 10).length) / xs.length, "0")}% within 5-10`;
   out.push(`  Seasons from the conqueror's first entry into the fallen king's land to the fall: ${spread(falls.filter((f) => f.fromConquerorEntry !== null).map((f) => f.fromConquerorEntry!))}.`);
   out.push(`  From anyone's first entry into it: ${spread(falls.filter((f) => f.fromFirstEntry !== null).map((f) => f.fromFirstEntry!))}.`);
+  // Pillar 8 ("War is slower than diplomacy"; item 18, part C): the kingdoms that fell sooner after their conqueror's entry
+  // than a letter from their court to his and its reply take (measured where the conqueror still reigns at the end).
+  const timed = falls.filter((f) => f.fromConquerorEntry !== null && f.reply != null);
+  const quick = timed.filter((f) => f.fromConquerorEntry! < f.reply!);
+  const quickBy = sortBy([...new Set(quick.map((f) => f.power))], [(p: Power) => -quick.filter((f) => f.power === p).length, cmpNum], [(p: Power) => p, cmpStr]);
+  out.push(`  A letter to the conqueror and its reply: ${timed.length === 0 ? "none" : `median ${median(timed.map((f) => f.reply!))} seasons`}; fallen faster than that after his entry: ${quick.length} of ${timed.length}${quick.length > 0 ? ` (${quickBy.map((p) => `${p} ${quick.filter((f) => f.power === p).length}`).join(", ")})` : ""}.`);
+  // A fall is a realm left holding nothing (item 17b), so a Great King's capital was taken in at least as many games.
+  const great = new Set<Power>(GreatKings);
+  out.push(`  A Great King's realm fell (held nothing) in ${games.filter((g) => g.falls.some((f) => great.has(f.power))).length} of ${games.length} games.`);
   out.push(`  Kingdoms fallen: ${AllPowers.map((p) => `${p} ${falls.filter((f) => f.power === p).length}`).join(", ")}.`);
   return out;
 }
@@ -587,16 +637,17 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
   return lines.join("\n");
 }
 
-/** The richest characters over many games: how rich the richest was at the end, and where all characters' gold came from. */
-export function richestReport(games: readonly GameSummary[]): string[] {
+/** The scoreboard over many games: who stood first, how rich the richest character was at the end, and where all characters' gold came from. */
+export function scoreboardReport(games: readonly GameSummary[]): string[] {
   const top = games.map((g) => g.topWealth);
   const gained = newEarnings();
   for (const g of games) addEarnings(gained, g.gained);
   const total = earningsTotal(gained);
   const share = (part: number): string => (total === 0 ? "0%" : `${fmt((100.0 * part) / total, "0.0")}%`);
   return [
-    "The richest characters (the second game, played under the kings'):",
-    `  The richest held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
+    "Every person on one scoreboard (item 17b, part D):",
+    `  First place: a king in ${count(games, (g) => g.firstIsKing === true)} of ${games.length} games, a character in ${count(games, (g) => g.firstIsKing === false)}.`,
+    `  The richest character held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
     `  All the gold characters gained, ${total} shekels: fees ${share(gained.fees)}, lending and dealing ${share(gained.dealt)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal or capture ${share(gained.carried)}, savings brought in ${share(gained.savings)}, loot ${share(gained.loot)}, news and carrying ${share(gained.news)}; they spent ${gained.spent}.`,
     "  " + Wealth.WhatCounts,
   ];
@@ -619,7 +670,19 @@ export function parResultsSource(games: readonly GameSummary[], seeds: string): 
     ...rows,
     "};",
     "",
+    "/**",
+    ` * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games, measured`,
+    " * from what each brought into play (`characterResult`; 0 for the dead), pooled and cut at every hundredth.",
+    " */",
+    `export const CharacterPar: readonly number[] = [${hundredths(games.flatMap((g) => g.characterResults ?? [])).map((x) => roundTo(x, 2)).join(", ")}];`,
+    "",
   ].join("\n");
+}
+
+/** A pool of results cut at every hundredth, lowest first (101 values; none for an empty pool). */
+function hundredths(results: readonly number[]): number[] {
+  const sorted = [...results].sort((a, b) => a - b);
+  return sorted.length === 0 ? [] : Array.from({ length: 101 }, (_, i) => sorted[Math.round((i * (sorted.length - 1)) / 100)]);
 }
 
 export function batchReport(games: readonly GameSummary[]): string {
@@ -691,7 +754,8 @@ export function batchReport(games: readonly GameSummary[]): string {
     lines.push(
       `Characters as agents would be asked ${fmt(sum(games, (g) => g.characterCalls) / seasons, "0.0")} times a season (calls), ` +
         `${fmt(sum(games, (g) => g.characterWakeups) / seasons, "0.0")} wake-ups a season over a pool of ${fmt(mean(games.map((g) => g.characterPool)), "0")}: ` +
-        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season.`,
+        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season; ` +
+        `the busiest season woke ${max(games, (g) => g.characterPeak ?? 0)} (its median over the games ${median(games.map((g) => g.characterPeak ?? 0))}).`,
     );
   // Item 17+: how often each attested person is sent anywhere or decides anything, over the games (the report's count).
   const people = new Map<string, [number, number, number, number]>();
@@ -706,7 +770,9 @@ export function batchReport(games: readonly GameSummary[]): string {
         [...people.entries()].sort((a, b) => b[1][0] + b[1][1] - (a[1][0] + a[1][1]) || a[0].localeCompare(b[0])).map(([n, t]) => `${n} ${t[0]}/${t[1]}/${t[2]}`).join(", ") + ".",
     );
   lines.push("");
-  lines.push(...richestReport(games));
+  lines.push(...scoreboardReport(games));
+  lines.push(...moneyReport(games.flatMap((g) => (g.money !== undefined ? [g.money] : []))));
+  lines.push(...spendingReport(games.flatMap((g) => (g.spending !== undefined ? [g.spending] : []))));
   const cost = sum(games, (g) => g.costUsd);
   if (cost > 0) lines.push(`\nModel cost: $${fmt(cost, "0.00")} total, $${fmt(cost / games.length, "0.00")} per game.`);
   const errors = sum(games, (g) => g.errors);

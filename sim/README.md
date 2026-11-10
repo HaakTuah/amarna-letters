@@ -231,6 +231,10 @@ texts, for a reader to check. The checks of what a report hides read words, not 
 lord that the report drops, a declined offer of service, a seal claimed that never happened, a spy passing on its
 secret masters' words and observations it left out. Read the flagged reports before counting them as lies.
 
+The kings are shadowed the same way (item 18, "Shadow scripts"): each king's orders and each envoy his own call answers
+are logged beside the script king's (the log's `king-shadow` lines, never words), and the batch log prints them by kind
+and by how close the script's own call was (`kingShadowReport`).
+
 ## Kit lessons (from the run of 18 October), and what was done
 
 The results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results". What was done is Part F of

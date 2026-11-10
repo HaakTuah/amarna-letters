@@ -36,6 +36,12 @@ export interface GameConfig {
    */
   sharedVictory: boolean;
   /**
+   * Item 18 ("Temperament becomes a setting"): off by default, the kings of 1346 by their traits from the sources (item
+   * 17b); on, every king's traits are rolled for the game, record heirs' too, and no script king pictures a rival by his
+   * history (`SeatView.rolledTraits`), only by what he does. Kings are told their own nature either way.
+   */
+  rolledTraits: boolean;
+  /**
    * A table setting, on by default (the design document's "A fallen player's game is over", built with the siege package):
    * a player whose kingdom has fallen watches the rest of the game in god view, seeing everything. Off, for a table worried
    * that a fallen player might pass hidden facts to a friend still playing, he watches with what his kingdom knew when it
@@ -148,6 +154,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     provinceWeight: 10,
     sizeWeight: 5,
     sharedVictory: false,
+    rolledTraits: false,
     fallenSeeAll: true,
     armyCost: 100,
     fleetCost: 120,
@@ -196,6 +203,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   provinceWeight: I,
   sizeWeight: I,
   sharedVictory: B,
+  rolledTraits: B,
   fallenSeeAll: B,
   armyCost: I,
   fleetCost: I,

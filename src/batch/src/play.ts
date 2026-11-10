@@ -17,6 +17,8 @@ import {
   MoneyPlay,
   UpkeepPlay,
   RemnantPlay,
+  KingPlay,
+  FieldPlay,
   CountPlay,
   GrantPlay,
   TakeUpPlay,
@@ -29,6 +31,7 @@ import {
   RidePlay,
   SpyCheckPlay,
   OutlawPlay,
+  RaiderPlay,
   VassalPlay,
   CommandPlay,
   FreedomPlay,
@@ -38,6 +41,7 @@ import {
   WallPlay,
   WorksPlay,
   CofferPlay,
+  GiftPlay,
   CaravanPlay,
   ClausePlay,
   InventoryPlay,
@@ -48,6 +52,7 @@ import {
   GameRunner,
   callSizes,
   characterReport,
+  kingShadowReport,
   playGame,
   seatReport,
   type GameSummary,
@@ -129,6 +134,12 @@ export interface BatchOptions {
   /** Script kings never fold or disband their remnants (item 17++, `--no-remnant-play`), or half of them (`--remnant-play-half`). */
   noRemnantPlay: boolean;
   remnantPlayHalf: boolean;
+  /** Script kings let captive kings go and never ransom their own (item 17b, `--no-king-play`), or half of them (`--king-play-half`). */
+  noKingPlay: boolean;
+  kingPlayHalf: boolean;
+  /** Script kings never leave their courts for the front (item 17b, part C, `--no-field-play`), or half of them (`--field-play-half`). */
+  noFieldPlay: boolean;
+  fieldPlayHalf: boolean;
   /** Script kings never count their land and always ask a share (item 17++, `--no-count-play`), or half of them (`--count-play-half`). */
   noCountPlay: boolean;
   countPlayHalf: boolean;
@@ -166,6 +177,9 @@ export interface BatchOptions {
   /** Script kings never hunt bands nor buy news (item 11b, `--no-outlaw-play`), or half of them (`--outlaw-play-half`). */
   noOutlawPlay: boolean;
   outlawPlayHalf: boolean;
+  /** Script kings ignore the raiders from beyond the map (item 17++++a, `--no-raider-play`), or half of them (`--raider-play-half`). */
+  noRaiderPlay: boolean;
+  raiderPlayHalf: boolean;
   /** Script players never play vassalage (item 11+, `--no-vassal-play`), or half of them (`--vassal-play-half`). */
   noVassalPlay: boolean;
   vassalPlayHalf: boolean;
@@ -189,6 +203,8 @@ export interface BatchOptions {
   worksPlayHalf: boolean;
   /** Half the script kings send no gold ahead to their far coffers (#587, `--coffer-play-half`). */
   cofferPlayHalf: boolean;
+  /** Half the script kings send no gifts, bribes or tribute of their own choosing (item 18 part E, `--gift-play-half`). */
+  giftPlayHalf: boolean;
   /** Script kings keep their caravans to their own land (`--no-caravan-play`), or half of them (`--caravan-play-half`). */
   noCaravanPlay: boolean;
   caravanPlayHalf: boolean;
@@ -276,7 +292,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   InventoryPlay.on = o.inventoryPlay;
   let last: GameRunner | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.cofferPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.takeUpPlayHalf || o.regionPlayHalf || o.auditPlayHalf || o.spyCheckPlayHalf || o.talkPlayHalf || o.occupyPlayHalf || o.warPlayHalf || o.tidingsPlayHalf || o.ridePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.cofferPlayHalf || o.giftPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.raiderPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.kingPlayHalf || o.fieldPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.takeUpPlayHalf || o.regionPlayHalf || o.auditPlayHalf || o.spyCheckPlayHalf || o.talkPlayHalf || o.occupyPlayHalf || o.warPlayHalf || o.tidingsPlayHalf || o.ridePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -297,6 +313,10 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   UpkeepPlay.only = o.upkeepPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   RemnantPlay.off = o.noRemnantPlay || o.remnantPlayHalf;
   RemnantPlay.only = o.remnantPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  KingPlay.off = o.noKingPlay || o.kingPlayHalf;
+  KingPlay.only = o.kingPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  FieldPlay.off = o.noFieldPlay || o.fieldPlayHalf;
+  FieldPlay.only = o.fieldPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   CountPlay.off = o.noCountPlay || o.countPlayHalf;
   CountPlay.only = o.countPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   GrantPlay.off = o.noGrantPlay || o.grantPlayHalf;
@@ -321,6 +341,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   SpyCheckPlay.only = o.spyCheckPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   OutlawPlay.off = o.noOutlawPlay || o.outlawPlayHalf;
   OutlawPlay.only = o.outlawPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  RaiderPlay.off = o.noRaiderPlay || o.raiderPlayHalf;
+  RaiderPlay.only = o.raiderPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   CommandPlay.off = o.noCommandPlay || o.commandPlayHalf;
   CommandPlay.only = o.commandPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   FreedomPlay.off = o.noFreedomPlay || o.freedomPlayHalf;
@@ -336,6 +358,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   WallPlay.only = o.wallPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   WorksPlay.off = o.noWorksPlay || o.worksPlayHalf;
   WorksPlay.only = o.worksPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  GiftPlay.off = o.giftPlayHalf;
+  GiftPlay.only = o.giftPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   CofferPlay.off = o.cofferPlayHalf;
   CofferPlay.only = o.cofferPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   CaravanPlay.off = o.noCaravanPlay || o.caravanPlayHalf;
@@ -351,7 +375,9 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
       let seats = set.seats;
       for (const [p, folder] of o.folders) {
         const exchange = new FileExchange(folder, o.fileTimeoutMinutes * 60000, (call) => last!.log.addCall(call), (line) => console.log(line));
-        seats.set(p, new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat"));
+        const seat = new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat");
+        seat.shadow = set.shadowing;
+        seats.set(p, seat);
       }
       if (o.sleepingScripts)
         seats = new Dict<Power, ISeat>(
@@ -400,12 +426,14 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
       (summary.costUsd > 0 ? `, $${fmt(summary.costUsd, "0.00")}` : "") +
       (summary.errors > 0 ? `, ${summary.errors} fallbacks` : ""),
   );
-  // Beside the kings' result, the richest characters: the top three, or with --detail the whole ranking.
-  const richest = summary.richest.slice(0, o.detail ? summary.richest.length : 3).map((line, i) => `${i + 1}. ${line}`);
-  if (richest.length > 0) out.push(o.detail ? "  Richest characters:\n" + richest.map((r) => "    " + r).join("\n") : `  Richest characters: ${richest.join("; ")}`);
+  // The scoreboard of every person (item 17b, part D): the top three, or with --detail the whole of it.
+  const board = summary.board.slice(0, o.detail ? summary.board.length : 3).map((line, i) => `${i + 1}. ${line}`);
+  if (board.length > 0) out.push(o.detail ? "  Scoreboard:\n" + board.map((r) => "    " + r).join("\n") : `  Scoreboard: ${board.join("; ")}`);
   if (keep !== null && (o.folders.length > 0 || o.characterFolders.length > 0 || keep.state.sleep.size > 0 || choices.usesModels)) out.push(seatReport(keep));
   // Model or file characters beside the script with the same traits, and how large each kind of request was.
   if (keep !== null && keep.log.shadows.length > 0) out.push(characterReport(keep.log));
+  // Model kings beside the shadow script (item 18, "Shadow scripts").
+  if (keep !== null && keep.log.kingShadows.length > 0) out.push(kingShadowReport(keep.log));
   if (keep !== null && keep.log.calls.length > 0) out.push(callSizes(keep.log));
   if (o.detail && keep !== null) {
     const st = keep.state;

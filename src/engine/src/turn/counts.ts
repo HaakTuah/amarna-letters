@@ -11,7 +11,7 @@ import type { CensusOrder, DemandOrder } from "../model/orders.ts";
 import { type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
-import { courierSeasons, wordHomeAt } from "../rules/court.ts";
+import { courierSeasons, standsAt, wordHomeAt } from "../rules/court.ts";
 import { dateLabel, formatMoney, measures } from "../rules/calendar.ts";
 import { pick } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
@@ -46,14 +46,14 @@ P.amountOf = function (province) {
 
 /**
  * Of a share asked, the part the province hides, in percent: more the older its holder's count of it and the farther it
- * lies from his court.
+ * lies from where he stands (item 17b, part C: `standsAt`).
  */
 P.hiddenIn = function (province) {
   const S = this.s;
   const holder = S.owner.getOrDefault(province, null);
   if (holder === null || !isAlive(S, holder)) return 0;
   const c = countOf(S, holder, province);
-  return hiddenPercent(c === null ? null : S.turn - c.turn, courierSeasons(S, this.map, province, this.courtAt(holder)));
+  return hiddenPercent(c === null ? null : S.turn - c.turn, courierSeasons(S, this.map, province, standsAt(S, this.map, holder)));
 };
 
 /**
@@ -132,7 +132,7 @@ P.censusSeason = function () {
     if (c.count !== null || S.turn < c.counted) continue;
     // The count comes home by the one clock of the road (wordHomeAt, bug #616), with the province's report; four seasons
     // where no road leads, as before.
-    const home = wordHomeAt(S, this.map, this.courtAt(c.power), c.province, S.turn);
+    const home = wordHomeAt(S, this.map, this.seatAt(c.power), c.province, S.turn);
     c.home = Number.isFinite(home) ? home : S.turn + 4;
     if (S.owner.getOrDefault(c.province, null) !== c.power) {
       c.home = Math.max(S.turn + 1, c.home);

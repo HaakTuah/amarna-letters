@@ -11,6 +11,7 @@ import { cmpPower, land, type Power, powerName } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { claimKnown } from "../rules/claims.ts";
 import { ownPlaces } from "../rules/units-known.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
@@ -224,6 +225,8 @@ P.hireAll = function (hires, carriedTo = null) {
     c.heldBy = null;
     c.waited = 0;
     c.pitches.clear();
+    // Item 18 (#837): the price it pitched at its new master's court is spent; a new job there is asked at its reckoning.
+    c.askingPrice.delete(winner);
     c.offers.clear();
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
     // A court that takes people on is a court that is hiring, as those who hear of it know.
@@ -438,19 +441,25 @@ export function askingPrice(c: Character, court: Power): number {
   return basePrice(c, court);
 }
 
-/** Item 11b (first guesses): what a person asks more of a court for each of its people it heard were lost abroad, and each it put to death, in percent, at most `WaryMost`. */
-export const WaryLost = 10;
-export const WaryKilled = 15;
-/** The owner's answers to item 11a (a first guess): what a person asks more of a court it heard seized a hoard, in percent, each. */
+/**
+ * Item 11b (first guesses, doubled in item 18 part D): what a person asks more of a court for each of its people it heard
+ * were lost abroad, and each it put to death, in percent, at most `WaryMost`; the timid ask up to twice it and the
+ * bravest nothing, so dangerous service pays and goes to the bold ("Bold or careful, one goal": "well-paid errands into danger").
+ */
+export const WaryLost = 20;
+export const WaryKilled = 30;
+/** The owner's answers to item 11a (a first guess): what a person asks more of a court it heard seized a hoard, in percent, each, at most `WarySeizedMost`. */
 export const WarySeized = 15;
-export const WaryMost = 60;
+export const WarySeizedMost = 60;
+export const WaryMost = 120;
 
 /**
  * What a person asks a court a season of a job's term (item 10): by what it believes it can do, never its true skill
  * ("Seeing oneself"), by its greed, by its name at that court ("A name has a price"), and by the debts that press on its
  * purse; less at the court it favours, or where its lover or family is. Then it bargains from what it has heard a job pays
  * (the owner's answers to item 11a: no going rate, no floor set by the engine; "what others were paid is only what a
- * character has heard, and he bargains from it"), and asks more of a court it heard loses its people or seizes hoards.
+ * character has heard, and he bargains from it"), asks more of a court it heard loses its people or seizes hoards, and
+ * less the longer it has waited for work.
  */
 export function basePrice(c: Character, court: Power): number {
   const rep = reputationAt(c, court);
@@ -462,11 +471,17 @@ export function basePrice(c: Character, court: Power): number {
   price = Math.max(1, price);
   if (c.heardRate !== null) price = Math.max(1, toInt(roundEven((price * (100 - MoneyData.heardWeight) + c.heardRate * MoneyData.heardWeight) / 100)));
   // Item 11b, reputation from losses abroad: a court it heard loses its people abroad, or puts others to death, it serves
-  // only for more, the timid most ("Jobs, not wages"); and one it heard seizes hoards.
+  // only for more, the timid most and the bravest for nothing more ("Jobs, not wages"); and one it heard seizes hoards,
+  // a threat to its gold, not its life, the timid somewhat more.
   const heard = lossesHeardOf(c, court);
-  const wary = Math.trunc((Math.min(WaryMost, WaryLost * heard.lost + WaryKilled * heard.killed + WarySeized * heard.seized) * (100 - Math.trunc(c.traits.courage / 2))) / 100);
+  const danger = Math.trunc((Math.min(WaryMost, WaryLost * heard.lost + WaryKilled * heard.killed) * 2 * (100 - c.traits.courage)) / 100);
+  const seized = Math.trunc((Math.min(WarySeizedMost, WarySeized * heard.seized) * (100 - Math.trunc(c.traits.courage / 2))) / 100);
+  const wary = danger + seized;
   price += Math.trunc((price * wary) / 100);
-  return price;
+  // Item 18 (#837, "when supply is greater, they fall"): one who has sought service unhired past its patience, wherever it
+  // went, asks less for each season more it seeks, to at most `waitFallMost` percent less.
+  const fall = c.status === "Free" && c.seeking ? Math.min(MoneyData.waitFallMost, MoneyData.waitFall * Math.max(0, c.idle - MoneyData.patience)) : 0;
+  return Math.max(1, price - Math.trunc((price * fall) / 100));
 }
 
 P.tasksDue = function () {
@@ -517,6 +532,8 @@ P.tasksDue = function () {
         const cover = coverOf(c, task.requester);
         for (const f of c.facts) {
           if (f.knownBy.includes(task.requester)) continue;
+          // Item 17b, part C2: a fallen realm's claim is heard from the man himself, never dug up from afar (`claimKnown`).
+          if (f.tag === "claim" && claimKnown(S, task.requester, c) === null) continue;
           const p = f.secrecy === "Public" ? 1.0 : f.secrecy === "Hidden" ? Math.min(0.9, task.spend / 150.0) : Math.min(0.6, task.spend / 400.0);
           if (!rng.chance(p)) continue;
           if (f.secrecy !== "Public") f.knownBy.push(task.requester);

@@ -1,4 +1,4 @@
-import { FixedPowers, FirstYearBce, SeasonsPerYear, dateLabel, tier, yearBce, type Power } from "@amarna/engine";
+import { FixedPowers, FirstYearBce, SeasonsPerYear, dateLabel, isGreatKing, king, rulerNamed, rulerStyle, tier, yearBce, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, type LogHeader } from "@amarna/game";
 import {
   AnthropicId,
@@ -354,13 +354,30 @@ export function Home() {
           <span>Your seat</span>
           <select value={seat ?? ""} onChange={(e) => changeSeat(e.target.value)}>
             <option value="">Watch the kings (spectator)</option>
-            {FixedPowers.map((p) => (
-              <option key={p} value={p}>
-                Play as {powerName(p)} ({tier(p).toLowerCase()})
-              </option>
-            ))}
+            <optgroup label="The seven Great Kings (the advised start)">
+              {FixedPowers.filter(isGreatKing).map((p) => (
+                <option key={p} value={p}>
+                  Play as {powerName(p)} ({tier(p).toLowerCase()})
+                </option>
+              ))}
+            </optgroup>
+            {/* Item 17++++: any city-state's or chief's seat, by the same rules, judged against its own start: harder. */}
+            <optgroup label="A small state: harder, not the advised start">
+              {FixedPowers.filter((p) => !isGreatKing(p)).map((p) => (
+                <option key={p} value={p}>
+                  Play as {powerName(p)}
+                  {rulerNamed(p) ? `, under ${king(p)}` : ""} ({rulerStyle(p) === "chief" ? "a chief's land" : "a small kingdom"})
+                </option>
+              ))}
+            </optgroup>
           </select>
         </label>
+        {seat !== null && !isGreatKing(seat) && (
+          <p className="muted small">
+            A small state is harder: few men and little gold beside the Great Kings' armies, and Great Kings near. It plays by the same rules and is judged against its own start,
+            so a {powerName(seat)} that holds out and grows can win.
+          </p>
+        )}
 
         <details className="customize">
           <summary>Customize the table</summary>
@@ -426,6 +443,10 @@ export function Home() {
                 <label>
                   <input type="checkbox" checked={settings.sharedVictory} onChange={(e) => set("sharedVictory", e.target.checked)} /> Shared victory for sworn
                   allies
+                </label>
+                <label title="Off, each king plays as the sources show the man of 1346. On, every king's temperament is rolled for the game, his heirs' too, and no court knows a rival by his history, only by what he does.">
+                  <input type="checkbox" checked={settings.rolledTraits} onChange={(e) => set("rolledTraits", e.target.checked)} /> Kings' temperaments rolled
+                  for the game
                 </label>
                 <label title="A player whose kingdom falls watches the rest of the game seeing everything. Off, a fallen player watches with what his kingdom knew when it fell, so he cannot pass hidden facts to a friend still playing.">
                   <input type="checkbox" checked={settings.fallenSeeAll} onChange={(e) => set("fallenSeeAll", e.target.checked)} /> A fallen player watches in

@@ -1,6 +1,6 @@
 import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
-import { highlights, temperament } from "@amarna/game";
-import { color, fromWhere, powerName, shekels, when } from "../ui/format.ts";
+import { highlights, personalityOf } from "@amarna/game";
+import { color, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import type { HistoryOf } from "./HistoryPanel.tsx";
 import { useMemo } from "react";
@@ -9,7 +9,7 @@ const X = (turn: number, last: number, w: number): number => (last <= 1 ? 0 : ((
 const Y = (g: number, max: number, h: number): number => h - (g / max) * h + 4;
 const F = (v: number): string => v.toFixed(1);
 
-/** Who stands where: growth, land, the richest characters at the end, the opening positions and (in god view) the kings. */
+/** Who stands where: growth, land, the scoreboard of every person at the end, the opening positions and (in god view) the kings. */
 export function StandingsPanel({ state, viewer, seats, onHistory }: { state: GameState; viewer: Power | null; seats: Record<string, string> | null; onHistory: (h: HistoryOf) => void }) {
   const engine = new TurnEngine(state);
   const latest = state.scores.length === 0 ? 0 : Math.max(...state.scores.map((s) => s.turn));
@@ -37,8 +37,9 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
     <>
       <h3>Standings</h3>
       <p className="muted">
-        Each power finishes as high as it can: the final score blends its size (its wealth against the largest realm's) and its performance (its growth
-        ranked among the results of powers that started where it did), and the highest score wins. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
+        Every person, king or character, finishes as high as he can on one scoreboard, shown when the age ends: a king's score blends his realm's size
+        (its wealth against the largest holding's) and its performance (its strength over its strength when he came to the throne, ranked among the
+        results of powers that started where it did), the dead rank below the living, and the first on the board wins, king or character. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
         land-yield ratio is what any court can reckon from who holds what: the yield of the land a power holds now over its homeland's yield at the start.
         It is not growth, which counts treasuries and what people and men hold too, against a starting strength that includes them.
       </p>
@@ -47,7 +48,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
           <thead>
             <tr>
               <th>Power</th>
-              <th title="The yield of the land held now over the homeland's at the start: not growth">
+              <th title="The yield of the land held now over the homeland's at the start">
                 Land yield<span className="sr"> (not growth)</span>
               </th>
               <th>Growth</th>
@@ -92,71 +93,48 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
       </div>
 
       {state.ended && (
-        // The score that decided, with size and performance beside it (item 11e), shown to every viewer once the age has ended.
+        // Every person on one scoreboard (item 17b, part D), shown to every viewer once the age has ended: during play a
+        // character knows its own wealth, never the ranking.
         <>
-          <h4 style={{ marginTop: "1rem" }}>The final score</h4>
-          <div className="tablewrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Place</th>
-                  <th>Power</th>
-                  <th>Score</th>
-                  <th>Size</th>
-                  <th>Performance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {engine.finalScores().map((x, i) => (
-                  <tr key={x.power}>
-                    <td>{i + 1}</td>
-                    <td>
-                      <span className="named"><Emblem power={x.power} /> {powerName(x.power)}</span>
-                    </td>
-                    <td>{x.score.toFixed(2)}</td>
-                    <td>{x.size.toFixed(2)}</td>
-                    <td>{x.performance.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-
-      {state.ended && (
-        // Shown once the age has ended, to every viewer: during play a character knows its own wealth, never the ranking.
-        <>
-          <h4 style={{ marginTop: "1rem" }}>The richest characters</h4>
+          <h4 style={{ marginTop: "1rem" }}>The scoreboard</h4>
           <p className="muted">
-            Beside the kings' standings, the people of the age ranked by their wealth: the second game, played under the kings', in which the greedy have
-            a victory of their own. {Wealth.WhatCounts}
+            Kings and characters, every person of the age, ranked together; the first is the winner. {Wealth.WhatCounts}
           </p>
           <div className="tablewrap">
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Character</th>
+                  <th>Place</th>
+                  <th>Person</th>
                   <th>At the end</th>
-                  <th>Wealth</th>
-                  <th>Purse</th>
-                  <th>Hoard</th>
+                  <th>Score</th>
+                  <th>Holds</th>
+                  <th>Size</th>
+                  <th>Performance</th>
                   <th>Where the gold came from</th>
                 </tr>
               </thead>
               <tbody>
-                {Wealth.ranking(state).map((w, i) => (
-                  <tr key={w.character.id}>
+                {engine.scoreboard().map((x, i) => (
+                  <tr key={x.character.id}>
                     <td>{i + 1}</td>
                     <td>
-                      {w.character.name} <span className="muted">{fromWhere(w.character)}</span>
+                      {x.power === null ? (
+                        <>
+                          {x.character.name} <span className="muted">{fromWhere(x.character)}</span>
+                        </>
+                      ) : (
+                        <span className="named">
+                          <Emblem power={x.power} /> {x.character.name}, {powerName(x.power)}
+                        </span>
+                      )}
                     </td>
-                    <td>{Wealth.standing(w.character)}</td>
-                    <td>{shekels(w.total)}</td>
-                    <td>{shekels(w.purse)}</td>
-                    <td>{shekels(w.hoard)}</td>
-                    <td>{Wealth.sources(w.character.earned)}</td>
+                    <td>{x.power === null ? Wealth.standing(x.character) : "reigning"}</td>
+                    <td>{x.dead ? "-" : x.score.toFixed(2)}</td>
+                    <td>{shekels(Math.round(x.holding))}</td>
+                    <td>{x.dead ? "-" : x.size.toFixed(2)}</td>
+                    <td>{x.dead ? "-" : x.performance.toFixed(2)}</td>
+                    <td>{x.power === null ? Wealth.sources(x.character.earned) : "his realm"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -188,7 +166,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
                 <td>
                   <span className="named"><Emblem power={o.power} /> {powerName(o.power)}</span>
                 </td>
-                <td>{openingTroops(o)}</td>
+                <td>{openingTroops(o, provinceName)}</td>
                 <td>{o.gold} shekels</td>
                 <td>{o.homelandYield}</td>
                 <td>{o.strength}</td>
@@ -202,14 +180,14 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
         <>
           <h4 style={{ marginTop: "1rem" }}>The kings</h4>
           <p className="muted">
-            Script kings play by temperament: each power has its own, varied a little in every game. A model king falls back on the same script temperament
+            Script kings play as the king on their throne: each ruler has traits of his own, {state.config.rolledTraits ? "drawn for this game (the table rolled the kings' temperaments)" : "set from what the sources show of him and varied a little in every game"}. A model king falls back on the same script temperament
             whenever a call to the model fails.
           </p>
           <ul className="kings">
             {AllPowers.map((p) => {
               const seat = seats?.[p] ?? "";
-              // The script seat's temperament, drawn from its own seat seed, derived from the game's seed as the seat derives it.
-              const t = temperament(p, state.seed);
+              // Item 17b: the king on the throne, his traits as this game drew them, which a script seat plays by.
+              const t = personalityOf(p, state.reigns.tryGet(p)?.traits ?? []);
               const sleep = state.config.sleepingSeats ? state.sleep.tryGet(p) : undefined;
               return (
                 <li key={p}>
@@ -218,7 +196,13 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
                   {seat !== "Human" && (
                     <div>
                       {seat.endsWith("leader") ? "Stand-in: " : ""}
-                      <em>{t.epithet}</em> ({highlights(t).join(", ")}). <span className="muted">{t.description}</span>
+                      {state.config.rolledTraits ? (
+                        <>{highlights(t).join(", ")}.</>
+                      ) : (
+                        <>
+                          <em>{t.epithet}</em> ({highlights(t).join(", ")}). <span className="muted">{t.description}</span>
+                        </>
+                      )}
                     </div>
                   )}
                   {sleep !== undefined && <div className="muted">{sleepSummary(sleep)}</div>}

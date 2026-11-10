@@ -60,7 +60,7 @@ describe("FailureNoticeTests", () => {
 
   test("A spy sent out is reported as having left last season", () => {
     let s = smallWorld(newGame(8), "Babylonia", "Assyria");
-    let [court, province] = [first(s.characters, (c) => c.employer === "Babylonia"), last(s.characters, (c) => c.employer === "Babylonia")];
+    let [court, province] = [first(s.characters, (c) => c.employer === "Babylonia"), last(s.characters, (c) => c.employer === "Babylonia" && c.duty !== "Ruling")];
     Assert.notEqual(court.id, province.id);
     begin(s).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [placeSpy(court.id, "Assyria"), placeSpy(province.id, null, "carchemish")] })]]));
 

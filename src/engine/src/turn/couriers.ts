@@ -16,8 +16,9 @@ import { type Order } from "../model/orders.ts";
 import { land, quoteWords, type Power, powerName } from "../model/power.ts";
 import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
-import { findCharacter, isAlive, logEvent, newId, notify, unitAt, unitReport, type Unit } from "../model/state.ts";
-import { courierSeasons, courtOf, wordHomeAt } from "../rules/court.ts";
+import { findCharacter, isAlive, logEvent, newId, notify, unitAt } from "../model/state.ts";
+import { unitReport, type Unit } from "../model/units.ts";
+import { courierSeasons, kingAfield, seatOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
@@ -31,10 +32,14 @@ import { newPlannedOrder, type PlannedOrder } from "../model/sleep.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** The seasons the king's couriers take to a province: 0 within the season. */
+    /** The seasons the king's couriers take to a province from where he commands (item 17b, part C): 0 within the season. */
     wordTo(p: Power, province: string): number;
-    /** Bug #616: the whole seasons beyond the first word takes home from a province to a king's court (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders and loads. */
+    /** Bug #616: the whole seasons beyond the first word takes home from a province to where a king commands (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders. */
     wordFrom(p: Power, province: string): number;
+    /** Item 17b, part C: the seasons the court's couriers take from the court itself to a province, for what leaves it (gold, bills, people), wherever the king is. */
+    fromCourt(p: Power, province: string): number;
+    /** Item 17b, part C: the whole seasons word and gold take from a province to the court itself, where the treasury is. */
+    toCourt(p: Power, province: string): number;
     /** The own unit the king names by a province, as he sees his units. */
     unitShownAt(p: Power, province: string): Unit | null;
     /** Bug #600: an order that reached the place of a unit gone: its king reads so when word comes back from there. */
@@ -89,11 +94,19 @@ const P = TurnEngine.prototype;
 const TrailKept = 4;
 
 P.wordTo = function (p, province) {
-  return courierSeasons(this.s, this.map, courtOf(this.s, this.map, p), province);
+  return courierSeasons(this.s, this.map, seatOf(this.s, this.map, p), province);
 };
 
 P.wordFrom = function (p, province) {
-  return courierSeasons(this.s, this.map, province, courtOf(this.s, this.map, p));
+  return courierSeasons(this.s, this.map, province, seatOf(this.s, this.map, p));
+};
+
+P.fromCourt = function (p, province) {
+  return courierSeasons(this.s, this.map, this.courtAt(p), province);
+};
+
+P.toCourt = function (p, province) {
+  return courierSeasons(this.s, this.map, province, this.courtAt(p));
 };
 
 P.unitShownAt = function (p, province) {
@@ -148,6 +161,7 @@ function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: U
     case "cede":
     case "hunt":
     case "enlist":
+    case "payOff":
       return { province: o.province, unit: null };
     case "caravan":
     case "trade":
@@ -192,7 +206,8 @@ P.sendOrders = function (p, sub) {
       keep.push(named);
       continue;
     }
-    const at = placeOf(this, p, o);
+    // Item 17b, part C: the court's own business, ordered by a king away from it, goes to his court with his couriers.
+    const at = placeOf(this, p, o) ?? (kingAfield(S, p) !== undefined && unitOf(o) === null && !(o.type === "court" && o.alone === true) ? { province: this.courtAt(p), unit: null } : null);
     if (at === null || !this.map.exists(at.province)) {
       keep.push(o);
       continue;
@@ -258,7 +273,7 @@ declare module "./core.ts" {
 P.courierStopped = function (p, to, rng) {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
-  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
+  const route = cheapestRoute(this.map, seatOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
   for (const x of route) {
     const holder = S.owner.getOrDefault(x, null);
     if (holder === null || holder === p) continue;
@@ -272,7 +287,7 @@ P.courierStopped = function (p, to, rng) {
 P.courierRead = function (p, to, o) {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
-  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
+  const route = cheapestRoute(this.map, seatOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
   const read = new Set<Power>();
   for (const x of route) {
     const holder = S.owner.getOrDefault(x, null);
@@ -294,7 +309,7 @@ P.tell = function (p, province, kind, title, text, extra = 0) {
 P.tellAt = function (p, at, kind, title, text, from) {
   const S = this.s;
   if (at <= S.turn + S.deliveryOffset) {
-    notify(S, p, kind, title, text);
+    notify(S, p, kind, title, text, null, true, false);
     return;
   }
   // A report from afar: a courier brings it, a season or more later than a near one's.
@@ -327,7 +342,7 @@ P.nearOf = function (province, ...ps) {
 function setOutHeard(e: TurnEngine, c: Caravan): number {
   const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
   // The road home as it was in that season, by the one clock (wordHomeAt, as `wordCame`).
-  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
+  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, seatOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
   return at === first.turn || !Number.isFinite(at) ? first.turn + e.s.deliveryOffset : at;
 }
 

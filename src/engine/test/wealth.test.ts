@@ -27,7 +27,7 @@ import {
 } from "@amarna/engine";
 import { Assert, last, orderBy, smallWorld } from "./support.ts";
 
-// <summary>The richest characters: what a character gains, by source, and the ranking by wealth.</summary>
+// <summary>The richest characters: what a character gains, by source, and what its standing reads at the end.</summary>
 describe("WealthTests", () => {
   function begin(s: GameState): TurnEngine {
     let e = new TurnEngine(s);
@@ -79,7 +79,7 @@ describe("WealthTests", () => {
     Assert.equal(earningsTotal(envoy.earned) - envoy.earned.spent, envoy.purse);
 
     // Another envoy dismissed on the way out keeps the gold it carried.
-    let other = last(s.characters, (c) => c.employer === "Egypt" && c.id !== envoy.id);
+    let other = last(s.characters, (c) => c.employer === "Egypt" && c.id !== envoy.id && c.duty !== "Ruling");
     other.secretMaster = null;
     let e = begin(s);
     e.resolve(orders("Egypt", dispatch(other.id, "Hatti", "Greetings.", { gold: 50 })));
@@ -88,37 +88,9 @@ describe("WealthTests", () => {
     Assert.equal(earningsTotal(other.earned) - other.earned.spent, other.purse);
   });
 
-  test("Everyone is ranked by purse and hoard, the dead below the living by what they held when they died", () => {
-    let s = newGame(5);
-    let people = s.characters.slice(0, 4);
-    for (const c of s.characters) [c.purse, c.hoard] = [0, null];
-    people[0].purse = 100;
-    people[1].purse = 60;
-    people[1].hoard = newHoard({ at: "Egypt", gold: 50 });
-    people[2].purse = 500;
-    people[2].status = "Dead";
-    people[2].diedWith = 500;
-    people[3].purse = 120;
-
-    let ranking = Wealth.ranking(s);
-    Assert.equal(
-      [people[3], people[1], people[0]],
-      ranking.slice(0, 3).map((w) => w.character),
-    );
-    Assert.equal([60, 50, 110], [ranking[1].purse, ranking[1].hoard, ranking[1].total]);
-    // Dying never beats surviving: the richest of the dead ranks last.
-    Assert.equal(people[2], ranking[ranking.length - 1].character);
-    Assert.equal(s.characters.length, ranking.length);
-    // Ties are broken by id, so the order is the same every time.
-    const living = ranking.slice(3, ranking.length - 1).map((w) => w.character.id);
-    Assert.equal(living, orderBy(living, idNumber));
-  });
-
-  test("A ranking line says who the character is at the end and where its gold came from", () => {
-    let c = newCharacter({ id: "c1", name: "Mane", origin: "Thebes", status: "Employed", employer: "Egypt", hoard: newHoard({ at: "Egypt", gold: 32 }) });
-    gain(c, 250, "Fees");
-    gain(c, 30, "Skimmed");
-    Assert.equal("Mane of Thebes (serving Egypt): 312 (purse 280, hoard 32; fees 250, skimmed 30)", Wealth.line(Wealth.of(c)));
+  test("A character's standing at the end says whom it serves, or that it is free or held", () => {
+    let c = newCharacter({ id: "c1", name: "Mane", origin: "Thebes", status: "Employed", employer: "Egypt" });
+    Assert.equal("serving Egypt", Wealth.standing(c));
     [c.status, c.heldBy] = ["Captured", "Hatti"];
     Assert.equal("captive in Hatti, serving Egypt", Wealth.standing(c));
     [c.status, c.heldBy, c.employer] = ["Free", null, null];

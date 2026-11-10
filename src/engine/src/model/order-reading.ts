@@ -29,9 +29,11 @@ export function describe(o: Order): string {
     case "crown":
       return `grant ${o.character} the kingship of ${o.provinces.map(named).join(", ")} under oath as your vassal, for ${o.tribute} shekels of tribute a year${o.price > 0 ? ` and a price of ${o.price} shekels` : ""}`;
     case "court":
-      return `set out with the court for ${named(o.to)}`;
+      return o.alone === true ? `set out without the court, with your guard, for ${named(o.to)}` : `set out with the court for ${named(o.to)}`;
     case "enlist":
       return `offer the chief of the band in ${named(o.province)} ${o.fee} shekels for his band to serve as your army for ${o.term} seasons`;
+    case "payOff":
+      return `offer the chief of the band in ${named(o.province)} ${o.fee} shekels to leave your land and keep out of it for ${o.term} seasons`;
     case "hold":
       return `${o.unit} holds`;
     case "move":

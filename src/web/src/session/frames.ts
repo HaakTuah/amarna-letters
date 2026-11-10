@@ -92,11 +92,13 @@ export interface FrameCover {
   whereText: string;
   /** The province the court believes the servant stands in out in the land (bug #734), for placing him on the map. */
   province: string | null;
+  /** The foreign court it stands at, or set out for or from, by id (bug #797). */
+  court: Power | null;
   timingText: string;
   since: number;
 }
 
-/** A character as it stood at the end of a season. `confessed`: for a captive, whom it confessed to serving, or null. */
+/** A character as it stood at the end of a season. `confessed`: for a captive, whom its captor knows it serves (a king's realm, or whom it confessed to serving), or null. */
 export interface FramePerson {
   id: string;
   name: string;
@@ -389,8 +391,8 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       secretMaster: c.secretMaster,
       currentTrail: c.currentTrail,
       formerEmployer: c.formerEmployer,
-      covers: c.covers.map((k) => ({ for: k.for, believed: k.believed, heldAt: k.heldAt, whereText: k.whereText, province: k.province, timingText: k.timingText, since: k.since })),
-      confessed: c.status === "Captured" && c.heldBy !== null ? Views.confessedMaster(s, c.id, c.heldBy) : null,
+      covers: c.covers.map((k) => ({ for: k.for, believed: k.believed, heldAt: k.heldAt, whereText: k.whereText, province: k.province, court: k.court, timingText: k.timingText, since: k.since })),
+      confessed: c.status === "Captured" && c.heldBy !== null ? Views.captiveMaster(s, c.id, c.heldBy) : null,
     });
 
   const sight = new Map<Power, Set<string>>(AllPowers.map((p) => [p, isAlive(s, p) ? new Set(Views.sight(s, map, p)) : new Set<string>()] as const));
@@ -537,7 +539,7 @@ export function samePerson(a: FramePerson, b: FramePerson): boolean {
   if (a.covers.length !== b.covers.length) return false;
   return a.covers.every((x, i) => {
     const y = b.covers[i];
-    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.province === y.province && x.timingText === y.timingText && x.since === y.since;
+    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.province === y.province && x.court === y.court && x.timingText === y.timingText && x.since === y.since;
   });
 }
 

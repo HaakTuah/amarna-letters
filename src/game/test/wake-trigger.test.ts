@@ -268,13 +268,13 @@ describe("WakeTriggerTests", () => {
       s.stores.set("babylon", 5000);
     });
     season(s, assyria(besiege("babylon")));
-    Assert.equal([`${SiegeBegunReason}: Assyria's army besieges babylon (walls 3), worn down 1 of 9`], sleep.wokenBecause);
+    Assert.equal([`${SiegeBegunReason}: Assyria's army besieges babylon (walls 3), worn down 1 of 18`], sleep.wokenBecause);
 
-    // Worn down nearly through (since item 9+a, three seasons a level), it would be breached at the end of the next season
+    // Worn down nearly through (six seasons a level since item 18, part C), it would be breached at the end of the next season
     // if the besiegers just hold: the last chance.
     sleepOf(sleep);
-    single(s.sieges).progress = 7;
+    single(s.sieges).progress = 16;
     season(s, assyria());
-    Assert.equal([`${SurrenderReason}: Assyria's army besieges babylon (walls 3), worn down 8 of 9`], sleep.wokenBecause);
+    Assert.equal([`${SurrenderReason}: Assyria's army besieges babylon (walls 3), worn down 17 of 18`], sleep.wokenBecause);
   });
 });

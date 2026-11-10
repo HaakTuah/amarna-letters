@@ -28,7 +28,7 @@ import {
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { Brain } from "./brain.ts";
-import { personalityFor, type Personality } from "./personality.ts";
+import type { Personality } from "./personality.ts";
 import { seatSeed } from "./script-leader.ts";
 import { Search, type Pictured } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
@@ -40,10 +40,10 @@ export type Advisor = (typeof AdvisorValues)[number];
 
 /** Each advisor's known tilt, as the king is told it. */
 export const Tilts: Record<Advisor, string> = {
-  General: "high aggression: looks for where a strike wins now and for enemy armies left exposed; urging attack is expected of him",
-  Steward: "high caution, the treasury first: protects the capital, avoids overreach, keeps a reserve; when he agrees to attack, it is a strong sign",
-  Tjaty: "cunning and cheap gains: land left unguarded, a neighbour busy elsewhere, a province weakly held",
-  Diviner: "the race to win: who is growing fastest, and where pressure keeps a rival from pulling ahead; speaks in signs, computed from the same estimates",
+  General: "eager for war: he looks for where a strike wins now and for enemy armies left exposed, and is expected to urge attack",
+  Steward: "careful of the treasury: he guards the capital, shuns overreach and keeps a reserve; when he too says attack, heed it",
+  Tjaty: "after cheap gains: land left unguarded, a neighbour busy elsewhere, a province weakly held",
+  Diviner: "watches who is winning: who grows fastest, and where pressure keeps a rival from pulling ahead; he speaks in signs, read from the same estimates",
 };
 
 /**
@@ -130,7 +130,7 @@ export class Council {
     let b = this.brains.tryGet(key);
     if (b === undefined) {
       const seed = this.seedFor(`council:${a}:${p}`);
-      this.brains.set(key, (b = new Brain(p, seed, tilt(personalityFor(p, this.seedFor(p)), a))));
+      this.brains.set(key, (b = new Brain(p, seed, null, (x) => tilt(x, a))));
     }
     return b;
   }
@@ -262,7 +262,7 @@ function reason(b: Board, o: Order, role: string, danger: Dict<string, [number, 
   const of8 = (n: number): string => `${n} of ${pic.seasons} pictured seasons`;
   const threat = (p: string): string => {
     const d = danger.tryGet(p);
-    return d === undefined ? "" : `up to ${d[0]} foreign troop${d[0] === 1 ? "" : "s"} could strike it`;
+    return d === undefined ? "" : `within reach of ${d[0] === 1 ? "one foreign army or fleet" : `up to ${d[0]} foreign armies and fleets`}`;
   };
   switch (o.type) {
     case "move": {

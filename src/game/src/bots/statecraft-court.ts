@@ -39,7 +39,7 @@ import {
   type Power,
   type Rng,
   type TabletView,
-  feeFor,
+  feeFor, rulerStyle
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { SeasonPlay } from "./land.ts";
@@ -51,6 +51,7 @@ import { bridgesWanted } from "./tongues.ts";
 import { byLeave, stirGold, watchedProvinces } from "./freedom.ts";
 import { willing } from "./siege-tactics.ts";
 import type { Personality } from "./personality.ts";
+import { bestGift } from "./investment.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
 /** What a court saw a person do well (item 10, "A name made of outcomes"). */
@@ -72,6 +73,21 @@ export const PeoplePlay: { off: boolean; only: ReadonlySet<string> | null; on: (
 
 /** The seasons of a stay at court a script king offers to keep a proven person at hand (a first guess of the bots). */
 const StaySeasons = 4;
+
+/**
+ * Item 17b: script kings ask a king's ransom for a captive king, or put a foe's to death, and ransom their own
+ * (`--no-king-play`), or half of them let every captive king go at once and never ransom their own (`--king-play-half`).
+ */
+export const KingPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
+/** Item 17b: a captive king's ransom, a first guess (base and the greedy's extra, in shekels), and how vengeful a king must be to put a foe's king to death. */
+const KingRansom = { base: 300, greed: 300, vengeful: 0.7 } as const;
 
 /** The successes a court knows of a person: how a king who hires by name judges it. */
 export function successes(c: CharacterView): number {
@@ -412,9 +428,16 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       orders.push(captive(c.id, worthless && p.vengeance > 0.75 ? "Execute" : "Release"));
       continue;
     }
-    // An envoy our besiegers caught was no spy at a post: it cannot be turned, so the cunning ransom it instead.
+    // An envoy our besiegers caught was no spy at a post: it cannot be turned, so the cunning ransom it instead. A king
+    // taken (item 17b) is worth a king's ransom to his realm, unless he is a foe's and we are vengeful.
     const fate: CaptiveOrder =
-      p.cunning > 0.65 && !c.intercepted
+      c.kingOf !== null && !KingPlay.on(b.me)
+        ? captive(c.id, "Release")
+        : c.kingOf !== null
+        ? p.vengeance > KingRansom.vengeful && atOdds
+          ? captive(c.id, "Execute")
+          : captive(c.id, "Ransom", Math.trunc(KingRansom.base + KingRansom.greed * p.greed))
+        : p.cunning > 0.65 && !c.intercepted
         ? captive(c.id, "Turn", 0, `The armies of ${b.me} are scattered and tired; they will not march this year.`)
         : p.cunning > 0.65
           ? captive(c.id, "Ransom", Math.trunc(60 + 60 * p.greed))
@@ -444,10 +467,13 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
         orders.push(check(c.id, 30));
         spare -= 30;
       }
-    } else if (r !== undefined && !r.hostile && spare > 100) {
-      const gift = Math.trunc(10 + 20 * (1 - p.greed));
-      orders.push(giftTo(c.id, gift));
-      spare -= gift;
+    } else if (r !== undefined && !r.hostile) {
+      // A host's gift, small, where it pays to warm the king he claims to serve (investment.ts).
+      const gift = Math.min(30, bestGift(b, brain, c.claimsToServe!, spare));
+      if (gift > 0) {
+        orders.push(giftTo(c.id, gift));
+        spare -= gift;
+      }
     }
   }
 
@@ -470,7 +496,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     let since = brain.heldSince.tryGet(c.id);
     if (since === undefined) brain.heldSince.set(c.id, (since = v.turn));
     if (v.turn - since >= toInt(roundEven(1 + 3 * p.vengeance))) {
-      orders.push(release(c.id, "Go, and tell your lord to mind his manners with a Great King."));
+      orders.push(release(c.id, `Go, and tell your lord to mind his manners with a ${rulerStyle(v.power)}.`));
       brain.heldSince.delete(c.id);
     }
   }
@@ -479,7 +505,9 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const pay = "order pay_ransom for ";
   for (const item of v.inbox.filter((i) => i.kind === "Rumor" && i.body.includes(pay))) {
     const id = trimEnd(item.body.slice(item.body.indexOf(pay) + pay.length), "). ");
-    if (p.honesty >= 0.3 && spare > 150) orders.push(payRansom(id));
+    // Our own king (item 17b) is ransomed whatever it costs, if the treasury holds it.
+    const ours = v.known.find((c) => c.id === id);
+    if (ours?.kingOf === v.power ? KingPlay.on(b.me) : p.honesty >= 0.3 && spare > 150) orders.push(payRansom(id));
   }
   brain.spareGold = spare;
 }

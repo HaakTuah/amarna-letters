@@ -13,7 +13,8 @@ import { BattleData, battleLosses } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
 import { AllPowers, ownLand, powerName, whose } from "../model/power.ts";
-import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
+import { logEvent, notify } from "../model/state.ts";
+import { unitLabel, type Unit } from "../model/units.ts";
 import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
@@ -21,6 +22,18 @@ import { TurnEngine } from "./core.ts";
 /** Where a power's unit came from, unless that is the power's own name or land ("Kaska's army", not "Kaska's army from Kaska"). */
 export function cameFrom(p: Power, place: string): string {
   return place === p || place === ownLand(p) ? "" : ` from ${place}`;
+}
+
+/**
+ * Item 17++ ("A handful holds nothing by itself"): whether a fight's defender lost it, beaten from its place, or far weaker
+ * than the troops that fell on it and so crushed where it stood, though the land's people or its ground held them out.
+ */
+export function defenderLost(f: Fight): boolean {
+  return f.won || crushedHolding(f);
+}
+
+function crushedHolding(f: Fight): boolean {
+  return !f.won && battleLosses(f.attack, f.own).margin >= BattleData.rout;
 }
 
 declare module "./core.ts" {
@@ -57,9 +70,8 @@ P.battles = function (result, sightBefore) {
     const a = unit(f.attacker);
     const d = unit(f.defender);
     if (a === undefined || d === undefined) continue;
-    // Item 17++ ("A handful holds nothing by itself"): a unit far weaker than the troops that fell on it loses the battle by
-    // far, though the land's people or its ground held them out, and is destroyed or scattered as battles say.
-    const crushed = !f.won && battleLosses(f.attack, f.own).margin >= BattleData.rout;
+    // A unit far weaker than the troops that fell on it loses the battle by far, and is destroyed or scattered as battles say.
+    const crushed = crushedHolding(f);
     const [winner, loser, w, l] = f.won ? [a, d, f.attack, f.defence] : crushed ? [a, d, f.attack, f.own] : [d, a, f.defence, f.attack];
     const x = battleLosses(w, l);
     if (crushed) routedInPlace.push(d);

@@ -177,7 +177,7 @@ export function peopleLines(v: SeatView): string[] {
     // Item 11b: the bands it sees, in its land and its sight; an army of its own standing where one works falls on it.
     if (v.bands.length > 0)
       lines.push(
-        `- Bands you see, by province, each chief with his men (an army of yours standing where one works in your land falls on it): ${join("; ", groupBy(v.bands, (b) => b.province).map(([prov, bs]) => `${prov}: ${join(", ", groupBy(bs, (b) => b.chief).map(([chief, cs]) => `${chief} ${join(" and ", cs.map((b) => `${num(b.men)}${b.ship ? " with a ship" : ""}`))}`))}`))}.`,
+        `- Bands you see, by province, each chief with his men (an army of yours standing where one works in your land falls on it): ${join("; ", groupBy(v.bands, (b) => b.province).map(([prov, bs]) => `${prov}: ${join(", ", groupBy(bs, (b) => b.chief).map(([chief, cs]) => `${chief} ${join(" and ", cs.map((b) => `${num(b.men)}${b.raiders !== "" ? ` ${b.raiders} from beyond the map` : ""}${b.ship ? " with a ship" : ""}${b.captives > 0 ? `, holding ${num(b.captives)} people carried off` : ""}${b.paidUntil > 0 ? `, paid by you to keep out of your land until turn ${b.paidUntil}` : ""}`))}`))}`))}.`,
       );
     const out = ps.filter((x) => x.expelled > 0);
     if (out.length > 0) lines.push(`- Mouths put out of the town: ${join(", ", out.map((x) => `${x.province} ${x.expelled}%`))}.`);

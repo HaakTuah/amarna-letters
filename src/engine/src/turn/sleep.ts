@@ -131,7 +131,7 @@ declare module "./core.ts" {
     collectDigest(p: Power, sl: SleepState): void;
     digestLine(i: InboxItem): string | null;
     lostUnits(p: Power, sl: SleepState | null): void;
-    endSleep(p: Power): void;
+    endSleep(p: Power, why?: string): void;
     stoppedByOthers(p: Power, f: MoveFailure): boolean;
     lightAlerts(p: Power): { line: string; text: string; weighty: boolean }[];
     wakeOnWord(p: Power, line: string): void;
@@ -525,15 +525,15 @@ P.lostUnits = function (p, sl) {
   );
 };
 
-/** A sleeping seat whose kingdom falls stops sleeping: its last spell ends that season. */
-P.endSleep = function (p) {
+/** A sleeping seat whose kingdom falls, or whose king dies (item 17b), stops sleeping: its last spell ends that season. */
+P.endSleep = function (p, why = "the kingdom fell") {
   const sl = this.s.sleep.tryGet(p);
   if (sl === undefined || !sl.asleep) return;
   sl.asleep = false;
   const spell = sl.history.length > 0 ? sl.history[sl.history.length - 1] : null;
   if (spell !== null && spell.wokeAt === 0) {
     spell.wokeAt = this.s.turn + 1;
-    spell.reasons = ["the kingdom fell"];
+    spell.reasons = [why];
   }
 };
 

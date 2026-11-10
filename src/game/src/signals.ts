@@ -36,7 +36,14 @@ export const SignalKinds: readonly string[] = [
   "job-done", "hire-abroad", "ride-hired", "ride-back", "hoard-seized", "tablet-sold", "purse-taken",
   "unheard", "unheard-home", "unheard-lie", "go-between", "court-go-between", "bridged-servant", "mandate-slow", "envoy-mute", "tablet-unread", "tablet-read-late", "bent-words", "bent-noticed",
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
-  "risen", "fall-held", "fall-lawless",
+  // Item 17++++a: raiders from beyond the map come and go home, and bands paid off.
+  "raiders-came", "raiders-home", "band-paid-off", "band-pay-refused",
+  // Item 17b: kings taken, escaping and dying.
+  "king-taken", "king-escapes", "king-dies",
+  // Item 17b, part C: a king setting out without his court, and one getting away from a battle lost where he stood.
+  "king-alone", "king-away",
+  // Item 17b, part C2: a court's treasury lost where it stood, a court taken on the road, an heir in exile, and one restored.
+  "court-treasury", "court-taken-road", "king-exile", "crown-exile",
   "revolt-crushed", "revolt-led", "revolt-lawless", "revolt-home", "risen-revolt", "risen-turned", "risen-chief", "risen-elder",
   "supply-buy", "supply-take", "supply-kept", "supply-word-buy", "supply-word-take", "stir",
   "raze", "wall-repair", "harbour-short", "station-read",

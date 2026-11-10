@@ -26,6 +26,8 @@ export function person(c: CharacterView): string
         {
             parts.push(c.status !== `your captive` ? c.status : c.intercepted ? `your captive (an envoy your besiegers caught)` : `your captive (a caught spy)`);
             if (c.employer !== null) parts.push(`serves ${c.employer}`);
+            // Item 17b, part C2: the throne of a fallen realm he claims, once you have heard of its fall.
+            if (c.heirOf !== null) parts.push(`claims the throne of ${c.heirOf}, which has fallen`);
             if (c.heldByYou) parts.push(`held at your court against their will`);
             if (c.where.length > 0) parts.push(c.where);
         }
@@ -96,8 +98,8 @@ export function audience(a: AudienceView, inCourt = false): string
             sb.appendLine(`You have already named ${a.goldBackNamed} shekels to send home with the envoy; a new amount replaces it, 0 keeps it.`);
         if (a.giftAccepted > 0)
             sb.appendLine(`${a.envoy.name} has already accepted your gift of ${a.giftAccepted} shekels. An envoy takes one gift per audience: another gift would not be given.`);
-        // Item 11a, "Gold is a lifeline": what gold given or sent home is worth to the king who gives it.
-        sb.appendLine(GoldLifeline);
+        // Item 11a, "Gold is a lifeline": what gold given or sent home is worth to the king who gives it (said once a court).
+        if (!inCourt) sb.appendLine(GoldLifeline);
         if (a.ordersStand && !inCourt) sb.append(ordersStandAtCourt(a));
         sb.appendLine(a.round < a.maxRounds
             ? `Answer the envoy. You may end the audience now, or leave it open for one more exchange.`

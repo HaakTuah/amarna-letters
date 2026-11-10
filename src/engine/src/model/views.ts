@@ -356,7 +356,8 @@ export interface CharacterView {
   /** Item 10: the king a person at your court says it serves as his envoy, though it brought no letter; null if none. */
   claimsToServe: Power | null;
   /**
-   * What someone not in your service asks you a season: named in a pitch, or asked by a free person at your court.
+   * What someone asks you a season of a job's term: named in a pitch, asked by a free person at your court, or asked by your
+   * own servant at your court for a new job.
    */
   askingPrice: number | null;
   /** In your service, at your court, with no task: can be sent somewhere this season. */
@@ -367,6 +368,10 @@ export interface CharacterView {
    * Your captive is an envoy your besiegers caught at a city you besiege (it can be executed, ransomed or released, not turned).
    */
   intercepted: boolean;
+  /** Item 17b: the realm whose reigning king this is, as the viewer knows (an heir once word of him has come); null for anyone else. */
+  kingOf: Power | null;
+  /** Item 17b, part C2: the fallen realm whose throne the person claims as the heir of its kings, in exile (public), else null. */
+  heirOf: Power | null;
   /**
    * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.
    */
@@ -397,13 +402,19 @@ export interface BandSeen {
   men: number;
   chief: string;
   ship: boolean;
+  /** Item 17++++a: raiders from beyond the map, by who they are ("Aegean raiders of Ahhiyawa"); "" for the land's own outlaws. */
+  raiders: string;
+  /** Item 17++++a: the people it holds, carried off where it robbed, where the viewer has the band in sight (else 0). */
+  captives: number;
+  /** Item 17++++a: the last season it keeps out of your land, if you paid it off, that still holds and it is in sight; else 0. */
+  paidUntil: number;
 }
 
 export function newBandSeen(init: Partial<BandSeen> = {}): BandSeen {
-  return { province: "", men: 0, chief: "", ship: false, ...init };
+  return { province: "", men: 0, chief: "", ship: false, raiders: "", captives: 0, paidUntil: 0, ...init };
 }
 
-export const BandSeenSchema: ObjSchema<BandSeen> = obj("BandSeen", newBandSeen, { province: S, men: I, chief: S, ship: B });
+export const BandSeenSchema: ObjSchema<BandSeen> = obj("BandSeen", newBandSeen, { province: S, men: I, chief: S, ship: B, raiders: S, captives: I, paidUntil: I });
 
 /** Item 11b: news a person at your court offers of another court: as of when, how many reports, and its price. */
 export interface NewsOffer {
@@ -450,6 +461,8 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     ready: false,
     heldByYou: false,
     intercepted: false,
+    kingOf: null,
+    heirOf: null,
     ransomDemand: null,
     ransomCarrier: null,
     owed: null,
@@ -493,6 +506,8 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   ready: B,
   heldByYou: B,
   intercepted: B,
+  kingOf: opt(S),
+  heirOf: opt(S),
   ransomDemand: opt(I),
   ransomCarrier: opt(I),
   owed: opt(I),
@@ -823,11 +838,21 @@ export interface SeatView {
   power: Power;
   king: string;
   /**
-   * Item 13 ("The capital is wherever the king is"): the province where the king is, his court and capital, from where his
-   * orders travel; and, while he is on the road with his court, where he goes (else null).
+   * Item 13 ("The capital is wherever the king is"): the province where the court is, the capital, where envoys and letters
+   * come and the treasury and archive are kept; and, while it is on the road, where it goes (else null).
    */
   courtAt: string;
   courtTo: string | null;
+  /**
+   * Item 17b, part C: the province where the king stands apart from his court, from where his orders travel (null: with
+   * it); and, while he is on the road without it, where he goes (else null).
+   */
+  kingAt: string | null;
+  kingTo: string | null;
+  /** Item 17b, part C: where the king commands from: where he stands apart from his court, else the court. */
+  seat: string;
+  /** Item 17b: the king's own traits as this game drew them (0 to 100, in `KingTraitValues`' order): who he is. */
+  traits: number[];
   /** Item 13: the court's own governorships: the province, its governor's id, when he governs from, and his levies. */
   governors: GovernorView[];
   ended: boolean;
@@ -888,6 +913,8 @@ export interface SeatView {
   startStrength: number;
   /** What a shekel of yield counts in strength (public, in the rulebook). */
   provinceWeight: number;
+  /** Item 18: whether kings' traits were rolled for this game (`GameConfig.rolledTraits`): then no rival is known by his history. */
+  rolledTraits: boolean;
   /**
    * Who this court knows holds each land province (build order item 7b, "Hidden by default"): as it is where it sees, and
    * elsewhere as of the season in {@link ownerAsOf}, by word or by what its own people brought home ({@link ownerFrom}).
@@ -1011,7 +1038,7 @@ export interface SeatView {
   goldSent: { province: string; gold: number }[];
   /** #587: its own provinces beyond the season's reach of its court, by the road home: their coffers and bills pay there. */
   far: string[];
-  /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
+  /** Claims to the rank of Great King this court knows of and whether each is still new (item 8; bug #777); `heardBy` is not shown. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
   greetings: Recognition[];
@@ -1059,6 +1086,10 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     power: "Egypt",
     courtAt: "",
     courtTo: null,
+    kingAt: null,
+    kingTo: null,
+    seat: "",
+    traits: [],
     governors: [],
     king: "",
     ended: false,
@@ -1092,6 +1123,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     strength: 0,
     startStrength: 0,
     provinceWeight: newGameConfig().provinceWeight,
+    rolledTraits: false,
     owner: new Dict(),
     ownerAsOf: new Dict(),
     ownerFrom: new Dict(),
@@ -1155,6 +1187,10 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   power: S,
   courtAt: S,
   courtTo: opt(S),
+  kingAt: opt(S),
+  kingTo: opt(S),
+  seat: S,
+  traits: list(I),
   governors: list(() => GovernorViewSchema),
   king: S,
   ended: B,
@@ -1188,6 +1224,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   strength: I,
   startStrength: I,
   provinceWeight: I,
+  rolledTraits: B,
   owner: dict(opt(S)),
   ownerAsOf: dict(I),
   ownerFrom: dict(S),

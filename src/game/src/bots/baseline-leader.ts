@@ -54,7 +54,7 @@ import {
   menOf,
   FullWeight,
   type CharacterView,
-  powerNameFor,
+  powerNameFor, rulerStyle
 } from "@amarna/engine";
 import { plainGrainOrders } from "./grain.ts";
 import { jobsForErrands } from "./errands.ts";
@@ -158,7 +158,7 @@ export class BaselineLeader implements ISeat {
     const reply = newHostReply({ end: true });
     const speech: string[] = [];
 
-    if (view.greetingDeviations.includes("no greeting at all")) speech.push("Your tablet does not even greet me. Is this how one writes to a Great King?");
+    if (view.greetingDeviations.includes("no greeting at all")) speech.push(`Your tablet does not even greet me. Is this how one writes to a ${rulerStyle(me)}?`);
     else if (view.greetingDeviations.includes('no "brother"')) speech.push("You do not call me brother. Have I not been a brother to you?");
     if (view.greetingDeviations.includes("the sender's name first")) speech.push("And you put your own name before mine.");
 
@@ -634,7 +634,7 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
     let since = m.heldSince.tryGet(c.id);
     if (since === undefined) m.heldSince.set(c.id, (since = v.turn));
     if (v.turn - since >= 2) {
-      orders.push(release(c.id, "Go, and tell your lord to mind his manners with a Great King."));
+      orders.push(release(c.id, `Go, and tell your lord to mind his manners with a ${rulerStyle(v.power)}.`));
       m.heldSince.delete(c.id);
     }
   }

@@ -24,7 +24,8 @@ import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
-import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit, loseUnit } from "../model/state.ts";
+import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf } from "../model/state.ts";
+import { unitLabel, type Unit, loseUnit } from "../model/units.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
 import { listed } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
@@ -142,7 +143,7 @@ P.harvestSeason = function () {
   const mined = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
     const owner = S.owner.getOrDefault(prov.id, null);
-    const book = owner === null || this.wordTo(owner, prov.id) === 0 ? owner : `${owner}@${prov.id}`;
+    const book = owner === null || this.fromCourt(owner, prov.id) === 0 ? owner : `${owner}@${prov.id}`;
     // The fields grow by this season's hands and weather; in its season the crop is reaped into the granaries.
     const crop = S.crop.getOrDefault(prov.id, 0) + this.harvestNow(prov.id);
     let granary = S.granary.getOrDefault(prov.id, 0);

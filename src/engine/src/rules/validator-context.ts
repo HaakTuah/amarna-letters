@@ -8,7 +8,8 @@ import type { WorldMap } from "../model/map.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import type { GameState, Unit } from "../model/state.ts";
+import type { GameState } from "../model/state.ts";
+import type { Unit } from "../model/units.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export interface Checking {

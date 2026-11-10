@@ -33,7 +33,7 @@ import { Height, Width, city, ll } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
 import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
-import { cap, powerName, when, whenCap } from "../ui/format.ts";
+import { cap, winnerName, powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { sideScroll } from "../ui/side-scroll.ts";
 import { navigate } from "../ui/router.ts";
@@ -396,7 +396,7 @@ export function Play() {
   const playedOn = !history && frame.ended && !live.ended;
   const endingLine =
     frame.ended && !playedOn
-      ? `${frame.endReason === null ? "The age has ended" : cap(frame.endReason)}. Winner: ${frame.winners.map(powerName).join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
+      ? `${frame.endReason === null ? "The age has ended" : cap(frame.endReason)}. Winner: ${frame.winners.map(winnerName).join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
       : playedOn
         ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
         : ending(frame.openAge, frame.ageEnded, viewer, frame.ageBand);
@@ -551,7 +551,7 @@ export function Play() {
                   <option value="modern">Modern names</option>
                 </select>
               </label>
-              <label title="The Great Kings' realms by the names people know (Egypt), or by their own letters' names (Miṣri)">
+              <label title="Every realm by the names people know (Egypt, Byblos), or by their own letters' names (Miṣri, Gubla)">
                 Realms{" "}
                 <select value={names.realms} onChange={(e) => setNames({ realms: e.target.value as "known" | "period" })}>
                   <option value="known">Names people know</option>
@@ -871,11 +871,11 @@ export function Play() {
               {state.config.sleepingSeats
                 ? " A human seat sleeps only when you choose to: seal your orders with a sleep and the seasons pass by themselves, your standing and scheduled orders acting for you, until something concerns you or you wake yourself."
                 : ""}{" "}
-              Standing orders do: give them in the orders tab, under Standing orders. If your kingdom falls with its capital, your game is over: you watch the
+              Standing orders do: give them in the orders tab, under Standing orders. If you die, or your kingdom holds nothing, your game is over: your heir plays on as a script, and you watch the
               rest{" "}
               {state.config.fallenSeeAll
                 ? "in god view, seeing everything (this table's setting)"
-                : "with what your kingdom knew when it fell (this table's setting)"}
+                : "with what your court knew when your game ended (this table's setting)"}
               .
             </p>
             <div className="item">

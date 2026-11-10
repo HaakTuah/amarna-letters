@@ -23,7 +23,8 @@ import {
   type StandingOrder,
   type StandingRequest,
 } from "../model/sleep.ts";
-import { findCharacter, logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, notify, unitAt, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { goneHeard, placesKnown } from "../rules/units-known.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
@@ -343,7 +344,8 @@ P.notYetReached = function (p, sl, o, x) {
   const S = this.s;
   if (o === null || x.given <= 0) return false;
   const unit = x.unitId !== null ? (S.units.find((u) => u.id === x.unitId) ?? null) : null;
-  const place = unit !== null ? unit.province : (scheduledPlace(o) ?? null);
+  // #759: its king reckons the road to where his view shows the unit.
+  const place = unit !== null ? placesKnown(this, p)(unit) : (scheduledPlace(o) ?? null);
   if (place === null || !this.map.exists(place)) return false;
   const reach = this.wordTo(p, place);
   if (!Number.isFinite(reach) || S.turn >= x.given + reach) return false;
@@ -886,7 +888,7 @@ P.marches = function (valid) {
       // Its king reads of its march by the road from where it stands, of the unit where he believed it stood (bug #615).
       const whose = `Your ${kindName(unit.kind)} in ${place(unit)}`;
       const refused = valid.tryGet(p)?.rejected.find((r) => r.order === order);
-      if (refused !== undefined) this.endMarch(p, sl, plan, this.courtAt(p), `${whose} could not be ordered to ${move.to} in turn ${S.turn} (${refused.reason})`, true);
+      if (refused !== undefined) this.endMarch(p, sl, plan, unit.province, `${whose} could not be ordered to ${move.to} in turn ${S.turn} (${refused.reason})`, true);
       else if (unit.province === move.to) continue;
       // Still on a long road (item 13): it goes on next season, and nothing failed.
       else if (unit.march === move.to && unit.along < this.marchPoints(unit, move.to, move.forced === true)) {

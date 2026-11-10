@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, basePrice, first, hire, newContract, newGame, newGameConfig, newJobErrand, renew, single } from "@amarna/engine";
+import { Views, askingPrice, basePrice, first, hire, newContract, newGame, newGameConfig, newJobErrand, renew, single } from "@amarna/engine";
 import { type JsonObject, Parse, Replies, Schemas, leaderRules, person, problems } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
@@ -50,17 +50,16 @@ describe("ContractTextTests", () => {
       return person(single(Views.for(s, "Mitanni").court, (x) => x.id === c.id));
     }
     Assert.contains(
-      "; at court, ready for a mission; a job whose first errand you name when you send them, for 108 shekels (54 handed over, 54 due when it is done, paid only if you order it (pay_fee)), by turn 10; the job ends once it is done at your court",
+      "; at court, ready for a mission; a job, its errand named when you send them: 108 shekels, 54 paid, 54 owed when it is done, paid only if you order it (pay_fee); term to turn 10",
       line(),
     );
     Assert.doesNotContain("until turn", line());
-    // What it asked before it was hired (here, or rehired after a notice ran out) means nothing now: one's own servant shows no asking price.
-    c.askingPrice.set("Mitanni", 40);
-    Assert.doesNotContain("asks", line());
+    // Item 18 (#837): one's own servant at court says what it asks for a new job, the price a new job must reach.
+    Assert.contains(`asks ${askingPrice(c, "Mitanni")} a season of a job's term`, line());
 
     c.contract.errand = newJobErrand({ what: "envoy", where: "Hatti" });
     c.contract.payOnDone = true;
-    Assert.contains("; a job as envoy to Hatti, for 108 shekels (54 handed over, 54 paid when it is done, as you ordered), by turn 10;", line());
+    Assert.contains("; a job as envoy to Hatti: 108 shekels, 54 paid, 54 when it is done; term to turn 10", line());
 
     let free = first(s.characters, (x) => x.status === "Free");
     free.at = "Mitanni";

@@ -277,7 +277,8 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling"] as const;
+/** "Abroad" (item 17++++a): gone home beyond the map, a raider chief with his spoils, until he comes back through his door. */
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling", "Abroad"] as const;
 export type Duty = (typeof DutyValues)[number];
 
 /**
@@ -413,11 +414,16 @@ export interface Character {
   errand: Errand | null;
   /** Item 11a: the season it came through a door onto the map, or rose from the crowd; null for one there from the start. */
   arrived: number | null;
-  /** Item 11a: seasons it has waited unhired at the court where it stands, seeking work. */
+  /** Item 11a: seasons it has waited unhired at the court where it stands, seeking work (`idle` counts them wherever it went). */
   waited: number;
+  /**
+   * Item 18 (#837): seasons it has sought service unhired, wherever it went (`waited` counts those at one court), kept in
+   * the season's living; what it asks falls with them (`basePrice`).
+   */
+  idle: number;
   /** Item 11a, "Working for oneself": a free person seeking service; false while it works for itself. */
   seeking: boolean;
-  /** Item 11a, "The richest characters": what it held, purse and hoard, when it died; null while it lives. */
+  /** Item 11a: what it held, purse and hoard, when it died (a king, since item 17b part D: his realm); null while it lives. */
   diedWith: number | null;
   /** Item 11a: the last season it decided a season of its own; null since it arrived somewhere new (or never). */
   lastLife: number | null;
@@ -435,6 +441,12 @@ export interface Character {
   heard: string[];
   /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
   leftRoad: number | null;
+  /**
+   * Item 17++++a: the king who paid this chief to take his band out of his land (`pay_off`), and the last season of the
+   * term; "" if none. The word is the chief's, not his band's: it goes home and comes back with him.
+   */
+  paidOffBy: string;
+  paidOffUntil: number;
   /** Item 13: the battles it won and lost commanding an army, a record its master and anyone who hears of them can weigh. */
   won: number;
   lost: number;
@@ -665,6 +677,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     errand: null,
     arrived: null,
     waited: 0,
+    idle: 0,
     seeking: true,
     diedWith: null,
     lastLife: null,
@@ -674,6 +687,8 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     news: [],
     heard: [],
     leftRoad: null,
+    paidOffBy: "",
+    paidOffUntil: 0,
     won: 0,
     lost: 0,
     grantedBy: null,
@@ -746,6 +761,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   errand: () => ErrandSchema,
   arrived: opt(I),
   waited: I,
+  idle: I,
   seeking: B,
   diedWith: opt(I),
   lastLife: opt(I),
@@ -755,6 +771,8 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   news: list(() => NewsHeldSchema),
   heard: list(S),
   leftRoad: opt(I),
+  paidOffBy: S,
+  paidOffUntil: I,
   won: I,
   lost: I,
   grantedBy: opt(S),
@@ -857,6 +875,11 @@ export interface Cover {
   /** The province the master believes the servant stands in out in the land (`CharacterView.province`, bug #734). */
   province: string | null;
   /**
+   * The foreign court the master believes the servant stands at, or set out for or from (bug #797): its id, kept apart
+   * from the lines' words, which name it as that master gives it. Null if none.
+   */
+  court: Power | null;
+  /**
    * When the master believes the servant set out and is due back, as its view read then (see {@link Views.TimingText}).
    */
   timingText: string;
@@ -887,6 +910,7 @@ export function newCover(init: Partial<Cover> = {}): Cover {
     dutyText: "",
     whereText: "",
     province: null,
+    court: null,
     timingText: "",
     fee: 0,
     advance: 0,
@@ -909,6 +933,7 @@ export const CoverSchema: ObjSchema<Cover> = obj("Cover", newCover, {
   dutyText: S,
   whereText: S,
   province: opt(S),
+  court: opt(S),
   timingText: S,
   fee: I,
   advance: I,

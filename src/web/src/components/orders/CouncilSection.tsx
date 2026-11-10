@@ -36,9 +36,9 @@ export function CouncilSection({ c }: { c: OrdersContext }) {
         <>
           <p className="muted">
             <small>
-              Four advisors who only inform, each with a known tilt. They see only what you see, with rivals' gold estimated and troops remembered, so they
-              can be confidently wrong. "Pictured seasons" are eight ways this season may go, played out by the rules from your view. Where all four agree,
-              the move is almost certainly sound.
+              Four advisors who only advise, each with a known bent. They see only what you see, rivals' gold guessed and their troops as last seen, so
+              they can be wrong and sure of it. "Pictured seasons" are eight ways this season may go, played out by the rules from your view. Where all
+              four agree, the move is usually sound.
             </small>
           </p>
           {council.agreed.length > 0 && (
@@ -56,7 +56,7 @@ export function CouncilSection({ c }: { c: OrdersContext }) {
           )}
           {council.advisors.map((a) => (
             <div className="item" key={a.advisor}>
-              <strong>{a.title.charAt(0).toUpperCase() + a.title.slice(1)}</strong> <span className="muted">(the {a.advisor}: {a.tilt})</span>
+              <strong>{a.title.charAt(0).toUpperCase() + a.title.slice(1)}</strong>, <span className="muted">{a.tilt}</span>
               <div>{a.reading}</div>
               {a.lines.length > 0 && (
                 <>
@@ -66,7 +66,7 @@ export function CouncilSection({ c }: { c: OrdersContext }) {
                     ))}
                   </ul>
                   <button className="small" onClick={() => take([...council.agreed, ...a.lines])}>
-                    Take the {a.advisor}'s orders
+                    Take {a.title.replace(/ \(.*\)$/, "")}'s orders
                   </button>
                 </>
               )}

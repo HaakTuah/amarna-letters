@@ -6,6 +6,7 @@
  */
 import {
   AllPowers,
+  journeyGroups,
   mandateText,
   type UnitView,
   Views,
@@ -18,8 +19,8 @@ import {
   fmt,
   groupBy,
   isEnvoyWaiting,
-  kingFor,
-  claimedName,
+  rulerOf,
+  standout,
   landGrowth,
   sortBy,
   terrainOf,
@@ -44,8 +45,10 @@ import { GoldLifeline, economyLines, worksLines } from "./prompt-economy.ts";
 import { person } from "./prompt-audience.ts";
 import { NoneRead, copySource, inFull, letterBrief, letterLine, lettersGold, openingTreaties, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
 import { Sb, andList, asViewFigures, joinS, num } from "./text.ts";
-export function identity(p: Power): string {
-  return `You are ${kingFor(p, p)}, Great King of ${claimedName(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
+export function identity(p: Power, traits: readonly number[]): string {
+  // Item 17b: the king is a person, and plays as the man the sources show; his traits shape his play, his stakes decide it.
+  const nature = traits.length === 0 ? "" : ` By nature you are ${andList(standout(traits))}.`;
+  return `You are ${rulerOf(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.${nature}`;
 }
 
     /// <summary>
@@ -164,21 +167,16 @@ function treasuryLine(v: SeatView): string {
     + `People count on ${v.trust}% of what you promise (${promises}). ${carriers} Your standing order ${troops}${pay}${food}.`;
 }
 
-/** A court's journey as the view gives it: "Hatti: 1 season(s) each way". */
-const Journey = /^(?<court>.+): (?<n>\d+) season\(s\) each way$/;
-
 /**
- * How long an envoy takes to each court, by the length of the journey: the courts most journeys reach in the same time are
- * "every other court", the rest named. A journey the view words otherwise stands as it is.
+ * How long an envoy takes to each court, by the length of the journey (`journeyGroups`, shared with the human's orders): the
+ * courts most journeys reach in the same time are "every other court", the rest named. A journey the view words otherwise
+ * stands as it is.
  */
 function travelLine(v: SeatView): string {
-  const journeys = v.travelTimes.map((t) => Journey.exec(t)?.groups);
-  const odd = v.travelTimes.filter((_, i) => journeys[i] === undefined);
-  const groups = sortBy(groupBy(journeys.filter((j) => j !== undefined), (j) => Number(j.n)), [g => g[0], cmpNum]);
-  const most = groups.reduce<(typeof groups)[number] | null>((a, g) => (a === null || g[1].length > a[1].length ? g : a), null);
+  const { most, others, odd } = journeyGroups(v.travelTimes);
   const seasons = (n: number): string => `${counted(n)} season${n === 1 ? `` : `s`} each way`;
-  const parts = [...groups.filter((g) => g !== most).map(([n, js]) => `${seasons(n)} to ${andList(js.map((j) => j.court))}`), ...odd];
-  if (most !== null) parts.push(`${seasons(most[0])} to every ${parts.length === 0 ? `` : `other `}court`);
+  const parts = [...others.map((g) => `${seasons(g.seasons)} to ${andList(g.courts)}`), ...odd];
+  if (most !== null) parts.push(`${seasons(most.seasons)} to every ${parts.length === 0 ? `` : `other `}court`);
   return joinS(`; `, parts);
 }
 
@@ -191,8 +189,11 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
         // Item 16, "Omens of the end": what the court's diviners read this season, in words only.
         if (v.omens !== ``) sb.appendLine(`OMENS: ${v.omens}`);
-        // Item 13: where the king is, his court and capital, from where his orders go out.
-        if (v.courtAt !== ``) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``}; your orders go out from here (see COMMAND AT A DISTANCE).`);
+        // Item 13: where the court is, and (item 17b, part C) where the king stands apart from it, from where his orders go out.
+        const courtRoad = v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``;
+        if (v.courtAt !== `` && v.kingAt === null) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${courtRoad}; your orders go out from here (see COMMAND AT A DISTANCE).`);
+        else if (v.courtAt !== ``)
+          sb.appendLine(`COURT: you are in ${v.kingAt}${v.kingTo !== null ? `, on the road to ${v.kingTo}` : ``}, apart from your court, and your orders go out from there; your court, with your treasury and archive, is in ${v.courtAt}${courtRoad}, where envoys and letters come (see COMMAND AT A DISTANCE).`);
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         sb.appendLine(treasuryLine(v));

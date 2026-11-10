@@ -8,6 +8,7 @@ import {
   bandCost,
   command,
   enlist,
+  payOff,
   govern,
   crown,
   answer,
@@ -23,7 +24,7 @@ import {
   type Power,
   type Withdraw,
 } from "@amarna/engine";
-import { powerName, provinceName } from "../../ui/format.ts";
+import { powerName, provinceName, shekels } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { map } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -48,6 +49,8 @@ export function CommandSection({ c }: { c: OrdersContext }) {
   const [gov, setGov] = useState<{ province: string; person: string; levies: number }>({ province: "", person: "", levies: 1 });
   const [king, setKing] = useState<{ person: string; tribute: string; price: string; land: string }>({ person: "", tribute: "", price: "", land: "" });
   const [food, setFood] = useState<Record<string, number>>({});
+  // Item 17++++a: the fee offered a band's chief, to serve or to leave, the player's own (a first figure from its men's cost).
+  const [bandFee, setBandFee] = useState<Record<string, number>>({});
   const ready = v.court.filter((x) => x.ready);
   // Item 17++: who may be offered a kingship, and over what: a governor of ours over the provinces he governs, never the court's city.
   const governs = (id: string): string[] => v.governors.filter((g) => g.character === id && !g.relieving && g.from <= v.turn && g.province !== v.courtAt).map((g) => g.province);
@@ -61,12 +64,19 @@ export function CommandSection({ c }: { c: OrdersContext }) {
       <p className="muted">
         <small>
           Your court is in {provinceName(v.courtAt)}
-          {v.courtTo !== null && <>, on the road to {provinceName(v.courtTo)}</>}. Orders for places your couriers cannot reach this season go out now and are carried out when they arrive.
+          {v.courtTo !== null && <>, on the road to {provinceName(v.courtTo)}</>}
+          {v.kingAt !== null && (
+            <>
+              ; you are in {provinceName(v.kingAt)}
+              {v.kingTo !== null && <>, on the road to {provinceName(v.kingTo)}</>}, apart from it, and your orders go out from there
+            </>
+          )}
+          . Orders for places your couriers cannot reach this season go out now and are carried out when they arrive. You may travel without your court, with your guard, to command near the front, at the risk of your life.
         </small>
       </p>
       <div className="row">
         <select value={courtTo} onChange={(e) => setCourtTo(e.target.value)}>
-          <option value="">— move the court to? —</option>
+          <option value="">— the court, or you alone, to? —</option>
           {lands.map((p) => (
             <option key={p} value={p}>
               {provinceName(p)}
@@ -74,7 +84,10 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           ))}
         </select>
         <button className="small" disabled={courtTo === ""} onClick={() => add(moveCourt(courtTo))}>
-          Set out
+          Move the court
+        </button>
+        <button className="small" disabled={courtTo === ""} onClick={() => add(moveCourt(courtTo, true))}>
+          Go alone
         </button>
       </div>
       {own.map((u) => (
@@ -116,7 +129,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
             <span className="row" style={{ gap: ".3rem" }}>
               <span className="muted">
                 <small>
-                  food: {u.buy ? "buys" : "takes"} where it stands by leave, carries {u.chest} shekels for it
+                  Food: {u.buy ? "buys it" : "takes it"} where it stands (by leave); {u.chest > 0 ? `carries ${shekels(u.chest)} for it` : "carries no gold for it"}
                 </small>
               </span>
               <input type="number" min={0} style={{ width: "5rem" }} value={food[u.province] ?? 0} onChange={(e) => setFood({ ...food, [u.province]: Math.max(0, Number(e.target.value) || 0) })} />
@@ -198,10 +211,14 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         .map((x) => (
           <div className="row" key={`band-${x.province}`}>
             <small>
-              {x.chief}'s band of {x.men} in {provinceName(x.province)}, where your army stands
+              {x.chief}'s {x.raiders !== "" ? `${x.raiders}, ${x.men} from beyond the map,` : `band of ${x.men}`} in {provinceName(x.province)}, where your army stands
             </small>
-            <button className="small" onClick={() => add(enlist(x.province, bandCost(x.men) * 4 * 3, 4))}>
-              Offer {bandCost(x.men) * 4 * 3} shekels for four seasons' service
+            <input type="number" min={1} style={{ width: "5rem" }} aria-label="Fee in shekels" value={bandFee[x.province] ?? bandCost(x.men) * 4 * 3} onChange={(e) => setBandFee({ ...bandFee, [x.province]: Math.max(1, Math.floor(Number(e.target.value)) || 1) })} />
+            <button className="small" onClick={() => add(enlist(x.province, bandFee[x.province] ?? bandCost(x.men) * 4 * 3, 4))}>
+              Offer it for four seasons' service
+            </button>
+            <button className="small" onClick={() => add(payOff(x.province, bandFee[x.province] ?? bandCost(x.men) * 4 * 3, 4))}>
+              Offer it to leave your land for four seasons
             </button>
           </div>
         ))}
@@ -211,7 +228,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           <small>
             {provinceName(g.province)}: {name(g.character)}
             {g.seat !== g.province ? `, from his seat at ${provinceName(g.seat)}` : ""}
-            {g.from > v.turn ? ` (from turn ${g.from})` : ""}, levies {g.raised} of {g.levies}
+            {g.from > v.turn ? ` (from turn ${g.from})` : ""}, {g.levies === 0 ? "may raise no levies" : `has raised ${g.raised} of ${g.levies} levies`}
           </small>
           {!g.relieving && (
             <button className="small" onClick={() => add(unseat(g.province))}>
@@ -249,7 +266,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         <select value={gov.levies} onChange={(e) => setGov({ ...gov, levies: Number(e.target.value) })}>
           {Array.from({ length: MostGovernorLevies + 1 }, (_, i) => i).map((i) => (
             <option key={i} value={i}>
-              {i} levies
+              {i === 0 ? "no levies" : i === 1 ? "one levy" : `${i} levies`}
             </option>
           ))}
         </select>

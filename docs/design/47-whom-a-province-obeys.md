@@ -37,7 +37,7 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   next door, or before walls they have not stormed (`GameState.breached`), weigh a quarter as much and at most `nearMost`
   25 in all, for every power alike; plus love, his ledger and that of the men serving him there who have not chosen to
   rise against him; less, for the holder against a rising or the floor, his weakness (`besieged` 20, up to `weakness` 40 as his realm
-  shrinks): it is the moment a low standing becomes a rising, and against a foreign king's troops his beaten armies already
+  shrinks below `GameState.startStrength`, for an heir what he inherited, item 17b part D): it is the moment a low standing becomes a rising, and against a foreign king's troops his beaten armies already
   weigh as the force he has left. A guest
   by sealed passage weighs nothing.
 - **Conquest is this rule alone**: moving in takes nothing by itself, and a unit that storms walls breaks in (`stormed`
@@ -96,8 +96,8 @@ commander or with a hired band.
 - **Governors** from the first season, as grants (no fee): Thutmose over Kush, Addaya at Hazzatu, Pahanate at Ṣumur,
   Enlil-kidinni at Nippur, Ili-ippashra at Dilmun, Eshuwara over Alashiya's copper hills; invented, the office attested and
   the name lost: Hatti's lords of the watchtower at Tuwanuwa and Samuha, Babylonia's governors at Sippar, Urim and Suhu,
-  each one of the free people of its court's name style (standing at the court first), and only where none is left one of
-  another's standing there.
+  each one of the free people of its court's name style (standing at the court first), and where none is left the
+  ordinary person who would be taken made one of its people, named and born in its style, never a stranger (#765).
   Heartlands and Kizzuwatna (Telipinu, a prince) stay out. A governorship over land its king no longer holds ends, as before.
 - **Commissioners over vassals' lands are characters**, open residents (`Character.openly`: a watcher nobody hunts) in
   Pharaoh's service: Maya at Gazru, Haya in Amurru, Rianap at Ashkelon, Tahmaya at Magidda, Yanhamu at Gubla, and an

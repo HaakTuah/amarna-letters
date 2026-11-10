@@ -9,7 +9,7 @@ import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import type { Power } from "../model/power.ts";
 import { newLevyRef, type PlannedOrder, type SleepState } from "../model/sleep.ts";
 import type { Character } from "../model/people.ts";
-import type { Unit } from "../model/state.ts";
+import type { Unit } from "../model/units.ts";
 import { wordCame } from "./caravans-known.ts";
 import { sight } from "./known-land.ts";
 import type { TurnEngine } from "../turn/turn-engine.ts";

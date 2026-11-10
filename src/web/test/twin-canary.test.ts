@@ -425,7 +425,7 @@ const tabletRepudiated: Twin = {
     s.tablets.push(
       newTablet({ id: "t990", text: "Passage through the delta.", clauses: [clause("askPassage", { province: "delta" })], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false }),
     );
-    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, authTurn: 0, unread: null });
     s.grants.push(newGrant({ id: "p990", grantor: "Egypt", grantee: "Babylonia", province: "delta", sinceTurn: 0, tabletId: "t990" }));
     return s;
   },
@@ -449,7 +449,7 @@ const grantRepudiatedByGrantee: Twin = {
     s.tablets.push(
       newTablet({ id: "t990", text: "Passage for Elam.", clauses: [clause("passage", { province: at })], proposedBy: "Libya", partner: "Elam", seals: ["Libya", "Elam"], sealedTurn: 0, byHandOf: "Elam", byHand: "Kutir", within: false }),
     );
-    for (const holder of ["Elam", "Libya"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    for (const holder of ["Elam", "Libya"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, authTurn: 0, unread: null });
     s.grants.push(newGrant({ id: "p990", grantor: "Libya", grantee: "Elam", province: at, sinceTurn: 0, tabletId: "t990" }));
     s.sleep.tryAdd("Libya", newSleepState());
     return s;
@@ -490,7 +490,7 @@ const allyWord: Twin = {
   make() {
     const s = world("Egypt", "Babylonia", "Elam");
     s.tablets.push(newTablet({ id: "t990", text: "Let us be allies.", clauses: [clause("alliance")], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, allianceOath: true }));
-    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, authTurn: 0, unread: null });
     return s;
   },
   later: {
@@ -629,9 +629,21 @@ const farMarchStopped: Twin = {
   heard: (s) => s.turn >= 3 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
 };
 
+/**
+ * As `farUnitMoved`, but its king scheduled in the first season a march from Kush to Thebes for the third: in the twin
+ * where the fact is true, the army already stands in Thebes when the order comes due, and it is refused there (#759).
+ */
+const farOrderRefused: Twin = {
+  ...farMarchStopped,
+  name: "a far army's scheduled order refused where it truly stands",
+  later: { at: 2, happen: (s) => void (s.units.find((u) => u.id === "u990")!.province = "thebes") },
+  scheduled: [newScheduledOrders({ turn: 3, orders: [move("nubia", "thebes")] })],
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
+};
+
 /** The twins bound to a far place, each played at every one of {@link Places}. */
 const AtPlaces = [farLoss, farSiege, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, cofferAfterLoss, cofferAfterSiege, levyUnraised, rideBeforeLoss];
-const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated, farUnitMoved, farUnitHungry, farMarchStopped];
+const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated, farUnitMoved, farUnitHungry, farMarchStopped, farOrderRefused];
 
 describe("TwinCanaryTests", () => {
   const named = Twins.map((t) => ({ ...t, where: t.at === undefined ? "" : `, at ${t.at.province}` }));
