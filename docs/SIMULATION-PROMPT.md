@@ -27,8 +27,8 @@ simulation could not: whether model envoys lie, skim and cover up, and how they 
 traits; how often kings reopen their orders after an audience; and wake-ups and call sizes under the new triggers.
 
 **Your rules.**
-- Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask, and go on with other work meanwhile.
-  (The builder rules say this in the same words.) In this prompt the safety checks are: the key and the usage stop
+- Safety checks are never overridden: a failed one stops its step and the owner is told, while other work goes on
+  (floor rule 14, `core/floor/security.md`). In this prompt the safety checks are: the key and the usage stop
   points (step 0), the agent types and the dry isolation check (step 1), the live isolation test (step 2), and the
   audit after each game (steps 4 and 5). Each step below says what stops when one fails; "ask" means ask the owner. The
   other work that may go on meanwhile is work that starts no agent and spends nothing: the season lines, `summarize.js`,
