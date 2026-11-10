@@ -75,10 +75,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
   on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
-  Barkstreet Snakes. **Steps 1 and 2 are done** (core PR 5, merged 9 November): the core is `HaakTuah/agent-rules` at
-  `main`; step 3 is next, from the core's `reports/2026-11-09-first-core.md` (this game's manifest, the map of the lines
-  the core replaces, and its last section, the owner's answers), the builder-rule lines it replaces cut by the design
-  session at the source.
+  Barkstreet Snakes. **Steps 1 and 2 are done, and step 3 is next** (core PR 19, merged 10 November, with the owner's yes): it
+  takes `HaakTuah/agent-rules` at its newest `main` (`607b683` or later), from the core's reports in this order:
+  `reports/2026-11-09-first-core.md` (this game's manifest, the map of the lines the core replaces, the owner's
+  answers), `reports/2026-11-09-shared-scripts.md` and `reports/2026-11-10-before-step-3.md` ("What each game changes at
+  step 3", and the fragments its dry run found that whole-line cuts leave behind, each with its rewrite). Its workflows
+  need the owner's yes in its PR; the builder-rule lines it replaces are cut by the design session at the source.
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
