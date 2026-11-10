@@ -15,10 +15,6 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **First: the music follows the state** (archive item 241; the design document's 19+++b under Build order, in the
-  copy from its next refresh; for Opus, since it takes an ear's judgement): the mood from a heat that rises fast and
-  cools slow, god view by the world's temperature, in a new file beside `src/web/src/audio/situation.ts`, with
-  `docs/design/45-the-music-and-the-sounds.md` updated in the same PR.
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
@@ -27,7 +23,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   the camera to the play area's edges (#396), a seal's tap to its own city (#398), the tabs and the courts scrolled
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
-  help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795).
+  help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; its tuning by the
+  owner's ear: #877).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
