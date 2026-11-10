@@ -27,11 +27,11 @@ game's own, which "Principles over rules" never reaches: no model games until th
 | What | Where | Notes |
 | --- | --- | --- |
 | Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
-| When Codex builds | `docs/codex-building.md` | Read with `core/modules/codex-building.md` when routing work. |
+| When Codex builds | `docs/codex-building.md` | Read with Codex's status in `core/modules/roles.md` when routing work. |
 | Security | `SECURITY.md`, `docs/threat-model.md` | What this game adds to the floor and to its threat model. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
-| What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, the follow-ups, use against ignore; questions are issues. |
+| What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, the follow-ups, use against ignore. |
 | The historical sources | `docs/history/` (start at `README.md`) | Dossiers on 1346 BCE; cite them when an item builds from them. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
 | History | `docs/archive/` (build log; the owner's instructions word for word; the design document's history) | Read only when a task points there. |
@@ -58,13 +58,13 @@ game's own, which "Principles over rules" never reaches: no model games until th
 - **The smallest game that tests the rule** (archive item 28): a few powers on part of the map, a handful of seasons
   and only the characters a test needs; full-size games only in the replays, the save round trip and a smoke game; long
   measurements (benchmarks, use against ignore) in `scripts/sim.sh`. When an item grows the starting world, the tests'
-  default does not grow with it. The workshop check measures against code-PR checks of about 10 minutes (29 October).
+  default does not grow with it; code-PR checks stay near 10 minutes.
 - **A standing rule of the owner's** for this game moves into the builder rules at the next refresh of the design
   document's copy, and leaves this file in the same PR.
 - **Sessions:** a long item may end a session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md`
   saying where to pick up.
 - **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
-- **Lanes beside the items** (archive item 23): beside the numbered items run splits and the workshop check, history
+- **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
   touch; a lane's draft PR's title names its entry.
 - **Updates:** the cue to move Node (`core/modules/updates.md`) is a new major of `@types/node`.
