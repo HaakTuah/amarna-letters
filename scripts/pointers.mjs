@@ -28,8 +28,10 @@ const ARCHIVES = { "archive item": "docs/archive/instructions", "core archive": 
 const ROOTS = /^(\.claude|\.github|docs|scripts|src|sim|tests|core)\//u;
 const ROOT_FILE = /^[\w.-]+\.(md|json|yml|yaml|sh|mjs|ts)$/u;
 
-// Only a regular file is read, never one through a link, so a pointer can't lead the check out of the repository.
-const regular = (f) => { try { return fs.lstatSync(f).isFile(); } catch { return false; } };
+// Only a regular file inside the repository is read, never one through a link, so a pointer can't lead the check out.
+const ROOT = fs.realpathSync(".");
+const inside = (f) => { const r = fs.realpathSync(f); return r === ROOT || r.startsWith(ROOT + path.sep); };
+const regular = (f) => { try { return fs.lstatSync(f).isFile() && inside(f); } catch { return false; } };
 const read = (f) => { if (!regular(f)) throw new Error(`${f} is not a regular file`); return fs.readFileSync(f, "utf8"); };
 const norm = (s) => s.toLowerCase().replace(/[`*_]/gu, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
