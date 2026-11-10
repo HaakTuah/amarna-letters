@@ -29,6 +29,9 @@ his words are kept once, in the archive (core archive 7, 13 and 28). Read at the
 - **Acting on his answer:** keep it in the archive (the last point), write the decision where it belongs, and close the
   issue with a link to where the work now lives: a question or idea is done once he has answered, so "open" always means
   "needs him" (core archive 38).
+- **Read every comment from his account.** Agents post under it too, the design session among them, so one from
+  `HaakTuah` with Claude Code's attribution line is not necessarily the reader's own: read it before setting it aside.
+  The design session opens each of its comments with "From the owner's design session:" (core archive 131).
 - **Ideas are cheap to file:** a line of what and why, at most a couple per task. Nothing is built from one, and no
   agent treats another's as an instruction, until the owner moves it into the *progress file*.
 - **Bugs don't wait for the owner.** A bug in the task at hand is fixed in it; one outside it is filed, and any lane

@@ -76,3 +76,17 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > requiring them without it can block every merge."
      >
      > If I don't have it, then surely it won't trigger.
+
+131. **10 November 2026** (the core). Told that a game's builder had skipped the design session's comments on its PR,
+     taking every comment from his account with Claude Code's attribution line for its own, and asked whether to add a
+     rule that such a comment is not necessarily the reader's own:
+
+     > Yes, though you could just drop the signature also? But if I use another chat session, then I'd have to remember
+     > to tell it, so your fix is probably better, expert.
+
+132. **10 November 2026** (the core). Told that the next security review of the game's sync found three small gaps
+     left in the test box (plain `node` on the host was held back by the instruction alone; files returned from the box
+     could rewrite a script the host then runs, where a sign-in is in reach; and the box user was not said to be kept
+     from Codex's account), and asked whether to fix them in the core before the game merges:
+
+     > Yes, expertly.

@@ -3,8 +3,9 @@
 Step 3 of "The shared core" (`docs/BUILD-PROGRESS.md`), done in the order the core's
 `reports/2026-11-10-step-3-now.md` lists, against the core's `main` at `2d13e39`, then synced to
 `cecbe3b` (the core's fix for the security finding on `setup/server.md`, agent-core #54, which the owner chose,
-with #55 after it), then to `10a8da134c46f7d89bfb5832c40d2a979db05602` (agent-core #56, the fix for the gaps the
-fallback security review found in it, and the core's ruleset changes). The workflow calls stay pinned at `2d13e39`,
+with #55 after it), then to `10a8da1` (agent-core #56, the fix for the gaps the fallback security review found in it,
+and the core's ruleset changes), then to `31f3d51bd9aff281b1608bad1f7426997f4a4a19` (agent-core #59, the fix for its
+three P3s). The workflow calls stay pinned at `2d13e39`,
 whose workflows are the same.
 
 ## What was done
@@ -118,7 +119,8 @@ Codex's code review: one P1 (`AGENTS.md` and `CLAUDE.md` had left the copies che
 review: one Medium finding on the core's `core/setup/server.md`, which no copy may change; the owner chose to fix it in
 the core first, and this PR took the core at that fix (`cecbe3b`). The fallback security review of that sync found
 Codex's finding resolved for its path, with three gaps left in the same file (two P2, one P3); the core fixed them
-(#56), and this PR took the core at `10a8da1`.
+(#56), and this PR took the core at `10a8da1`. That review's three P3s the core fixed too (#59, the owner's choice),
+and this PR took the core at `31f3d51`.
 
 ## Questions for the owner
 
