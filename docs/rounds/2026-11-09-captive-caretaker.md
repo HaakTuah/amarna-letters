@@ -118,6 +118,16 @@ worth; they now guard only once a plot is found or a spy caught. Before this rou
 guard or the errand's risk): 0.83 against 0.78, 24 wins to 17. Holding a king to the end happens (22 in 50 games)
 without a rule against it, as the owner asked; item 18 part F2 measures it on the full seed sets.
 
+## Benchmarks
+
+`--versus solo`, seeds 1-4, on `main` at 351e141 and on this branch at bb9dffc (a regression check, not a balance
+measurement: four seeds). All kings 2.26 / 1.06 before and 2.24 / 1.06 after (growth alone / as baseline), wins 96% / 7%
+and 93% / 7%. Of the great kings, before and after: Egypt 1.44 / 0.89 both; Hatti 2.21 / 0.93 and 1.32 / 0.93;
+Babylonia 1.49 / 0.63 and 1.50 / 0.63; Mitanni 2.69 / 0.82 and 3.06 / 0.82; Assyria 2.65 / 0.88 and 2.55 / 0.88; Arzawa
+0.77 / 0.78 and 1.10 / 0.78; Alashiya 1.16 / 0.76 both. A king held now loses his realm's initiative to the caretaker,
+which moves who grows on these few seeds (Hatti down, Mitanni and Arzawa up); games stay playable, and balance waits
+for item 18.
+
 ## Questions for the owner
 
 - #882 (opened): may only the captive king send a man to free him, or a friendly king too? The reading taken: only he.
