@@ -16,8 +16,8 @@ polish point to each that it can spend the last credits on also?" and, to the de
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
 - **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
-  text under Build order in the design document): god view hears one realm, as Europa Universalis's observer does;
-  each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
+  text under Build order in the design document): god view hears a seat only while the viewer follows one of its
+  characters, else the world's own heat, never the middle of the view (archive item 248); each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
   of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
