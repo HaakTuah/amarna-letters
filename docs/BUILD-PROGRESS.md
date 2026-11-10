@@ -182,8 +182,8 @@ the workshop check, and again on 7 November): among them the history check's lin
 - ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
-  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547: the list is `.github/versions.json`
-  (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`.
+  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547; Node, all it held, is now the core's
+  one exact pin (`core/.node-version`), so the game's own list and check are gone.
 
 Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
