@@ -126,7 +126,9 @@ P.placeSpy = function (p, ps) {
   if (stir > 0 && !this.pay(p, stir, `gold for ${c.name} to spend among the people of ${Map.get(province!).name}`, ps, "he went without it")) return;
   if (c.contract !== null && job === null) c.contract.errand = newJobErrand({ what: "spy", where: court ?? province! });
   c.stirGold += stir;
-  if (this._freeingNow.has(ps) && !S.freeing.includes(c.id)) S.freeing.push(c.id);
+  // #806: on the errand to free his king only when the king's word home sent him; any other posting ends it.
+  S.freeing = S.freeing.filter((x) => x !== c.id);
+  if (this._freeingNow.has(ps)) S.freeing.push(c.id);
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;

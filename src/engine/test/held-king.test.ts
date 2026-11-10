@@ -106,6 +106,10 @@ describe("HeldKingTests", () => {
     Object.assign(spy, { duty: "None", at: "Egypt" });
     e.placeSpy("Egypt", post);
     Assert.equal([spy.id], s.freeing);
+    // Posted again later by an ordinary order, his errand to free the king is over.
+    Object.assign(spy, { duty: "None", at: "Egypt" });
+    e.placeSpy("Egypt", placeSpy(spy.id, "Hatti"));
+    Assert.empty(s.freeing);
   });
 
   test("His word home may give in: land ceded goes home with his letter", () => {
@@ -145,11 +149,12 @@ describe("HeldKingTests", () => {
     const { s, e } = egyptHeld();
     const k = kingOf(s, "Egypt");
     k.skills.stealth = 99;
-    // KingData.guard: the chance is multiplied by 100 / (100 + the watch), here about a hundred-thousandth of itself.
-    e._guardedLast.set("Hatti", 10_000_000);
+    // KingData.guard: the chance is multiplied by 100 / (100 + the season's watch), here about a hundred-thousandth of
+    // itself; the watch paid in a season still guards him as the next begins, when the escape is drawn.
     for (let i = 0; i < 200; i++) {
+      s.counterIntel.set("Hatti", 10_000_000);
       s.turn++;
-      e.kingsHeld();
+      e.beginTurn();
     }
     Assert.equal(["Captured", "Hatti"], [k.status, k.heldBy]);
   });

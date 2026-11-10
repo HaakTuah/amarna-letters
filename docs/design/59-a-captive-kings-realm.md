@@ -45,8 +45,9 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   (`kingsHeld`), and each season he is caught at it 40 times in a thousand (`AidData.caught`); one of loyalty below 35
   and greed of 60 or more sells his king out instead, telling the captor (`AidData`, first guesses, a script character's
   choice by his traits). Spies posted for anything else do not help.
-- **Script players:** a cunning script captor (above 0.5) holding a king for ransom keeps his letters to every court but his own,
-  once each; a script captive pays his ransom whatever it costs (his word home), with a servant at hand asks for a spy at
+- **Script players:** a script captor holding a king keeps watchmen to guard him
+  ([14](07-script-kings/14-court-and-intelligence.md)), and a cunning one (above 0.5) holding him for ransom keeps his
+  letters to every court but his own, once each; a script captive pays his ransom whatever it costs (his word home), with a servant at hand asks for a spy at
   his captor's court, and writes once to each king sworn to him to pay for him or come for him (all under
   `--king-play-half`).
 - **Holding a king forever** is allowed and measured, not ruled against: the batch's "Captive kings" line
