@@ -22,6 +22,9 @@ export const Heat = {
   little: 1.5,
 } as const;
 
+/** God view: how many Great Kings fighting one another, over the last three seasons, make war, and how many unease. */
+export const KingsAtWar = { war: 3, unease: 2 } as const;
+
 /** What a skirmish with a city-state adds to the heat, a season, up to the war it may bring at most. */
 export const Skirmish = { add: 1.5, most: Heat.war } as const;
 
@@ -39,8 +42,8 @@ export const HalfLife = { seasons: 2, seconds: 30 } as const;
 /** Seconds of play a mood holds before it changes, unless the seat's own capital is attacked. */
 export const Hold = 90;
 
-/** A battle is sizeable from this many units in it, both sides together, as far as the viewer saw. */
-const Sizeable = 3;
+/** A battle is sizeable with this many units attacking, or this many in it on both sides, as far as the viewer saw. */
+const Sizeable = { attacking: 2, all: 4 } as const;
 
 /** How many seasons a fresh start (a jump, a change of eyes) reads back. */
 const Lookback = 8;
@@ -62,8 +65,10 @@ export interface Signal {
 
 const grave = (f: SeasonFrame): boolean => f.omen === "Grave" || f.omen === "Borrowed" || f.omen === "Darkest";
 
-/** The units in a clash at a place, both sides, among the moves the viewer saw. */
-const clashSize = (moves: readonly FrameMove[], at: string): number => moves.filter((m) => m.target === at || m.from === at).length;
+/** A sizeable clash at a place held by `holder`, among the moves the viewer saw: most of the script kings' are one on one. */
+const sizeable = (moves: readonly FrameMove[], at: string, holder: Power | null): boolean =>
+  moves.filter((m) => m.target === at && m.power !== holder).length >= Sizeable.attacking ||
+  moves.filter((m) => m.target === at || m.from === at).length >= Sizeable.all;
 
 /** Great Kings who fought another Great King this season (god view). */
 function kingsAtWar(f: SeasonFrame): Set<Power> {
@@ -94,7 +99,7 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
     for (const m of moves) {
       if (!hostile(m)) continue;
       const kings = isGreatKing(m.power) && isGreatKing(m.targetOwner!);
-      if (kings && clashSize(moves, m.target!) >= Sizeable) raise(Heat.battle, "battle");
+      if (kings && sizeable(moves, m.target!, m.targetOwner)) raise(Heat.battle, "battle");
       else if (!kings) raise(Heat.little);
     }
     for (const s of f.sieges) {
@@ -106,8 +111,8 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
     // Several Great Kings at war: those who fought one another in the last three seasons.
     const kings = new Set<Power>();
     for (let k = index; k > Math.max(0, index - 3); k--) for (const p of kingsAtWar(frames[k])) kings.add(p);
-    if (kings.size >= 3) raise(Heat.war);
-    else if (kings.size === 2) raise(Heat.unease);
+    if (kings.size >= KingsAtWar.war) raise(Heat.war);
+    else if (kings.size >= KingsAtWar.unease) raise(Heat.unease);
     return out;
   }
   const own = owners(f, viewer);
@@ -119,7 +124,7 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
     const at = m.target ?? m.from;
     const foe: Power | null = m.power === viewer ? m.targetOwner : m.power;
     if (at === home && m.power !== viewer) out.capital = true;
-    const real = (foe !== null && foe !== viewer && isGreatKing(foe)) || own.get(at) === viewer || clashSize(moves, at) >= Sizeable;
+    const real = (foe !== null && foe !== viewer && isGreatKing(foe)) || own.get(at) === viewer || sizeable(moves, at, m.targetOwner);
     if (real) raise(Heat.battle, "battle");
     else out.add = Skirmish.add;
   }
