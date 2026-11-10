@@ -27,7 +27,6 @@ game's own, which "Principles over rules" never reaches: no model games until th
 | What | Where | Notes |
 | --- | --- | --- |
 | Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
-| When Codex builds | `docs/codex-building.md` | Read with Codex's status in `core/modules/roles.md` when routing work. |
 | Security | `SECURITY.md`, `docs/threat-model.md` | What this game adds to the floor and to its threat model. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |

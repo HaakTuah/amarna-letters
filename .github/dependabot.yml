@@ -26,3 +26,4 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+        update-types: ["minor", "patch"] # a new major is its own PR (core/modules/updates.md)
