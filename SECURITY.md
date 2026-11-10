@@ -10,8 +10,7 @@ floor's numbers:
    - **the rule files:** `docs/builder-rules.md`, `docs/codex-building.md`, `docs/review-guidelines.md`,
      `docs/threat-model.md` and this file;
    - **the checks on the work:** the copies check's config and baseline (`scripts/copies.json`,
-     `scripts/copies-baseline.json`), the licence check's config (`scripts/licences.json`) and the calibration log
-     (`docs/calibration.md`).
+     `scripts/copies-baseline.json`), and the licence check's config (`scripts/licences.json`).
 5. **Its inputs:**
    - **Model replies** (kings, characters, the narrator): parsed into the engine's structured fields and checked by the
      engine; never shown as HTML. Nothing a model writes may reach the player's API key, files or any other site.
