@@ -138,3 +138,8 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      Told that the search helper's effort was indeed left unset, against the rule to pass both model and effort, and
      that it gets low, since searching needs little thinking; the rest is high only where judgement decides the cost.
+
+137. **10 November 2026** (the core). Shown two orchestrators' reports asking him for yeses he had already given and
+     settings he had already made:
+
+     > Fix everything, I am too tired for this. Make them stop asking these headache inducing questions.
