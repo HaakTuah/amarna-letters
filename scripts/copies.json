@@ -7,6 +7,8 @@
     "scripts/*.mjs"
   ],
   "prose": [
+    "AGENTS.md",
+    "CLAUDE.md",
     "core-manifest.md",
     "docs/calibration.md",
     "core/floor/*.md",

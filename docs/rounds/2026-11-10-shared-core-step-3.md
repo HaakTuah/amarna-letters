@@ -31,7 +31,7 @@ Step 3 of "The shared core" (`docs/BUILD-PROGRESS.md`), done in the order the co
    3, 5, 6, 7, 10, 15 and 17; the threat model keeps only what the floor's does not say. `.claude/settings.json` runs
    the status line, both work-saved hooks and the cloud setup from `refs/remotes/origin/main:`, the first three from
    `core/scripts/`; the game's copies of those scripts are removed. The copies check is `core/scripts/copies.mjs` with
-   `scripts/copies.json` (its prose: the rule files `SECURITY.md` lists but the builder rules (below), the manifest, the calibration log and the
+   `scripts/copies.json` (its prose: `AGENTS.md`, `CLAUDE.md`, the rule files `SECURITY.md` lists but the builder rules (below), the manifest, the calibration log and the
    core's floor and modules); the licence check is the core's with `scripts/licences.json`, `.github/licences.yml`
    gone, and `scripts/notices.mjs` keeps only the build's notices, on the core's policy. Every workflow keeps its
    triggers on `main` alone and calls the core's at the pin: `core.yml` (new), `copies.yml`, `licences.yml`,
