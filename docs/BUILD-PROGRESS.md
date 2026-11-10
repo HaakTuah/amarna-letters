@@ -52,7 +52,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   repeats the builder rules (the usage brake, branches, milestones); and `docs/claude-and-codex.md` (22 KB) moves its
   Codex setup, "For Codex" and "Setup", into a file of its own, read only when setting Codex up.
 - **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
-  common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
+  common to every project move to one public repository, `HaakTuah/agent-core` (renamed from `agent-rules`),
   and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
   by hand, as this repository treats `docs/intent/`. It comes in two layers (archive item 240): a safety floor every project takes whole and can never edit
   or leave out, and practice modules each project picks in a small manifest of its own; this game takes them all. What moves: the security baseline, the four pillars, the one inbox,
@@ -75,7 +75,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
   on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
-  Barkstreet Snakes. **Steps 1 and 2 are done, and step 3 is next:** it takes `HaakTuah/agent-rules` at its newest `main`, from
+  Barkstreet Snakes. **Steps 1 and 2 are done, and step 3 is next:** it takes `HaakTuah/agent-core` at its newest `main`, from
   the core's `reports/2026-11-10-step-3-now.md` first, which lists this game's step 3 in order (dropping `develop` just
   before it, in a PR of its own) and holds where the older reports it names disagree. Its workflows need the owner's
   yes in its PR; the builder-rule lines it replaces are cut by the design session at the source.
