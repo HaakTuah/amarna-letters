@@ -148,6 +148,7 @@ export class MoodDirector {
   private s0 = 0;
   private t0 = 0;
   private step = 0;
+  private mood: Mood = "calm";
   private since = -Infinity;
   private top: "battle" | "siege" = "battle";
   private last: Signal | null = null;
@@ -177,6 +178,7 @@ export class MoodDirector {
       this.t0 = now;
       // The step the heat reaches, at once; the next change waits for nothing but the heat.
       this.step = this.reach(this.h0);
+      this.mood = this.name(this.step, this.last!);
       this.since = -Infinity;
       return;
     }
@@ -205,7 +207,18 @@ export class MoodDirector {
     return s;
   }
 
-  /** The mood at `now`: a rise at once, a fall one step down, each past the hold unless the capital is attacked. */
+  /** A step's mood: the top step's siege or battle; below war, the last seasons on grave omens. */
+  private name(step: number, s: Signal): Mood {
+    if (step === 3) return this.top;
+    if (step === 2) return "war";
+    if (s.grave) return "last";
+    return step === 1 ? "tension" : "calm";
+  }
+
+  /**
+   * The mood at `now`: a rise at once, a fall one step down, and a change within a step (siege and battle, tension and
+   * the last seasons), each past the hold; a rise within it only when the seat's own capital is attacked.
+   */
   at(now: number): Mood {
     const s = this.last;
     if (this.shown === null || s === null) return "calm";
@@ -213,17 +226,16 @@ export class MoodDirector {
     const h = this.heat(this.shown.index, now);
     const held = now - this.since < Hold;
     const want = this.reach(h);
-    if (want > this.step && (!held || s.capital)) {
-      this.step = want;
-      this.since = now;
-    } else if (this.step > 0 && h < Steps[this.step].leave && !held) {
-      this.step--;
+    let step = this.step;
+    if (want > step && (!held || s.capital)) step = want;
+    else if (step > 0 && h < Steps[step].leave && !held) step--;
+    const mood = this.name(step, s);
+    if (step !== this.step || (mood !== this.mood && !held)) {
+      this.step = step;
+      this.mood = mood;
       this.since = now;
     }
-    if (this.step === 3) return this.top;
-    if (this.step === 2) return "war";
-    if (s.grave) return "last";
-    return this.step === 1 ? "tension" : "calm";
+    return this.mood;
   }
 }
 
