@@ -116,17 +116,14 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
-  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `core/modules/workshop-check.md`, moved by
-  the design session at the design document's next refresh. (2) to (4) done in #732: what waits until Codex can build is
+  simulation kit's start prompt belong in `sim/README.md`, moved by the design session at the design document's next
+  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732: what waits until Codex can build is
   `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
   generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
   dodge).
-- **A canary for Codex's code review, on resume** (`core/modules/calibration.md`; archive item 206): the
-  review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
-  file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -185,7 +182,7 @@ the workshop check, and again on 7 November): among them the history check's lin
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
   workflow that opens an `enhancement` issue when one is behind.
 
-Points a review moved out of its PR, each with its reason ("Only a 10 passes" in `core/modules/reviews.md`, point 2); struck when
+Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue

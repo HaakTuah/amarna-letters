@@ -10,6 +10,7 @@ gh api repos/HaakTuah/<repo>/pulls -f title=... -f head=<branch> -f base=main -f
 gh api -X POST repos/HaakTuah/<repo>/pulls/<n>/ccr/ready_for_review                           # mark ready (starts the security review)
 gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/merge -f merge_method=merge                     # merge
 gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/update-branch                                  # bring it up to date with main
+gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/ccr/auto_merge                                 # auto-merge on (DELETE: off)
 gh api repos/HaakTuah/<repo>/compare/main...<branch>    --jq '.files[].filename'             # the files a branch changes
 gh api repos/HaakTuah/<repo>/pulls/<n> --jq '{state, merged}'                                 # was it merged?
 ```
