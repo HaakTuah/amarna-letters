@@ -10,14 +10,22 @@ import { AllPowers, Dict, isGreatKing, newGame, type Power } from "@amarna/engin
 import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, pressFor, type ISeat } from "@amarna/game";
 import { MoodDirector } from "../src/web/src/audio/mood.ts";
 import { frameFrom, type SeasonFrame } from "../src/web/src/session/frames.ts";
+import { Paces as Shown, type Pace } from "../src/web/src/session/pacing.ts";
 
 const arg = (name: string, d: number): number => {
   const i = process.argv.indexOf(`--${name}`);
   return i >= 0 ? Number(process.argv[i + 1]) : d;
 };
 
-/** Seconds a season is on screen: the paces of `session/pacing.ts` (Slow, Normal, Fast), Simulate, and one played by hand. */
-const Paces: [string, number][] = [["by hand (60 s)", 60], ["Slow (15 s)", 15], ["Normal (6 s)", 6], ["Fast (1 s)", 1], ["Simulate (0.3 s)", 0.3]];
+/**
+ * Seconds a season is on screen: Slow, Normal and Fast as they play it (its moments and the time on its result), a
+ * season played by hand (about a minute), and Simulate, which runs as fast as the engine (about 0.3 s a season here).
+ */
+const [Slow, Normal, Fast] = Shown;
+const length = (p: Pace): number => (p.season + p.close) / 1000;
+const Paces: [string, number][] = [["by hand", 60], ["Slow", length(Slow)], ["Normal", length(Normal)], ["Fast", length(Fast)], ["Simulate", 0.3]].map(
+  ([name, s]) => [`${name} (${s} s)`, s as number],
+);
 const Moods = ["calm", "tension", "war", "siege", "battle", "last"];
 const Warlike = new Set(["war", "siege", "battle"]);
 

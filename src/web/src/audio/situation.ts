@@ -74,7 +74,7 @@ export function sightOf(f: SeasonFrame, viewer: Power | null): ReadonlySet<strin
 }
 
 /** A fight the viewer saw this season and was party to (any fight in god view). */
-export function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
+function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
   return seen(f, viewer).some((m) => (hostile(m) || m.destroyed) && involves(m, viewer));
 }
 

@@ -58,8 +58,8 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 - **The mood follows the state, not each season's events** (item 19+++b, archive item 241), as Civilization V's and
   Empire Earth's music does: a season watched at speed passes in under two seconds, and the sounds and stings carry the
   events. A **heat** picks the mood (`mood.ts`). Each season raises it to at least (`Heat`, first guesses): 8 for a real
-  battle of the seat's own (sizeable, three units or more in it as far as it saw; against a Great King; or in its own
-  land) or its own land besieged; 5 for a siege it lays; 3 for foreign troops in its land in its sight, troubled omens,
+  battle of the seat's own (sizeable, two units or more attacking or four or more on both sides, as far as it saw;
+  against a Great King; or in its own land) or its own land besieged; 5 for a siege it lays; 3 for foreign troops in its land in its sight, troubled omens,
   a province of its own in its sight past 60% of the unrest at which land rises, or a rumour in the last two seasons. A
   skirmish with a city-state (none of those) adds 1.5, up to 5 at most: its drums, and war at most. The heat halves
   every 2 seasons or every 30 s, whichever is slower, so a season watched at speed cools by the clock and one played by
@@ -70,16 +70,17 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
   top step plays the siege's music where its own land is besieged, the battle's otherwise. Below war, grave, borrowed or
   darkest omens of the end play the last seasons; the age's end plays them always. A jump through the seasons or a change
   of eyes starts afresh from the eight seasons before, cooled by seasons, at the step their heat enters.
-- **God view follows the world's temperature**: 8 for a great battle between Great Kings (three units or more) or a
+- **God view follows the world's temperature**: 8 for a great battle between Great Kings (sizeable, as above) or a
   Great King's own capital besieged (the siege's music); 5 when three or more Great Kings fought one another in the last
   three seasons; 3 for two of them, or a Great King's other city besieged; 1.5 for the city-states' wars, which count
   little; troubled omens 3.
-- **It rises fast and falls slow**: each file carries its phrase ends (seconds); a rise starts 0.4 s before the next one
+- **It rises fast and falls slow** (`crossing.ts`): each file carries its phrase ends (seconds); a rise starts 0.4 s before the next one
   within 8 s and crosses over 3 s, or at once where none comes that soon. A fall, or a change within a step (siege and
   battle, tension and the last seasons), never cuts a piece: it plays to its end and rests 4 to 12 s before the calmer
   music. A moment, and a change to or from the menu, wait up to 20 s for a phrase end. The page's clock keeps the same
   deadline, so a stalled stream still changes, and a stream the browser refused is asked again every 2 s.
-- **Measured** in script games by `scripts/music-moods.ts` (for each seat and in god view at each pace: the mood's
+- **Measured** in script games by `scripts/music-moods.ts` (for each seat and in god view at each pace of
+  `session/pacing.ts`, by hand and at Simulate: the mood's
   changes a minute and the share of time in each), against first guesses of about one change in two minutes and under
   two fifths of god view in the war family (war, siege, battle); the owner's ear tunes the numbers above.
 - **Variations**: a piece plays one of its three, never the one it played last, never the file just heard; within a
@@ -169,9 +170,11 @@ moment of its own on screen, `Cue.t` is the one number to take from it instead o
 ## The shade: a darker or brighter mode within a piece
 
 The owner, 31 October 2026 (relayed): "Build the Civilization-style fallback alongside the Empire Earth pieces, and make
-some of each piece's variations a darker or brighter mode chosen as the situation worsens or improves." `shadeAt` gives
-the shade from what the seat knows: -2 in a battle or a siege, or within three seasons of its own capital or king fallen
-(mourning); -1 at war, on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land
+some of each piece's variations a darker or brighter mode chosen as the situation worsens or improves." `shadeAt` (`mood.ts`) gives
+the shade from what the seat knows, by the season's heat (item 19+++b): -2 at a real battle of its own or its own land
+besieged (a heat of 8), or within three seasons of its own capital or king fallen (mourning); -1 with a heat of war (a
+siege it lays; several Great Kings at war, in god view) or a skirmish in the last three seasons, on grave omens, or with
+hunger in its land; +1 at a feast, read as a season that brought it land
 (a triumph) or a harvest it saw with no war and no hunger; 0 otherwise. A piece's variation may carry a shade (`shade` in
 the manifest, from `Score.shade` in the pieces): the player prefers the variation in the shade asked for (by its sign:
 darker, its own, brighter), never the same file twice running; the shade chooses the next piece's variation and never
