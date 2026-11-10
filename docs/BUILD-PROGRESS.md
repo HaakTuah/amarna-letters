@@ -15,6 +15,10 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
+- **First: the music follows the state** (archive item 241; the design document's 19+++b under Build order, in the
+  copy from its next refresh; for Opus, since it takes an ear's judgement): the mood from a heat that rises fast and
+  cools slow, god view by the world's temperature, in a new file beside `src/web/src/audio/situation.ts`, with
+  `docs/design/45-the-music-and-the-sounds.md` updated in the same PR.
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
@@ -48,9 +52,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   repeats the builder rules (the usage brake, branches, milestones); and `docs/claude-and-codex.md` (22 KB) moves its
   Codex setup, "For Codex" and "Setup", into a file of its own, read only when setting Codex up.
 - **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
-  common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
+  common to every project move to one public repository, `HaakTuah/agent-core` (renamed from `agent-rules`),
   and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
-  by hand, as this repository treats `docs/intent/`. What moves: the security baseline, the four pillars, the one inbox,
+  by hand, as this repository treats `docs/intent/`. It comes in two layers (archive item 240): a safety floor every project takes whole and can never edit
+  or leave out, and practice modules each project picks in a small manifest of its own; this game takes them all. What moves: the security baseline, the four pillars, the one inbox,
   keeping the owner's words, the roles and reviews, helpers, models and effort, the Git flow, usage, updates and "No
   description left untrue". What stays here: what the game is, its build order and builder rules, its commands and
   whatever only it has, each rule file cut to that, with pointers into `core/`. The steps: (1) the owner creates the
@@ -70,7 +75,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
   on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
-  Barkstreet Snakes. Step 1 is the owner's.
+  Barkstreet Snakes. **Steps 1 and 2 are done, and step 3 is next:** it takes `HaakTuah/agent-core` at its newest `main`, from
+  the core's `reports/2026-11-10-step-3-now.md` first, which lists this game's step 3 in order (dropping `develop` just
+  before it, in a PR of its own) and holds where the older reports it names disagree. Its workflows need the owner's
+  yes in its PR; the builder-rule lines it replaces are cut by the design session at the source.
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after

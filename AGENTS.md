@@ -36,9 +36,8 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 4. Read "The game in one page" (`docs/intent/overview/the-game-in-one-page.md`) before every item: most questions
    an item raises answer themselves from it, and a reading that contradicts it is a mistake, not a design question.
    Then read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
-5. Check weekly usage with `scripts/usage.sh`, and after every commit ("Usage" in the builder rules). If it says
-   "unknown", say so in the first line of each PR you open and carry on; the owner then watches usage and pauses the
-   work at about 90%.
+5. Check usage with `scripts/usage.sh` at the start and, where it can read it, after every commit ("Usage by provider"
+   below).
 
 ## How to work
 
@@ -99,6 +98,15 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
 - **The workshop check runs weekly** (archive item 239): at the first milestone seven days or more after the last
   check, not at every milestone, since milestones come daily and what it measures changes slowly; this stands in for
   "At every milestone" in the builder rules until their next refresh.
+- **Usage by provider** (archive item 242), so the owner keeps his share and no project quota is left unspent. Claude's
+  weekly limit is shared with the owner's other work: from about 90% of it, Claude's sessions take on no bigger task
+  ("Usage" in the builder rules; the brake in "How work flows", point 4). Codex, and any other provider the owner adds,
+  serves only the projects and is used to its end, with no reserve. Where an environment can read every provider's
+  usage (a machine of the owner's, a server, a tool that starts agents and reads their usage), the orchestrator spreads
+  the work so each project-only provider is spent by its weekly reset before Claude reaches 90%. Where usage cannot be
+  read (a cloud session today), `scripts/usage.sh` says so at the start; then check no more and say nothing about it in
+  any PR, report or message: the owner watches and pauses the work at about 90%. This stands in for "Usage" in the
+  builder rules where they differ, until their next refresh.
 - **Principles over rules** (archive item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
   in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
   keys and secrets, spending, and no model games until the build order is done.
@@ -169,9 +177,9 @@ Waiting is lost time and, past an hour, a lost cache (archive item 22; the orche
    polish on screens the item does not touch. Claim a lane first with a draft PR from a fresh branch off `develop`, its
    title naming the entry, after checking the open PRs; merge `develop` into it before review; change the progress file
    only when it merges; never stack it on another lane's branch.
-4. **The brake.** From about 85% of the weekly usage no new side lane opens and open ones finish; from about 90%, only
-   small things in the item lane ("Usage" in the builder rules). Only the measured share counts, not the app's warning;
-   a session that cannot read the share carries on.
+4. **The brake.** From about 85% of Claude's weekly usage no new side lane opens and open ones finish; from about 90%,
+   only small things in the item lane ("Usage by provider"). Only the measured share counts, not the app's warning; a
+   session that cannot read the share carries on.
 
 ## Commands
 
@@ -179,7 +187,7 @@ Waiting is lost time and, past an hour, a lost cache (archive item 22; the orche
 scripts/cloud-setup.sh        # cloud machines: npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts)
 scripts/test.sh               # type-check, lint and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
-scripts/usage.sh              # weekly usage, if this session can read it
+scripts/usage.sh              # Claude's weekly usage, if this session can read it
 npm run dev --workspace src/web                       # the web app at http://localhost:5183
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
