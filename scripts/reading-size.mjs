@@ -2,7 +2,8 @@
 // against its own, and every file past the Step 0 mark that a PR changes ("Split by meaning" in
 // core/modules/how-to-work.md), which must shrink in that PR. The marks are in scripts/reading-size.json; a PR that
 // crosses one moves it there and says why, and against the branch a PR merges into (READING_BASE, as the workflow sets
-// it) a raised mark is named in the output, so the review sees it. Node's own modules only, so the check needs no
+// it) a raised mark, a file no longer counted among those read and a new exemption are named in the output, so the
+// review sees them. Only regular files are measured, never one through a link. Node's own modules only, so the check needs no
 // install (.github/workflows/pointers.yml; scripts/test.sh runs it too, without the Step 0 part unless READING_BASE is
 // set).
 import fs from "node:fs";
@@ -18,7 +19,9 @@ const marks = JSON.parse(fs.readFileSync(MARKS, "utf8"));
 const fail = [];
 let total = 0;
 for (const f of marks.read) {
-  const size = fs.statSync(f).size;
+  const st = fs.lstatSync(f);
+  if (!st.isFile()) { fail.push(`${f} is not a regular file`); continue; }
+  const size = st.size;
   const mark = marks.past[f] ?? marks.mark;
   total += size;
   console.log(`${f}: ${kb(size)} of ${kb(mark)}`);
@@ -33,6 +36,12 @@ if (base) {
   const raised = [["mark", before.mark, marks.mark], ["total", before.total, marks.total], ["step0", before.step0, marks.step0],
     ...Object.entries(marks.past).map(([f, n]) => [f, before.past?.[f] ?? before.mark, n])].filter(([, a, b]) => b > a);
   for (const [what, a, b] of raised) console.log(`RAISED: ${what} from ${kb(a)} to ${kb(b)}; the PR says why`);
+  for (const f of (before.read ?? []).filter((f) => !marks.read.includes(f))) {
+    console.log(`LOOSENED: ${f} is no longer counted among the files every session reads; the PR says why`);
+  }
+  for (const e of marks.exempt.filter((e) => !(before.exempt ?? []).includes(e))) {
+    console.log(`LOOSENED: ${e} is newly exempt from Step 0; the PR says why`);
+  }
 
   const exempt = (f) => marks.exempt.some((e) => (e.endsWith("/") ? f.startsWith(e) : f === e));
   // each added, changed, renamed or copied file, with the path it had on the base (a rename is measured against it)
@@ -40,7 +49,9 @@ if (base) {
     .map((l) => l.split("\t")).map(([kind, from, to]) => ({ f: to ?? from, was: /^[RC]/u.test(kind) ? from : to ?? from }))
     .filter(({ f }) => !exempt(f));
   for (const { f, was } of changed) {
-    const size = fs.statSync(f).size;
+    const st = fs.lstatSync(f);
+    if (!st.isFile()) continue; // a link is measured where it leads, if that is in the PR
+    const size = st.size;
     if (size <= marks.step0 || fs.readFileSync(f).subarray(0, 8192).includes(0)) continue;
     let old = 0;
     try { old = Number(git("cat-file", "-s", `${base}:${was}`)); } catch { /* new in this PR */ }

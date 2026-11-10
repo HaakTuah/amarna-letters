@@ -28,7 +28,9 @@ const ARCHIVES = { "archive item": "docs/archive/instructions", "core archive": 
 const ROOTS = /^(\.claude|\.github|docs|scripts|src|sim|tests|core)\//u;
 const ROOT_FILE = /^[\w.-]+\.(md|json|yml|yaml|sh|mjs|ts)$/u;
 
-const read = (f) => fs.readFileSync(f, "utf8");
+// Only a regular file is read, never one through a link, so a pointer can't lead the check out of the repository.
+const regular = (f) => { try { return fs.lstatSync(f).isFile(); } catch { return false; } };
+const read = (f) => { if (!regular(f)) throw new Error(`${f} is not a regular file`); return fs.readFileSync(f, "utf8"); };
 const norm = (s) => s.toLowerCase().replace(/[`*_]/gu, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
 /** A file's sections: its headings and bold leads, each with the text up to the next section of the same kind. */
@@ -101,7 +103,7 @@ for (const file of RULES) {
     }
     for (const m of line.matchAll(/"([^"\n]{2,80})"(?=([^"\n]*))/gu)) {
       const into = target(m[2], file);
-      if (!into || !fs.existsSync(into) || !fs.statSync(into).isFile()) {
+      if (!into || !regular(into)) {
         // a section pointer in a form not read here ("in the same doc", "in the PR") is listed, never guessed
         if (/^\s*(?:,\s*points?\s+\d+,?\s*)?(?:in|of)\s+\S/u.test(m[2])) unread.push(`${where}: "${m[1]}"${m[2].slice(0, 30)}`);
         continue;
@@ -114,7 +116,7 @@ for (const file of RULES) {
       if (n) { checked++; if (!hasPoint(s.body, n[1])) fail(`"${m[1]}" in ${into} has no point ${n[1]}`); }
     }
     for (const m of line.matchAll(/`([\w./-]+\.md)`,?\s+(?:point|rule)s?\s+(\d+)/gu)) {
-      if (!fs.existsSync(m[1])) continue;
+      if (!regular(m[1])) continue;
       checked++;
       if (!hasPoint(linesOf(m[1]), m[2])) fail(`${m[1]} has no point ${m[2]}`);
     }
