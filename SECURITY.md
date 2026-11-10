@@ -6,7 +6,7 @@ floor's numbers:
 
 3. **The protected files.** The trusted builder: Claude's builder sessions (`core/modules/roles.md`). Besides those
    the floor names:
-   - **what runs by itself or with credentials:** `.github/`, `.claude/` and `scripts/cloud-setup.sh`;
+   - **what runs by itself or with credentials:** `scripts/cloud-setup.sh`;
    - **the rule files:** `docs/builder-rules.md`, `docs/codex-building.md`, `docs/review-guidelines.md`,
      `docs/threat-model.md` and this file;
    - **the checks on the work:** the copies check's config and baseline (`scripts/copies.json`,
@@ -14,10 +14,8 @@ floor's numbers:
      (`docs/calibration.md`).
 5. **Its inputs:**
    - **Model replies** (kings, characters, the narrator): parsed into the engine's structured fields and checked by the
-     engine; never shown as HTML. In-game deceit between kings is play; nothing a model writes may reach the player's
-     API key, files or any other site.
-   - **Save files, share links and URL parameters:** anyone can craft one; a bad save fails cleanly. A save, link or
-     parameter never sets a provider URL, a bridge address or a key.
+     engine; never shown as HTML. Nothing a model writes may reach the player's API key, files or any other site.
+   - **Save files, share links and URL parameters:** anyone can craft one.
    - **The bridge** (`src/llm/src/bridge.ts`) talks only to the address the player typed; its replies are model replies
      as above.
 6. **Where markup is built:** `dangerouslySetInnerHTML`, `innerHTML` and the map's SVG strings (`src/web/src/map/`).
@@ -27,8 +25,8 @@ floor's numbers:
      sent only to the provider the player chose (`src/llm/src/`).
    - **The content security policy** (`src/web/csp.ts`) holds the page and its worker to its own files, the providers on
      one list (`src/llm/src/endpoints.ts`) and the player's own machine; a new provider is a line in that list.
-   - **What ships:** the packages bundled into the built app, and everything that builds it (Vite, its plugins and what
-     they pull in, such as Rollup and esbuild).
+   - **What ships** (floor rule 7) includes the build: Vite, its plugins and what they pull in, such as Rollup and
+     esbuild.
 10. **What ships, or is built into it:** what the web build bundles, which its notices file lists. The audit of every
     licence is the core's check (`core/scripts/licences.mjs`) with `scripts/licences.json`; `scripts/notices.mjs` writes
     the notices the web build ships.

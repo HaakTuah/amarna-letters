@@ -13,8 +13,7 @@ fallback) is `core/modules/codex-building.md`, read by the orchestrator when it 
 | Anything resting on the sources: kings' traits, names, the dossiers | What Claude has specified as tests: an item's implementation, wiring, save version and replays; the music and soundscape wiring; traits and names entered into the data; benchmark runs and their tables |
 | The rulebook, seat view and request texts ("Requests are rules too") | Docs that record what is decided |
 
-Whole with Claude, since there the code is the hard part and a brief cannot hold the decisions: the engine's
-determinism.
+Whole with Claude (`core/modules/codex-building.md`, "What goes to Codex"): the engine's determinism.
 
 **Trials:** in the first week Codex can build, one art task to Codex if one comes up, compared against Claude's; after
 the first week, one build-order item split the long way (Claude writes the rule and its tests, Codex implements, Claude

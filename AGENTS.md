@@ -38,12 +38,11 @@ game's own, which "Principles over rules" never reaches: no model games until th
 
 ## Starting a task
 
-1. Work from `main`.
-2. Find the next item in `docs/BUILD-PROGRESS.md`. The item's own text is its brief:
+1. Find the next item in `docs/BUILD-PROGRESS.md`. The item's own text is its brief:
    `docs/intent/build-order/item-<n>.md` (`item-6.md`, `item-9plus.md`, ...).
-3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules), and do it
+2. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules), and do it
    again before opening the item's pull request: this is what "Review in the background" re-reads.
-4. Read "The game in one page" (`docs/intent/overview/the-game-in-one-page.md`) before every item: most questions
+3. Read "The game in one page" (`docs/intent/overview/the-game-in-one-page.md`) before every item: most questions
    an item raises answer themselves from it, and a reading that contradicts it is a mistake, not a design question.
    Then read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
 
@@ -55,19 +54,19 @@ game's own, which "Principles over rules" never reaches: no model games until th
 - **Print little:** tests with `scripts/test.sh` and script games with `scripts/sim.sh`. Model-game simulations
   (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`); none run until the
   build order is done.
-- **Never edit `docs/intent/` or `docs/builder-rules.md`:** if the design document seems wrong or unclear, take the most
-  reasonable reading and list it under "Readings taken"; a design decision goes to the design session.
+- **Never edit `docs/intent/` or `docs/builder-rules.md`;** a design decision goes to the design session.
 - **The smallest game that tests the rule** (archive item 28): a few powers on part of the map, a handful of seasons
   and only the characters a test needs; full-size games only in the replays, the save round trip and a smoke game; long
   measurements (benchmarks, use against ignore) in `scripts/sim.sh`. When an item grows the starting world, the tests'
   default does not grow with it. The workshop check measures against code-PR checks of about 10 minutes (29 October).
-- **A standing rule of the owner's** for this game goes into this file (or `CLAUDE.md`, if only Claude uses it) until
-  the next refresh of the design document's copy, when it moves into the builder rules and leaves this file in the
-  same PR. The archive's file for his words: `docs/archive/instructions.md`.
+- **A standing rule of the owner's** for this game moves into the builder rules at the next refresh of the design
+  document's copy, and leaves this file in the same PR.
 - **Sessions:** a long item may end a session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md`
   saying where to pick up.
 - **The next item on top:** branched from `main`, or, while the item before it is still in review, from that item's PR
-  branch, which (or `main`, once that merged) is merged into it before its own PR.
+  branch, which (or `main`, once that merged) is merged into it before its own PR. Where the builder rules still name
+  `develop` or milestones, read `main`, until the design session's refresh cuts them.
+- **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
 - **Lanes beside the items** (archive item 23): beside the numbered items run splits and the workshop check, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
   touch; a lane's draft PR's title names its entry.

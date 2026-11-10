@@ -75,7 +75,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Barkstreet Snakes. **Steps 1 to 3 are done** (step 3: `develop` dropped in #870, then this game took the core at
   `2d13e39`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
   Left for others: the owner sets `main`'s ruleset and deletes `develop`; the design session cuts the builder rules and
-  `scripts/design-copy.py`'s `develop` lines at the source; then the rule-file audit. What the game does not yet do of
+  `scripts/design-copy.py`'s `develop` lines at the source, with the passage the builder rules say twice and the two the
+  core's workshop check now holds, and then `docs/builder-rules.md` goes back into the copies check's prose
+  (`scripts/copies.json` leaves it out until then); then the rule-file audit. What the game does not yet do of
   the core's rules is its own queue, by way of the design session (that report, "What each game does not yet do").
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
@@ -107,6 +109,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
+  that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
+  the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
+  `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
+
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
   simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `core/modules/workshop-check.md`, moved by
@@ -114,7 +121,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
-  passage of the builder rules said twice (the design document's to fix), the generated `geo-fine-data.ts` (its
+  generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
   dodge).
 - **A canary for Codex's code review, on resume** (`core/modules/calibration.md`; archive item 206): the

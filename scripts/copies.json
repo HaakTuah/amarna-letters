@@ -1,6 +1,17 @@
 {
   "baseline": "scripts/copies-baseline.json",
-  "code": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.mjs", "scripts/*.mjs"],
-  "prose": ["core-manifest.md", "docs/calibration.md", "core/floor/*.md", "core/modules/*.md"],
+  "code": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.mjs",
+    "scripts/*.mjs"
+  ],
+  "prose": [
+    "core-manifest.md",
+    "docs/calibration.md",
+    "core/floor/*.md",
+    "core/modules/*.md",
+    ":!docs/builder-rules.md"
+  ],
   "proseFromSecurity": true
 }

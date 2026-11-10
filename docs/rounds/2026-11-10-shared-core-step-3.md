@@ -17,8 +17,8 @@ Step 3 of "The shared core" (`docs/BUILD-PROGRESS.md`), done in the order the co
    of its own (no model games until the build order is done; spending is floor rule 14). `CLAUDE.md` imports
    `AGENTS.md`, the builder rules and `core/modules/claude.md`, and nothing else: the work-saved hook's and the
    workflow ban's bullets are cut.
-5. **Rule-file lines the core now holds, cut:** `AGENTS.md` (19.4 KB → 6.6 KB), `CLAUDE.md` (6.4 → 0.3),
-   `SECURITY.md` (12.4 → 2.9), `docs/threat-model.md` (2.2 → 0.8), `docs/review-guidelines.md` (5.2 → 2.3) and
+5. **Rule-file lines the core now holds, cut:** `AGENTS.md` (19.4 KB → 6.5 KB), `CLAUDE.md` (6.4 → 0.3),
+   `SECURITY.md` (12.4 → 2.7), `docs/threat-model.md` (2.2 → 0.7), `docs/review-guidelines.md` (5.2 → 2.2) and
    `docs/codex-building.md` (5.6 → 1.7). `docs/claude-and-codex.md`, `docs/orchestrating.md` and `docs/developing.md`
    are removed whole; the few lines that were the game's own moved: the monthly history spot-check to the calibration
    log's head, the design checker's dossier brief to the review guidelines, what ships to `SECURITY.md`, rule 7, and
@@ -31,7 +31,7 @@ Step 3 of "The shared core" (`docs/BUILD-PROGRESS.md`), done in the order the co
    3, 5, 6, 7, 10, 15 and 17; the threat model keeps only what the floor's does not say. `.claude/settings.json` runs
    the status line, both work-saved hooks and the cloud setup from `refs/remotes/origin/main:`, the first three from
    `core/scripts/`; the game's copies of those scripts are removed. The copies check is `core/scripts/copies.mjs` with
-   `scripts/copies.json` (its prose: the rule files `SECURITY.md` lists, the manifest, the calibration log and the
+   `scripts/copies.json` (its prose: the rule files `SECURITY.md` lists but the builder rules (below), the manifest, the calibration log and the
    core's floor and modules); the licence check is the core's with `scripts/licences.json`, `.github/licences.yml`
    gone, and `scripts/notices.mjs` keeps only the build's notices, on the core's policy. Every workflow keeps its
    triggers on `main` alone and calls the core's at the pin: `core.yml` (new), `copies.yml`, `licences.yml`,
@@ -75,23 +75,40 @@ A fresh reviewer was asked whether any kept line says what a core rule already s
 
 ## Readings taken
 
-- **The next item branches from `main`,** not `develop`, though the builder rules' "Branches" still names `develop`
-  until the design session's refresh: the branch no longer exists, so the letter would defeat the rule ("Principles
-  over rules"); flagged for the refresh (step 9 of the report).
-- **`SECURITY.md`'s rule-file list leaves out `core/` and the manifest:** floor rule 3 names both, and listing `core/`
-  would put the core's archive and reports into the copies check's prose.
-- **The history dossiers' review exemption is cut:** `reviews.md` gives docs-only PRs no review and counts a change to
-  the project's data as code, which is what the line said.
-- **"Settled questions are readings" is cut:** the stand-in (`core/modules/inbox.md`) now settles a question against
-  the *settling references* before it goes to the owner.
-- **The cloud setup hook reads `main` too,** as floor rule 3 says of everything `.claude/settings.json` starts.
+The stand-in (Opus, high) answered each; "highly" or "fairly" is how sure it was.
 
-The stand-in's answers on these: in the PR.
+- **The next item branches from `main`** (highly sure), though the builder rules' "Branches" still names `develop`
+  until the design session's refresh: the branch no longer exists, so the letter would defeat the rule ("Principles
+  over rules"). `AGENTS.md` says to read `main` wherever the builder rules name `develop` or milestones, as the
+  stand-in suggested; flagged for the refresh.
+- **`SECURITY.md`'s rule-file list leaves out `core/` and the manifest** (highly sure): floor rule 3 names both, and
+  listing `core/` would put the core's archive and reports into the copies check's prose.
+- **The history dossiers stay docs** (the stand-in corrected the reading taken, fairly sure): `AGENTS.md` keeps "the
+  history dossiers count as docs; the game's data is code" (archive item 175), since the core knows no dossiers and
+  its "its data" could be read the other way.
+- **"Settled questions are readings" is cut** (highly sure): the stand-in now settles a question against the *settling
+  references* before it goes to the owner.
+- **The cloud setup hook reads `main` too** (highly sure), as floor rule 3 says of everything `.claude/settings.json`
+  starts.
+- **The three docs removed whole, their own lines moved** (fairly sure): where the core leaves each to the project.
+- **#721's conflict is left to its lane** (fairly sure): bringing a lane up to date is the lane's (`work-flow.md`,
+  point 3), and a conflict it resolves needs a fresh review (floor rule 8).
+- **`docs/builder-rules.md` is out of the copies check's prose until the design session's refresh** (not put to the
+  stand-in; taken here): the generated file holds two passages the core's workshop check now holds and one it says
+  twice; it is never edited here, and a baseline entry is never added, so the only way to green is to leave it out
+  until its cut at the source, when it goes back in (the progress file says so). The baseline lost its one entry for
+  that file.
+- **The "always" group of use against ignore is queued,** not played in this step (the step-3 report: "A group a game
+  does not play yet is new work"); the manifest's slot says so, and "Follow-ups" holds it.
 
 ## Helpers
 
-In the PR, with what each gave.
+- A fresh reviewer (Opus, high), once, given the kept rule files and the core: eleven kept lines restated a core rule
+  in other words (all cut or made pointers: `AGENTS.md` three, `SECURITY.md` three, the threat model, the review
+  guidelines two, `docs/codex-building.md`, the manifest) and one contradicted it (the "always" group, now queued).
+- The stand-in (Opus, high), once, on seven readings: six as taken, one corrected (the dossiers).
 
 ## Questions for the owner
 
-His yes in the PR, for `.github/` and the cloud setup hook (floor rule 3). No issue opened.
+His yes in the PR, for `.github/` and the cloud setup hook (floor rule 3); the readings the stand-in was only fairly
+sure of, and the copies check's exclusion: [#873](https://github.com/HaakTuah/amarna-letters/issues/873).

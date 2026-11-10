@@ -32,6 +32,6 @@ Floor: whole. Modules: all.
 | *computer players* | the script kings and script characters, and the model kings and characters |
 | *measured players* | the script kings and script characters |
 | *what they are shown* | the seat view |
-| *use-against-ignore measurement* | script games on the same seeds (`scripts/sim.sh`): scripts that use the item's feature where it fits against scripts that ignore it; scripts that always use it are not played yet |
+| *use-against-ignore measurement* | script games on the same seeds (`scripts/sim.sh`): scripts that use the item's feature where it fits against scripts that ignore it; scripts that always use it are not played yet, queued in `docs/BUILD-PROGRESS.md` |
 | *where the numbers go* | the item's report, and the running table "Use against ignore" in `docs/BUILD-PROGRESS.md` |
-| *where rules are taught* | the rulebook or the seat view, in the rule's own commit |
+| *where rules are taught* | the rulebook or the seat view |
