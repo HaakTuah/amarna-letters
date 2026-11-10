@@ -51,7 +51,11 @@ P.envoyArrivesHome = function (j) {
   if (j.gaveUp) this.outcome(c, j.to, `Turned back on the road to ${land(j.from)} (season ${S.turn}).`, false);
   else if (c.status === "Employed" && c.employer === j.to) {
     const slipped = this.capitalSiege(j.to) !== null;
-    this.outcome(c, j.to, `Carried a mission to ${land(j.from)} and came home with the answer (season ${S.turn})` + (slipped ? ", slipping in through the siege lines." : "."), true);
+    // Bug #784: one never received there brought no answer, and is remembered so.
+    const t = this.trail(j.cargo?.trailId);
+    const received = t === null || t.audienceTurn !== null || t.exchanges.length > 0;
+    const what = received ? "came home with the answer" : "was never received there, and came home";
+    this.outcome(c, j.to, `Carried a mission to ${land(j.from)} and ${what} (season ${S.turn})` + (slipped ? ", slipping in through the siege lines." : "."), true);
   }
   c.at = j.to;
   c.duty = "None";

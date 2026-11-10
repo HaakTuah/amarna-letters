@@ -26,8 +26,8 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, Schemas, leaderRules, situation, standings } from "@amarna/llm";
-import { removeAll, Assert } from "../../engine/test/support.ts";
+import { type CallSpec, CharacterSystem, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, PeriodShares, Schemas, leaderRules, news, situation, standings } from "@amarna/llm";
+import { removeAll, smallWorld, Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // <summary>Rules the engine applies that a king must be able to read.</summary>
@@ -36,7 +36,7 @@ describe("RulebookTextTests", () => {
 
   test("The rulebook states dislodgement, hunger and mutiny", () => {
     Assert.contains("A unit dislodged (beaten from where it stood) falls back to a neighbouring province of yours", Rules);
-    Assert.contains("A unit with nowhere to fall back, or beaten by 67 in a hundred or more (three to one), is destroyed, and a unit destroyed gives no support", Rules);
+    Assert.contains("A unit with nowhere to fall back, or beaten by 67% or more (three to one), is destroyed, and a unit destroyed gives no support", Rules);
     Assert.contains("A unit that cannot eat in full goes hungry; one hungry 2 seasons running mutinies. One not paid in full counts a season of missing pay; one unpaid 3 seasons running mutinies.", Rules);
     Assert.contains("Your battle report says why each of your moves that failed was stopped", Rules);
   });
@@ -49,13 +49,18 @@ describe("RulebookTextTests", () => {
     );
   });
 
+  test("The kings' and the characters' voice guidance says shares as the age said them (archive item 232)", () => {
+    Assert.contains(PeriodShares, Rules);
+    Assert.contains(PeriodShares, CharacterSystem);
+  });
+
   test("The rulebook says that a spy at a court is hidden from it until caught", () => {
     Assert.contains(
       "A spy posted at a court watches in secret: that court does not see it there, nor whom it serves, until its watchmen catch it, " +
-        "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing. " +
-        "A caught spy may confess whom it serves.",
+        "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing.",
       Rules,
     );
+    Assert.contains("\n- A caught spy may confess whom it serves.", Rules);
     Assert.contains("people travelling on their own way reach the courts they set out for", Rules);
   });
 
@@ -76,13 +81,17 @@ describe("RulebookTextTests", () => {
     );
     let text = situation(Views.for(s, "Egypt"));
     Assert.contains(
-      "YOUR ARCHIVE (kept at your capital; a tablet you have read in full at an earlier orders by its opening words):",
+      "YOUR ARCHIVE (kept at your capital):",
       text,
     );
     Assert.contains(
       '- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: "Peace." (copied from the archive of Hatti by your spy Mane)',
       text,
     );
+    // The vassal treaties sealed before the age began share one oath: it is read once, each vassal with its tribute and copy.
+    Assert.contains('- Vassal treaties sealed before the age began, each named "the tablet sealed by [vassal] and Egypt, dated turn 0", all in one oath with their own tribute in place of N: "I will send you N shekels of gold each year as tribute.', text);
+    Assert.contains("; Gubla (Byblos) 15 [your copy k", text);
+    Assert.doesNotContain("the tablet sealed by Gubla and Egypt", text);
   });
 
   test("The rulebook says that gold comes with an inventory an envoy may swap for a forgery", () => {
@@ -175,9 +184,9 @@ describe("SeasonRulebookTests", () => {
       "7. Movement and battles",
       "8. Sieges",
       "9. Walls stormed",
-      "10. A kingdom falls with its capital",
+      "10. Kings taken",
       "11. Cessions and gifts of troops",
-      "12. Purchases",
+      "12. Building",
       "13. Disbanding",
       "14. Levies",
       "15. Envoys set out",
@@ -201,10 +210,7 @@ describe("SeasonRulebookTests", () => {
     [
       "Then each standing order that fires (see STANDING ORDERS) answers the moves just ordered and puts its orders in place of yours for the same units or people.",
     ],
-    [
-      'There is no "else": a refused order is not replaced by another, and a purchase meant as a fallback is refused if an earlier bid has reserved the gold, even if that city is then not sold.',
-    ],
-    ["A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none."],
+    ["A refused order is never replaced by another."],
     [
       "a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.",
     ],
@@ -222,12 +228,13 @@ describe("SeasonRulebookTests", () => {
     ],
     ["You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them"],
     [
-      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 3 steps for each level of its walls, when they are breached.",
+      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 6 steps for each level of its walls, when they are breached.",
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
-      "A kingdom falls with its capital, which is wherever you are. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you have fallen and your game is over: your realm comes apart (step 10 of how a season resolves, below), and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it",
-    ],
+      "You are a person, like every character: you die only by a cause where you are (put to death by a king who holds you, in a battle your side loses where you stand, in the fall of the city where you are, or on the road), never of age"],
+    ["If another king takes you, by taking the city where you are (storming its walls or by a siege), in a battle or on the road, you are his captive and your fate is his to decide;"],
+    ["Travelling without your court (other order travel_alone"],
   ] as const)("The rulebook states each rule %s", (rule: string) => {
     Assert.contains(rule, Rules);
   });
@@ -300,7 +307,7 @@ describe("StandingsAndTravelTests", () => {
     let mitanni = (home("Mitanni") + home("Assyria")) / home("Mitanni");
     // Labelled for what it is: a land-yield ratio, not the growth that wins, as the rulebook says too.
     Assert.startsWith(
-      "LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): Mitanni ",
+      "LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): Changed since the start: Mitanni ",
       line,
     );
     Assert.contains(
@@ -308,10 +315,10 @@ describe("StandingsAndTravelTests", () => {
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
-      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.04 (land yield 259, at the start 250); `,
+      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, was ${home("Mitanni")}); Egypt (you) 1.04 (land yield 259, was 250)`,
       line,
     );
-    Assert.contains(`Hatti 1.00 (land yield ${home("Hatti")}, at the start ${home("Hatti")})`, line);
+    Assert.contains(`Unchanged, ratio 1.00 (land yield): Hatti ${home("Hatti")}`, line);
     Assert.endsWith(" Fallen: Assyria.", line);
     Assert.doesNotContain("Assyria 0", line);
     Assert.contains(line, situation(Views.for(s, "Egypt")));
@@ -336,6 +343,8 @@ describe("StandingsAndTravelTests", () => {
       [...courts].sort((a, b) => a - b),
     );
     Assert.all(Views.for(s, "Egypt").travelTimes, (t) => Assert.matches("^[A-Za-z]+: [12] season\\(s\\) each way$", t));
+    // The king reads them by the length of the journey: the few farther courts named, the rest as every other court.
+    Assert.matches("\nENVOY TRAVEL \\(about, by the fastest road open this season\\): two seasons each way to Babylonia, [A-Za-z, ]+ and [A-Za-z]+; one season each way to every other court\\.\n", situation(Views.for(s, "Egypt")));
   });
 });
 
@@ -396,7 +405,7 @@ describe("ViewTextTests", () => {
       text,
     );
     Assert.contains(
-      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job as envoy to Hatti, for`,
+      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job as envoy to Hatti: `,
       text,
     );
   });
@@ -413,6 +422,14 @@ describe("ViewTextTests", () => {
       );
     }
   }
+
+  test("A season's settlements share one line, each count keeping its own about", () => {
+    let s = smallWorld(newGame(5), "Mitanni");
+    new TurnEngine(s).beginTurn();
+    for (const [n, where] of [["about 2,600", "Harran"], ["973", "Taidu"], ["about 4,300", "Washukanni"]]) notify(s, "Mitanni", "Resolution", "People", `You settled loose men: ${n} in ${where}.`);
+    // Among the season's other news of its people, where the first of them stood.
+    Assert.contains(" You settled loose men: about 2,600 in Harran, 973 in Taidu, about 4,300 in Washukanni.\n", news(Views.for(s, "Mitanni")));
+  });
 
   test("An audience request carries the season s news and the host s own land and troops", async () => {
     let s = newGame(5);
@@ -436,8 +453,8 @@ describe("ViewTextTests", () => {
     let user = Assert.single(recorder.specs).user;
     Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, army in thebes, army in nubia, army in gaza, army in sumur, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
-    Assert.contains("[Rejected] Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
-    Assert.contains("[Notice] The treasury: ", user);
+    Assert.contains("Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
+    Assert.contains("\nThe treasury: ", user);
     Assert.true(user.indexOf("NEWS THIS SEASON:") < user.indexOf("AN AUDIENCE"));
   });
 });

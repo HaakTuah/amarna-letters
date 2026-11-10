@@ -70,8 +70,11 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 
 ## Distance inside the realm (`turn/couriers.ts`, `rules/court.ts`)
 
-- **The court is wherever the king is** (`GameState.court`, `courtOf`, `TurnEngine.courtAt`): travel, envoys, reports,
-  archives and the fall read it where they read the map's capital before. 
+- **The court is the capital** (`GameState.court`, `courtOf`, `TurnEngine.courtAt`): travel, envoys, letters, archives
+  and the fall read it where they read the map's capital before. **The king commands from where he is** (item 17b, part C,
+  [57](57-every-person.md)): his orders to his land and armies, their reports and what he sees read his seat as his court
+  knows it (`seatOf`, `TurnEngine.seatAt`, `wordFromKing`), his court unless he stands apart from it; the units he stands
+  with, where he physically stands (`standsAt`).
 - **Couriers** (`courierSeasons`): a lone traveller's pace on the fastest road; 0 where a courier makes it within the season
   (45 days of road). `sendOrders`: an order for a unit or place beyond that sets out with a courier (`GameState.couriers`),
   bound to its unit as a scheduled order is, and is carried out in the season it arrives; orders arriving join the season's
@@ -112,12 +115,41 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   A unit's trail carries its men's savings; men walking home count once word of their setting out could come
   (`Walk.departs`, `Walk.from`). Still open: what the treasury pays for far off, a far caravan's porters and far works
   paid in gold, leaves it at once (question #587).
+- **Far troops raised and gone** (bug #600; `rules/units-known.ts`): a unit is known to its king once word of its raising
+  could come (`Unit.since`, from its levy's province; at once for the troops a game begins with), and one that leaves the
+  game (`loseUnit`), or passes to another (a gift, levies following a rebel, a fleet into cargo service: `keepGone`, a
+  copy for its old king), is kept among `GameState.unitsGone` with its reports, `goneTurn` its season, until word of
+  its end could come (`wordCame`; at once from where its couriers cannot reach at all), shown as its last report has
+  it (`reportOf`, its newest report the last it sent). The view's units, upkeep (`TurnEngine.upkeep` over the view's own
+  troops) and strength, the standings' Units, and a scheduled order for a unit not yet heard of (named by its levy,
+  `plannedAsKnown`) read the same; a sleeping seat's orders for a lost unit drop when word of its end comes
+  (`lostUnits`); a battle's events name its sides only where their couriers reach (`battles`, the "destroyed" event),
+  and a far unit's lines of the season, and an assault on a far walled city, come home by the road as their own
+  "Word of your troops" notice, with the place and season it is from (`farMovements`), a loss there waking a sleeping seat by the same word. An order for
+  a gone unit rides out and its failure comes home by the road (`orderMissed`); a scheduled or standing order given for
+  it is kept, bound to it (`ownNamed` in `bind`), as for one that stands; its commander stays in command as his
+  king believes (`coverFor`) until word of the army's end tells of his leaving. Save version 69.
+- **A far unit, the rest of it as reported** (bug #615; `rules/units-known.ts`): its king believes each of his units stands
+  where his view shows it (`placesKnown`, by `ownPlaces`), and everything he is told of his own doings with it names that
+  place: his scheduled and standing orders as his view shows them (`asShown` with a place; they run on the unit itself), a
+  standing order's "when your army in X is attacked", the command, recall and mandate notices, whose seasons are reckoned
+  from it (the man or the word sets out for where he named it), the word on its food and the gold for it, pay or food
+  held back in a province (`setUpkeep` and its check), a commander's duty and his record of battles at court
+  (`commanderKnown`, the record from the unit's report, `unitReport`), and the map (`Views.ownUnitsShown`, a frame's
+  `knownUnits`). What befalls it out there comes home by the road (`tell`, events by `nearOf`): hunger, a winter
+  crossing, a march held up or ended (its seat's view keeps the schedule as it was until then:
+  `SleepState.scheduleUnheard`, `scheduleKnown`), troops joined, walls stormed, colonists settled, a commander's
+  defection or victory, the land's men holding it off; its missing pay, pay held back, food bought or taken stay its
+  own report's. A part that stays its king's when the rest leaves him is a new unit known once word of their parting
+  could come (`Unit.raisedAt`, `since`), and gold sent with word on an army's food that finds it gone comes home with the
+  courier, as word from there does (`Remittance.food`). Loose men robbing a far province of the king's are told by the
+  word from there too. Save version 72. An order for such a unit refused where it stands (`refused`, a march's end too)
+  comes home by the road from there, the unit named where its king's view shows it, and a scheduled order's road
+  (`notYetReached`) is reckoned to that place (#759). Save version 73.
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
-  pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that
-  reach a court the king has left are sent on after him (`ForwardedKinds`). He is taken, and his kingdom falls, where the
-  province he stands in is taken from him (`kingsTaken`, by the season's changes of holder), or on the road through the
-  besiegers of a city of his or where a king who closed his roads to him has troops (40 in a hundred each such place); a
-  king who has moved is not taken with his old seat. The archive moves with him.
+  pace of a company of 300, with the king if he is with it. Each season it goes on, the court where it got to. Envoys,
+  servants and reports that reach a court that has left are sent on after it (`ForwardedKinds`). The archive moves with
+  it. The king alone (`alone`, `travel_alone`) and what befalls him where he stands: [57](57-every-person.md), "Part C1".
 
 ## Governors (`turn/governors.ts`)
 
@@ -130,7 +162,8 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 
 ## A kingdom falls with its capital (`TurnEngine.fall`)
 
-- The province where the king was passes to whoever took him at once; since item 13+ the rest comes apart only as word
+- Since item 17b, part B, a king taken is his captor's captive and only a realm that holds nothing falls
+  ([57](57-every-person.md)); what follows is how a fall worked until then, the armies' part still as built. The province where the king was passed to whoever took him at once; since item 13+ the rest came apart only as word
   of the fall reaches each part, land where the conqueror's troops stand then his, a governed province its governor's
   own seat, the rest lawless ([37](37-answers-to-13.md)). A capital ceded by tablet passes whole, as before. The fallen
   king's armies, once the word reaches them, with a commander become the commanders' bands; one with none, if owed pay or hungry, raises a captain from its ranks (`Rose` "captain",
@@ -139,7 +172,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 ## Hiring bands as soldiers (order `enlist`)
 
 - Where an army of the king's stands with a band, its commander or the king there carries the offer: a fee paid now for a
-  term. A script chief takes it if it covers his men's cost or their take, whichever is more, over the term, and his cut
+  term (heard with offers to pay it off, best first: [56](56-raiders-from-beyond-the-map.md)). A script chief takes it if it covers his men's cost or their take last season (`Band.took`, item 17++++a), whichever is more, over the term, and his cut
   by his greed. His men join the army (`Unit.hiredMen`, `hiredUntil`, `hiredChief`), and he commands it if it has no
   commander; when the term ends they leave as his band.
 

@@ -143,7 +143,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           <textarea maxLength={1500} value={speech} onChange={(e) => setSpeech(e.target.value)} placeholder="Speak to the envoy; they will carry it home (in their own words)." />
         )}
         <small className="muted">
-          {structured ? "Your answer, in clauses (structured press): accept, refuse or counter what the letter sets out." : "Your answer's clauses (kings who read only clauses read these):"}
+          {structured ? "Answer clause by clause: accept, refuse or offer something else for what the letter sets out." : "Your answer's clauses (kings who read only clauses read these):"}
         </small>
         <ClauseEditor clauses={clauses} onChange={setClauses} from={a.host} to={a.from} turn={a.turn} />
         {a.sealCarried && (

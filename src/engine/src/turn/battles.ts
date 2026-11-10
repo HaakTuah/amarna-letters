@@ -13,7 +13,8 @@ import { BattleData, battleLosses } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
 import { AllPowers, ownLand, powerName, whose } from "../model/power.ts";
-import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
+import { logEvent, notify } from "../model/state.ts";
+import { unitLabel, type Unit } from "../model/units.ts";
 import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
@@ -21,6 +22,18 @@ import { TurnEngine } from "./core.ts";
 /** Where a power's unit came from, unless that is the power's own name or land ("Kaska's army", not "Kaska's army from Kaska"). */
 export function cameFrom(p: Power, place: string): string {
   return place === p || place === ownLand(p) ? "" : ` from ${place}`;
+}
+
+/**
+ * Item 17++ ("A handful holds nothing by itself"): whether a fight's defender lost it, beaten from its place, or far weaker
+ * than the troops that fell on it and so crushed where it stood, though the land's people or its ground held them out.
+ */
+export function defenderLost(f: Fight): boolean {
+  return f.won || crushedHolding(f);
+}
+
+function crushedHolding(f: Fight): boolean {
+  return !f.won && battleLosses(f.attack, f.own).margin >= BattleData.rout;
 }
 
 declare module "./core.ts" {
@@ -41,7 +54,9 @@ const P = TurnEngine.prototype;
 P.battles = function (result, sightBefore) {
   const S = this.s;
   const unit = (id: string): Unit | undefined => S.units.find((u) => u.id === id);
-  const seeing = (provinces: string[], ...sides: Power[]): Power[] => [...new HSet([...AllPowers.filter((p) => provinces.some((x) => sightBefore.get(p)?.has(x))), ...sides])];
+  // Those who saw it, and each side where its couriers reach from `told`, where its own notice is told from; a side
+  // farther off reads of it there, by the road (bug #600).
+  const seeing = (provinces: string[], told: string, ...sides: Power[]): Power[] => [...new HSet([...AllPowers.filter((p) => provinces.some((x) => sightBefore.get(p)?.has(x))), ...this.nearOf(told, ...sides)])];
   // The men each unit loses, and in which battle's province, in the order the battles were fought (the map's order of moves).
   const lost = new Dict<string, number>();
   const where = new Dict<string, string>();
@@ -55,9 +70,8 @@ P.battles = function (result, sightBefore) {
     const a = unit(f.attacker);
     const d = unit(f.defender);
     if (a === undefined || d === undefined) continue;
-    // Item 17++ ("A handful holds nothing by itself"): a unit far weaker than the troops that fell on it loses the battle by
-    // far, though the land's people or its ground held them out, and is destroyed or scattered as battles say.
-    const crushed = !f.won && battleLosses(f.attack, f.own).margin >= BattleData.rout;
+    // A unit far weaker than the troops that fell on it loses the battle by far, and is destroyed or scattered as battles say.
+    const crushed = crushedHolding(f);
     const [winner, loser, w, l] = f.won ? [a, d, f.attack, f.defence] : crushed ? [a, d, f.attack, f.own] : [d, a, f.defence, f.attack];
     const x = battleLosses(w, l);
     if (crushed) routedInPlace.push(d);
@@ -78,10 +92,10 @@ P.battles = function (result, sightBefore) {
     const lc = this.commanderOf(loser);
     if (wc !== null) {
       wc.won++;
-      logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, [winner.power], "commander-won");
+      logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, this.nearOf(f.at, winner.power), "commander-won");
     }
     if (lc !== null) lc.lost++;
-    battleNews(this, crushed ? { ...f, won: true } : f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], a.power, d.power), crushed);
+    battleNews(this, crushed ? { ...f, won: true } : f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], f.at, a.power, d.power), crushed);
   }
   // The men lost: some killed, the rest run and turn loose where the battle was fought (none at sea, where they drown).
   for (const [id, men] of lost) {
@@ -124,7 +138,7 @@ P.battles = function (result, sightBefore) {
         ? `Your fleet off ${this.map.get(u.province).name} was beaten and drew off${this.map.get(to).name.startsWith(this.map.get(u.province).name) ? " to sea" : ` into ${this.map.get(to).name}`}, ${u.men} men strong.`
         : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`,
     );
-    logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
+    logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], to, u.power), "fallback");
   }
   // A far weaker unit beaten where it stood is destroyed, though its land held the attackers out.
   for (const u of routedInPlace) if (!destroyed.includes(u) && S.units.includes(u)) destroyed.push(u);

@@ -5,7 +5,7 @@ import { GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/ga
 import { TextKit } from "../src/bots/textkit.ts";
 import { Audience, Letter, type LetterParts, closing, pleaHeard } from "../src/bots/voices.ts";
 import { Assert } from "../../engine/test/support.ts";
-import { reading as readingOf } from "./readings.ts";
+import { ModernShare, reading as readingOf } from "./readings.ts";
 
 /** A script king's seat that keeps what it writes: its letters, and its words to the envoys it hears. */
 class Kept implements ISeat {
@@ -52,9 +52,10 @@ function commonest(texts: string[]): [string, number] {
 describe("LetterShapeTests", () => {
   test("No script king repeats one sentence in most of his letters or audiences", async () => {
     const kept = new Map<Power, Kept>();
-    // Four script kings, so that three write enough to judge however a war turns: since item 17++a the kings fight the war
-    // they choose, and one at war may write too little in ten seasons to be judged.
-    const seats = scriptSeats(5, ["Babylonia", "Mitanni", "Assyria", "Egypt"]);
+    // Five script kings, so that three write enough to judge however a war turns: since item 17++a the kings fight the war
+    // they choose, and one at war may write too little in ten seasons to be judged; since item 17b a king slow to answer,
+    // as Akhenaten was, writes little too.
+    const seats = scriptSeats(5, ["Babylonia", "Mitanni", "Assyria", "Egypt", "Hatti"]);
     for (const [p, s] of [...seats]) if (s.label !== "Idle") seats.set(p, kept.set(p, new Kept(s)).get(p)!);
     const runner = new GameRunner(newGame(5, seasons(10)), seats, new ScriptMind(), new TemplateNarrator());
     await runner.prepare();
@@ -64,6 +65,8 @@ describe("LetterShapeTests", () => {
       for (const [what, texts] of [["letters", k.letters], ["audiences", k.speeches]] as const) {
         if (texts.length < 6) continue;
         checked++;
+        // A share in a king's own words is said as the age said it, "a fifth", never "%" (archive item 232).
+        for (const t of texts) Assert.false(ModernShare.test(t), `${p}'s ${what} give a share as a percentage: ${t}`);
         const [s, share] = commonest(texts);
         Assert.true(share <= 0.5, `${p}'s ${what}: "${s}" in ${Math.round(share * 100)}% of ${texts.length}`);
       }

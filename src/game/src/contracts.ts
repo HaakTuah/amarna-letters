@@ -47,6 +47,11 @@ export interface ISeat {
    * (its notes, summary, plan and ledger), for the record to keep; script, file and human seats have none.
    */
   mindPages?(): Record<string, string>;
+  /**
+   * Reads each season's view of a seat that may sleep, asleep or awake, before it decides, changing nothing in the game: a
+   * model king's shadow script remembers what the king saw (item 18, "Shadow scripts"). Never called in a replay.
+   */
+  observe?(view: SeatView): void;
   /** A sleeping seat that wants to act now (a human waking himself): read once a season, before the wake check. */
   wakeRequested?(): boolean;
   decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission>;

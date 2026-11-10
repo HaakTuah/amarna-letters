@@ -21,6 +21,8 @@ export interface MapInput {
   mode?: MapMode;
   /** Item 17+++: the season shown, playing out since `began` (`performance.now()`), if it is. */
   playout?: { play: SeasonPlay; began: number } | null;
+  /** The season playing out held still (Space or the pause button mid-season, item 17+++a): its pieces stop where they are. */
+  held?: boolean;
 }
 
 export interface MapHandlers {
@@ -38,6 +40,8 @@ export interface MapRenderer {
   /** Shows a scene; only what changed is drawn again. */
   render(input: MapInput): void;
   zoomBy(factor: number): void;
+  /** Moves the view a step: fractions of its width and height (the keys W, A, S, D and the arrows, item 17+++a). */
+  panBy(dx: number, dy: number): void;
   fit(): void;
   /** Brings a point of the board into view, zooming in to at least the given zoom; `centre` puts it in the middle. */
   focus(at: Pt, minZoom: number, centre?: boolean): void;

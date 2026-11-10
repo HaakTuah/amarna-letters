@@ -7,9 +7,12 @@ import {
   sum,
   trimEnd,
   conditionsText,
+  groupBy,
+  powerNameFor,
   type Condition,
   type LetterView,
   type Order,
+  type Power,
   type TabletView,
 } from "@amarna/engine";
 import { joinS } from "./text.ts";
@@ -29,6 +32,12 @@ function byHand(t: TabletView): string {
   return ` (sealed for ${t.byHandOf ?? ``} by the hand of ${t.byHand}${within}${t.repudiatedTurn !== null ? `; repudiated in turn ${t.repudiatedTurn}` : ``})`;
 }
 
+/** How the king's copy came to him, without the envoy's hand where the tablet's line has named it already. */
+export function copySource(t: TabletView): string {
+  const hand = t.byHand !== null ? ` by the hand of ${t.byHand}` : null;
+  return hand !== null && t.source.endsWith(hand) ? t.source.slice(0, -hand.length) : t.source;
+}
+
 /** The conditions of a scheduled entry or a standing order, after its season or event: " (unless ...)", or nothing. */
 export function whenMet(cs: readonly Condition[]): string {
   return cs.length === 0 ? `` : ` (${conditionsText(cs)})`;
@@ -43,6 +52,41 @@ const opening = (text: string): string => (text.length <= BriefChars ? text : `$
 /** A tablet the king has read in full at an earlier orders: its name, its mark and its opening words. */
 export function tabletBrief(t: TabletView): string {
   return `${t.name} [your copy ${t.copyId}]${byHand(t)}: "${opening(t.text)}"`;
+}
+
+/** The copies the opening deal gives each archive ("Opening relations as they were", item 11+). */
+const OpeningSource = "sealed before the age began";
+
+/**
+ * The vassal treaties sealed before the age began, which share one oath and differ only in their vassal and tribute: those
+ * with one overlord in one form in a single line (the form once, then each vassal, its tribute and the mark of its copy),
+ * so a king does not read the same oath twenty times. Each is named as every court names it, which the line says once and
+ * checks for each. Any that differ (unread, examined, by an envoy's hand, named by its opening words) keep a line of their
+ * own: `rest`.
+ */
+export function openingTreaties(tablets: readonly TabletView[], viewer: Power, read: ReadonlySet<string>): { lines: string[]; rest: TabletView[] } {
+  const name = (p: Power): string => powerNameFor(viewer, p);
+  type Shaped = { t: TabletView; vassal: Power; overlord: Power; tribute: number; form: string };
+  const shape = (t: TabletView): Shaped | null => {
+    const tribute = t.clauses.find((c) => c.kind === "tribute")?.amount ?? null;
+    const [vassal, overlord] = t.seals;
+    if (t.source !== OpeningSource || t.seals.length !== 2 || t.vassal !== vassal || tribute === null) return null;
+    if (t.unread || t.allianceOath || t.authResult !== null || t.byHand !== null) return null;
+    if (t.name !== `the tablet sealed by ${name(vassal)} and ${name(overlord)}, dated turn 0` || !t.text.includes(`${tribute} shekels`)) return null;
+    return { t, vassal, overlord, tribute, form: t.text.replace(`${tribute} shekels`, `N shekels`) };
+  };
+  const lines: string[] = [];
+  const grouped = new Set<TabletView>();
+  const shaped = tablets.map(shape).filter((x) => x !== null);
+  for (const [, group] of groupBy(shaped, (x) => `${x.overlord}|${x.form}`)) {
+    if (group.length < 2) continue;
+    const { overlord, form } = group[0];
+    const words = group.every((x) => read.has(x.t.tabletId)) ? opening(form) : form;
+    const vassals = group.map((x) => `${name(x.vassal)}${name(x.vassal) !== x.vassal ? ` (${x.vassal})` : ``} ${x.tribute} [your copy ${x.t.copyId}]`);
+    lines.push(`Vassal treaties ${OpeningSource}, each named "the tablet sealed by [vassal] and ${name(overlord)}, dated turn 0", all in one oath with their own tribute in place of N: "${words}" The vassals and their tribute: ${joinS(`; `, vassals)}.`);
+    for (const x of group) grouped.add(x.t);
+  }
+  return { lines, rest: tablets.filter((t) => !grouped.has(t)) };
 }
 
 /** An older letter in a line: when, by whom, to whom, with what gold, and its opening words. */

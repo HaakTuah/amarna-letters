@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
+import { InvestData } from "../src/bots/investment.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { RemnantPlay } from "../src/bots/remnants.ts";
 import { archetype } from "../src/bots/personality.ts";
@@ -213,7 +214,7 @@ describe("FeatureAuditTests", () => {
     // The rule here is the treasury's, not item 17++'s remnants (Sinai's few men would fold into the troops next to them).
     RemnantPlay.off = true;
     try {
-      [plan] = economy(s, "Egypt");
+        [plan] = economy(s, "Egypt");
     } finally {
       RemnantPlay.off = false;
     }
@@ -413,13 +414,17 @@ describe("FeatureAuditTests", () => {
 
   test("A host whose gift was refused offers half as much again in a second exchange", () => {
     let cunning = { ...archetype("Hatti"), cunning: 1 };
-    // The gift is a matter of chance: the first roll that brings one.
+    // A gift goes only where it pays (item 18, part E), and under the first guesses an envoy's good word pays only at very
+    // high stakes: here it is worth as much as gold in his king's hand, to an envoy of a king who attacked us lately.
+    const effect = InvestData.bribeEffect;
+    (InvestData as { bribeEffect: number }).bribeEffect = 20;
+    try {
     let a = audience(cunning);
+    const r = a[2].rel.get("Arzawa");
+    r.lastAttackedUs = 1;
+    r.grudge = 5;
     let first = Statecraft.host(a[0], a[1], a[2], Rng.for(5, 1, "test", "host0"));
-    for (let k = 1; first.bribe === 0; k++) {
-      a = audience(cunning);
-      first = Statecraft.host(a[0], a[1], a[2], Rng.for(5, 1, "test", `host${k}`));
-    }
+    Assert.true(first.bribe > 0);
     Assert.false(first.end);
 
     let refused = newAudienceView({ audienceId: "a1", turn: 1, round: 2, maxRounds: 2, from: "Arzawa", host: "Hatti" });
@@ -429,6 +434,9 @@ describe("FeatureAuditTests", () => {
     Assert.equal(first.bribeAsk, second.bribeAsk);
     // Asked once: a third offer is never made.
     Assert.equal(0, Statecraft.host(refused, a[1], a[2], Rng.for(5, 1, "test", "round2")).bribe);
+    } finally {
+      (InvestData as { bribeEffect: number }).bribeEffect = effect;
+    }
   });
 
   test("A host sealing an alliance asks the envoy to swear and a script envoy gives its word", async () => {
@@ -496,31 +504,46 @@ describe("FeatureAuditTests", () => {
   test("A faithless king debases only the gold it sends a friend who trusts it", () => {
     let s = oldWorld(newGame(Seed));
     s.turn = 5;
-    s.treasuries.get("Alashiya").gold = 3000;
-    let faithless = { ...archetype("Alashiya"), honesty: 0.1, generosity: 1, diplomacy: 1 };
+    s.treasuries.get("Arzawa").gold = 3000;
+    let faithless = { ...archetype("Arzawa"), honesty: 0.1, generosity: 1, diplomacy: 1 };
     function letters(prepare: (a0: Brain) => void, k: number): DispatchOrder[] {
-      let v = Views.for(s, "Alashiya");
-      let brain = brainFor(s, "Alashiya", faithless);
+      let v = Views.for(s, "Arzawa");
+      let brain = brainFor(s, "Arzawa", faithless);
       brain.spareGold = 1000;
       prepare(brain);
       let orders: Order[] = [];
       Statecraft.letters(new Board(v, brain.remembered(v), brain.treasury), brain, orders, new HSet<string>(), Rng.for(Seed, 5, "test", `letters${k}`));
       return orders.filter((o): o is DispatchOrder => o.type === "dispatch");
     }
-    // Peace letters with gold, to neighbours that have sealed nothing with it: fine gold.
-    let peace = range(0, 10)
-      .flatMap((k) => letters((_) => {}, k))
-      .filter((d) => d.gold > 0);
-    Assert.notEmpty(peace);
-    Assert.all(peace, (d) => Assert.equal(100, d.purityPercent));
+    // Gold goes only where it pays (item 18, part E), and a neighbour reaches only part of a realm: here an attack is
+    // reckoned far likelier, so that gifts pay and the rule on their purity is seen.
+    const attack = InvestData.attackPerHostility;
+    (InvestData as { attackPerHostility: number }).attackPerHostility = 50;
+    try {
+      // Peace letters with gold, to neighbours that have sealed nothing with it: fine gold.
+      let peace = range(0, 10)
+        .flatMap((k) => letters((_) => {}, k))
+        .filter((d) => d.gold > 0);
+      Assert.notEmpty(peace);
+      Assert.all(peace, (d) => Assert.equal(100, d.purityPercent));
 
-    // A gift to an ally that trusts it may be debased. (Sworn to every other king too, it owes nobody a peace letter,
-    // which would carry the season's one gift of gold first.)
-    treaty(s, "Alashiya", "Egypt", true);
-    for (const x of AllPowers.filter((x) => !["Alashiya", "Egypt"].includes(x))) treaty(s, "Alashiya", x);
-    let gifts = range(0, 30)
-      .flatMap((k) => letters((b) => (b.rel.get("Egypt").trust = 0.6), k))
-      .filter((d) => d.to === "Egypt" && d.gold > 0);
-    Assert.contains(gifts, (d) => d.purityPercent < 100);
+      // A gift to an ally that trusts it may be debased. (Sworn to every other king too, it owes nobody a peace letter,
+      // which would carry the season's one gift of gold first. An ally who trusts it is seldom worth a gift, his hostility
+      // already low; here he is reckoned hostile all the same, so that a gift pays and its purity is seen.)
+      treaty(s, "Arzawa", "Hatti", true);
+      for (const x of AllPowers.filter((x) => !["Arzawa", "Hatti"].includes(x))) treaty(s, "Arzawa", x);
+      let gifts = range(0, 30)
+        .flatMap((k) =>
+          letters((b) => {
+            b.rel.get("Hatti").trust = 0.6;
+            const reckoned = b.hostility.bind(b);
+            b.hostility = (x, board) => (x === "Hatti" ? 0.5 : reckoned(x, board));
+          }, k),
+        )
+        .filter((d) => d.to === "Hatti" && d.gold > 0);
+      Assert.contains(gifts, (d) => d.purityPercent < 100);
+    } finally {
+      (InvestData as { attackPerHostility: number }).attackPerHostility = attack;
+    }
   });
 });

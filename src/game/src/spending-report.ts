@@ -1,0 +1,170 @@
+/**
+ * The measures of the balance pass's script kings' spending (item 18, part E): what the Great Kings do with their gold, in
+ * the opening, the middle of the age and its last seasons ("The wealth of a realm": whether kings build, give and campaign
+ * or sit on their treasure, and what the last seasons look like); the four grabs the score pays for when the omens are
+ * darkest (raising the share of the harvest taken, keeping grain from hungry towns, seizing hoards, leaving fees unpaid),
+ * with troops' pay held back beside them, and whether kings still hire then, the seasons told apart by the omens every
+ * court reads (`omenTier`: grave or darker); and whether the courts play distinctly across seeds, by the first foe each marches against ("Each court plays
+ * differently"). Read from each king's orders as the game's log keeps them, and his treasury.
+ */
+import { AllPowers, EconomyData, GreatKings, TurnSubmissionSchema, Views, isAlive, omenTier, TurnEngine, fmt, sum, type GameState, type Order, type Power, type TurnSubmission } from "@amarna/engine";
+import { shekels } from "./bots/brain.ts";
+import type { GameLog } from "./log.ts";
+
+/** What one king did in one season. */
+interface KingSeason {
+  turn: number;
+  power: Power;
+  /** The omens of the season were grave or darker. */
+  dark: boolean;
+  /** Gold sent abroad: envoys' gold (gifts, tribute), gold given to persons, and at audiences the gifts envoys took and gold sent back. */
+  given: number;
+  ransoms: number;
+  /** Jobs offered and renewed. */
+  hires: number;
+  levies: number;
+  builds: number;
+  /**
+   * The grabs: provinces whose share of the harvest rose (the share in force against the season before, kingdom-wide
+   * demands and the usual share counted); his provinces whose countryside went hungry in
+   * the season while his stores there held grain and he sent none (`grainKept`); troops' pay held back; hoards seized; fees
+   * withheld.
+   */
+  taxUp: number;
+  grainKept: number;
+  payHeld: number;
+  seized: number;
+  feesHeld: number;
+  /** His treasury as a share of his realm's wealth, in a hundred. */
+  treasury: number;
+}
+
+/** A game's spending measures. */
+export interface SpendingMeasure {
+  seasons: KingSeason[];
+  /** Each Great King's first march into another's land: the season and whose land it was (null if he never marched). */
+  firstCampaign: Record<string, { turn: number; foe: string } | null>;
+}
+
+const giftOf = (o: Order): number => (o.type === "dispatch" || o.type === "gift" ? Math.max(0, o.gold) : 0);
+
+/** Gold a host paid at his audiences of a season, from their outcomes: a gift an envoy took, and gold sent back. */
+function paidAtAudiences(s: GameState, host: Power, turn: number): number {
+  let paid = 0;
+  for (const t of s.trails) {
+    if (t.to !== host || t.audienceTurn !== turn) continue;
+    for (const o of t.outcomes) {
+      const took = /^accepted (.+?) from /.exec(o);
+      const back = / sent back (.+)$/.exec(o);
+      if (took !== null) paid += shekels(took[1]);
+      else if (back !== null) paid += shekels(back[1]);
+    }
+  }
+  return paid;
+}
+
+/**
+ * Watches a game as it plays: make it on the state before the first season, call `season` after every season with its
+ * number, `end` once.
+ */
+export class SpendingWatch {
+  private readonly m: SpendingMeasure = { seasons: [], firstCampaign: {} };
+  /** The share of its harvest each province gave when the season began. */
+  private shares = new Map<string, number>();
+  /** Who held each province, and who was alive, when the season began. */
+  private owners = new Map<string, Power | null>();
+  private alive = new Set<Power>();
+
+  constructor(start: GameState) {
+    this.snapshot(start);
+  }
+
+  private snapshot(s: GameState): void {
+    this.owners = new Map(s.owner.entries());
+    this.alive = new Set(AllPowers.filter((p) => isAlive(s, p)));
+    this.shares = new Map([...s.owner.keys()].map((id) => [id, s.shares.getOrDefault(id, EconomyData.taxPercent)] as const));
+  }
+
+  season(s: GameState, played: number, log: GameLog): void {
+    const engine = new TurnEngine(s);
+    for (const p of GreatKings) {
+      const sub = log.tryGet<TurnSubmission>(`t${played}/orders/${p}`, TurnSubmissionSchema);
+      if (sub === undefined) continue;
+      const os = sub.orders;
+      const count = (t: Order["type"]): number => os.filter((o) => o.type === t).length;
+      let taxUp = 0;
+      for (const [id, o] of s.owner.entries())
+        if (o === p && this.owners.get(id) === p && !s.amounts.has(id) && s.shares.getOrDefault(id, EconomyData.taxPercent) > (this.shares.get(id) ?? EconomyData.taxPercent)) taxUp++;
+      const strength = Math.max(1, engine.strength(p));
+      const fed = new Set(os.flatMap((o) => (o.type === "feed" ? [o.province] : [])));
+      const grainKept = Views.for(s, p).provinces.filter((x) => x.fed < 1000 && x.stores > 0 && !fed.has(x.province)).length;
+      const tier = omenTier(s.seed, s.config, played);
+      this.m.seasons.push({
+        turn: played,
+        power: p,
+        dark: tier === "Grave" || tier === "Borrowed" || tier === "Darkest",
+        given: sum(os, giftOf) + paidAtAudiences(s, p, played),
+        ransoms: count("payRansom"),
+        hires: count("hire") + count("renew"),
+        levies: count("raise"),
+        builds: count("build"),
+        taxUp,
+        grainKept,
+        payHeld: os.filter((o) => o.type === "upkeep" && o.pay === false).length,
+        seized: count("seize"),
+        feesHeld: os.filter((o) => o.type === "payFee" && !o.pay).length,
+        treasury: Math.round((100 * s.treasuries.get(p).gold) / strength),
+      });
+      if (!this.m.firstCampaign[p]) {
+        // The first march into land another power held when the season began: a campaign begun.
+        const foes = os.flatMap((o) => {
+          const foe = o.type === "move" ? (this.owners.get(o.to) ?? null) : null;
+          return foe !== null && foe !== p && this.alive.has(foe) ? [foe] : [];
+        });
+        this.m.firstCampaign[p] = foes.length === 0 ? null : { turn: played, foe: foes[0] };
+      }
+    }
+    this.snapshot(s);
+  }
+
+  end(): SpendingMeasure {
+    return this.m;
+  }
+}
+
+/** Which part of the age a season falls in: under grave or darker omens, the opening (the first 20), or the middle. */
+const partOf = (x: KingSeason): 0 | 1 | 2 => (x.dark ? 2 : x.turn <= 20 ? 0 : 1);
+
+/** The report's lines over many games. */
+export function spendingReport(ms: readonly SpendingMeasure[]): string[] {
+  const lines = ["The Great Kings' spending (item 18, part E), a king-season's mean in the opening (seasons 1-20), the middle, and the seasons of grave or darker omens:"];
+  const parts = [0, 1, 2].map((i) => ms.flatMap((m) => m.seasons.filter((x) => partOf(x) === i)));
+  const row = (name: string, f: (x: KingSeason) => number, form: "0.0" | "0.00" = "0.00"): string =>
+    `  ${name}: ${parts.map((xs) => (xs.length === 0 ? "-" : fmt(sum(xs, f) / xs.length, form))).join(" / ")}`;
+  lines.push(
+    row("gold given abroad", (x) => x.given, "0.0"),
+    row("jobs offered", (x) => x.hires),
+    row("levies raised", (x) => x.levies),
+    row("works ordered", (x) => x.builds),
+    row("ransoms paid", (x) => x.ransoms),
+    row("treasury, % of the realm's wealth", (x) => x.treasury, "0.0"),
+    row("grabs: a higher share of a harvest", (x) => x.taxUp),
+    row("grabs: grain kept from a hungry countryside", (x) => x.grainKept),
+    row("grabs: troops' pay held back", (x) => x.payHeld),
+    row("grabs: hoards seized", (x) => x.seized),
+    row("grabs: fees withheld", (x) => x.feesHeld),
+  );
+  const firsts: string[] = [];
+  for (const p of GreatKings) {
+    const xs = ms.map((m) => m.firstCampaign[p] ?? null);
+    const foes = new Map<string, number>();
+    for (const x of xs) if (x !== null) foes.set(x.foe, (foes.get(x.foe) ?? 0) + 1);
+    const top = [...foes.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 3);
+    const turns = xs.flatMap((x) => (x === null ? [] : [x.turn])).sort((a, b) => a - b);
+    firsts.push(
+      `${p} ${turns.length} of ${xs.length}${turns.length === 0 ? "" : ` (season ${turns[Math.floor((turns.length - 1) / 2)]} on the median; ${foes.size} foes, most ${top.map(([f, n]) => `${f} ${n}`).join(", ")})`}`,
+    );
+  }
+  lines.push(`  The first march into another's land, by court (games with one, its season, its foes): ${firsts.join("; ")}.`);
+  return lines;
+}

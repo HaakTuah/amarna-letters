@@ -107,7 +107,7 @@ describe("AuthorityTests", () => {
     const t = s.tablets.find((x) => x.byHandOf === "Egypt")!;
     Assert.false(t.within!);
     // Egypt holds no copy until its envoy comes home: give it one, as the envoy would.
-    s.copies.push({ id: "k-test", tabletId: t.id, holder: "Egypt", acquiredTurn: s.turn, source: "brought home", authResult: null, unread: null });
+    s.copies.push({ id: "k-test", tabletId: t.id, holder: "Egypt", acquiredTurn: s.turn, source: "brought home", authResult: null, authTurn: 0, unread: null });
     const v = new OrderValidator(s, Map).validate("Egypt", newTurnSubmission({ orders: [repudiate("k-test")] }));
     Assert.equal(1, v.accepted.length);
     // Repudiated in the season's resolution: read at once, before the season turns.
@@ -139,7 +139,7 @@ describe("AuthorityTests", () => {
     const s = smallWorld(newGame(9), "Egypt", "Hatti");
     const t = newTablet({ id: "t990", text: "Passage for Egypt.", clauses: [clause("passage", { province: "nesa" })], proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false });
     s.tablets.push(t);
-    for (const holder of ["Egypt", "Hatti"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    for (const holder of ["Egypt", "Hatti"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, authTurn: 0, unread: null });
     s.grants.push(newGrant({ id: "p990", grantor: "Hatti", grantee: "Egypt", province: "nesa", sinceTurn: 0, tabletId: "t990" }));
     new TurnEngine(s).repudiate("Egypt", repudiate("k990E") as RepudiateOrder);
     const g = single(s.grants);
@@ -203,7 +203,7 @@ describe("AuthorityTests", () => {
     b.grants.push(newGrant({ id: "p1", kind: "basing", grantor: "Hatti", grantee: "Egypt", province: "tuwanuwa", sinceTurn: 0, tabletId: "t-x" }));
     b.turn = 3;
     // Hatti holds the tablet's copy: it knows what it granted.
-    b.copies.push({ id: "k-x", tabletId: "t-x", holder: "Hatti", acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
+    b.copies.push({ id: "k-x", tabletId: "t-x", holder: "Hatti", acquiredTurn: 0, source: "sealed", authResult: null, authTurn: 0, unread: null });
     for (let i = 0; i < 2; i++) new TurnEngine(b).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
     Assert.equal("Hatti", b.owner.get("tuwanuwa"));
     // Revoked: from next season the guest takes the land if it stays.
@@ -315,7 +315,7 @@ describe("AuthorityTests", () => {
     const s = smallWorld(newGame(9), "Egypt", "Hatti");
     const lands = ownedBy(s, "Hatti").filter((x) => !Map.get(x).isSea);
     s.tablets.push(newTablet({ id: "t990", text: "Passage for Egypt.", clauses: [clause("passage")], proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false }));
-    for (const holder of ["Egypt", "Hatti"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    for (const holder of ["Egypt", "Hatti"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, authTurn: 0, unread: null });
     s.grants.push(newGrant({ id: "p990", grantor: "Hatti", grantee: "Egypt", lands, sinceTurn: 0, tabletId: "t990" }));
     // A tablet's grant (heard at 0) shows to its grantee as before.
     Assert.equal(1, Views.for(s, "Egypt").grants.length);

@@ -17,12 +17,13 @@ import { clamp, idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData, type Band } from "../model/bands.ts";
 import { BattleData, battleLosses, seatOf } from "../model/command.ts";
-import { courierSeasons } from "../rules/court.ts";
+import { courierSeasons, standsAt } from "../rules/court.ts";
 import { menIn, shareOfFull, wallMenOf } from "../model/land.ts";
 import { EconomyData } from "../model/economy.ts";
 import { gain, newRisingView, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power, powerName, whose } from "../model/power.ts";
-import { findCharacter, isAlive, logEvent, newId, newUnit, siegeOf, wallsOf, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, newId, siegeOf, wallsOf } from "../model/state.ts";
+import { newUnit, type Unit, loseUnit } from "../model/units.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { terrainOf } from "../model/geography.ts";
@@ -294,7 +295,7 @@ P.turnsWith = function (province, c) {
     const going = idiv(u.men * this.follows(u, c.id), 100);
     if (going <= 0) continue;
     if (going < u.men) {
-      const stay = newUnit({ id: newId(S, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
+      const stay = newUnit({ id: newId(S, "u"), since: S.turn, raisedAt: u.province, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
       u.food -= stay.food;
       u.men = going;
       S.units.push(stay);
@@ -431,7 +432,7 @@ function seasonEntries(e: TurnEngine): void {
     const hand = e.handOf(prov.id, holder);
     const fed = S.fed.getOrDefault(prov.id, 1000);
     if (fed < 1000) e.take(prov.id, hand, idiv(D.hunger * (1000 - fed), 1000));
-    const t = travelTurns(S.config, e.map, e.courtAt(holder), prov.id, S.turn);
+    const t = travelTurns(S.config, e.map, standsAt(S, e.map, holder), prov.id, S.turn);
     const seen = hand !== holder ? 100 : 100 - Math.min(D.farMost, D.far * Math.max(0, Number.isFinite(t) ? t - 1 : 4));
     let given = 0;
     const next = new Set(e.map.neighbors(prov.id));
@@ -610,7 +611,7 @@ function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character 
     u.men -= lost;
     if (u.men > 0) continue;
     e.spendAt(id, u.savings);
-    S.units.splice(S.units.indexOf(u), 1);
+    loseUnit(S, u);
     e.liftSiegesOf(u.id);
   }
   e.tell(holder, id, "Battle", "A garrison beaten", `The people of ${name} rose ${who} and beat your troops there.`);

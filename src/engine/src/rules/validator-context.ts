@@ -8,7 +8,8 @@ import type { WorldMap } from "../model/map.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import type { GameState, Unit } from "../model/state.ts";
+import type { GameState } from "../model/state.ts";
+import type { Unit } from "../model/units.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export interface Checking {
@@ -34,6 +35,11 @@ export interface Checking {
   readonly dispatches: number;
   readonly seekCount: number;
   readonly counterIntel: boolean;
+  /**
+   * Bug #600: the court's unit gone, whose end it has not heard of, that an order of command, recall, mandate or food names
+   * (TurnEngine.sendOrders): checked as one that stands; null for any other.
+   */
+  gone(o: Order): Unit | null;
   heardFallen(x: Power): boolean;
   Sight(): HSet<string>;
   /** Who this court knows holds the province (bug #467): as it sees it, or as word last brought it; null for none or the sea. */

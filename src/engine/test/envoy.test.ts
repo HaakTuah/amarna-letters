@@ -140,6 +140,21 @@ describe("EnvoyTests", () => {
     Assert.contains(inboxOf(s, "Egypt"), (i) => i.kind === "EnvoyReport");
   });
 
+  test("An envoy never received at a court is not remembered as bringing its answer home (bug #784)", () => {
+    let [s, envoy] = start();
+    let e = begin(s);
+    e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Alashiya", "Greetings.")] })]]));
+    // Alashiya's king is gone before the envoy arrives: it turns back with no audience.
+    s.eliminated.push("Alashiya");
+    while (envoy.duty !== "None") {
+      e = begin(s);
+      if (fresh(envoy.duty) !== "None") e.resolve(new Dict<Power, TurnSubmission>());
+    }
+    Assert.equal(0, s.audiences.length);
+    Assert.contains(envoy.facts, (f) => f.text.startsWith("Carried a mission to Alashiya and was never received there, and came home (season "));
+    Assert.false(envoy.facts.some((f) => f.text.includes("came home with the answer")));
+  });
+
   test("Detained envoy does not return and the sender hears of it", () => {
     let [s, envoy] = start();
     let e = begin(s);
@@ -268,7 +283,7 @@ describe("EnvoyTests", () => {
     let e = begin(s);
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [assay("g900")] })]]));
     Assert.empty(s.treasuries.get("Hatti").lots);
-    Assert.contains(inboxOf(s, "Hatti"), (i) => i.kind === "Assay" && i.body.includes("60 in a hundred"));
+    Assert.contains(inboxOf(s, "Hatti"), (i) => i.kind === "Assay" && i.body.includes("60%"));
   });
 
   test("Background checks report public facts and deeper ones only by chance", () => {

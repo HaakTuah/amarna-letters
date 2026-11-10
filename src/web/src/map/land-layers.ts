@@ -4,7 +4,7 @@
  */
 
 import { WorldMap, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province } from "@amarna/engine";
-import { powerName } from "../ui/format.ts";
+import { powerName, provinceName } from "../ui/format.ts";
 import { F, Shapes, arcNeighbours, frontierPath, landClipOf, city } from "./art.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { RuinMarks } from "./life.ts";
@@ -24,7 +24,7 @@ const LandByClip: readonly (readonly [string, readonly Province[]])[] = ["url(#m
 function provinceTitle(p: Province, owner: Power | null): string {
   const t = terrainOf(p.id);
   return (
-    `${p.name}: ${owner !== null ? `held by ${powerName(owner)}` : "held by no one"}; its tax brings in about ${taxOf(harvestOf(p))} measures of grain a season` +
+    `${provinceName(p.id)}: ${owner !== null ? `held by ${powerName(owner)}` : "held by no one"}; its tax brings in about ${taxOf(harvestOf(p))} measures of grain a season` +
     (t === "Rough" ? "; rough ground: a unit standing its ground here is stronger" : t === "Desert" ? "; desert: it feeds no army, which lives on its baggage, its king's stores and his caravans" : "")
   );
 }
@@ -45,7 +45,7 @@ export function tintsKey(s: MapScene, mode: MapMode): string {
 
 export function tints(s: MapScene, mode: MapMode): string {
   let sb = `<g class="politics" clip-path="url(#seaclip)">`;
-  for (const p of Seas) sb += `<path class="hit sea-hit" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(`${p.name}, a sea zone`)}</path>`;
+  for (const p of Seas) sb += `<path class="hit sea-hit" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(`${provinceName(p.id)}, a sea zone`)}</path>`;
   sb += "</g>";
   for (const [clip, group] of LandByClip) {
     sb += `<g class="politics" clip-path="${clip}">`;
@@ -159,7 +159,7 @@ export function cities(s: MapScene): string {
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
     sb += `<circle class="seal ${owner !== null ? `s-${glyphId(owner)}` : "s-free"}" r="${p.capital ? 9.5 : 7.5}"/>`;
     // A city in ruins (item 19): sacked, and its people's hardship not yet faded.
-    if (s.memory.ruins.has(p.id)) sb += `<g class="ruin">${title(`${p.name} lies in ruins: sacked, and not yet rebuilt`)}${RuinMarks}</g>`;
+    if (s.memory.ruins.has(p.id)) sb += `<g class="ruin">${title(`${provinceName(p.id)} lies in ruins: sacked, and not yet rebuilt`)}${RuinMarks}</g>`;
     // A siege camp (item 19): the besieger's tents ringing the walls.
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {

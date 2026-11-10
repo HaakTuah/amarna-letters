@@ -39,6 +39,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
+import { begin as turnBegin } from "./turn-begin.ts";
 import { fresh, removeAll, Assert, firstOrNull, singleOrNull, skilled, smallWorld } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
@@ -46,12 +47,7 @@ import { captive as captiveOrder } from "@amarna/engine";
 // changes sides or dies abroad appears to its master as it would have in the normal course of events,
 // its back pay growing in the master's books as for anyone away, until word comes.
 describe("CoverTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]`, number: 15 }));
-    return e;
-  }
+  const begin = (s: GameState): TurnEngine => turnBegin(s, 15);
 
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();
@@ -343,6 +339,14 @@ describe("CoverTests", () => {
     Assert.equal("Captured", char(caught, id).status);
   });
 
+  test("A caught province watcher recalled by its unknowing master reads as a free one does (bug #734)", () => {
+    let [caught, free, id] = caughtSpy("Egypt", "thebes");
+    new TurnEngine(caught).resolve(orders("Babylonia", recall(id)));
+    new TurnEngine(free).resolve(orders("Babylonia", recall(id)));
+    Assert.equal(seenOf(free, "Babylonia", id), seenOf(caught, "Babylonia", id));
+    Assert.equal("Captured", char(caught, id).status);
+  });
+
   test("A turned province watcher goes back to its province", () => {
     let s = smallWorld(newGame(4), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");
@@ -364,7 +368,7 @@ describe("CoverTests", () => {
       begin(s).resolve(none());
     }
     let seen = single(Views.for(s, "Hatti").court, (c) => c.id === spy.id);
-    Assert.equal(["watching Washukanni", "in washukanni"], [seen.duty, seen.where]);
+    Assert.equal(["watching Washukanni", ""], [seen.duty, seen.where]);
   });
 
   // ---------------------------------------------------------------- a defector on its new master's errands
@@ -398,7 +402,7 @@ describe("CoverTests", () => {
     let audience = sendTo(s, "Alashiya", defector, "Hatti");
     let egypt = seenOf(s, "Egypt", defector.id);
     let wages = new TurnEngine(s).feesDue("Alashiya");
-    Assert.equal("at the court of Hatti as envoy", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
+    Assert.equal("as envoy", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
 
     // Hatti holds it: Alashiya, which sent it, sees it on the road home, as Egypt still does.
     answer(s, audience, newHostReply({ detain: true }));

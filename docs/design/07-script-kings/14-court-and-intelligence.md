@@ -43,7 +43,7 @@
 - **Stealing**: a cunning king (above 0.6) has a spy at the court of its war steal a tablet now and then (chance 0.4 ×
   cunning a season, at most once in four seasons a spy); a spy caught stealing is lost where it matters most.
 - **False envoys**: a careful king pays 30 for inquiries into a person who says it is an envoy with no letter; a trusting
-  one gives a host's gift (10 + 20 × (1 − greed)) to the envoy of a king it is not hostile to; and every letter the king
+  one gives a host's gift (at most 30, where it pays: [gifts as investments](15-letters-and-gifts.md)) to the envoy of a king it is not hostile to; and every letter the king
   sends to the court a person claims to serve carries `checkClaim` for that person.
 
 Script characters (`ScriptMind`): an envoy offered a gift by a court it owes a debt to, or where its lover or family is,

@@ -3,11 +3,12 @@ import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import type { FrameSleep } from "../session/frames.ts";
 import { powerName, when } from "../ui/format.ts";
+import { nameSettings } from "../ui/names.ts";
 import { sideScroll } from "../ui/side-scroll.ts";
 import { Emblem } from "./Emblem.tsx";
 import { sleepLine } from "./SeasonPanel.tsx";
 
-const short = (p: Power): string => (p === "Babylonia" ? "Babylon" : p === "Alashiya" ? "Alashiya" : powerName(p));
+const short = (p: Power): string => (p === "Babylonia" && nameSettings().realms === "known" ? "Babylon" : powerName(p));
 
 const title = (p: Power, held: number, fallen: boolean, s: FrameSleep | null): string =>
   `${powerName(p)}: ${held} provinces${fallen ? ", fallen" : ""}` + (s?.asleep ? `; asleep, wakes by ${when(s.wakeAt, null)} at the latest` : "");
@@ -56,7 +57,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
             <Emblem power={open} /> {powerName(open)}
           </strong>{" "}
           · {kingFor(scene.viewer, open)} · {heldBy(open)} provinces
-          {god || scene.viewer === open ? `, ${f.units.filter((u) => u.power === open).length} units` : ""}
+          {god ? `, ${f.units.filter((u) => u.power === open).length} units` : scene.viewer === open ? `, ${(f.knownUnits?.get(open) ?? f.units.filter((u) => u.power === open)).length} units` : ""}
           {f.eliminated.has(open) ? " · fallen" : ""}
           {/* His other names, on his card only (item 17+). */}
           {otherNames.length > 0 && <div className="small muted">Also known as {otherNames.join("; ")}</div>}

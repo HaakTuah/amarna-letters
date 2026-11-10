@@ -100,14 +100,16 @@ on sealed tablets comes with item 9.
   lost land does (`TurnEngine.lostOrder`). A grant of passage or basing, given at court, is recorded as given even over
   land lost out of sight: it means nothing while another holds the land (`grantCovers`). The yields, markets and
   resistance in the view go by the land the court knows it holds; resistance only where it sees. The twin canary (`src/web/test/twin-canary.test.ts`) plays a seat's
-  seasons twice, a hidden fact true and false, and finds any difference before word could come; what it still finds
-  (bug #540: a far province's economy, works, people and caravans, and the realm's totals) it lists by issue.
+  seasons twice, a hidden fact true and false, and finds any difference before word could come, each fact at a far place
+  played at two (`Places`: Nippur, a season off by road, and Dilmun, two seasons off by sea; #566); what it still finds
+  it lists by issue (`Known`).
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
   the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
   may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):
   the envoy turns back on arrival. Ceding land or giving troops to it is still refused, which tells the court (a known
   leak, kept so that no land or troops go to a dead kingdom). ENVOY TRAVEL lists every court not heard to have fallen.
-  An envoy at an audience weighs whether its lord looks doomed by what the host's court knows.
+  An envoy at an audience weighs whether its lord looks doomed by what the host's court knows. A fallen realm's living king, whose fact
+  "Rules …" becomes "Ruled …" at the fall, still "Rules" it in the view of a court that has not heard (bug #817).
 - **Word from vassals and allies** (#618, `turn/tidings.ts`, save version 58): at the season's end
   (`TurnEngine.sendTidings`, after `keepTrails`) each province that changed hands in it (`GameState.ownerLog`), unless it
   passed with a kingdom's fall (which travels as `KingdomFalls`), is reported by every court that sees it (`Views.sight`)
@@ -124,7 +126,8 @@ on sealed tablets comes with item 9.
   a change of the map heard. Script kings read it as any word of holders (`bots/tidings.ts`; `--no-tidings-play`,
   `--tidings-play-half` leave it unread, keeping the holder known before, to measure it).
 - **Structured**: each holder comes with its season and source ("seen", "word from abroad", or a traveller's name), shown
-  in the rulebook's LANDS ("heard in turn N, from Hani") and on the web map. Sharing reports with other courts ("Attach a
+  in the seat view's LANDS ("in sight", "heard in turn N, from Hani", or "as it stood at the start" where no word has
+  come since) and on the web map. Sharing reports with other courts ("Attach a
   report") is not built: it needs the structured press of item 8 and the carriers of item 11b.
 - **The web map** colours a seat's land by the holders it knows (`SeasonFrame.knownOwner`, `MapScene.owner`), and its fog
   shows the age of that news on land ("as of" a season), and of its last sight at sea.

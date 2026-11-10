@@ -5,11 +5,11 @@
  * back on when his orders cannot reach it in time (to guard where it stands, or to press the siege it lays); and he takes
  * the command back from one whose record shows him losing. He cannot see a man's competence, only what he has done.
  */
+import { chiefAskSeen, heeded } from "./raiders.ts";
 import {
   HSet,
   cmpNum,
   cmpStr,
-  bandCost,
   command,
   enlist,
   govern,
@@ -176,19 +176,20 @@ export function governorOrders(b: Board, _brain: Brain, orders: Order[], busy: H
 
 /**
  * A script king hires bands as soldiers (item 13): at war, with gold to spare, he offers the chief of a band of a hundred
- * men or more, where an army of his stands with it under its commander or with him, twice what the men cost a season for
- * four seasons, and the chief's cut on top.
+ * men or more, where an army of his stands with it under its commander or with him, what he reckons the chief asks for
+ * four seasons (`chiefAskSeen`), with a tenth over.
  */
 export function enlistOrders(b: Board, brain: Brain, orders: Order[]): void {
   if (!CommandPlay.on(b.me) || brain.warTarget === null) return;
   const v = b.v;
-  for (const x of sortBy(v.bands.filter((x) => x.men >= 100), [(x) => -x.men, cmpNum], [(x) => x.province, cmpStr])) {
+  for (const x of sortBy(heeded(b.me, v.bands).filter((x) => x.men >= 100), [(x) => -x.men, cmpNum], [(x) => x.province, cmpStr])) {
     const u = b.mine.find((u) => u.province === x.province && u.kind === "Army");
     if (u === undefined) continue;
-    const carried = v.courtAt === x.province || (u.commander !== null && u.commandFrom <= v.turn);
+    const carried = (v.seat) === x.province || (u.commander !== null && u.commandFrom <= v.turn);
     if (!carried) continue;
     const term = 4;
-    const fee = bandCost(x.men) * term * 3;
+    // What the chief asks, as we reckon it, with a tenth over (item 17++++a: his ask counts what his men take, too).
+    const fee = Math.ceil((chiefAskSeen(v, x, term) * 11) / 10);
     if (v.gold < fee * 3) continue;
     orders.push(enlist(x.province, fee, term));
     return;

@@ -90,11 +90,15 @@ export interface FrameCover {
   believed: Duty;
   heldAt: Power | null;
   whereText: string;
+  /** The province the court believes the servant stands in out in the land (bug #734), for placing him on the map. */
+  province: string | null;
+  /** The foreign court it stands at, or set out for or from, by id (bug #797). */
+  court: Power | null;
   timingText: string;
   since: number;
 }
 
-/** A character as it stood at the end of a season. `confessed`: for a captive, whom it confessed to serving, or null. */
+/** A character as it stood at the end of a season. `confessed`: for a captive, whom its captor knows it serves (a king's realm, or whom it confessed to serving), or null. */
 export interface FramePerson {
   id: string;
   name: string;
@@ -234,6 +238,8 @@ export interface SeasonFrame {
   /** The sieges as each court knows them (bug #517: `Views.siegesKnown`), with the walls it knows. */
   knownSieges: Map<Power, FrameSiege[]>;
   units: FrameUnit[];
+  /** Bug #615: each court's own units as it knows them (`Views.ownUnitsShown`): a far one where, and as, its last report has it. */
+  knownUnits?: Map<Power, FrameUnit[]>;
   /** Every order of the season just resolved (the union of what each court saw). */
   moves: FrameMove[];
   /** What each court saw resolve: indexes into moves. */
@@ -385,8 +391,8 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       secretMaster: c.secretMaster,
       currentTrail: c.currentTrail,
       formerEmployer: c.formerEmployer,
-      covers: c.covers.map((k) => ({ for: k.for, believed: k.believed, heldAt: k.heldAt, whereText: k.whereText, timingText: k.timingText, since: k.since })),
-      confessed: c.status === "Captured" && c.heldBy !== null ? Views.confessedMaster(s, c.id, c.heldBy) : null,
+      covers: c.covers.map((k) => ({ for: k.for, believed: k.believed, heldAt: k.heldAt, whereText: k.whereText, province: k.province, court: k.court, timingText: k.timingText, since: k.since })),
+      confessed: c.status === "Captured" && c.heldBy !== null ? Views.captiveMaster(s, c.id, c.heldBy) : null,
     });
 
   const sight = new Map<Power, Set<string>>(AllPowers.map((p) => [p, isAlive(s, p) ? new Set(Views.sight(s, map, p)) : new Set<string>()] as const));
@@ -429,6 +435,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     sieges: s.sieges.map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: wallsOf(s, x.province), since: x.since })),
     knownSieges,
     units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province, men: u.men })),
+    knownUnits: new Map<Power, FrameUnit[]>(AllPowers.filter((p) => isAlive(s, p)).map((p) => [p, Views.ownUnitsShown(s, p, map).map((x) => ({ id: x.unit.id, power: p, kind: x.unit.kind, province: x.province, men: x.men }))] as const)),
     moves,
     seenBy,
     sight,
@@ -532,7 +539,7 @@ export function samePerson(a: FramePerson, b: FramePerson): boolean {
   if (a.covers.length !== b.covers.length) return false;
   return a.covers.every((x, i) => {
     const y = b.covers[i];
-    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
+    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.province === y.province && x.court === y.court && x.timingText === y.timingText && x.since === y.since;
   });
 }
 

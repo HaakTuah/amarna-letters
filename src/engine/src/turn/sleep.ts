@@ -7,12 +7,13 @@
  */
 import { EconomyData } from "../model/economy.ts";
 import { HSet } from "../core/collections.ts";
+import { goneHeard } from "../rules/units-known.ts";
 import { sortBy, cmpNum } from "../core/seq.ts";
 import { cmpStr, trimEnd } from "../core/text.ts";
 import type { UnitKind } from "../model/map.ts";
 import { characterOf, placesNamed, told } from "../model/order-reading.ts";
 import { type Order } from "../model/orders.ts";
-import type { MoveFailure } from "../model/outcomes.ts";
+import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { cmpPower, whose, type Power, powerName } from "../model/power.ts";
 import type { InboxItem } from "../model/records.ts";
 import { newCourtHeld, type PlannedOrder, type SleepState, type StandingOrder } from "../model/sleep.ts";
@@ -130,7 +131,7 @@ declare module "./core.ts" {
     collectDigest(p: Power, sl: SleepState): void;
     digestLine(i: InboxItem): string | null;
     lostUnits(p: Power, sl: SleepState | null): void;
-    endSleep(p: Power): void;
+    endSleep(p: Power, why?: string): void;
     stoppedByOthers(p: Power, f: MoveFailure): boolean;
     lightAlerts(p: Power): { line: string; text: string; weighty: boolean }[];
     wakeOnWord(p: Power, line: string): void;
@@ -300,8 +301,8 @@ P.wakeReasons = function (p, sl) {
   const stood = new HSet(seen.filter((o) => o.power === p).map((o) => o.province));
   for (const o of seen) {
     if (o.power === p) {
-      if (o.destroyed) add(`your ${kindName(o.unitKind)} in ${o.province} was destroyed`);
-      else if (o.fellBack !== null) add(`your ${kindName(o.unitKind)} in ${o.province} was beaten from it and fell back to ${o.fellBack}`);
+      const lost = ownLoss(o);
+      if (lost !== null) add(lost);
       continue;
     }
     if (o.order !== "move" || o.target === null) continue;
@@ -357,6 +358,9 @@ P.wakeReason = function (i) {
       // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
       if (i.title === "The treasury" && i.body.includes("mutinied")) return "troops of yours mutinied";
       if (i.title === "The treasury" && (i.body.includes("Hungry this season") || i.body.includes("Not paid this season"))) return "troops of yours went hungry or unpaid";
+      // #592: a province's offer caught on the road, to dispose of, or offered for sale.
+      if (i.title === "A letter taken on the road" && i.body.includes("(order letter)")) return "a province's offer was taken on the road and is in your hands";
+      if (i.title === "An offer for sale") return "a court offers you a province's offer it caught, for a price";
       if (i.title === "Markets and caravans" && (i.body.includes("was taken") || i.body.includes("Outlaws") || i.body.includes("deserted") || i.body.includes("sank") || i.body.includes("were seized"))) return "a caravan of yours was lost";
       return null;
     }
@@ -471,6 +475,12 @@ function firstClause(body: string): string {
   return (low.length === 1 ? low : clause[0]) + clause.slice(1);
 }
 
+/** Why its own unit's outcome wakes a seat: destroyed, or beaten from its place; null otherwise. */
+export function ownLoss(o: OrderOutcome): string | null {
+  if (o.destroyed) return `your ${kindName(o.unitKind)} in ${o.province} was destroyed`;
+  return o.fellBack !== null ? `your ${kindName(o.unitKind)} in ${o.province} was beaten from it and fell back to ${o.fellBack}` : null;
+}
+
 /** The notice that one of the seat's standing orders fired (standingFiredTitle). */
 function isFiring(i: InboxItem): boolean {
   return i.kind === "Resolution" && i.title.startsWith("Standing order ") && i.title.endsWith(" fired");
@@ -478,12 +488,14 @@ function isFiring(i: InboxItem): boolean {
 
 /**
  * Orders bound to troops the seat no longer has (destroyed, deserted, disbanded or given away) can never run: they are
- * dropped (the scheduled orders of a seat that sleeps, and any seat's standing orders), a standing order with them if it
- * waited on that unit or has no orders left, and the seat is told in its news. Dropping them wakes nobody.
+ * dropped once the seat knows (bug #600: for a unit far off, once word of its end could come): the scheduled orders of a
+ * seat that sleeps, and any seat's standing orders, a standing order with them if it waited on that unit or has no orders
+ * left; the seat is told in its news. Dropping them wakes nobody.
  */
 P.lostUnits = function (p, sl) {
   const S = this.s;
-  const gone = (id: string | null): boolean => id !== null && !S.units.some((u) => u.id === id && u.power === p);
+  // Bug #600: a unit lost far off is lost to its king when word of its end comes; till then its orders stay, and cannot run.
+  const gone = (id: string | null): boolean => id !== null && goneHeard(this, p, id, S.turn + S.deliveryOffset);
   const lost = (x: PlannedOrder): boolean => gone(x.unitId) || gone(x.otherUnitId);
   const lines: string[] = [];
   if (sl !== null) {
@@ -513,15 +525,15 @@ P.lostUnits = function (p, sl) {
   );
 };
 
-/** A sleeping seat whose kingdom falls stops sleeping: its last spell ends that season. */
-P.endSleep = function (p) {
+/** A sleeping seat whose kingdom falls, or whose king dies (item 17b), stops sleeping: its last spell ends that season. */
+P.endSleep = function (p, why = "the kingdom fell") {
   const sl = this.s.sleep.tryGet(p);
   if (sl === undefined || !sl.asleep) return;
   sl.asleep = false;
   const spell = sl.history.length > 0 ? sl.history[sl.history.length - 1] : null;
   if (spell !== null && spell.wokeAt === 0) {
     spell.wokeAt = this.s.turn + 1;
-    spell.reasons = ["the kingdom fell"];
+    spell.reasons = [why];
   }
 };
 

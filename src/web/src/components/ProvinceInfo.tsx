@@ -27,6 +27,8 @@ import {
 import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
 import { about, counted, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import type { HistoryOf } from "./HistoryPanel.tsx";
+import { LearnMore } from "./LearnMore.tsx";
 import { MapCard } from "./MapCard.tsx";
 
 /**
@@ -43,7 +45,7 @@ function groundText(state: GameState, p: Province, terrain: Terrain, crossings: 
     if (crossings.length > 0) lines.push(`A unit standing its ground here holds with ${t} more against an attack over ${[...new Set(crossings.map((c) => c.name))].join(" or ")}.`);
   }
   if (p.waters !== null) {
-    const waters = WorldMap.default.get(p.waters).name;
+    const waters = provinceName(p.waters);
     lines.push(`An army lands here from the sea only when no enemy fleet holds ${waters}.`);
     // A port whose way to its waters is longer than the map draws it (#554): what makes it so, and the voyage's days.
     const note = connectionNote(p.id, p.waters);
@@ -63,12 +65,14 @@ export function ProvinceInfo({
   scene,
   onClose,
   onPerson,
+  onHistory,
 }: {
   state: GameState;
   id: string;
   scene: MapScene;
   onClose: () => void;
   onPerson: (id: string) => void;
+  onHistory: (h: HistoryOf) => void;
 }) {
   const map = WorldMap.default;
   const p = map.get(id);
@@ -93,25 +97,34 @@ export function ProvinceInfo({
   return (
     <MapCard
       className="infocard"
-      label={p.name}
+      label={provinceName(p.id)}
       onClose={onClose}
       head={
         <>
           <Emblem power={p.isSea ? null : owner} />
           <h3>
-            {p.name} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
+            {provinceName(p.id)} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
           </h3>
           {/* "Places by their own names", for the human player only: what the name alone does not say, then the modern name. */}
-          {(describedAs(p.id) !== null || modernOf(p.id) !== null) && (
-            <small className="muted">{[describedAs(p.id), modernOf(p.id) !== null ? `today ${modernOf(p.id)}` : null].filter((x) => x !== null).join(", ")}</small>
+          {(describedAs(p.id) !== null || modernOf(p.id) !== null || provinceName(p.id) !== p.name) && (
+            <small className="muted">
+              {[provinceName(p.id) !== p.name ? `in 1346 ${p.name}` : null, describedAs(p.id), modernOf(p.id) !== null ? `today ${modernOf(p.id)}` : null]
+                .filter((x) => x !== null)
+                .join(", ")}
+            </small>
           )}
+          {/* Item 17+++b: its history, and what to read of it outside the game. */}
+          <button className="small link" onClick={() => onHistory({ kind: "province", id: p.id })}>
+            History
+          </button>
+          <LearnMore state={state} kind="province" id={p.id} />
         </>
       }
     >
       {p.isSea ? (
         <p className="small">
           {WorldMap.default.coastsOf(p.id).length > 0
-            ? `The waters of ${WorldMap.default.coastsOf(p.id).map((x) => x.name).join(" and ")}: a fleet here blockades ${WorldMap.default.coastsOf(p.id).length > 1 ? "them" : "it"}, and no army lands there against it.`
+            ? `The waters of ${WorldMap.default.coastsOf(p.id).map((x) => provinceName(x.id)).join(" and ")}: a fleet here blockades ${WorldMap.default.coastsOf(p.id).length > 1 ? "them" : "it"}, and no army lands there against it.`
             : "The open sea."}{" "}
           Fleets here can convoy armies across, one fleet in each sea zone of the way.
           {WorldMap.default.edges.some((e) => e.open && (e.a === p.id || e.b === p.id)) ? " An open-sea crossing leaves from here: dangerous in winter, the second season of the year, when storms may sink a fleet and the army it carries." : ""}

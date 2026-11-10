@@ -15,6 +15,7 @@ import {
   crown,
   moveCourt,
   enlist,
+  payOff,
   type MandateTask,
   type Engage,
   type Withdraw,
@@ -39,6 +40,8 @@ import {
   demand,
   census,
   answer,
+  letter,
+  buyLetter,
   welcome,
   expel,
   deport,
@@ -517,6 +520,11 @@ function other(x: Node): Order | null {
       return answer(province, true);
     case "refuse_province":
       return answer(province, false);
+    case "letter_send":
+    case "letter_sell":
+      return power !== null ? letter(province, S(x, "action") === "letter_send" ? "Send" : "Sell", power, amount, I(x, "term") > 0 ? I(x, "term") : null) : unreadable(`${S(x, "action") === "letter_send" ? "send" : "sell"} the offer of ${province}'s people to '${named}'`, nowhere(named, "the king the offer goes to"));
+    case "buy_letter":
+      return buyLetter(province, I(x, "term") > 0 ? I(x, "term") : null);
     case "welcome_loose":
       return welcome(province);
     case "expel_mouths":
@@ -579,8 +587,12 @@ function other(x: Node): Order | null {
       return crown(person, L(x, "lands").map(prov), Math.max(0, I(x, "gold")), Math.max(0, amount));
     case "move_court":
       return moveCourt(province);
+    case "travel_alone":
+      return moveCourt(province, true);
     case "enlist_band":
       return enlist(province, Math.max(0, I(x, "gold")), I(x, "term"));
+    case "pay_off_band":
+      return payOff(province, Math.max(0, I(x, "gold")), I(x, "term"));
     case "hunt_bands":
       return hunt(province);
     case "hunt_bands_always":

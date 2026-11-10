@@ -4,7 +4,7 @@ For the orchestrator, the session that starts builder sessions. The builder's ow
 `AGENTS.md`. Its pipeline and lanes rest on archive items 22 and 23; each section cites its own.
 
 **The orchestrator builds nothing itself** (archive item 139). Every lane, the item or main lane included, goes to a builder session of its
-own, with its own brief, at the builder's effort (for Claude: `CLAUDE.md`). Helpers belong to builders, never to the
+own, with its own brief, at the builder's model and effort (for Claude: `CLAUDE.md`). Helpers belong to builders, never to the
 orchestrator: a lane is never a helper of the orchestrator's. The orchestrator keeps its own context small, for what
 only it does: claims, starting and handing over sessions, merging Codex's work, and the owner's questions word for
 word. A session it starts runs at its own effort, and it never waits for one at a higher effort: the builder gives the
@@ -33,7 +33,7 @@ The aim: as much work done as possible, for the fewest tokens, without losing qu
   its context is under an hour old and still small, and its last item has merged; otherwise a fresh session, and always
   one when a session's context has grown large.
 - **Bigger review fixes in a session of their own.** If a review asks for more than about an hour's work, start a fresh
-  session for it with the PR, the review and nothing else, at the builder's effort (for Claude: `CLAUDE.md`); the builder goes on.
+  session for it with the PR, the review and nothing else, at the builder's model and effort (for Claude: `CLAUDE.md`); the builder goes on.
 - **Hand over at once.** A builder's last message says what merged and what is next. Start the next session as soon as
   an item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
 - **A lane for every independent entry you can see,** each a builder session with its own brief and check-in, by the

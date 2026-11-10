@@ -23,7 +23,9 @@ import {
   type StandingOrder,
   type StandingRequest,
 } from "../model/sleep.ts";
-import { logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, notify, unitAt, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
+import { goneHeard, placesKnown } from "../rules/units-known.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { conditionsMet, conditionsText } from "../rules/conditions.ts";
@@ -99,7 +101,7 @@ declare module "./core.ts" {
     cancelStanding(p: Power, ids: string[]): void;
     whenText(p: Power, st: StandingOrder): string;
     marches(valid: Dict<Power, ValidationResult>): void;
-    endMarch(p: Power, sl: SleepState, plan: PlannedOrder, unit: Unit, what: string, quietIfNothingDropped: boolean): void;
+    endMarch(p: Power, sl: SleepState, plan: PlannedOrder, from: string, what: string, quietIfNothingDropped: boolean): void;
   }
 }
 
@@ -154,7 +156,10 @@ P.planSeason = function (p, sub) {
       : sl.scheduled
           .filter((x) => x.turn === S.turn && !held.includes(x))
           .map((x) => [asItStands(S, p, x), x] as [Order | null, PlannedOrder])
-          .filter(([o]) => o !== null);
+          .filter(([o, x]) => {
+            if (o === null) this.orderMissed(p, x);
+            return o !== null;
+          });
   removeAll(sl.scheduled, (x) => x.turn <= S.turn);
   return { sub, now, due: due.filter(([o, x]) => !this.notYetReached(p, sl, o, x)), standIn };
 };
@@ -174,8 +179,27 @@ P.compose = function (p, plan, fired) {
   if (fired.length > 0) removeAll(S.standing.get(p).orders, (x) => fired.some(([f]) => f === x));
   const standing: [Order, StandingOrder][] = [];
   const given: { from: StandingOrder; cause: string; kept: Order[]; byEarlier: [Order, string][] }[] = [];
+  // Bug #600: the orders for a unit lost out of sight, its end unheard, each with that unit's copy. Its king's word goes
+  // as for one that stands: it replaces what it would, and is checked on the copy; it rides out and finds the unit gone.
+  const goneFor = new Map<Order, Unit>();
   for (const [f, cause] of fired) {
-    const orders = (firedOrders.get(f) ?? f.orders).map((o) => asItStands(S, p, o)).filter((o): o is Order => o !== null);
+    const plans = firedOrders.get(f) ?? f.orders;
+    const orders: Order[] = [];
+    for (const x of plans) {
+      const o = asItStands(S, p, x);
+      // Its own unit gone: it rides out. Only the unit it supports or carries gone: it runs, and finds nothing there.
+      const gone = o !== null ? undefined : goneUnheard(this, p, x.unitId);
+      const shown = o ?? asItStands(S, p, x, [...S.unitsGone.filter((u) => u.power === p && goneUnheard(this, p, u.id) === u)]);
+      if (shown === null) continue;
+      orders.push(shown);
+      if (gone !== undefined) goneFor.set(shown, gone);
+      // An order of command, recall, mandate or food names its unit by province only: the copy where none stands now.
+      if (shown.type === "command" || shown.type === "relieve" || shown.type === "mandate" || shown.type === "supply") {
+        const here = unitAt(S, shown.unit);
+        const copy = here !== null && here.power === p ? undefined : S.unitsGone.find((u) => u.power === p && u.province === shown.unit && goneUnheard(this, p, u.id) === u);
+        if (copy !== undefined) goneFor.set(shown, copy);
+      }
+    }
     const kept = survivors(
       standing.map(([o]) => o),
       orders,
@@ -195,6 +219,16 @@ P.compose = function (p, plan, fired) {
     plan.now,
     (o) => o,
   );
+  // Orders of command, recall, mandate and food are checked and carried out on the copy, and their word rides out
+  // (`commandedUnit`, `goneWord`); the troops' own orders are checked as if it stood, and ride out without running
+  // (`_riddenNow`, in `resolveSeason`).
+  const ridden = new Map<Order, Unit>();
+  for (const [o, u] of goneFor) {
+    if (!standing.some(([x]) => x === o)) continue;
+    if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") this._goneNow.set(o, u);
+    else ridden.set(o, u);
+  }
+  this._riddenNow.set(p, ridden);
   const firings: Firing[] = given.map((g) => ({
     from: g.from,
     cause: g.cause,
@@ -271,7 +305,7 @@ P.standingFires = function (seasons, validator) {
     const sight = Views.sight(S, this.map, p);
     const list: [StandingOrder, string][] = [];
     for (const st of sortBy(this.standingOf(p), [(x: StandingOrder) => idNumber(x.id), cmpNum])) {
-      const into = st.when === "UnitAttacked" ? (S.units.find((u) => u.id === st.unitId && u.power === p)?.province ?? null) : st.province;
+      const into = st.when === "UnitAttacked" ? ((S.units.find((u) => u.id === st.unitId && u.power === p) ?? goneUnheard(this, p, st.unitId))?.province ?? null) : st.province;
       if (into === null) continue;
       let hit: [Power, MoveOrder] | null = null;
       outer: for (const q of AllPowers) {
@@ -310,7 +344,8 @@ P.notYetReached = function (p, sl, o, x) {
   const S = this.s;
   if (o === null || x.given <= 0) return false;
   const unit = x.unitId !== null ? (S.units.find((u) => u.id === x.unitId) ?? null) : null;
-  const place = unit !== null ? unit.province : (scheduledPlace(o) ?? null);
+  // #759: its king reckons the road to where his view shows the unit.
+  const place = unit !== null ? placesKnown(this, p)(unit) : (scheduledPlace(o) ?? null);
   if (place === null || !this.map.exists(place)) return false;
   const reach = this.wordTo(p, place);
   if (!Number.isFinite(reach) || S.turn >= x.given + reach) return false;
@@ -345,20 +380,28 @@ function scheduledPlace(o: Order): string | null {
   }
 }
 
+/** A unit of the seat's lost out of sight whose end it has not heard of (bug #600), by its id. */
+function goneUnheard(e: TurnEngine, p: Power, id: string | null): Unit | undefined {
+  return id === null ? undefined : e.s.unitsGone.find((x) => x.id === id && x.power === p && !goneHeard(e, p, id));
+}
+
 /** The orders of each standing order that fires this season that its armies carry out (item 13). */
 const firedOrders = new WeakMap<StandingOrder, PlannedOrder[]>();
 
 P.standingRuns = function (p, st, o, mover, m) {
   const S = this.s;
   if (o.unitId === null) return true;
-  const u = S.units.find((x) => x.id === o.unitId && x.power === p);
+  // Bug #600: one lost out of sight, its end unheard, is weighed as its king last knew it, its commander as he stood.
+  const u = S.units.find((x) => x.id === o.unitId && x.power === p) ?? goneUnheard(this, p, o.unitId);
   if (u === undefined) return true;
+  const gone = !S.units.includes(u);
   // Word of it must have reached the army.
   const reach = wordFromKing(S, this.map, p, u.province);
   if (!Number.isFinite(reach) || S.turn < st.given + reach) return false;
   // Someone to carry it out: the king himself there, or its commander.
   if (this.kingWith(u)) return true;
-  const c = this.commanderOf(u);
+  // A recall that has reached him would have left it without one.
+  const c = gone ? (u.commander === null || S.turn < u.commandFrom || (u.relieveAt !== null && S.turn >= u.relieveAt) ? null : findCharacter(S, u.commander)) : this.commanderOf(u);
   if (c === null) return false;
   // It fires on what the army sees: where its troops stand and one province around.
   const near = new HSet([u.province, ...this.map.neighbors(u.province)]);
@@ -368,7 +411,7 @@ P.standingRuns = function (p, st, o, mover, m) {
   if (c.traits.loyalty < 50 && rng.chance(((50 - c.traits.loyalty) * 2) / 100)) return false;
   // A good one sees through a feint: a move that could not get through what stands where it goes, half as many men or fewer.
   const mv = unitAt(S, m.unit);
-  const there = unitAt(S, m.to);
+  const there = unitAt(S, m.to) ?? (gone && u.province === m.to ? u : null);
   const feint = mv !== null && there !== null && there.power !== mover && mv.men > 0 && there.men >= 2 * mv.men;
   if (feint && rng.chance((c.traits.competence * CommandData.seeThrough) / 10000)) return false;
   return true;
@@ -417,9 +460,12 @@ export function survivors<T>(over: Iterable<Order>, under: Iterable<T>, order: (
  * A kept order as its seat reads it: as it would be given from where its units stand now, or, for a unit a levy has still
  * to raise, with that unit named as such ("the army to be raised in nippur in turn 3 -> ur").
  */
-export function asShown(s: GameState, p: Power, plan: PlannedOrder): Order {
-  if (plan.unitLevy === null && plan.otherLevy === null) return asItStands(s, p, plan) ?? plan.order;
-  const at = (id: string | null): string | null => (id === null ? null : (s.units.find((u) => u.id === id && u.power === p)?.province ?? null));
+export function asShown(s: GameState, p: Power, plan: PlannedOrder, place: (u: Unit) => string = (u) => u.province): Order {
+  if (plan.unitLevy === null && plan.otherLevy === null) return asItStands(s, p, plan, [], place) ?? plan.order;
+  const at = (id: string | null): string | null => {
+    const u = id === null ? undefined : s.units.find((x) => x.id === id && x.power === p);
+    return u === undefined ? null : place(u);
+  };
   const unit = plan.unitLevy !== null ? describeLevy(plan.unitLevy) : at(plan.unitId);
   const other = plan.otherLevy !== null ? describeLevy(plan.otherLevy) : at(plan.otherUnitId);
   const o = plan.order;
@@ -443,11 +489,15 @@ export function asShown(s: GameState, p: Power, plan: PlannedOrder): Order {
 /**
  * A kept order as it is given from where its units stand now: the seat's own unit (and its own unit supported or
  * convoyed) wherever it has gone since. Null if one of them is no longer the seat's (destroyed, disbanded, given away), or
- * is still to be raised by a levy.
+ * is still to be raised by a levy. Each unit is named by `place`: where it stands, or, at its court, where its king
+ * believes it stands (`placesKnown`, bug #615).
  */
-export function asItStands(s: GameState, p: Power, plan: PlannedOrder): Order | null {
+export function asItStands(s: GameState, p: Power, plan: PlannedOrder, gone: readonly Unit[] = [], place: (u: Unit) => string = (u) => u.province): Order | null {
   if (plan.unitLevy !== null || plan.otherLevy !== null) return null;
-  const at = (id: string | null): string | null => s.units.find((u) => u.id === id && u.power === p)?.province ?? null;
+  const at = (id: string | null): string | null => {
+    const u = [...s.units, ...gone].find((x) => x.id === id && x.power === p);
+    return u === undefined ? null : place(u);
+  };
   const unit = plan.unitId === null ? null : at(plan.unitId);
   const other = plan.otherUnitId === null ? null : at(plan.otherUnitId);
   if ((plan.unitId !== null && unit === null) || (plan.otherUnitId !== null && other === null)) return null;
@@ -565,7 +615,7 @@ P.bind = function (p, turn, o, levies) {
   if (at !== null) {
     // In the validator's words: a foreign unit is named as such only where the seat can see it.
     const lv = this.map.exists(at) ? levy(at) : null;
-    const unit = unitAt(S, at);
+    const unit = this.map.exists(at) ? ownNamed(this, p, at) : null;
     if (!this.map.exists(at)) refusal = `there is no province called '${at}'`;
     else if (lv !== null) plan.unitLevy = lv;
     else if (unit !== null && unit.power === p) plan.unitId = unit.id;
@@ -576,12 +626,24 @@ P.bind = function (p, turn, o, levies) {
   const other = o.type === "support" ? o.supported : o.type === "convoy" ? o.army : null;
   if (other !== null && other !== undefined) {
     const lv = levy(other);
-    const helped = unitAt(S, other);
+    const helped = this.map.exists(other) ? ownNamed(this, p, other) : null;
     if (lv !== null) plan.otherLevy = lv;
     else if (helped !== null && helped.power === p) plan.otherUnitId = helped.id;
   }
   return [plan, refusal];
 };
+
+/**
+ * The unit an order for later names by a province: whoever's unit stands there, or, where none of the seat's does, its own
+ * unit lost out of sight whose end it has not heard of, which its view still shows there (bug #600): the order is kept,
+ * and fails where it arrives or drops when word of the end comes, as one given this season does.
+ */
+function ownNamed(e: TurnEngine, p: Power, at: string): Unit | null {
+  const here = unitAt(e.s, at);
+  if (here !== null && here.power === p) return here;
+  const gone = e.unitShownAt(p, at);
+  return gone !== null && !e.s.units.includes(gone) ? gone : here;
+}
 
 /**
  * The levies a seat has under way as it gives orders for later: those it raises this season (accepted with its orders)
@@ -640,7 +702,8 @@ P.unraisedLevies = function () {
     const at = (x: PlannedOrder): number => heard?.tryGet(`${p}|${(unraised(x.unitLevy) ? x.unitLevy : x.otherLevy!).province}`) ?? now;
     for (const [when, dropped] of groupBy(failed, at)) {
       for (const x of dropped) x.unraisedHeard = when;
-      const lines = dropped.map((x) => `turn ${x.turn}: ${told(asShown(S, p, x))}`);
+      const place = placesKnown(this, p);
+      const lines = dropped.map((x) => `turn ${x.turn}: ${told(asShown(S, p, x, place))}`);
       this.tellAt(p, when, "Rejected", UnraisedTitle, "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + lines.map((x) => "- " + x).join("\n"));
     }
     removeAll(sl.scheduled, (x) => x.unraisedHeard > 0 && x.unraisedHeard <= now);
@@ -675,6 +738,8 @@ P.keepScheduled = function (p, sl, plans, accepted) {
     // A season after the game's last is kept like any other, under the same limits: its orders never run, because the
     // game ends first, and nothing the king reads depends on when the game must end.
     removeAll(sl.scheduled, (x) => x.turn === turn);
+    // So does what its view still shows of that season for a far unit (bug #615).
+    for (const x of sl.scheduleUnheard) removeAll(x.orders, (y) => y.turn === turn);
     let room = MaxScheduledPerSeason;
     const keepEntry = (plan: ScheduledOrders): void => {
       if (plan.orders.length === 0) return;
@@ -725,7 +790,7 @@ P.keepStanding = function (p, requests) {
   const refused: string[] = [];
   for (const r of requests) {
     const province = isBlank(r.province) ? "?" : r.province;
-    const u = this.map.exists(r.province) ? unitAt(S, r.province) : null;
+    const u = this.map.exists(r.province) ? ownNamed(this, p, r.province) : null;
     const unit = u !== null && u.power === p ? u : null;
     const what = r.when === "UnitAttacked" ? `when your unit in ${province} is attacked` : entersText(p, r.power, province);
     let why: string | null =
@@ -789,8 +854,9 @@ P.cancelStanding = function (p, ids) {
 /** What a standing order waits for, in the words its seat reads: its unit named by where it stands now. */
 P.whenText = function (p, st) {
   if (st.when === "UnitAttacked") {
-    const u = this.s.units.find((u) => u.id === st.unitId && u.power === p);
-    return u !== undefined ? `when your ${kindName(u.kind)} in ${u.province} is attacked` : `when your unit that stood in ${st.province ?? ""} is attacked`;
+    const u = this.s.units.find((u) => u.id === st.unitId && u.power === p) ?? goneUnheard(this, p, st.unitId);
+    // Where its king believes it stands (bug #615).
+    return u !== undefined ? `when your ${kindName(u.kind)} in ${placesKnown(this, p)(u)} is attacked` : `when your unit that stood in ${st.province ?? ""} is attacked`;
   }
   return entersText(p, st.power, st.province ?? "?");
 };
@@ -806,30 +872,44 @@ P.marches = function (valid) {
   for (const [p, moves] of sortBy(this._marchNow.entries(), [([k]: [Power, [Order, PlannedOrder][]]) => k, cmpPower])) {
     const sl = S.sleep.tryGet(p);
     if (sl === undefined) continue;
+    const place = placesKnown(this, p);
+    // Bug #615: what changes in a far unit's schedule here its seat learns by the road; until then its view keeps the
+    // unit's orders as they were (`scheduleKnown`).
+    sl.scheduleUnheard = sl.scheduleUnheard.filter((x) => x.until > S.turn);
+    const keep = (plan: PlannedOrder, unit: Unit): void => {
+      const until = this.heardAt(p, unit.province);
+      if (until <= S.turn + S.deliveryOffset || !Number.isFinite(until)) return;
+      sl.scheduleUnheard.push({ unitId: unit.id, turn: S.turn, until, orders: structuredClone([plan, ...sl.scheduled.filter((x) => x.unitId === unit.id)]) });
+    };
     for (const [order, plan] of moves) {
       const move = order as MoveOrder;
       const unit = S.units.find((u) => u.id === plan.unitId && u.power === p);
       if (unit === undefined) continue;
-      const whose = `Your ${kindName(unit.kind)} in ${unit.province}`;
+      // Its king reads of its march by the road from where it stands, of the unit where he believed it stood (bug #615).
+      const whose = `Your ${kindName(unit.kind)} in ${place(unit)}`;
       const refused = valid.tryGet(p)?.rejected.find((r) => r.order === order);
-      if (refused !== undefined) this.endMarch(p, sl, plan, unit, `${whose} could not be ordered to ${move.to} in turn ${S.turn} (${refused.reason})`, true);
+      if (refused !== undefined) this.endMarch(p, sl, plan, unit.province, `${whose} could not be ordered to ${move.to} in turn ${S.turn} (${refused.reason})`, true);
       else if (unit.province === move.to) continue;
       // Still on a long road (item 13): it goes on next season, and nothing failed.
       else if (unit.march === move.to && unit.along < this.marchPoints(unit, move.to, move.forced === true)) {
+        keep(plan, unit);
         const later = sl.scheduled.filter((x) => x.unitId === plan.unitId && x.turn > S.turn);
         for (const x of later) x.turn++;
         sl.scheduled.push(newPlannedOrder({ turn: S.turn + 1, order: plan.order, unitId: plan.unitId, otherUnitId: plan.otherUnitId, retry: plan.retry }));
         sl.scheduled = sortBy(sl.scheduled, [(x: PlannedOrder) => x.turn, cmpNum]);
-      } else if (plan.retry) this.endMarch(p, sl, plan, unit, `${whose} failed to reach ${move.to} a second time in turn ${S.turn}`, false);
-      else {
+      } else if (plan.retry) {
+        keep(plan, unit);
+        this.endMarch(p, sl, plan, unit.province, `${whose} failed to reach ${move.to} a second time in turn ${S.turn}`, false);
+      } else {
+        keep(plan, unit);
         const later = sl.scheduled.filter((x) => x.unitId === plan.unitId && x.turn > S.turn);
         for (const x of later) x.turn++;
         sl.scheduled.push(newPlannedOrder({ turn: S.turn + 1, order: plan.order, unitId: plan.unitId, otherUnitId: plan.otherUnitId, retry: true }));
         sl.scheduled = sortBy(sl.scheduled, [(x: PlannedOrder) => x.turn, cmpNum]);
         const turns = distinct(later.map((x) => x.turn));
-        notify(
-          S,
+        this.tell(
           p,
+          unit.province,
           "Rejected",
           MarchHeldUpTitle,
           `${whose} did not reach ${move.to} in turn ${S.turn}. It will try again in turn ${S.turn + 1}` +
@@ -840,21 +920,21 @@ P.marches = function (valid) {
   }
 };
 
-/** A unit's march ends: its remaining scheduled orders are dropped, and its seat is told which. */
-P.endMarch = function (p, sl, plan, unit, what, quietIfNothingDropped) {
+/** A unit's march ends: its remaining scheduled orders are dropped, and its seat is told which, by word from `from` (bug #615). */
+P.endMarch = function (p, sl, plan, from, what, quietIfNothingDropped) {
   const S = this.s;
-  void unit;
   const dropped = sl.scheduled.filter((x) => x.unitId === plan.unitId && x.turn > S.turn);
   removeAll(sl.scheduled, (x) => dropped.includes(x));
   if (dropped.length === 0 && quietIfNothingDropped) return;
-  notify(
-    S,
+  const place = placesKnown(this, p);
+  this.tell(
     p,
+    from,
     "Rejected",
     MarchEndsTitle,
     placesNamed(
       `${what}: its march ends` +
-        (dropped.length === 0 ? "." : ", and its remaining scheduled orders were dropped: " + dropped.map((d) => `turn ${d.turn}: ${told(asShown(S, p, d))}`).join("; ") + "."),
+        (dropped.length === 0 ? "." : ", and its remaining scheduled orders were dropped: " + dropped.map((d) => `turn ${d.turn}: ${told(asShown(S, p, d, place))}`).join("; ") + "."),
     ),
   );
 };

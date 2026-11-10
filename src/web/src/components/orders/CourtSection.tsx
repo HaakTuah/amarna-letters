@@ -32,7 +32,7 @@ import {
   claimableNames,
   type Power,
 } from "@amarna/engine";
-import { dated, grantLine, heardIn, powerName, provinceName, shekels } from "../../ui/format.ts";
+import { dated, grantLine, heardIn, powerName, provinceName, shekels, when } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { Person } from "../Person.tsx";
 import { map, num } from "./form.ts";
@@ -74,7 +74,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           const closed = v.roadsClosed.includes(p);
           return (
             <button key={p} className="small" disabled={draft.other.some((o) => o.type === "roads" && o.court === p)} onClick={() => add(roads(p, !closed))}>
-              {closed ? `Open to ${powerName(p)}` : `Close to ${powerName(p)}`}
+              {closed ? `Open the roads to ${powerName(p)}` : `Bar the roads to ${powerName(p)}`}
             </button>
           );
         })}
@@ -232,7 +232,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               )}
               {c.lends !== null && (
                 <button className="small" onClick={() => add(borrow(c.id, c.lends!.amount, c.lends!.amount + Math.ceil((c.lends!.amount * c.lends!.perHundred) / 100), c.lends!.seasons))}>
-                  Borrow {shekels(c.lends.amount)}, {c.lends.perHundred} in 100 more back in {c.lends.seasons} seasons
+                  Borrow {shekels(c.lends.amount)}, {c.lends.perHundred}% more back in {c.lends.seasons} seasons
                 </button>
               )}
               {c.news.map((n) => (
@@ -283,7 +283,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       {v.debts.map((d) => (
         <div className="row" key={d.id}>
           <small>
-            Debt {d.id}: {shekels(d.left)} left to repay by turn {d.dueTurn}; the tablet is held by {d.holder}
+            {shekels(d.left)} still owed, due by {when(d.dueTurn, me)}; the tablet is held by {d.holder}
             {d.here ? ", who stands at your court" : ""}.
           </small>
           {d.here && (
@@ -370,7 +370,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       </div>
       <p className="muted">
         <small>
-          People count on {v.trust} in a hundred of what you promise, as far as they have heard your record (kept {v.kept}, broken {v.broken}). A job is one errand,
+          People count on {v.trust}% of what you promise, as far as they have heard your record (kept {v.kept}, broken {v.broken}). A job is one errand,
           offered to a person at your court (or abroad, by an envoy); nothing is paid but by your order.
         </small>
       </p>
@@ -411,7 +411,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((p) => (
               <option key={p.id} value={`@${p.id}`}>
-                to watch {p.name}
+                to watch {provinceName(p.id)}
               </option>
             ))}
         </select>

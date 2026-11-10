@@ -4,7 +4,7 @@ import { ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema } from "./records.ts";
 import { AuthoritySchema } from "./authority.ts";
 import { MandateSchema } from "./command.ts";
-import { hold, command, relieve, supply, mandateOrder, govern, crown, unseat, moveCourt, enlist, move, support, convoy, besiege, build, raze, sally, raise, disband, fold, cede, giftUnit, dispatch, release, seekCandidates, hire, renew, seize, sellDebt, payCarriers, upkeep, hunt, huntBands, payFee, borrow, repay, buyNews, dismiss, check, sell, purchase, feed, send, caravan, trade, ship, demand, census, answer, welcome, deport, expel, returnRunaways, toll, placeSpy, recall, counterIntel, roads, claimName, revoke, grant, repudiate, assay, authenticate, forge, captive, steal, giftTo, payRansom, unreadable } from "./order-makers.ts";
+import { hold, command, relieve, supply, mandateOrder, govern, crown, unseat, moveCourt, enlist, payOff, move, support, convoy, besiege, build, raze, sally, raise, disband, fold, cede, giftUnit, dispatch, release, seekCandidates, hire, renew, seize, sellDebt, payCarriers, upkeep, hunt, huntBands, payFee, borrow, repay, buyNews, dismiss, check, sell, purchase, feed, send, caravan, trade, ship, demand, census, answer, welcome, deport, expel, returnRunaways, toll, placeSpy, recall, counterIntel, roads, claimName, revoke, grant, repudiate, assay, authenticate, forge, captive, steal, giftTo, payRansom, letter, buyLetter, unreadable } from "./order-makers.ts";
 
 const v = <T>(name: string, make: () => T, fields: Parameters<typeof obj>[2]): ObjSchema<unknown> => obj(name, make, fields) as ObjSchema<unknown>;
 
@@ -16,8 +16,9 @@ export const OrderSchema = poly("Order", "type", {
   govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
   crown: v("CrownOrder", () => crown("", [], 0), { character: S, provinces: list(S), tribute: I, price: I }),
   unseat: v("UnseatOrder", () => unseat(""), { province: S }),
-  court: v("CourtOrder", () => moveCourt(""), { to: S }),
+  court: v("CourtOrder", () => moveCourt(""), { to: S, alone: opt(B) }),
   enlist: v("EnlistOrder", () => enlist("", 0, 0), { province: S, fee: I, term: I }),
+  payOff: v("PayOffOrder", () => payOff("", 0, 0), { province: S, fee: I, term: I }),
   hold: v("HoldOrder", () => hold(""), { unit: S }),
   move: v("MoveOrder", () => move("", ""), { unit: S, to: S, forced: opt(B) }),
   support: v("SupportOrder", () => support("", ""), { unit: S, supported: S, to: S }),
@@ -93,5 +94,7 @@ export const OrderSchema = poly("Order", "type", {
   steal: v("StealOrder", () => steal(""), { character: S }),
   gift: v("GiftOrder", () => giftTo("", 0), { character: S, gold: I }),
   payRansom: v("PayRansomOrder", () => payRansom(""), { character: S }),
+  letter: v("LetterOrder", () => letter("", "Send", "Egypt"), { province: S, fate: S, to: S, price: I, written: opt(I) }),
+  buyLetter: v("BuyLetterOrder", () => buyLetter(""), { province: S, written: opt(I) }),
   unreadable: v("UnreadableOrder", () => unreadable("", ""), { text: S, reason: S }),
 });

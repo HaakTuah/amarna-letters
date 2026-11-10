@@ -164,9 +164,10 @@ export class Board {
   }
 
   /**
-   * What holding a province is worth over the rest of the game: its score plus the income it brings. A kingdom falls with
-   * its capital: a living king's capital is worth, to us, half of the rest of his land too, since it passes with the
-   * capital; our own is worth all the rest of ours, which we lose with it.
+   * What holding a province is worth over the rest of the game: its score plus the income it brings. A living king's
+   * capital is worth, to us, half of the rest of his land too, and our own all the rest of ours: taking a king's city takes
+   * him (item 17b), the heaviest blow a realm can take, his ransom or his life, and his heir left with a third of his
+   * standing.
    */
   value(id: string): number {
     let v = this.baseValue(id);

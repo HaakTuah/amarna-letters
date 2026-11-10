@@ -88,7 +88,8 @@ describe("The answers to item 11+", () => {
     Assert.contains("Byblos", s.eliminated);
     Assert.equal("Egypt", s.owner.get("byblos"));
     Assert.equal("Egypt", s.falls.find((f) => f.power === "Byblos")!.conqueror);
-    Assert.equal(before + 1, s.characters.length);
+    // Since item 17b he was a person already: nobody new comes.
+    Assert.equal(before, s.characters.length);
     const ruler = s.characters.find((c) => c.name.startsWith("Rib-Hadda"))!;
     Assert.equal("Free", ruler.status);
     Assert.null(ruler.employer);

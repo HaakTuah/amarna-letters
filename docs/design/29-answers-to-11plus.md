@@ -23,7 +23,7 @@ is essentially game over." Report: `docs/rounds/2026-10-29-answers-to-11plus.md`
   that survival itself scores. The batch report prints it as "mean growth" beside the current par, with the survivors'
   own mean after it. The values are from 50 script games on this branch (seeds 1-50); `parOf` still never goes below 0.1.
 - **The land in the score and in the scripts' reckoning.** The score keeps the land at its fixed weight
-  (`provinceWeight`), tuned in item 18. A script king already reckons a province (`Board.baseValue`) as that fixed weight
+  (`provinceWeight`), kept in item 18 ([58](58-the-balance-pass.md)). A script king already reckons a province (`Board.baseValue`) as that fixed weight
   plus what it will still yield over the seasons it believes are left (`horizon`, from the age's words), so the land's
   worth to it falls as the end draws near; once the omens (item 16) darken, they feed the same belief.
 - **A capital ceded whole** (`model/cession.ts`, `turn/cession.ts`). A king may order his own capital ceded when a

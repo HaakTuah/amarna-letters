@@ -345,8 +345,9 @@ export class GameRunner {
   async prepare(signal?: AbortSignal): Promise<void> {
     if (this.prepared) return;
     this.setPhase("The narrator meets the characters");
+    // The kings (item 17b) speak through their seats while they reign: their persons keep the template's persona.
     const results = await Promise.all(
-      this.state.characters.map(async (c) => {
+      this.state.characters.filter((c) => c.duty !== "Ruling").map(async (c) => {
         const persona = await this.recorded<string>(
           `setup/persona/${c.id}`,
           S,
@@ -757,7 +758,13 @@ export class GameRunner {
     // A shadow brain: the stand-in reads every model or file seat's view each season, asleep or awake, so that when a call
     // fails it plays a king who remembers. Its reading changes nothing in the game, so replays stay exact; a strict replay
     // asks no seat and skips it.
-    if (!this.isReplay) for (const p of alive(S_).filter((p) => this.seatOf(p).canSleep === true)) this.fallbackSeat.observe(views.tryGet(p) ?? Views.for(S_, p));
+    // The seat's own shadow script reads it too (item 18, "Shadow scripts").
+    if (!this.isReplay)
+      for (const p of alive(S_).filter((p) => this.seatOf(p).canSleep === true)) {
+        const view = views.tryGet(p) ?? Views.for(S_, p);
+        this.fallbackSeat.observe(view);
+        this.seatOf(p).observe?.(view);
+      }
     // Item 16, "The royal council": every model, file or human seat whose council is on hears it in its view; asleep, its
     // advisors still read what it sees. Analysis on the seat's own view, with seeds of its own: it changes nothing in the
     // game, so a strict replay skips it.

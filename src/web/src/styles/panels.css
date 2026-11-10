@@ -31,6 +31,13 @@
 .prow .pu { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; }
 .prow .pu.ghost { border-style: dashed; color: var(--muted); }
 .search { width: 10rem; }
+/* Item 17+++b: the one search, its filters, and a card's "Learn more" link or the mark of what is invented. */
+.search.wide { width: 100%; margin-bottom: .4rem; }
+.filters { gap: .3rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.filters select { flex: 1 1 8rem; min-width: 0; }
+.prow:is(div) { border: 1px solid var(--line); border-radius: 6px; }
+.learn { margin: .2rem 0; }
+.pill.invented { color: var(--muted); font-style: italic; white-space: normal; }
 .trail-card { padding: .7rem .8rem; }
 .trail-head { display: flex; flex-wrap: wrap; gap: .2rem .6rem; align-items: baseline; justify-content: space-between; }
 .trail-status { margin: .35rem 0; font-size: .88rem; background: var(--surface-2); border-left: 3px solid var(--lapis); padding: .2rem .5rem; border-radius: 4px; }
@@ -82,7 +89,9 @@
 .preset-head { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-family: var(--serif); font-size: 1.08rem; }
 .preset-models { font-size: .8rem; color: var(--muted); }
 .preset-text { font-size: .9rem; flex: 1; }
-.preset-foot { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .2rem; }
+.preset-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .2rem .4rem; margin-top: .2rem; }
+/* The cost on one line; the note beside it moves below when the card is narrow. */
+.preset-foot .pill { white-space: nowrap; }
 .customize { margin-top: .9rem; }
 .customize summary { cursor: pointer; color: var(--accent); }
 /* The table of seats fits its column on a phone: the player picker shrinks to the room left by the power and its tier,

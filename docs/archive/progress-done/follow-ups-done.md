@@ -114,3 +114,139 @@ there word for word on 3 November 2026 (the workshop check: the progress file ha
   caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
   version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
   `docs/rounds/2026-11-03-far-as-reported.md`.
+
+- ~~**#539, the polish lane:**~~ (done, the polish lane): beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
+  from the record the follow line is drawn from, absent while he is in sight.
+
+- ~~**#549, the polish lane:**~~ (done, the polish lane): a faint accent on a frontier where the seat itself sees two powers' armies on either
+  side, drawn only from what it sees.
+
+- ~~**#562, the polish lane:**~~ (done, the polish lane): placement and the smoke test pad each seal's box by half its stroke, so no rim touches
+  a neighbouring marker.
+
+- ~~**#578, the polish lane:**~~ (done, the polish lane): the legend's crowded-seal swatch takes its rim from
+  `--small-rim-marked`, the map's own variable.
+
+## Moved 7 November 2026
+
+Moved word for word on 7 November 2026 (the workshop check: the progress file had grown to 37 KB).
+
+- ~~**Far troops raised and gone (bug #600)**~~ (done, #612, as the owner decided on 3 November 2026, archive item
+  204): a far unit is known once word of its raising could come and kept, as last reported, until word of its end
+  could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
+  standing) by the road. Save version 69. Left to #615: the rest of a far unit as it truly is. Report:
+  `docs/rounds/2026-11-03-far-unit-known.md`.
+- ~~**A far unit of a king's own, the rest of it as reported (bug #615)**~~ (done, branch `fix/615-far-units`): where its
+  king believes it stands names his orders, notices and commander, and what befalls it out there comes home by the
+  road. Save version 72. #759 (done, branch `fix/759-far-orders`, save version 73): a far unit's refused orders come
+  by the road, and a scheduled order's road is reckoned to where its king's view shows it
+  (`docs/rounds/2026-11-07-far-orders-refused.md`). Report:
+  `docs/rounds/2026-11-06-far-unit-reported.md`.
+- ~~**A governor of his own court's people (bug #765)**~~ (done, branch `fix/765-own-governors`): a post of 1346 whose
+  holder's name is lost, with no free man of the court's style left, makes the man taken one of its people. Save version 75.
+  Report: `docs/rounds/2026-11-07-own-governors.md`.
+- ~~**A claim to the rank made in play (bug #777)**~~ (done, branch `fix/777-claims-in-play`): a king outside the seven
+  who names himself Great King in a greeting claims the rank, known where that greeting is read, and established as
+  Assyria's is. Save version 76. Report: `docs/rounds/2026-11-07-claims-in-play.md`.
+- ~~**An envoy never received remembers it (bug #784)**~~ (done, branch `fix/784-never-received`): its fact says it was
+  never received, not that it came home with the answer. Save version 77. Report: `docs/rounds/2026-11-07-never-received.md`.
+- ~~**Courts by their shown names in the people's lines (bug #797)**~~ (done, branch `fix/797-court-names`): "at the court
+  of Gubla", not "of Byblos", in the seat view and the People tab. Save version 80. Report: `docs/rounds/2026-11-07-court-names.md`.
+- **The owner's answers of 3 November, morning** (archive item 185):
+  - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
+    honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
+    borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
+    kings' trust readings still behave well.
+    **Done** (#680, `lane/591-envoy-tells`; report `docs/rounds/2026-11-03-envoy-tells.md`): no form or shape of an
+    envoy's report home marks its state (`envoy-tells.test.ts`); save version 63; the trust readings measured.
+  - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
+    the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
+    together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
+  - ~~**#601, a fast courier, hired:**~~ (done, #641) a job whose errand is a ride to a far province of the king's: its
+    report and notices come home within the season; the rider asks by what he heard a ride pays, how much sooner the
+    report comes and how many rides the court asks against the free people there, and takes less down to a least. For
+    item 18: the rider is never stopped on the road (a first guess). Save version 59. Report:
+    `docs/rounds/2026-11-03-hired-courier.md`.
+  - ~~**#618, after item 17++a:**~~ (done, #637) word of a change of hands a vassal's or ally's court saw goes by the
+    road to the king it is bound to: a notice, and his map. The Great Kings hear of a change of the map every 4.3 to
+    5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
+    `docs/rounds/2026-11-03-news-beyond-sight.md`.
+  - ~~**#592:**~~ (done, #733) a caught offer is held by its captor, who sends it on (to its claimant or the land's
+    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 67. Report:
+    `docs/rounds/2026-11-06-held-offers.md`.
+- ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
+  from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
+  captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
+- ~~**An archive a far force seizes on the road, sent home as a load (bug #726)**~~ (done, #742): it goes to the taker's
+  capital by the road (`lootHome`), as a taken capital's archive does. Save version 64. Filed: #740 (loot with no road
+  home arrives at once). Report: `docs/rounds/2026-11-06-far-archive-home.md`.
+- ~~**Tolls and smugglers at a far border, heard by the road (bug #736)**~~ (done, #745): each border's tolls notice
+  comes as word from there does and says where its gold went; the events name the holder only where his couriers reach.
+  Save version 65. Report: `docs/rounds/2026-11-06-far-border-word.md`.
+- ~~**Loot with no road home, sent by courier (bug #740)**~~ (done, #750): where no road takes a load home, `lootHome`
+  sends gold and tablets by courier, to reach the court with word from where they were taken. Save version 68. Report:
+  `docs/rounds/2026-11-06-loot-by-courier.md`.
+- ~~**The realms' name setting names every realm**~~ (done, branch `names/768-every-realm`; the owner, 7 November 2026,
+  #768; archive item 233): the realms' setting, apart from the places', names the city-states' and edge lands' realms
+  too (Gubla or Byblos, Tjehenu or Libya), so by default Gubla's realm reads Byblos while the city reads Gubla. Report:
+  `docs/rounds/2026-11-07-every-realm-named.md`.
+- **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
+  - ~~**#566:**~~ (done, #722) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
+    seasons off, by sea), the place a parameter; it found a far levy's army in the movements notice, listed under #600.
+    Report: `docs/rounds/2026-11-06-twin-second-place.md`.
+  - ~~**#543:**~~ (done, #725) a caravan leaving a province for its claimant's land carries its offer, his own for
+    nothing, another's for a fee where the people are far gone; caravans carry talk of the leaning to the land their road
+    ends in. Save version 64. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
+
+- **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
+  the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
+  down the Euphrates and the marshes. The full `--versus solo` run, seeds 1-40, was run with 17+++a (#753; its report,
+  "Benchmarks"): 2.29 growth alone and 1.07 as baseline over every seat.
+
+- **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
+  - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
+    a caught spy's report is read ("A letter taken on the road"). Done, #576 (`docs/rounds/2026-11-02-offer-caught.md`).
+  - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
+    heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
+  - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
+    (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road). Done, the history lane's PR (`docs/rounds/2026-11-03-connection-notes.md`).
+
+- **The slop audit** (the owner, 2 November 2026; archive item 178): everything a player reads, checked by fresh eyes
+  for the tells of machine-written text, as a side lane now.
+  1. **Scope:** the rulebook and the seat view; notices, news and the season's reports; the script kings' letters and
+     their envoys' speech (`src/game/src/bots/statecraft-letters.ts` and its kin), whose templates a player meets every
+     season; the cast's biographies; the interface, the council and the help; the README's player text. And the
+     requests that make models write (personas, letters, envoys' words): no stock phrasing a model would echo back,
+     as "Requests are rules too" asks, changed only with that rule's care.
+  2. **A fresh-eyes reviewer** (a helper given only the text and this brief, Opus at high effort) reads each kind
+     whole and lists its worst lines, each with its tell ("Text a player reads" in `docs/review-guidelines.md`).
+  3. **The builder rewrites them** in the period's voice, as "Voice of the age" under World and history describes it;
+     the PR shows ten lines before and after, so the owner can set the bar.
+  4. **A cheap guard after:** a test that fails when a script king's letters, or a report's lines, keep repeating one
+     shape across a game.
+  Each kind of text is reviewed as every review is ("Reviews" in `docs/claude-and-codex.md`), against the bar in
+  "Text a player reads" in `docs/review-guidelines.md`. One PR per kind of text.
+  **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
+  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
+  envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
+  season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
+  `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
+  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725); the seat view, #749 (report `docs/rounds/2026-11-06-slop-audit-seat-view.md`; left for later,
+  below); the cast's biographies, #764 (report `docs/rounds/2026-11-07-slop-audit-biographies.md`; the guard
+  `src/engine/test/biography-text.test.ts`; save version 71; left: #765, #766); the interface, the council and the help,
+  #772 (report `docs/rounds/2026-11-07-slop-audit-interface.md`; save version 74; season against turn and minas
+  against shekels: #775; realm names beside place names: #768); the README's player text, #781 (its developers' part
+  moved to `docs/for-developers.md`, Step 0) and #782 (report `docs/rounds/2026-11-07-slop-audit-readme.md`); the
+  requests that make models write, the last kind (report `docs/rounds/2026-11-07-slop-audit-requests.md`; voice lines
+  by temper, `Personas.voice`; clause words, not ids, to envoys; save version 78). **Still open, one game-wide decision:** one
+  place under several names (Karkamish and carchemish, Lakisha and Lachish, Sutu and the Suteans); "season" against
+  "turn"; the engine's notices giving gold in minas (the seat view turns them into shekels; the web and logs do not);
+  and order names inside engine notices ("(order repay, debt d3)"). **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
+  (the owner, 6 November 2026, #735; archive item 230): done, #744 (the notice-shapes guard flags "in a hundred");
+  `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge. **In a character's own words** (the script
+  kings' letters, the envoys' speech, and the models' voice guidance for letters and audiences), a share is said as
+  the period said it, "a fifth", "a tenth", "the half", never "%" or "in a hundred", and the letter-shapes guard flags
+  both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%". Done: the line
+  `PeriodShares` (`src/llm/src/text.ts`) in the kings' and characters' voice guidance, the guards in `letter-shapes`
+  and `envoy-words` tests.

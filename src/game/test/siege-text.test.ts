@@ -21,13 +21,13 @@ describe("SiegeTextTests", () => {
     );
     let babylon = situation(Views.for(s, "Babylonia"));
     Assert.contains(
-      'LANDS (see WHAT YOU SEE and NEWS AND TRAVEL; a province you do not see is listed under its holder as last you heard, "heard in turn N"):',
+      'LANDS (see WHAT YOU SEE and NEWS AND TRAVEL):',
       babylon,
     );
     Assert.contains("babylon (walls 3) [Babylonia army]", babylon);
     Assert.contains("suhu (walls 2) [Babylonia army]", babylon);
     Assert.contains(
-      "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (held by no one, walls 2): worn down 1 of 2, since turn 1.",
+      "SIEGES (see WALLS AND SIEGES): your army besieges suhu (held by no one, walls 2): worn down 1 of 12 steps to a breach, since turn 1.",
       babylon,
     );
     // Assyria took Dur-Kurigalzu from Babylon by force: since item 17++ how firmly it obeys is nobody's number to read.
@@ -36,11 +36,11 @@ describe("SiegeTextTests", () => {
     Assert.doesNotContain("taken by force", babylon);
     Assert.doesNotContain("taken by force", situation(Views.for(s, "Egypt")));
     // Mitanni, next to Suhu, sees the siege too.
-    Assert.contains("Babylonia's army besieges suhu (held by no one, walls 2): worn down 1 of 2", situation(Views.for(s, "Mitanni")));
+    Assert.contains("Babylonia's army besieges suhu (held by no one, walls 2): worn down 1 of 12 steps to a breach", situation(Views.for(s, "Mitanni")));
   });
 
   test.each([
-    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; each province counted as far as it obeys you)"],
+    ["What your land produces is a season's share of the year's harvest (PEOPLE) at the reference price of grain, a shekel a measure, and its mines' gold, each province counted as far as it obeys you."],
     ["Land is held, not owned: a province yields you its tax and its mines' gold, and counts in your strength, as fully as it obeys you (UNREST AND FREE CITIES)"],
     ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; today Ephesus (Selçuk); capital; yield 40; walls 2. armies: seha, mira, lukka. fleets: seha, lukka, apasawaters."],
     ["- Raising and keeping walls: walls are a level like everything built, with upkeep, decay and projects (BUILDING AND POLICING). An earthquake throws the walls of the province it strikes down a level."],

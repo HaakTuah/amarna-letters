@@ -11,7 +11,9 @@
   kept, but its trait words follow the traits: every model request is built with the persona as it is
   now (`Personas.current`). A template persona has its trait words ("loyal mostly to yourself; fond
   of gold and quick to see a profit; …") and what it wants most rewritten in place from the current
-  traits, the rest (its secrets among them) as written; a persona the narrator wrote cannot be
+  traits, the rest (its voice line, from its courage and ambition, `Personas.voice`) as written. A persona
+  holds no facts: every request gives them beside it (`selfText`), the public ones as "Facts of your own life" and the
+  hidden and deep ones as secrets the character does not volunteer. A persona the narrator wrote cannot be
   rewritten without a model, so it is followed by "As you are now (where anything above differs,
   this is how you are now): you are …. What you want most: …." The web app's people panel shows the
   same. (Until the fix pass after item 4 the words were frozen: in the second agent simulation nine
@@ -104,7 +106,8 @@
     captive drew no wage and its line named none.) The web app's people lists use the same words, and its orders panel offers renew
     beside each servant at court or on notice, with a term for hiring and renewing. A free person
     at the court shows what it asks there (its pitch's price, or its base price), whether or not it
-    pitched, and can be hired from the panel; one's own servants show no asking price.
+    pitched, and can be hired from the panel; one's own servant at court shows what it asks for a new
+    job (since item 18, part F), and one away shows none.
   (Until the simulation-fixes round a servant who wanted more quit at once, the view read "wage 12
   until turn 10" with no word of what came then, no order could renew a contract, models could not
   name a term, and kings who tried to rehire their own envoys were told "not available for hire".)
@@ -145,18 +148,9 @@
   Characters start with nothing and spend nothing yet (no escort, storage fee, loan or robbery exists; item 11), so the
   parts add up to the purse (tested over a whole game). A captive or a dead character keeps its purse, as before (what
   capture and execution do to a purse is item 11).
-  - **Wealth** (`Wealth.of`) is the purse plus the back pay every court still owes it (a fallen court's debt died with
-    it). The document's other two parts, a hoard and what kings owe it on debt tablets, do not exist yet (item 11) and
-    count nothing; every place the ranking is shown says so ("Wealth is the gold in a character's purse and the back pay
-    kings still owe it; hoards and loans to kings on debt tablets do not exist yet. The dead are not ranked.").
-  - **The ranking** (`Wealth.ranking`): the living characters, richest first, ties by id, each with whom it serves (or
-    free, or captive where), its wealth, purse and back pay owed, and where its gold came from: "Mane of Thebes (serving
-    Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)". The dead are left out: their gold is no longer
-    theirs to enjoy, and a ranking of the dead would reward a character for dying rich.
-  - **Where it is shown**: where the game's end is shown. The batch prints the top three after each game's result line
-    (the whole ranking with `--detail`), and its summary how rich the richest was on average and where all characters'
-    gold came from; the web app's Standings tab shows the whole ranking once the age has ended, to every viewer, and the
-    season's end notice points to it. Kings never read it: it is not their game.
+  - **Wealth** (`Wealth.of`) is what it holds, purse and hoard (since item 11a; the dead's what they held when they
+    died), and it ranks on the one scoreboard of every person (item 17b, part D): how, where it is shown and what it
+    counts, [57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts).
   - **During play a character knows its own wealth, not the ranking.** A model-played character reads its purse and,
     if any, what it is worth with the back pay kings owe it ("Your purse holds 100 shekels; with the back pay kings owe
     you, you are worth 142 shekels."), and now also the back pay courts other than its lord owe it ("The king of Hatti
@@ -258,6 +252,10 @@
     Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)" (the demand once
     its word has arrived), never "at court, ready", with its wage and the back pay owed it, which
     keeps growing while it is held; the web app offers the ransom button only then.
+  - **Courts by their shown names** (bug #797): every court in these lines (where a servant is, whom it is held by,
+    where it set out for or has not returned from) is named as the game shows it to that court (`powerName`: Gubla,
+    the Seha River Land), never by its id. A cover keeps that court's id apart from its words (`Cover.court`), and the
+    web map places a covered servant by it, never by reading a name back, which a contested name could misread.
   - **When it is due back.** Each of the king's people away reads when it set out and when it is
     due back, as the travel table lets its master reckon it (`Views.timingText`): an envoy on its
     way out "travelling as envoy to Hatti; set out in turn 4 for Hatti; due there about turn 6; due

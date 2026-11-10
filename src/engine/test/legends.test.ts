@@ -160,7 +160,7 @@ describe("LegendsTests", () => {
   test("A governor who rises to rule his province is a new Idrimi, in his life and in both courts' legends", () => {
     let s = game();
     let c = first(s.characters, (x) => x.employer === "Hatti");
-    const r: RisenPower = { power: "Tuwanuwa", land: "Tuwanuwa", king: c.name, ruler: c.id, capital: "tuwanuwa", turn: 6, from: "Hatti", temper: [], how: "governor" };
+    const r: RisenPower = { power: "Tuwanuwa", land: "Tuwanuwa", king: c.name, ruler: c.id, capital: "tuwanuwa", turn: 6, from: "Hatti", how: "governor" };
     s.risen.push(r);
     const idrimi = (l: { text: string }): boolean => l.text.startsWith(`A new Idrimi: ${c.name}, who governed Tuwanuwa for Hatti`);
     Assert.contains(characterLegend(s, c.id, null), idrimi);
@@ -192,7 +192,9 @@ describe("LegendsTests", () => {
     let legend = courtLegend(s, "Egypt");
     let bonds = single(legend.filter((l) => l.text.startsWith("Bound from before the age began")));
     Assert.equal(0, bonds.turn);
-    Assert.true(bonds.text.includes("Ugarit") && bonds.text.includes("Jerusalem"));
+    // Each power by the name the game shows it by (Urusalim, Gubla), never its id (Jerusalem, Byblos).
+    Assert.true(bonds.text.includes("Ugarit") && bonds.text.includes("Urusalim") && bonds.text.includes("Gubla"));
+    Assert.false(bonds.text.includes("Jerusalem") || bonds.text.includes("Byblos"));
     Assert.empty(legend.filter((l) => l.text.startsWith("Sealed")));
     Assert.true(single(courtLegend(s, "Byblos").filter((l) => l.text.startsWith("Bound"))).text.endsWith("by a vassal treaty with Egypt."));
   });

@@ -11,7 +11,8 @@ import { type RejectedOrder, type TurnSubmission } from "../model/submission.ts"
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
-import { findCharacter, isAlive, ledger, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, ledger, unitAt, type GameState } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { Views } from "./views.ts";
 import { formatMoney } from "./calendar.ts";
 
@@ -20,8 +21,9 @@ import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
+import { checkLetterOrder } from "./validator-letters.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
-import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
+import { courierSeasons, courtOf, realmOfKing, seatOf, wordHomeAt } from "./court.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export class ValidationResult {
@@ -32,10 +34,13 @@ export class ValidationResult {
 export class OrderValidator {
   private readonly s: GameState;
   private readonly map: WorldMap;
+  /** Bug #600: the unit gone, whose end the court has not heard of, that an order of this season names (`Checking.gone`). */
+  private readonly gone: (o: Order) => Unit | null;
 
-  constructor(state: GameState, map: WorldMap | null = null) {
+  constructor(state: GameState, map: WorldMap | null = null, gone: (o: Order) => Unit | null = () => null) {
     this.s = state;
     this.map = map ?? WorldMap.default;
+    this.gone = gone;
   }
 
   static readonly MaxOrders = 80;
@@ -145,7 +150,7 @@ export class OrderValidator {
         if (!Map.exists(where) || Map.get(where).isSea) return `there is no province called '${where}'`;
         if (knownOwner(where) !== power) return `a ride brings the report of a province of yours: you do not hold ${Map.get(where).name}`;
         // By the road home, which the report comes by (#616).
-        const home = courierSeasons(S, Map, where, courtOf(S, Map, power));
+        const home = courierSeasons(S, Map, where, seatOf(S, Map, power));
         if (!Number.isFinite(home)) return `no road brings word from ${Map.get(where).name} to your court`;
         return home === 0 ? `${Map.get(where).name}'s report reaches you this season without a rider` : null;
       }
@@ -199,8 +204,9 @@ export class OrderValidator {
       return null;
     };
 
-    // #587: far as the court knows it, by the clock its view and its sight use (word home within the season, #616), never
-    // by roads it has not heard of (Codex, #635); where the road out differs, the engine pays as it finds it.
+    // #587: far as the court knows it, by the one clock of the road home (word home within the season, #616) to the court
+    // itself, where the treasury is, wherever the king stands (item 17b, part C, as `TurnEngine.isFar`), never by roads it
+    // has not heard of (Codex, #635); where the road out differs, the engine pays as it finds it.
     const far = (province: string): boolean => wordHomeAt(S, this.map, courtOf(S, this.map, power), province, S.turn) !== S.turn;
     const spendAt = (province: string, cost: number): string | null => (far(province) ? (cost < 0 ? "a cost cannot be negative" : null) : spend(cost));
 
@@ -218,6 +224,8 @@ export class OrderValidator {
       // The owner's answers to item 11a: one offered a job at your court by an earlier order may be sent on its errand at once
       // (if it takes the job).
       if (hiring.has(c.id) && c.at === power) return busyCharacters.has(c.id) ? `${c.name} was already given a task by an earlier order` : null;
+      // Item 17b: the king is no servant of his own court.
+      if (realmOfKing(S, c.id) === power) return `${c.name} is your king, no servant`;
       const away = covered(c) || (c.employer === power && c.status === "Captured");
       if (!away && (c.employer !== power || c.status !== "Employed")) return `${c.name} is not in your service`;
       if (mustBeHome && (away || c.duty !== "None" || c.at !== power)) return `${c.name} is not at your court`;
@@ -225,17 +233,18 @@ export class OrderValidator {
       return null;
     };
 
-    // The checks, by kind of order, live in validator-armies.ts, validator-economy.ts and validator-people.ts.
+    // The checks, by kind of order, live in validator-armies.ts, validator-economy.ts, validator-people.ts and validator-letters.ts.
     const v: Checking = {
       S, Map, power, orders,
       assayed, roadsSet, ceded, fortified, sallied, orderedUnits, raisedIn, busyCharacters, ransomed, renewed, hiredNow, tollsSet, taxesSet, peopleSet,
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
+      gone: this.gone,
       heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, spendAt, far, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
-      for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {
+      for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder, checkLetterOrder]) {
         const why = group(v, order);
         if (why !== undefined) return why;
       }

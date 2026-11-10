@@ -61,7 +61,7 @@ export function impatience(c: Character): number {
 
 /** The ways to a fortune in words, for its persona and requests. */
 export const StrategyWords: Readonly<Record<Strategy, string>> = {
-  Steady: "steady, safe paid work and good relations with those who pay you: a good name that brings the next job at a better fee, never risking it all on a gamble",
+  Steady: "steady, safe paid work and good relations with those who pay you: a good name that brings the next job at a better fee",
   Keeper: "what you can keep of what passes through your hands, gold carried, gifts and fees, taking only what will not be missed or traced back to you",
   Seller: "selling what you know: what you see and hear in courts and on the roads is worth gold to someone, and you know who pays",
   Climber: "rising to command, and in time to a city of your own: making yourself indispensable to a great king and taking the posts that lead upward",
@@ -78,5 +78,5 @@ export const RoadWords = {
 export function strategyText(c: Character): string {
   const ways = strategiesOf(c.traits);
   const way = ways.length === 2 ? `${StrategyWords[ways[0]]}; or else ${StrategyWords[ways[1]]}` : StrategyWords[ways[0]];
-  return `Your goal is wealth: gold is your security and your own victory, and the richest of the age are counted at its end, the dead below every living man. Your way to it: ${way}. ${c.bold ? RoadWords.bold : RoadWords.careful}`;
+  return `Your goal is wealth: gold is your safety and your victory, for when the age ends every person, kings and characters alike, is counted on one scoreboard, you by the gold you hold and what you gained since you came into play, and every living man ranks above the dead. Your way to it: ${way}. ${c.bold ? RoadWords.bold : RoadWords.careful}`;
 }

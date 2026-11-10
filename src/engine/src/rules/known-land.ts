@@ -6,7 +6,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { StartWalls, type WorldMap } from "../model/map.ts";
 import type { Power } from "../model/power.ts";
 import { newKnown, newSiege, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
-import { courtOf, wordHomeAt } from "./court.ts";
+import { seatOf, wordHomeAt } from "./court.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
 
 /**
@@ -17,7 +17,7 @@ import { knownLevel, ownWorks } from "./province-reports.ts";
 export function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
   // Item 13 ("Distance inside your own realm"): what a king sees as current is what a courier could bring him within the
   // season; his land and troops farther off he knows by their last report ({@link knownHolders}, the units' own reports).
-  const court = courtOf(s, map, p);
+  const court = seatOf(s, map, p);
   // Near: word from there comes home within the season, by the one clock (wordHomeAt, bug #616).
   const near = (x: string): boolean => wordHomeAt(s, map, court, x, s.turn) === s.turn;
   const core = new HSet<string>(ownedBy(s, p).filter(near));
@@ -70,7 +70,7 @@ export const riderSource = (name: string): string => `your rider ${name}`;
 export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, Known> {
   const sightNow = seen ?? sight(s, map, p);
   const stored = s.known.tryGet(p);
-  const court = courtOf(s, map, p);
+  const court = seatOf(s, map, p);
   const out = new Dict<string, Known>();
   for (const x of map.landProvinces) {
     if (sightNow.has(x.id)) {
@@ -102,7 +102,7 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
  */
 export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
   const sightNow = seen ?? sight(s, map, p);
-  const court = courtOf(s, map, p);
+  const court = seatOf(s, map, p);
   // Word of a season there has come, by the one clock (wordHomeAt, bug #616), or word of a later season has, as the court
   // keeps it (GameState.known), so roads cut since take nothing back.
   const kept = s.known.tryGet(p);

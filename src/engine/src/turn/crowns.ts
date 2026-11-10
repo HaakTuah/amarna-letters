@@ -19,7 +19,7 @@ import { newTablet, newTabletCopy } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { renderClauses } from "../rules/clauses.ts";
-import { wordFromKing } from "../rules/court.ts";
+import { fallenRealmOf, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -40,7 +40,8 @@ P.grantCrown = function (p, o) {
   // His seat as the court knows it: a governorship ended, or a seat moved, only as word of it has come.
   const held = governorsKnown(S, S.turn).find((g) => g.character === c.id && g.power === p && g.relieved === null && o.provinces.includes(seatKnown(g, S.turn)));
   const seat = held !== undefined ? seatKnown(held, S.turn) : o.provinces[0];
-  const seasons = wordFromKing(S, this.map, p, seat);
+  // The king's word to a governor where he sits; one at court sets out from the court (item 17b, part C).
+  const seasons = held !== undefined ? wordFromKing(S, this.map, p, seat) : this.fromCourt(p, seat);
   const arrives = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
   S.crowns.push(newCrown({ id: newId(S, "kg"), power: p, character: c.id, provinces: [...o.provinces], seat, tribute: o.tribute, price: o.price, arrives }));
   // One at court sets out with the word to the land he is offered. A governor gone from his post before word of it came
@@ -162,6 +163,8 @@ P.crownsSeason = function () {
 TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) {
   const S = this.s;
   const price = spend(c, k.price);
+  // Item 17b, part C2: an heir in exile restored (counted apart, as `crown-exile`).
+  const exile = fallenRealmOf(S, c.id) !== null;
   const own = this.ruleOwn(k.seat, c, {
     how: "granted",
     from: k.power,
@@ -189,7 +192,7 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
   k.paidArrives = k.heard;
   this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${powerName(own)} is your vassal now, its tablet sealed for ${formatMoney(k.tribute)} of tribute a year${price > 0 ? `. The ${formatMoney(price)} he paid is on the road to you` : ""}.`);
   // The new king's own; the granting king learns of it from the notice the road brings (hidden information).
-  logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [own], "crown-taken");
+  logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [own], exile ? "crown-exile" : "crown-taken");
 };
 
 declare module "./core.ts" {

@@ -92,7 +92,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 
 - **Tablets** by their clauses (`againstIn`, `givesAwayIn`): one with clauses gives something away only if it asks for
   gold, tribute, land or a withdrawal; one in words alone is read as before.
-- **Letters** (`answerLetter`, at the audience): `askGold`, from a friend, up to a quarter of what is spare above 100
+- **Letters** (`answerLetter`, at the audience): `askGold`, from a friend, what pays to give him up to what he asks ([gifts as investments](07-script-kings/15-letters-and-gifts.md))
   (sent home with the envoy; a counter if less than asked), refused otherwise; `askTribute`, `askCede` refused;
   `askWithdraw` accepted only where none of our troops stand; `askHelp` remembered as a plea (it was read from words only
   before) and accepted where we would fight the besieger; `askSupport` accepted for a friend's move against a king we
@@ -131,8 +131,13 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 - **The record** (`GameState.recognition`, `recordGreeting`): for each pair of kings, since when the one has called the
   other brother and granted him the title in the greetings he sent, reset by a greeting that withholds it; a greeting
   in the king's own words records nothing; no greeting withholds both.
+- **Claims made in play** (`recordGreeting`, bug #777): a king outside the seven whose greeting in the formula names
+  him Great King claims the rank; the claim enters `GameState.claims`, new, the first time, with no overlord. A court
+  knows of it (`Claim.heardBy`, its seat view's `claims`) once it has read such a greeting at an audience (`rankHeard`);
+  the claimant's own court at once. Once established, the claimant counts among the Great Kings for others' claims, from the next season (the rank is read once a season, so the order the claims are settled in never decides).
 - **Established** (`recognise`, each season): once more than half of the other living Great Kings have called the
-  claimant brother for `recognitionSeasons` (9, three years) without a greeting since that withheld it. Every court gets
+  claimant brother for `recognitionSeasons` (9, three years) without a greeting since that withheld it (the others of
+  the rank: the seven and any whose claim is established). Every court gets
   "A claim is established", and the event `claim-established`. Recognition changes no rule and no score.
 - **The view**: `SeatView.claims` and `SeatView.greetings` (what this court called others and they it); the model's view
   has a RANK line, and the rulebook says how a claim becomes established.

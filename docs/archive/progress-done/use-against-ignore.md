@@ -3,7 +3,7 @@
 Part of `docs/archive/progress-done.md` (its index), split from it word for word on 2 November 2026 (the workshop check: files over
 about 50 KB are split).
 
-## Use against ignore: done items (moved 2 November 2026)
+## Use against ignore: done items (moved 2 November 2026; 17++ on 6 November)
 
 The running table's rows of done items, word for word; the table and its rule are in `docs/BUILD-PROGRESS.md`, "Use against ignore".
 
@@ -41,3 +41,26 @@ The running table's rows of done items, word for word; the table and its rule ar
 | 15 | Roads and relay stations, policing, harbours, water works, repairs under siege and razing (`--works-play-half`; baseline builds only walls) | 0.79 growth to 0.76, 23 wins to 27, in 50 games (first build, before two script patches: 0.78 to 0.79, 28 to 22) | Pays in growth, wins within noise; Assyria grows less using it (0.57 to 0.86): re-measure in item 18 |
 | 17+ | Holding back pay from safe units in a lean season (`--upkeep-play-half`) | 0.74 growth to 0.74, 25 wins to 25, in 50 games | Neither pays nor costs yet: gold saved buys little until 17++'s demands and ledger give unpaid men a memory |
 | 17+ | A realm's name claimed by a city holding a greater realm's capital, contested names given by greetings | 3 claims in 20 games | n/a: a claim gives nothing by rule; its worth is the other kings' recognition |
+| 17++a | Waging the war chosen, breaking a plain peace for it (`--war-play-half`) | 0.78 growth to 0.87, 13 wins to 7, in 20 games | Pays in wins, not in growth: Assyria and Arzawa lose by their wars of choice; for item 18 |
+| 17++a | Judging whether land would obey, and occupying it until it does (`--occupy-play-half`) | 0.88 growth to 0.82, 9 wins to 3, in 12 games | Pays |
+| 17++ C | Taking up the provinces that look to them where it pays, refusing the rest (`--take-up-play-half`) | 0.94 growth to 0.86, 26 wins to 24, in 50 games; declarations in 47 games (884), 845 taken up, 79 refused, 490 passed | Pays |
+| 17++ C | Giving a trusted governor the threatened province beside his own (`--region-play-half`) | 0.96 growth to 0.89, 33 wins to 17, in 50 games; regions given in 49 games (463) | Pays |
+| 17++ C | Making governors vassal kings where the tribute nets more than keeping (`--grant-play-half`) | 0.94 growth to 0.86, 28 wins to 22, in 50 games; 24 kingships taken of 95 offered | Pays (the land's multiple against tribute stays a finding for item 18) |
+| 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.96 growth to 0.85, 31 wins to 19, in 50 games, on part C's final head (part B's own: 0.97 to 0.86, 26 to 24) | Pays |
+| 17++ C | The audit's script finds: raising troops when rich, governors' gold, vassal requests answered as sealed (`--audit-play-half`) | 0.94 growth to 0.86, 27 wins to 23, in 50 games | Pays |
+| 17++ C | Checking a governor's word against one's own spy, recalling one caught hiding unrest (#459, `--spy-check-play-half`) | 0.96 growth to 0.87, 27 wins to 23, in 50 games | Pays |
+| 17++ D, #553 | Heeding an offer read on a carrier caught, as talk of it (`--talk-play-half`, with the talk) | 0.90 growth to 0.84, 25 wins to 25, in 50 games; 1,152 offers sent, 36 carried, 1 caught and read, 33 arrived | Too rare to tell: one catch in 50 games; for item 18, with the talk |
+| 17++ D | Heeding talk of a province's leaning: relief at home, warmth to the claimant, a spy where one is talked of (`--talk-play-half`) | 0.86 growth to 0.86, 26 wins to 24, in 50 games; 988 offers sent, 31 carried, 27 arrived | Even: offers rarely arrive yet, so the threat is rare; for item 18 |
+| 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
+| 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
+
+Moved 7 November 2026, word for word:
+
+| Item | Feature | Users against ignorers (same seeds) | Verdict |
+|---|---|---|---|
+| #587 | Sending gold ahead to far coffers that owe or run short (`--coffer-play-half`) | 0.81 growth to 0.72, 21 wins to 29, in 50 games; 32 sends in 15 games, 24 bills unpaid in 10 | Pays in growth, not in wins: credit covers most far costs, so sending ahead seldom matters; for item 18 |
+| #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
+| #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
+| #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
+| 17++++a | Heeding raiders from beyond the map: hunting where an army stands, hiring, paying off (`--raider-play-half`) | First 0.77 growth to 0.80, 21 wins to 29 (with police at the doors and marches after raiders, both since dropped); then 0.75 to 0.79, 26 wins to 24; with only the sourced raiders, 0.78 to 0.78, 25 wins to 25, in 50 games; about 12 raids a game, 6 to 15 pay-offs in 50 games | Even: raids are small against a realm; re-measure in item 18 |
+| #592 | Heeding talk, with caught offers sent on to friends, sold to the land's king, and bought (`--talk-play-half`) | 0.78 growth to 0.73, 26 wins to 24, in 50 games; 1,628 offers sent, 152 arrived (107 by caravan); 1 offer caught and held | Too rare to tell: one catch in 50 games; for item 18 |

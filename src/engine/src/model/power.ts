@@ -69,7 +69,7 @@ export type Tier = (typeof TierValues)[number];
 export const FixedPowers: readonly Power[] = PowerValues;
 
 /**
- * A power risen in play (item 13+): its names, its capital and the temper its ruler brings to the seat. Kept in the game
+ * A power risen in play (item 13+): its names and its capital (its ruler's traits are his reign's, `GameState.reigns`). Kept in the game
  * state (`GameState.risen`); the registry below mirrors it for the functions that name a power without the state.
  */
 export interface RisenPower {
@@ -86,12 +86,10 @@ export interface RisenPower {
   turn: number;
   /** The kingdom it was part of. */
   from: string;
-  /** His traits as a seat's temper (aggression, caution, honesty, greed), in hundredths, for script seats. */
-  temper: number[];
   /**
-   * How he came to rule (item 17): `governor` (his kingdom fell), `turned` (a governor who refused his recall), `revolt`
-   * (he led his province's revolt), `chief` (a chief or a commander who held land without a ruler) or `elder` (lawless land's
-   * own people raised him).
+   * How he came to rule (item 17): `turned` (a governor who refused his recall), `revolt` (he led his province's revolt),
+   * `chief` (a chief or a commander who held land without a ruler), `elder` (lawless land's own people raised him) or
+   * `granted` (item 17++, a king by grant). (Until item 17b a fallen kingdom's governor rose too, `governor`.)
    */
   how: string;
 }
@@ -231,13 +229,61 @@ export function tier(p: Power): Tier {
   return dataOf(p).tier;
 }
 
-/** A power's names: a fixed power's from the table, a risen one's from its rising (its land's name, its ruler's). */
-function dataOf(p: Power): PowerData {
+/** A power's names as it began: a fixed power's from the table, a risen one's from its rising (its land's name, its ruler's). */
+function firstOf(p: Power): PowerData {
   const fixed = (Data as Record<string, PowerData | undefined>)[p];
   if (fixed !== undefined) return fixed;
   const r = risenData.get(p);
   // A risen power is named by its land, so a page that has not seen it rise still names it.
   return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p, "City");
+}
+
+/** A power's names now: its first king's, or its reigning heir's (item 17b, part B), who goes by one name. */
+function dataOf(p: Power): PowerData {
+  const first = firstOf(p);
+  const heir = crowned.get(p);
+  return heir === undefined ? first : { ...first, king: heir.names[heir.names.length - 1], home: null, others: [] };
+}
+
+/**
+ * Item 17b, part B: a realm whose king has died, its heirs in the order they reigned (the last reigns now), what the
+ * record shows of the one reigning, and how many of them each other court has heard of (none: it knows the first king
+ * still). The game state keeps them, in its reigns and `reignsHeard`.
+ */
+export interface Crowned {
+  power: Power;
+  names: string[];
+  about: string;
+  heard: [Power, number][];
+}
+
+const crowned = new Map<Power, Crowned>();
+
+/** Sets the reigning heirs to a game's: a new game's none. */
+export function setCrowned(list: readonly Crowned[]): void {
+  crowned.clear();
+  for (const x of list) crowned.set(x.power, x);
+  byName.clear();
+  renaming.clear();
+}
+
+/** A realm's reigning heir, or null while the king it began with (or its risen ruler) reigns. */
+export function heirOf(p: Power): { name: string; about: string } | null {
+  const x = crowned.get(p);
+  return x === undefined ? null : { name: x.names[x.names.length - 1], about: x.about };
+}
+
+/** Whether a court knows who reigns over a realm now (item 17b): it has heard of every heir there has been. */
+export function reignKnown(viewer: Power | null, p: Power): boolean {
+  return heirsHeard(viewer, p) >= (crowned.get(p)?.names.length ?? 0);
+}
+
+/** How many of a realm's heirs a court has heard of (item 17b): all, for the realm itself and the world's record. */
+export function heirsHeard(viewer: Power | null, p: Power): number {
+  const x = crowned.get(p);
+  if (x === undefined) return 0;
+  if (viewer === null || viewer === p) return x.names.length;
+  return Math.min(x.names.length, x.heard.find(([v]) => v === viewer)?.[1] ?? 0);
 }
 
 /** Every name a fixed power's table gives it: its id, its land's, its king's, his own court's and his others. */
@@ -377,8 +423,8 @@ export function nameKnown(name: string): string | null {
 
 /** A power's house (item 17+): Bit- and its first king's name (Bit-Biryawaza), or Bit- and its land where he is unnamed. */
 export function house(p: Power): string {
-  const x = dataOf(p);
-  return `Bit-${rulerNamed(p) ? x.king : x.land.replace(/^the land of the |^the /, "")}`;
+  const x = firstOf(p);
+  return `Bit-${!x.king.toLowerCase().startsWith("the ") ? x.king : x.land.replace(/^the land of the |^the /, "")}`;
 }
 
 /**
@@ -539,6 +585,10 @@ export function king(p: Power): string {
  */
 export function kingFor(viewer: Power | null, p: Power): string {
   const x = dataOf(p);
+  // Item 17b: a court knows the king it last heard of, until word of his heir reaches it.
+  const heard = heirsHeard(viewer, p);
+  const h = crowned.get(p);
+  if (h !== undefined && heard < h.names.length) return heard === 0 ? firstOf(p).king : h.names[heard - 1];
   return viewer === p && x.home !== null ? x.home : x.king;
 }
 
@@ -548,9 +598,29 @@ export function kingFor(viewer: Power | null, p: Power): string {
  * foreign court, the letters' name for his own. Names from the sources, the same in every game, not a court's knowledge of the game.
  */
 export function kingOtherNames(viewer: Power | null, p: Power): readonly string[] {
-  const x = dataOf(p);
+  // A court that has not heard of his heir knows the first king's names.
+  const x = heirsHeard(viewer, p) < (crowned.get(p)?.names.length ?? 0) ? firstOf(p) : dataOf(p);
   const shown = kingFor(viewer, p);
   return [x.home, x.king, ...x.others].filter((n): n is string => n !== null && n !== shown);
+}
+
+/**
+ * How a ruler is styled (presentation only, item 17++++): one of the seven Great Kings is a Great King; a land under a chief
+ * (the Kaska, the Lukka men, the Suteans, the Shasu, the Tjehenu) has a chief; every other ruler, a city's or a risen
+ * power's, is a king. Rank beyond this is earned in greetings ("Recognition is earned"), and no rule reads this.
+ */
+export function rulerStyle(p: Power): "Great King" | "king" | "chief" {
+  if (isGreatKing(p)) return "Great King";
+  return dataOf(p).king.toLowerCase().startsWith("the chief") ? "chief" : "king";
+}
+
+/** The ruler as he calls himself to his own seat: "Rib-Hadda, king of Gubla", "the chief of the Kaska". */
+export function rulerOf(p: Power): string {
+  const name = kingFor(p, p);
+  if (rulerNamed(p)) return `${name}, ${rulerStyle(p)} of ${claimedName(p)}`;
+  // An unnamed ruler is named by his style and the realm he claims: "the king of Tunip", "the Great King of Alashiya", and
+  // the sources' own words for a land under its own name ("the chief of the Kaska").
+  return claimedName(p) === ownLand(p) && !isGreatKing(p) ? name : `the ${rulerStyle(p)} of ${claimedName(p)}`;
 }
 
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */

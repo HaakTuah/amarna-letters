@@ -1,6 +1,7 @@
 import { describe, test } from "vitest";
 import {
   Dict,
+  EconomyData,
   type GameState,
   type Order,
   OrderSchema,
@@ -72,12 +73,12 @@ describe("SiegeTests", () => {
     Assert.null(s.owner.get("suhu"));
     Assert.empty(s.sieges);
 
-    // First besiege season: worn down 1 of 6 (two levels, three seasons of wear each).
+    // First besiege season: worn down 1 step of two levels' wear (`breachPerLevel` steps each).
     season(s, ordersOf("Babylonia", besiege("suhu")));
     let siege = Assert.single(s.sieges);
     Assert.equal(["Babylonia", 1, 2], [siege.power, siege.progress, siege.since]);
     Assert.null(s.owner.get("suhu"));
-    Assert.contains("Your siege of Suhu (walls 2, held by no one) has begun and wore the city down a step. It stands at 1 of the 6 steps to a breach.", notice(s, "Babylonia", SiegesTitle));
+    Assert.contains(`Your siege of Suhu (walls 2, held by no one) has begun and wore the city down a step. It stands at 1 of the ${2 * EconomyData.breachPerLevel} steps to a breach.`, notice(s, "Babylonia", SiegesTitle));
     Assert.contains(Views.for(s, "Babylonia").sieges, (x) => x.province === "suhu" && x.progress === 1 && x.walls === 2);
 
     // Its stores and market are empty: as each season begins it cannot feed its people, and after as many seasons of it as
@@ -107,7 +108,7 @@ describe("SiegeTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     season(s, ordersOf("Babylonia", besiege("suhu"), support("sippar", "suhu")));
     Assert.equal(2, Assert.single(s.sieges).progress);
-    Assert.contains("Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support. It stands at 2 of the 9 steps to a breach.", notice(s, "Mitanni", SiegesTitle));
+    Assert.contains(`Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support. It stands at 2 of the ${3 * EconomyData.breachPerLevel} steps to a breach.`, notice(s, "Mitanni", SiegesTitle));
 
     // The support is cut by an attack on Sippar: one step only.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "nippur" }));
@@ -121,7 +122,7 @@ describe("SiegeTests", () => {
     Assert.equal(3, Assert.single(s.sieges).progress);
     Assert.equal("Mitanni", s.owner.get("suhu"));
     // Worn to the last step, the next season breaches the walls.
-    Assert.single(s.sieges).progress = 8;
+    Assert.single(s.sieges).progress = 3 * EconomyData.breachPerLevel - 1;
     season(s, new Dict());
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(2, wallsOf(s, "suhu"));
