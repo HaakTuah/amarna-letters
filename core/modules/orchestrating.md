@@ -33,8 +33,8 @@ security gate's fallback or without passing it.
   check-in, by `modules/work-flow.md`; the brake ("Usage" in `modules/claude.md`) closes lanes first.
 - **Where the agents run side by side** (floor rule 18), it starts every session, Claude's builders and Codex alike,
   through the tool that runs them, each with a clone of its own, at the model its table gives (`modules/claude.md`;
-  Codex's: `modules/codex-building.md`) and, where it can be set, at high effort, medium for a Sonnet lane (core archive
-  100). It watches their states there (working, blocked, done), and a state that changes wakes it as a merge does.
+  Codex's: `modules/codex-building.md`) and at the effort its table gives. It watches their states there (working,
+  blocked, done), and a state that changes wakes it as a merge does.
 - **Every other provider is spent to its end** (core archive 76): Codex, and any provider the owner keeps only for the
   projects. Where an environment can read every provider's usage (where the agents run side by side, or the owner's own
   computer), the orchestrator spreads the work so each is spent by its weekly reset before Claude reaches 90%.

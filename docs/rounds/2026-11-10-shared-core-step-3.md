@@ -1,7 +1,10 @@
 # The shared core, step 3: this game takes the core (10 November 2026)
 
 Step 3 of "The shared core" (`docs/BUILD-PROGRESS.md`), done in the order the core's
-`reports/2026-11-10-step-3-now.md` lists, against the core's newest `main`, `2d13e39d7d6062a5524852a9b2107e86b33c5353`.
+`reports/2026-11-10-step-3-now.md` lists, against the core's `main` at `2d13e39`, then synced to
+`cecbe3b035047f23ae8525b83ed4398dff504f91` (the core's fix for the security finding on `setup/server.md`,
+agent-core #54, which the owner chose, with #55 after it; the workflow calls stay pinned at `2d13e39`, whose workflows
+are the same).
 
 ## What was done
 
@@ -107,6 +110,12 @@ The stand-in (Opus, high) answered each; "highly" or "fairly" is how sure it was
   in other words (all cut or made pointers: `AGENTS.md` three, `SECURITY.md` three, the threat model, the review
   guidelines two, `docs/codex-building.md`, the manifest) and one contradicted it (the "always" group, now queued).
 - The stand-in (Opus, high), once, on seven readings: six as taken, one corrected (the dossiers).
+
+## Reviews
+
+Codex's code review: one P1 (`AGENTS.md` and `CLAUDE.md` had left the copies check), fixed; then clean. Its security
+review: one Medium finding on the core's `core/setup/server.md`, which no copy may change; the owner chose to fix it in
+the core first, and this PR took the core at that fix (`cecbe3b`).
 
 ## Questions for the owner
 

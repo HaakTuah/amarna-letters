@@ -74,11 +74,13 @@ blocked and go on.
 **16. The owner's share of Claude** (core archive 2 and 76). Claude's weekly limit is shared with the owner's own work:
 from about 90% of it, no project starts bigger work on Claude, so the last of the week stays his.
 
-**18. Where agents hold sign-ins** (core archive 118 to 120 and 122): a machine of the owner's where agents run side by
-side, each signed in to its provider. He sets it up, it holds only the projects and what their agents need, and only he
-logs in. Nothing runs there but what he starts and the sessions those start: never a poller, scheduled task or service
-of an agent's making. An agent there never prints, logs, copies or sends a sign-in, and one that opens an account of his
-(such as a ChatGPT login) is kept under a system account of its own, which the other agents cannot read. Every sign-in
-has a spending limit he sets, and the GitHub access there cannot change workflows, so a change to `.github/` comes from
-a cloud session. One that leaks is revoked at once (rule 1). Its name and address are never written in a repository; how
-it is set up: `setup/server.md`.
+**18. Where agents hold sign-ins** (core archive 118 to 120, 122 and 127): a machine of the owner's where agents run
+side by side, each signed in to its provider. He sets it up, it holds only the projects and what their agents need, and
+only he logs in. Nothing runs there but what he starts and the sessions those start: never a poller, scheduled task or
+service of an agent's making. An agent there never prints, logs, copies or sends a sign-in, and one that opens an
+account of his (such as a ChatGPT login) is kept under a system account of its own, which the other agents cannot read.
+Project code (a build, the tests and the packages they run) runs where no sign-in can be read: in a throwaway box given
+a copy of the clone, with network only where the run needs it; only an agent, after checking its change, pushes. Every
+sign-in has a spending limit he sets, and the GitHub access there cannot change workflows, so a change to `.github/`
+comes from a cloud session. One that leaks is revoked at once (rule 1). Its name and address are never written in a
+repository; how it is set up: `setup/server.md`.
