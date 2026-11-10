@@ -683,7 +683,8 @@ P.payRansom = function (payer, pr) {
   const c = char(S, pr.character);
   const [why, task] = OrderValidator.ransomRefusal(S, payer, c);
   if (why !== null) {
-    notify(S, payer, "Rejected", "Ransom not sent", `The ransom for ${c.name} could not be sent: ${why}.`, c.id);
+    // #806: his own court's ransom for its king is its business, as late to him as any (no subject, `notify`).
+    notify(S, payer, "Rejected", "Ransom not sent", `The ransom for ${c.name} could not be sent: ${why}.`, realmOfKing(S, c.id) === payer ? null : c.id);
     this.scheduledFailed(payer, pr, why);
     return;
   }

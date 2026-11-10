@@ -211,6 +211,7 @@ P.captiveLetterArrives = function (j) {
   const k = S.reigns.tryGet(j.from);
   const king = k === undefined ? null : findCharacter(S, k.character);
   const who = king === null ? `the ${rulerStyle(j.from)} of ${powerName(j.from)}` : king.name;
-  notify(S, j.to, "Notice", "A letter from a captive king", `A letter from ${who}, ${j.to === j.from ? "your king" : `${rulerStyle(j.from)} of ${powerName(j.from)}`}, written in captivity in turn ${j.departTurn}: ${quoteWords(j.text ?? "")}`, king?.id ?? null);
+  // His letter home is his court's business, as late to him as any (no subject: not what befell him abroad, `notify`).
+  notify(S, j.to, "Notice", "A letter from a captive king", `A letter from ${who}, ${j.to === j.from ? "your king" : `${rulerStyle(j.from)} of ${powerName(j.from)}`}, written in captivity in turn ${j.departTurn}: ${quoteWords(j.text ?? "")}`, j.to === j.from ? null : (king?.id ?? null));
   this.letterDelivered(j);
 };

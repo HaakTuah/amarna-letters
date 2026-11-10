@@ -182,13 +182,17 @@ describe("HeldKingTests", () => {
     s.owner.set(e.courtAt("Hatti"), "Mitanni");
     e.courtFlees("Hatti", "Mitanni", false);
     Assert.equal([false, null], [k.status === "Captured", k.heldBy]);
+    Assert.true(k.memory.some((m) => m.text.includes("nobody was left to guard me")));
   });
 
   test("The caretaker reads his court's word as it comes; the captive, late", () => {
-    const { s } = egyptHeld();
+    const { s, e } = egyptHeld();
     s.courtLag.set("Egypt", 3);
     notify(s, "Egypt", "Notice", "Tribute", "Tribute came.");
     Assert.equal([true, false], [Views.court(s, "Egypt").inbox.some((i) => i.title === "Tribute"), Views.for(s, "Egypt").inbox.some((i) => i.title === "Tribute")]);
+    // His letter home is his court's word: the caretaker's when it comes, his late.
+    e.captiveLetterArrives(newJourney({ id: "j-h", kind: "CaptiveLetter", from: "Egypt", to: "Egypt", characterId: kingOf(s, "Egypt").id, text: "Pay my ransom." }));
+    Assert.equal([true, false], [Views.court(s, "Egypt").inbox.some((i) => i.title === "A letter from a captive king"), Views.for(s, "Egypt").inbox.some((i) => i.title === "A letter from a captive king")]);
     // What befalls him at his captor's court is his at once, and never his court's.
     notify(s, "Egypt", "Rejected", "Held at a foreign court", "Not carried out.", kingOf(s, "Egypt").id);
     Assert.equal([false, true], [Views.court(s, "Egypt").inbox.some((i) => i.title === "Held at a foreign court"), Views.for(s, "Egypt").inbox.some((i) => i.title === "Held at a foreign court")]);
