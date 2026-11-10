@@ -8,7 +8,7 @@ GraphQL API, so `gh pr create`, `gh pr list`, `gh pr view` and `gh pr ready` fai
 ```bash
 gh api repos/HaakTuah/<repo>/pulls -f title=... -f head=<branch> -f base=main -f body=...     # add -F draft=true: a draft
 gh api -X POST repos/HaakTuah/<repo>/pulls/<n>/ccr/ready_for_review                           # mark ready (starts the security review)
-gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/merge -f merge_method=merge                     # merge
+gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/merge -f merge_method=merge                     # merge (add -f sha=<head>: only that head)
 gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/update-branch                                  # bring it up to date with main
 gh api -X PUT repos/HaakTuah/<repo>/pulls/<n>/ccr/auto_merge                                 # auto-merge on (DELETE: off)
 gh api repos/HaakTuah/<repo>/compare/main...<branch>    --jq '.files[].filename'             # the files a branch changes

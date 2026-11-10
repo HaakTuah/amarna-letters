@@ -19,9 +19,11 @@ alike (core archive 68). The owner's words behind each rule: `archive/instructio
 ## How a project takes the core
 
 1. **An exact copy under `core/`,** pinned to one commit of this repository and never edited by hand. A change reaches a
-   project only through a sync PR there, made by `core/scripts/sync.mjs`, reviewed like any PR. The sync PR also fixes
-   the project's pointers into core files the sync moved or removed. The core's `core.yml`, which the project calls on
-   every PR as a required check, fails one whose `core/` differs from the core at its pin.
+   project only through a sync PR there, made by `core/scripts/sync.mjs`. A pure sync (only the copy and its pins, as
+   `scripts/pure-sync.mjs` proves) gets no review of its own, since the core's PR reviewed what it carries (floor rule
+   8); one that also fixes the project's pointers into core files the sync moved or removed is reviewed like any PR. The
+   core's `core.yml`, which the project calls on every PR as a required check, fails one whose `core/` differs from the
+   core at its pin.
 2. **A manifest,** `core-manifest.md` at its root (format below): the pin, the modules it takes, its names for the
    core's words, and what fills each slot. Every session reads it at the start.
 3. **Pointer lines:** its `AGENTS.md` names the manifest and every file read at the start of every task, each on a line

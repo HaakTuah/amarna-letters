@@ -11,7 +11,7 @@ Waiting is lost time and, past an hour, a lost cache (core archive 10).
    point 3), turn on auto-merge (`modules/github-calls.md`) and go on: GitHub merges when the checks are green and the
    branch is up to date (core archive 135). It refuses when its own requirements are already met (the PR's
    `mergeable_state` is `clean` or `unstable`): then merge it yourself once every check has passed. A push after that
-   turns auto-merge off first, and the reviews run again on the new head (floor rule 8); bringing the branch up to date
+   turns auto-merge off first, and the new commit is reviewed (floor rule 8); bringing the branch up to date
    with `main` keeps it on.
 2. **The next task** goes on while this one is reviewed, on its own branch from `main`; no lane is stacked on another's.
 3. **Lanes beside the main lane** (core archive 11): independent work in different files from every open lane, with no
