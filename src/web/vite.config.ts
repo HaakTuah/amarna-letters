@@ -5,7 +5,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
-import { notices } from "../../scripts/licences.mjs";
+import { notices } from "../../scripts/notices.mjs";
 import { cspPlugin } from "./csp.ts";
 
 /**
@@ -44,7 +44,7 @@ function serviceWorker(): Plugin {
 }
 
 /**
- * The third-party notices (SECURITY.md, point 10): every package the build bundles, the worker's included, local `file:`
+ * The third-party notices (SECURITY.md, rule 10): every package the build bundles, the worker's included, local `file:`
  * packages too, with its licence, written to third-party-notices.txt beside the game; the build fails on a licence off
  * the strict list.
  */

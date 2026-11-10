@@ -1,0 +1,6 @@
+{
+  "lockfiles": ["package-lock.json"],
+  "ships": ["package.json"],
+  "data": ["caniuse-lite"],
+  "ignoreScriptsIn": [".npmrc"]
+}

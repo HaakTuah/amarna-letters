@@ -1,7 +1,7 @@
 # Simulation start prompt: the second simulation (Build order item 4)
 
 Open a **new** Claude Code session in the repository's main checkout itself (not a worktree), on the
-branch that holds item 4 (`item/second-simulation`, or `develop` once it is merged), and paste everything below the
+branch that holds item 4 (`item/second-simulation`, or `main` once it is merged), and paste everything below the
 line. The agent types are loaded when that session starts: `node sim/setup.js --seeds 7,15` was run on 19 October 2026
 and made the 7 king types and the 36 character types (18 characters for each seed). Run it again with `--force` only
 if you want new folders and secret words (the old kit is moved to `sim/runs/setup-<time>/`), then start yet another
@@ -162,5 +162,5 @@ again: it covers both games and the debriefs.
 - Invalid orders, retries and fallbacks; the isolation test and the audit.
 - Usage: per game, kings against characters, against the estimate in step 0.
 
-Commit the report to the branch this session runs on. Do not push, and do not touch `main` or `develop` (a safety
+Commit the report to the branch this session runs on. Do not push, and do not touch `main` (a safety
 check: anything touching `main` is asked first). Then stop: this is a review stop for the owner.
