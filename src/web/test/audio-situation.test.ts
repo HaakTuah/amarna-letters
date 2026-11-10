@@ -1,11 +1,11 @@
 import { describe, test } from "vitest";
 import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
-import { bedAt, cuesAt, hearing, moodAt, shadeAt } from "../src/audio/situation.ts";
+import { bedAt, cuesAt, hearing } from "../src/audio/situation.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 import { frame } from "./audio-frame.ts";
 
-// Item 19+++: the music follows the seat's situation as that seat knows it, and a season's sounds what it saw. Each test
+// Item 19+++: a season's sounds follow what the seat saw, as that seat knows it (the mood and shade: audio-mood.test.ts). Each test
 // builds only the frames it needs, by hand: two powers, a province or two, no game.
 const attack = (power: Power, target: string, targetOwner: Power): FrameMove =>
   ({ power, kind: "Army", from: "x", order: "move", target, to: target, helped: null, succeeded: false, destroyed: false, targetOwner }) as FrameMove;
@@ -14,46 +14,6 @@ const known = (viewer: Power, owners: Record<string, Power | null>, turn = 1) =>
   new Map([[viewer, new Map(Object.entries(owners).map(([k, v]) => [k, { owner: v, turn }]))]]);
 
 describe("AudioSituationTests", () => {
-  test("A seat at peace hears calm; a fight it saw is battle, then war for three seasons", () => {
-    const quiet = [frame(0), frame(1)];
-    Assert.equal("calm", moodAt(quiet, 1, "Egypt"));
-    const fight = frame(2, { moves: [attack("Hatti", "gaza", "Egypt")], seenBy: new Map([["Egypt", [0]]]) });
-    const frames = [frame(0), frame(1), fight, frame(3), frame(4), frame(5)];
-    Assert.equal("battle", moodAt(frames, 2, "Egypt"));
-    Assert.equal("war", moodAt(frames, 3, "Egypt"));
-    Assert.equal("war", moodAt(frames, 4, "Egypt"));
-    Assert.equal("calm", moodAt(frames, 5, "Egypt"));
-  });
-
-  test("A fight the seat did not see, or that was not its own, leaves its music calm", () => {
-    const unseen = frame(1, { moves: [attack("Hatti", "gaza", "Egypt")], seenBy: new Map([["Egypt", []]]) });
-    Assert.equal("calm", moodAt([frame(0), unseen], 1, "Egypt"));
-    const others = frame(1, { moves: [attack("Hatti", "ugarit", "Mitanni")], seenBy: new Map([["Egypt", [0]]]) });
-    Assert.equal("calm", moodAt([frame(0), others], 1, "Egypt"));
-    // In god view the whole map: anyone's fight is battle.
-    Assert.equal("battle", moodAt([frame(0), others], 1, null));
-  });
-
-  test("A siege of the seat's city, as it knows the city's owner, is siege; grave omens are the last seasons", () => {
-    const siege = { province: "gaza", besieger: "Hatti" as Power, progress: 1, walls: 2, since: 1 };
-    const sieged = frame(1, { sieges: [siege], knownOwner: known("Egypt", { gaza: "Egypt" }), sight: new Map([["Egypt", new Set(["gaza"])]]) } as Partial<SeasonFrame>);
-    Assert.equal("siege", moodAt([frame(0), sieged], 1, "Egypt"));
-    // A seat whose sight the record lacks sees nothing: the same siege is not heard (it was "seeing all" before).
-    Assert.equal("calm", moodAt([frame(0), frame(1, { sieges: [siege], knownOwner: known("Egypt", { gaza: "Egypt" }) })], 1, "Egypt"));
-    Assert.equal("calm", moodAt([frame(0), sieged], 1, "Babylonia"));
-    Assert.equal("last", moodAt([frame(0), frame(1, { omen: "Grave" })], 1, "Egypt"));
-    Assert.equal("tension", moodAt([frame(0), frame(1, { omen: "Troubled" })], 1, "Egypt"));
-  });
-
-  test("Foreign troops in the seat's land, in its sight, are tension", () => {
-    const f = frame(1, {
-      units: [{ id: "u1", power: "Hatti", kind: "Army", province: "gaza" }],
-      knownOwner: known("Egypt", { gaza: "Egypt" }),
-      sight: new Map([["Egypt", new Set(["gaza"])]]),
-    } as Partial<SeasonFrame>);
-    Assert.equal("tension", moodAt([frame(0), f], 1, "Egypt"));
-  });
-
   test("Its own capital lost brings the capital's sting and The City Falls; the taker hears its triumph", () => {
     const capital = WorldMap.default.provinces.find((p) => p.capital && p.home === "Egypt")!.id;
     const before = frame(0, { knownOwner: known("Egypt", { [capital]: "Egypt" }) });
@@ -128,20 +88,6 @@ describe("AudioSituationTests", () => {
     const mine = { province: "gaza", besieger: "Egypt" as Power, progress: 0, walls: 2, since: 1 };
     const g = frame(1, { sieges: [hidden, mine], sight: new Map([["Egypt", new Set(["gaza"])]]), events: f.events });
     Assert.equal("gaza", cuesAt([frame(0), g], 1, "Egypt").sounds.find((c) => c.name === "siege")!.at);
-  });
-
-  test("The shade: darkest in battle, darker at war or in hunger, brighter at a feast, its own otherwise", () => {
-    const fight = frame(2, { moves: [attack("Hatti", "gaza", "Egypt")], seenBy: new Map([["Egypt", [0]]]) });
-    const frames = [frame(0), frame(1), fight, frame(3), frame(4, { events: [newGameEvent({ kind: "harvest", visibleTo: ["Egypt"] })] }), frame(5), frame(6)];
-    Assert.equal(0, shadeAt(frames, 1, "Egypt"));
-    Assert.equal(-2, shadeAt(frames, 2, "Egypt"));
-    Assert.equal(-1, shadeAt(frames, 3, "Egypt"));
-    Assert.equal(-1, shadeAt(frames, 4, "Egypt"));
-    Assert.equal(0, shadeAt(frames, 6, "Egypt"));
-    const feast = [frame(0), frame(1, { events: [newGameEvent({ kind: "harvest", visibleTo: ["Egypt"] })] })];
-    Assert.equal(1, shadeAt(feast, 1, "Egypt"));
-    const hungry = [frame(0), frame(1, { events: [newGameEvent({ kind: "harvest", visibleTo: ["Egypt"] }), newGameEvent({ kind: "hunger", visibleTo: ["Egypt"] })] })];
-    Assert.equal(-1, shadeAt(hungry, 1, "Egypt"));
   });
 
   test("In god view a great king's fall is a great moment; a city-state's falls quietly", () => {

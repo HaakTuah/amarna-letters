@@ -15,10 +15,6 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **First: the music follows the state** (archive item 241; the design document's 19+++b under Build order, in the
-  copy from its next refresh; for Opus, since it takes an ear's judgement): the mood from a heat that rises fast and
-  cools slow, god view by the world's temperature, in a new file beside `src/web/src/audio/situation.ts`, with
-  `docs/design/45-the-music-and-the-sounds.md` updated in the same PR.
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
@@ -27,7 +23,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   the camera to the play area's edges (#396), a seal's tap to its own city (#398), the tabs and the courts scrolled
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
-  help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795).
+  help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; its tuning by the
+  owner's ear: #877).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -116,17 +114,14 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
-  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `core/modules/workshop-check.md`, moved by
-  the design session at the design document's next refresh. (2) to (4) done in #732: what waits until Codex can build is
+  simulation kit's start prompt belong in `sim/README.md`, moved by the design session at the design document's next
+  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732: what waits until Codex can build is
   `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
   generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
   dodge).
-- **A canary for Codex's code review, on resume** (`core/modules/calibration.md`; archive item 206): the
-  review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
-  file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -185,7 +180,7 @@ the workshop check, and again on 7 November): among them the history check's lin
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
   workflow that opens an `enhancement` issue when one is behind.
 
-Points a review moved out of its PR, each with its reason ("Only a 10 passes" in `core/modules/reviews.md`, point 2); struck when
+Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
@@ -194,9 +189,9 @@ fixed.
 
 ## For the owner
 
-Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aquestion)
-(`question`), [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement) (`enhancement`) and
-[bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
+Readings taken are in each item's report and PR, for the owner to read when he likes; nothing waits for him but what
+floor rules 3 and 14 name. Issues hold [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement)
+(`enhancement`) and [bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
 `core/modules/inbox.md`. Answered review points from before 2 November 2026:
 `docs/archive/progress-done.md`.
 
