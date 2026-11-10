@@ -7,11 +7,10 @@ floor's numbers:
 3. **The protected files.** The trusted builder: Claude's builder sessions (`core/modules/roles.md`). Besides those
    the floor names:
    - **what runs by itself or with credentials:** `scripts/cloud-setup.sh`;
-   - **the rule files:** `docs/builder-rules.md`, `docs/codex-building.md`, `docs/review-guidelines.md`,
+   - **the rule files:** `docs/builder-rules.md`, `docs/review-guidelines.md`,
      `docs/threat-model.md` and this file;
    - **the checks on the work:** the copies check's config and baseline (`scripts/copies.json`,
-     `scripts/copies-baseline.json`), the licence check's config (`scripts/licences.json`) and the calibration log
-     (`docs/calibration.md`).
+     `scripts/copies-baseline.json`), and the licence check's config (`scripts/licences.json`).
 5. **Its inputs:**
    - **Model replies** (kings, characters, the narrator): parsed into the engine's structured fields and checked by the
      engine; never shown as HTML. Nothing a model writes may reach the player's API key, files or any other site.

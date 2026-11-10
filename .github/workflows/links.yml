@@ -1,0 +1,25 @@
+# The "Learn more" links checked weekly ("Learn more, and what is invented" under Interface, build order item 17+++b):
+# scripts/links.mjs fetches every link the game shows and fails if one no longer answers 200, or Wikipedia now gives a
+# disambiguation page or redirects it to another page. Outside the pull requests, so a moved page never blocks one; a
+# failure here is fixed in learn-more.ts by a builder. Reads only: no secret, no write token, no package installed (the
+# script imports only the game's own data file).
+name: Links
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+      - name: Every "Learn more" link
+        run: node --experimental-strip-types --no-warnings scripts/links.mjs

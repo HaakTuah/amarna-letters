@@ -103,14 +103,13 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The orders tab told a player to "click one of your units on the map … click the unit again to hold", where the map's legend and the About page say "tap"; it now says "tap" too, which reads right on a phone and on a computer alike.
 - The Season tab's "Also this season" began some lines in lower case ("about 1,900 people fled a heavy tax from Ta-Mehu into Tjehenu.") and said one line word for word as often as it happened ("A tablet in Canaanite waits for a reader at Egypt's court." eight times in Egypt's second season); each line now starts with a capital, and a line said more than once is shown once with how many times ("×8"). The engine's text, which kings read, is as it was.
 - Bug #817: a fallen realm's living king read "Ruled Gubla …" at once in the view of every court that knew him, so one holding him captive far off learned of the fall before word came; a court that has not heard of the fall still reads "Rules …" (`factsAsHeard` in `rules/people-views.ts`). Report: `docs/rounds/2026-11-07-fall-unheard.md`.
+- In a seat's view the map's "as of Shemu 1346 BCE" notes (the season a province was last seen) were drawn over one another, and over the names and markers, wherever cities stand close (near Gaza in Egypt's first season on desktop, six of them in a heap); the notes now go through the map's placement like the names: each stays only where it touches no name, marker or note already shown. Nothing a king reads changes.
 
 ## Finds not yet fixed
 
 - A court's own people are described by province ids ("governing kizzuwatna · in kizzuwatna") and an envoy's court is said twice, on the People tab and the Follow tab: filed as bug #734, since the line is the engine's character view, which a model king reads and the script kings parse.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
-- In a seat's view the map's "as of …" notes on remembered units overlap one another near Gaza (Egypt, desktop, the
-  first season): label placement on the map, left for item 19++ (the visual pass).
 
 Fixed since they were listed here: army counters standing over a neighbour's seal on the whole map (none at 1280 × 800 on 6 November, measured by each counter's box against every other province's seal, after the seals' rims were padded, #562, and part E's units, #728), the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
 `who-decides.test.ts`'s slow "Planning" tests (#302), the timeline's label against the header's season (#307), and

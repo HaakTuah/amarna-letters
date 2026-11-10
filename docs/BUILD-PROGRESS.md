@@ -15,11 +15,11 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **First: the music follows the state** (archive item 241; the design document's 19+++b under Build order, in the
-  copy from its next refresh; for Opus, since it takes an ear's judgement): the mood from a heat that rises fast and
-  cools slow, god view by the world's temperature, in a new file beside `src/web/src/audio/situation.ts`, with
-  `docs/design/45-the-music-and-the-sounds.md` updated in the same PR.
-- **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
+- **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
+  text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
+  or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
+  music turns over calmly (archive items 248 and 249); each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
+  of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
@@ -27,7 +27,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   the camera to the play area's edges (#396), a seal's tap to its own city (#398), the tabs and the courts scrolled
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
-  help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795).
+  help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; god view's music
+  and the draw: 19+++c, above).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -74,11 +76,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
   Barkstreet Snakes. **Steps 1 to 3 are done** (step 3: `develop` dropped in #870, then this game took the core at
   `31f3d51`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
-  Left for others: the owner sets `main`'s ruleset and deletes `develop`; the design session cuts the builder rules and
-  `scripts/design-copy.py`'s `develop` lines at the source, with the passage the builder rules say twice and the two the
-  core's workshop check now holds, and then `docs/builder-rules.md` goes back into the copies check's prose
-  (`scripts/copies.json` leaves it out until then); then the rule-file audit. What the game does not yet do of
-  the core's rules is its own queue, by way of the design session (that report, "What each game does not yet do").
+  Left: the rule-file audit (the builder rules are cut at the source and back in the copies check, and `develop` is
+  gone). What the game does not yet do of the core's rules is its own queue, by way of the design session (that
+  report, "What each game does not yet do").
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
@@ -116,17 +116,14 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
-  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `core/modules/workshop-check.md`, moved by
-  the design session at the design document's next refresh. (2) to (4) done in #732: what waits until Codex can build is
-  `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
+  simulation kit's start prompt belong in `sim/README.md`, moved by the design session at the design document's next
+  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732; what waits until Codex can build is
+  written then (core `modules/roles.md`), from the owner's words in the archive; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
   generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
   dodge).
-- **A canary for Codex's code review, on resume** (`core/modules/calibration.md`; archive item 206): the
-  review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
-  file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -180,12 +177,13 @@ the workshop check, and again on 7 November): among them the history check's lin
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
 
-- **Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
+- ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
-  workflow that opens an `enhancement` issue when one is behind.
+  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547; Node, all it held, is now the core's
+  one exact pin (`core/.node-version`), so the game's own list and check are gone.
 
-Points a review moved out of its PR, each with its reason ("Only a 10 passes" in `core/modules/reviews.md`, point 2); struck when
+Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
@@ -194,9 +192,9 @@ fixed.
 
 ## For the owner
 
-Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aquestion)
-(`question`), [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement) (`enhancement`) and
-[bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
+Readings taken are in each item's report and PR, for the owner to read when he likes; nothing waits for him but what
+floor rules 3 and 14 name. Issues hold [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement)
+(`enhancement`) and [bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
 `core/modules/inbox.md`. Answered review points from before 2 November 2026:
 `docs/archive/progress-done.md`.
 

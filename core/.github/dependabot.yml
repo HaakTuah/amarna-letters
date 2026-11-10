@@ -1,4 +1,4 @@
-# Dependabot version updates of the workflows' GitHub actions (floor rule 3's narrow exception; floor rule 17).
+# Dependabot version updates of the workflows' GitHub actions (floor rules 3 and 17).
 # A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first (floor rule 7).
 version: 2
 updates:

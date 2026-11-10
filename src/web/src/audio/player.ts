@@ -9,7 +9,8 @@
 import type { Power } from "@amarna/engine";
 import { Manifest } from "./manifest.ts";
 import { SynthDeck, type NextStretch } from "./synth/engine.ts";
-import type { Version } from "./synth/arrange.ts";
+import { stretches, type Version } from "./synth/arrange.ts";
+import { crossWait, nextPass, passMood, restsAfter, type Pass } from "./crossing.ts";
 import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
 import { audioSettings, onAudioSettings, scheduleStartFade, type MusicStyle } from "./settings.ts";
@@ -38,7 +39,6 @@ const url = (file: string): string => new URL(`audio/${file}${hashes.has(file) ?
 
 const Cross = 3.0; // seconds a change of piece takes
 const Lead = 0.4; // seconds before a phrase ends that the change starts
-const MaxWait = 20; // seconds the music waits for a phrase to end before it crosses anyway
 const LoadWait = 12000; // ms an orchestra file may take to start before Lyre and reed plays instead
 const Return = 3; // seconds the game's music takes to come back after the Music page
 
@@ -92,6 +92,8 @@ class Player {
   /** How the situation colours the music (darker as it worsens, brighter at a feast), and whose court is heard. */
   private shade: Shade = 0;
   private court: Power | null = null;
+  /** The fallback's pass under way: its score, the mood it plays and the stretches left of it (a fall waits for its end). */
+  private pass: Pass | null = null;
   /** The fallback's engine, when its versions play; and the listening page's own. */
   private synth: SynthDeck | null = null;
   private soloSynth: SynthDeck | null = null;
@@ -266,8 +268,6 @@ class Player {
     if (this.moment !== null) return MomentPieces[this.moment];
     const pieces = MoodPieces[this.mood];
     const now = this.decks[this.live]?.piece ?? null;
-    // A change of shade alone stays in the piece, in its variation of that shade.
-    if (now !== null && pieces.includes(now) && !this.playingMoment && this.decks[this.live].file !== null) return now;
     const others = pieces.filter((p) => p !== now);
     const list = others.length > 0 && pieces.length > 1 ? others : pieces;
     return list[Math.floor(Math.random() * list.length)];
@@ -345,10 +345,11 @@ class Player {
   private ended(i: number): void {
     if (i !== this.live || this.solo) return;
     const d = this.decks[i];
+    // A rest between pieces where the music is quiet, as Empire Earth left room between its pieces, and after a fall
+    // before the calmer music (item 19+++b); none in a fight.
+    const quiet = restsAfter(d.piece, this.mood);
     d.file = null;
     d.piece = null;
-    // A rest between pieces where the music is quiet, as Empire Earth left room between its pieces; none in a fight.
-    const quiet = this.mood === "calm" || this.mood === "menu" || this.mood === "tension" || this.mood === "last";
     this.restUntil = quiet && this.moment === null && !this.playingMoment ? performance.now() + 4000 + Math.random() * 8000 : 0;
     this.playingMoment = false;
   }
@@ -368,11 +369,8 @@ class Player {
       return;
     }
     const want = this.moment !== null ? MomentPieces[this.moment] : null;
-    // The piece fits the mood, and its variation the shade wherever the piece has one in that shade.
-    const vars = music[d.piece ?? ""] ?? [];
-    const shaded = vars.find((v) => v.file === d.file);
-    const shadeFits = shaded === undefined || this.shadeFile(vars).length === 0 || Math.sign(shaded.shade ?? 0) === Math.sign(this.shade);
-    const fits = want === null ? MoodPieces[this.mood].includes(d.piece ?? "") && !this.playingMoment && shadeFits : d.piece === want;
+    // The piece fits the mood; the shade only chooses the next piece's variation, never cutting the one playing.
+    const fits = want === null ? MoodPieces[this.mood].includes(d.piece ?? "") && !this.playingMoment : d.piece === want;
     // A stream the browser refused or stalled is asked again, at most every two seconds.
     if (d.el.paused && !d.el.ended && d.pauseTimer === null && performance.now() - this.retried > 2000) {
       this.retried = performance.now();
@@ -387,11 +385,18 @@ class Player {
     }
     // A moment piece plays to its end unless a newer moment comes.
     if (this.playingMoment && want === null) return;
+    // A fall, or a step aside, never cuts a piece: it plays to its end, and the calmer music comes after its rest.
+    const wait = crossWait(d.piece, this.mood, want !== null);
+    if (wait === null) {
+      this.switchAt = null;
+      this.askedAt = null;
+      return;
+    }
     const now = d.el.currentTime;
     if (this.switchAt === null) {
-      // The next phrase end, waited for up to MaxWait; a longer phrase is crossed out of at once, over the long cross.
+      // The next phrase end, waited for up to `wait`; a longer phrase is crossed out of at once, over the long cross.
       const end = d.phrases.find((p) => p > now + Lead + 0.2);
-      this.switchAt = end !== undefined && end - now <= MaxWait ? end - Lead : now;
+      this.switchAt = end !== undefined && end - now <= wait ? end - Lead : now;
       // By the page's clock too, so a stream that stalls still changes.
       this.askedAt = performance.now() + (this.switchAt - now) * 1000 + 2000;
     }
@@ -423,6 +428,7 @@ class Player {
     if (this.synth === null) this.synth = new SynthDeck(this.ctx!, this.musicBus!, () => this.synthNext());
     this.synth.version = this.style() as Version;
     if (!this.synth.playing) {
+      this.pass = null;
       this.synth.start();
       this.open(false);
       this.comeBack();
@@ -436,15 +442,18 @@ class Player {
 
   private synthNext(): NextStretch | null {
     if (!audioSettings().music || this.solo || this.hushed || this.style() === "orchestra") return null;
-    let shade: number = this.shade;
-    let piece: string;
     if (this.moment !== null) {
-      piece = MomentPieces[this.moment];
-      shade = this.moment === "triumph" ? 1 : this.moment === "ended" ? 0 : -2;
+      const score = synthPiece(MomentPieces[this.moment], this.court);
+      const shade = this.moment === "triumph" ? 1 : this.moment === "ended" ? 0 : -2;
       this.moment = null;
-    } else piece = MoodPieces[this.mood][0];
-    const score = synthPiece(piece, this.court);
-    return { score, mode: this.modeFor(score, shade), situation: { mood: this.mood, shade: shade as Shade } };
+      this.pass = null;
+      return { score, mode: this.modeFor(score, shade), situation: { mood: this.mood, shade } };
+    }
+    // A rise is heard at this phrase end; a fall waits for the pass under way to end.
+    const mood = passMood(this.pass, this.mood);
+    const score = synthPiece(MoodPieces[mood][0], this.court);
+    this.pass = nextPass(this.pass, mood, score.id, stretches(score).length);
+    return { score, mode: this.modeFor(score, this.shade), situation: { mood, shade: this.shade } };
   }
 
   /** The listening page: one score once through, in a version and a tuning (null: the court's home mode). */

@@ -30,6 +30,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false # nothing after the checkout pushes or fetches
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
       - name: The lists, for the dependency review
         id: lists
         env:
