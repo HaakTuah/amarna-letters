@@ -150,3 +150,15 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      yes kept only for spending money, what cannot be undone, the safety rules themselves and a licence exception:
 
      > Correct. Do it, expertly.
+
+139. **10 November 2026** (the core). Told that each game's sync PR was being reviewed by Codex again, after the same
+     text had passed both reviews in the core's own PR:
+
+     > Never do this kind of review twice without reason. If it passed ones, it doesn't suddenly go sour the second
+     > time. Ensure there are no more duplication reviews and checks like this, expert.
+
+140. **10 November 2026** (the core). Told that a pure sync would keep its security review although its code review
+     goes, since dropping both had been refused as weakening security:
+
+     > But it already does a security review when the change was made in the agent-core repo? We are not cyberdyne
+     > systems…

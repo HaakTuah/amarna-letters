@@ -26,6 +26,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false # nothing after the checkout needs the token
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
       - name: The base branch's latest commit, for its baseline (not the whole history)
         if: github.event_name == 'pull_request'
         env:

@@ -33,10 +33,14 @@ exception, under rule 17.
 
 **8. Reviews look for breaks of any floor rule** and any new way in (a new input, request, dependency or script, a
 weakened check). No PR merges before its security review has run, nor with a P0 or P1 security finding open (core
-archive 21); one that changes a protected file also gets a code review. **Nothing runs on the owner's computer unless he
-starts it:** no poller, scheduled task or service of an agent's making (core archive 52); a session there works in a
-folder of its own and holds no key beyond its own sign-in. **Test data is never real:** fake keys built from pieces when
-the test runs, sample names and addresses invented (core archive 29).
+archive 21); one that changes a protected file also gets a code review. Neither, nor rule 3's two, falls on a pure sync
+PR (its diff only the core's copy, its pin and the pins of calls to the core's workflows, moved forward to one commit of
+the core's `main`, as the core's `scripts/pure-sync.mjs`, run from the core's `main`, proves; its merger merges only the
+head it checked), whose code both reviews passed in the core's own PR (core archive 139 and 140). **Nothing is reviewed
+twice** (core archive 139): a later commit is reviewed only for what it changes. **Nothing runs on the owner's computer
+unless he starts it:** no poller, scheduled task or service of an agent's making (core archive 52); a session there
+works in a folder of its own and holds no key beyond its own sign-in. **Test data is never real:** fake keys built from
+pieces when the test runs, sample names and addresses invented (core archive 29).
 
 **11. Nothing personal, ever** (core archive 30 and 43). No file, commit, PR, issue, comment, log or picture holds
 personal information about the owner or anyone in his life: no names (he is "the owner"), profession, employer or
