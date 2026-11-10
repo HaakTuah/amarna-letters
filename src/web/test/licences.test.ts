@@ -1,11 +1,14 @@
-// The licence policy (SECURITY.md, point 10; scripts/licences.mjs): SPDX expressions read with their brackets, and the
-// data, asset and font licences allowed only for the packages named as such in .github/licences.yml.
+// The licence policy (SECURITY.md, rule 10; the core's licence check with scripts/licences.json): SPDX expressions read
+// with their brackets, and the data, asset and font licences allowed only for the packages named as such in the config.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { licenceOk, packageDir, policy, registryName, registryOverrides, scriptsOff, shippedPaths } from "../../../scripts/licences.mjs";
+import { licenceOk, loadConfig, policy, registryName, registryOverrides, scriptsOff, shippedPaths } from "../../../core/scripts/licences.mjs";
+import { packageDir } from "../../../scripts/notices.mjs";
 
-const code = policy().allowedFor("some-library");
-const data = policy().allowedFor("caniuse-lite");
+const root = new URL("../../../", import.meta.url);
+const game = policy(loadConfig(new URL("scripts/licences.json", root).pathname));
+const code = game.allowedFor("some-library");
+const data = game.allowedFor("caniuse-lite");
 
 describe("licences", () => {
   it("reads AND and OR with their brackets", () => {
@@ -47,7 +50,7 @@ describe("licences", () => {
   });
 
   it("holds what ships to the strict list and lets tools that only run use any open-source licence", () => {
-    const tool = policy().allowedFor("some-tool", false);
+    const tool = game.allowedFor("some-tool", false);
     for (const copyleft of ["GPL-3.0-only", "LGPL-2.1-or-later", "MPL-2.0"]) {
       expect(licenceOk(copyleft, tool)).toBe(true);
       expect(licenceOk(copyleft, code)).toBe(false);
@@ -56,7 +59,7 @@ describe("licences", () => {
   });
 
   it("lets tools use every licence the Open Source Initiative approves, never one of its copyleft ones in what ships", () => {
-    const tool = policy().allowedFor("some-tool", false);
+    const tool = game.allowedFor("some-tool", false);
     for (const osi of ["EUPL-1.2", "OSL-3.0", "CECILL-2.1", "MS-RL", "BSL-1.0", "Artistic-1.0-Perl"]) expect(licenceOk(osi, tool)).toBe(true);
     for (const copyleft of ["EUPL-1.2", "OSL-3.0", "CECILL-2.1", "MS-RL"]) expect(licenceOk(copyleft, code)).toBe(false);
   });
@@ -79,9 +82,9 @@ describe("licences", () => {
   });
 
   it("works out what ships from the workspaces' runtime dependencies, not the lockfile's own flags", () => {
-    const root = new URL("../../../", import.meta.url);
-    const lock = JSON.parse(readFileSync(new URL("package-lock.json", root), "utf8")).packages;
-    const shipped = shippedPaths(lock, JSON.parse(readFileSync(new URL("package.json", root), "utf8")).workspaces);
+    const read = (path: string) => JSON.parse(readFileSync(new URL(path, root), "utf8"));
+    const lock = read("package-lock.json").packages;
+    const shipped = shippedPaths(lock, read("package.json").workspaces, (dir) => read(dir ? `${dir}/package.json` : "package.json"));
     for (const path of ["node_modules/react", "node_modules/react-dom", "node_modules/zod", "node_modules/@anthropic-ai/sdk"]) expect(shipped.has(path)).toBe(true);
     for (const path of ["node_modules/vite", "node_modules/vitest", "node_modules/typescript", "node_modules/caniuse-lite"]) expect(shipped.has(path)).toBe(false);
   });

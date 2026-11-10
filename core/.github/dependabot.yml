@@ -1,0 +1,15 @@
+# Dependabot version updates of the workflows' GitHub actions (floor rule 3's narrow exception; floor rule 17).
+# A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first (floor rule 7).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
