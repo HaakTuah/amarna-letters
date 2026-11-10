@@ -10,7 +10,6 @@
     "AGENTS.md",
     "CLAUDE.md",
     "core-manifest.md",
-    "docs/calibration.md",
     "core/floor/*.md",
     "core/modules/*.md",
     ":!docs/builder-rules.md"
