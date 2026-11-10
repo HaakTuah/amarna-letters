@@ -143,3 +143,10 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      settings he had already made:
 
      > Fix everything, I am too tired for this. Make them stop asking these headache inducing questions.
+
+138. **10 November 2026** (the core). Told that a Playwright update in a game touched nothing of his, and that his yes
+     on the cloud setup script and on workflows protected nothing he could judge better than the reviews, with the
+     proposal that such changes pass two independent security reviews (Codex's and a fresh Opus reviewer's) instead, his
+     yes kept only for spending money, what cannot be undone, the safety rules themselves and a licence exception:
+
+     > Correct. Do it, expertly.
