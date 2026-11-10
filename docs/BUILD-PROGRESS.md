@@ -73,7 +73,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
   Barkstreet Snakes. **Steps 1 to 3 are done** (step 3: `develop` dropped in #870, then this game took the core at
-  `cecbe3b`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
+  `10a8da1`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
   Left for others: the owner sets `main`'s ruleset and deletes `develop`; the design session cuts the builder rules and
   `scripts/design-copy.py`'s `develop` lines at the source, with the passage the builder rules say twice and the two the
   core's workshop check now holds, and then `docs/builder-rules.md` goes back into the copies check's prose

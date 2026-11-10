@@ -13,6 +13,10 @@ docs-only PRs none, unless one changes a protected file (`floor/security.md`, ru
 the code review (core archive 47); every PR, its one security review when it is marked ready (point 6); a PR Codex
 built, the fallback reviewer in place of Codex's code review.
 
+**Copilot's code review,** where the owner has GitHub request it (`README.md`, "Setting up (the owner's part)"), is
+advisory: the builder fixes what it finds that is real and answers the rest in a line, in the same round as the other
+reviews; no merge waits for it, and it counts toward no 10 (core archive 130).
+
 1. **Ask:** a comment `@codex review` alone. Codex reads the PR's description, so the task's text and the sections it
    names go there. **Write the Codex mention only to ask for a code review:** any other request starts a task in its
    cloud, which cannot push (`modules/codex-building.md`, "Status"), and its bot answers every mention it finds, even in

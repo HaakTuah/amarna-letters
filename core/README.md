@@ -128,6 +128,11 @@ Floor: whole. Modules: <all, or the list of those taken>.
 - A Codex cloud environment for each project (the *Codex environment*), made in ChatGPT's Codex settings as a legacy
   environment: its setup script `bash scripts/cloud-setup.sh` (manual setup, the same as its maintenance script), and
   internet access limited to read-only methods.
+- Each project's ruleset on its default branch: deletions restricted and force pushes blocked; a pull request required,
+  with no approvals, since the reviews are agents'; status checks required, the project's CI with `core / core`, and
+  branches up to date before merging; code scanning results required from CodeQL, blocking on security alerts High or
+  higher and alerts Errors; code quality results required at Errors (core archive 130). Copilot's code review may be
+  requested automatically; it is advisory (`modules/reviews.md`).
 - The machine where agents run side by side (floor rule 18): `setup/server.md`, read only when setting it up.
 
 ## This repository

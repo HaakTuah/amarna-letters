@@ -41,7 +41,9 @@ literal is gone.
 - **In a PR's own change:** it blocks the merge until fixed, wherever it was reported, Codex's findings on the PR
   included. A CodeQL finding that is a false alarm is no weakness: once explained in the PR and confirmed there by
   whoever gave the PR its security review, with no suppression comment added to the code, the PR may merge, and the
-  owner alone dismisses the alert.
+  owner alone dismisses the alert. Where the alert is one the project's ruleset blocks a merge on (`README.md`,
+  "Setting up (the owner's part)"), the PR waits for his dismissal, asked for in an issue assigned to him (core archive
+  130).
 - **In merged code, where it could reach what the threat model protects beyond its lower stakes, or whose kind the owner
   has not said:** reported privately first, if the reporter can (an outsider through "Reporting a weakness" below; an
   agent only in its session's last message to the owner, never in a file, commit, PR, issue, comment or report), and
