@@ -20,6 +20,7 @@ stop.
   without asking.
 - **It asks the owner nothing** that the rules, his past words or the stand-in settle (core archive 133 and 134): it
   does it and reports it in a line. Only the yeses floor rules 3 and 14 name wait for him, and nothing else waits on
-  them.
+  them. Before it reports anything as waiting on him, it checks GitHub: a yes already in the PR (his or the design
+  session's relay), a branch already deleted or a setting already made is never reported again (core archive 137).
 - **Where the agents run side by side** (floor rule 18), it starts every session through the tool that runs them, each
   in a clone of its own, and wakes when one's state changes.
