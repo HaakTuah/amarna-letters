@@ -42,7 +42,13 @@ jobs:
           if [ -n "$hits" ]; then echo "A personal term is in these files (file:line):"; echo "$hits"; found=1; fi
           if [ -n "$BASE" ]; then
             # Only commits made since the rule (2 November 2026): older ones cannot be changed without rewriting history.
-            bad=$(git log --since='2026-11-02T17:30:00Z' --format='%h %B%x00' "$BASE..HEAD" | tr '\0\n' '\n ' | grep -i -F -f "$list" | cut -d' ' -f1 || true)
+            # One commit at a time, so every new commit's message is checked, not only the newest.
+            # --since-as-filter skips older commits without stopping the walk; a failing rev-list fails the job.
+            commits=$(git rev-list --since-as-filter='2026-11-02T17:30:00Z' "$BASE..HEAD")
+            bad=""
+            for c in $commits; do
+              if git log -1 --format=%B "$c" | tr '\n' ' ' | grep -q -i -F -f "$list"; then bad="$bad $(git rev-parse --short "$c")"; fi
+            done
             if [ -n "$bad" ]; then echo "A personal term is in these commits' messages:"; echo "$bad"; found=1; fi
           fi
           if grep -q -i -F -f "$list" <<< "$TITLE"$'\n'"$BODY"; then echo "A personal term is in the PR's title or description."; found=1; fi
