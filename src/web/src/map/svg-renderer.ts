@@ -765,7 +765,8 @@ export class SvgMapRenderer implements MapRenderer {
       }
       // The season a province was last seen (the fog's dates) gives way to every name and marker, and each to the one before.
       for (const t of view.querySelectorAll<SVGTextElement>(".fogdates .fogdate")) {
-        const r = still(t, at);
+        // Measured each time: the fog's text is patched in place between seasons, so a kept box could be another province's.
+        const r = t.getBoundingClientRect();
         if (r.width === 0) continue; // hidden at this zoom
         if (free([r]) && !shown.some((o) => touch(r, o))) shown.push(r);
         else off.add(t);
