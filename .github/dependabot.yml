@@ -1,11 +1,9 @@
-# Dependabot version updates (the owner, 2 November 2026; "Git and GitHub" in AGENTS.md). They aim at develop and
-# are ordinary small PRs. Security updates need no file here: GitHub aims those at main, under the five conditions.
+# Dependabot version updates (core/modules/updates.md; floor rule 17). The core's workflow pins move only by a sync PR.
 # A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first.
 version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
-    target-branch: "develop"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -17,12 +15,13 @@ updates:
         update-types: ["minor", "patch"]
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "develop"
     schedule:
       interval: "weekly"
       day: "monday"
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "HaakTuah/agent-core*"
     groups:
       actions:
         patterns: ["*"]

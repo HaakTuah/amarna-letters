@@ -2,7 +2,7 @@
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
 `docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
-how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
+how work flows and is reviewed: `core/modules/work-flow.md` and `core/modules/reviews.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
 
@@ -48,9 +48,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 ## The workshop lane
 
 - **Trim what every session reads** (archive item 239; a routine docs lane, for Sonnet): this file back under about
-  20 KB, finished items and done follow-ups moved to the archive with a pointer; `AGENTS.md` keeps a pointer where it
-  repeats the builder rules (the usage brake, branches, milestones); and `docs/claude-and-codex.md` (22 KB) moves its
-  Codex setup, "For Codex" and "Setup", into a file of its own, read only when setting Codex up.
+  20 KB, finished items and done follow-ups moved to the archive with a pointer.
 - **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
   common to every project move to one public repository, `HaakTuah/agent-core` (renamed from `agent-rules`),
   and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
@@ -61,9 +59,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   whatever only it has, each rule file cut to that, with pointers into `core/`. The steps: (1) the owner creates the
   repository and adds it to Claude's and Codex's GitHub access, which only he can do; (2) a fresh session the owner
   starts in the core repository at high effort writes the core from both games' rule files (it reads them, as they are
-  public, and writes only to the core), from this brief: (a) read both games' rule files whole on `main` (`AGENTS.md`,
-  `CLAUDE.md`, `SECURITY.md`, `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/codex-building.md`,
-  `docs/orchestrating.md`, `docs/review-guidelines.md`, `docs/developing.md`, and Amarna Letters' builder rules); (b) a rule goes into the core
+  public, and writes only to the core), from this brief: (a) read both games' rule files whole on `main`, as they stood
+  before step 3; (b) a rule goes into the core
   if it holds in both games and would hold in any project, and one that differs only in names, paths or examples goes in
   once, with the difference left as a slot each project fills; a rule only one game has stays in that game; (c) every
   rule keeps its reason, and the owner's words behind the common rules move word for word into the core's own archive,
@@ -75,10 +72,13 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
   on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
-  Barkstreet Snakes. **Steps 1 and 2 are done, and step 3 is next:** it takes `HaakTuah/agent-core` at its newest `main`, from
-  the core's `reports/2026-11-10-step-3-now.md` first, which lists this game's step 3 in order (dropping `develop` just
-  before it, in a PR of its own) and holds where the older reports it names disagree. Its workflows need the owner's
-  yes in its PR; the builder-rule lines it replaces are cut by the design session at the source.
+  Barkstreet Snakes. **Steps 1 to 3 are done** (step 3: `develop` dropped in #870, then this game took the core at
+  `31f3d51`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
+  Left for others: the owner sets `main`'s ruleset and deletes `develop`; the design session cuts the builder rules and
+  `scripts/design-copy.py`'s `develop` lines at the source, with the passage the builder rules say twice and the two the
+  core's workshop check now holds, and then `docs/builder-rules.md` goes back into the copies check's prose
+  (`scripts/copies.json` leaves it out until then); then the rule-file audit. What the game does not yet do of
+  the core's rules is its own queue, by way of the design session (that report, "What each game does not yet do").
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
@@ -109,22 +109,26 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
+  that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
+  the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
+  `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
+
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
-  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `docs/orchestrating.md`, moved by
+  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `core/modules/workshop-check.md`, moved by
   the design session at the design document's next refresh. (2) to (4) done in #732: what waits until Codex can build is
   `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
-  the archive. `docs/claude-and-codex.md` is still 22 KB, past the 20 KB warning: what is left is one thing (the roles,
-  the reviews, Codex's setup), so it stays whole until the shared core takes its common part.
+  the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
-  passage of the builder rules said twice (the design document's to fix), the generated `geo-fine-data.ts` (its
+  generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
   dodge).
-- **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
+- **A canary for Codex's code review, on resume** (`core/modules/calibration.md`; archive item 206): the
   review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
   file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
-  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
+  code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
   only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
   reviews"); report a PR that lacks it.
@@ -181,7 +185,7 @@ the workshop check, and again on 7 November): among them the history check's lin
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
   workflow that opens an `enhancement` issue when one is behind.
 
-Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
+Points a review moved out of its PR, each with its reason ("Only a 10 passes" in `core/modules/reviews.md`, point 2); struck when
 fixed.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
@@ -193,7 +197,7 @@ fixed.
 Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aquestion)
 (`question`), [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement) (`enhancement`) and
 [bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
-"Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
+`core/modules/inbox.md`. Answered review points from before 2 November 2026:
 `docs/archive/progress-done.md`.
 
 ## Use against ignore

@@ -487,4 +487,4 @@ Letters* for the translations of the letters themselves.
 
 The libraries, samples and map data the game ships, with their licences, are listed in its third-party notices
 (`third-party-notices.txt` beside the game, linked from the About page's Credits; written by the web build from
-`scripts/licences.mjs`). The game's own code carries no licence: all rights reserved.
+`scripts/notices.mjs`). The game's own code carries no licence: all rights reserved.
