@@ -15,7 +15,10 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
+- **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
+  text under Build order in the design document): god view hears a seat only while the viewer follows one of its
+  characters, else the world's own heat, never the middle of the view (archive item 248); each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
+  of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
@@ -24,8 +27,8 @@ account until its usage is spent; on the main account the usage brake closes it 
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
   help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
-  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; its tuning by the
-  owner's ear: #877).
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; god view's music
+  and the draw: 19+++c, above).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -175,10 +178,11 @@ the workshop check, and again on 7 November): among them the history check's lin
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
 
-- **Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
+- ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
-  workflow that opens an `enhancement` issue when one is behind.
+  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547: the list is `.github/versions.json`
+  (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`.
 
 Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
