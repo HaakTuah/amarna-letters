@@ -19,6 +19,6 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: HaakTuah/agent-core/.github/workflows/codeql.yml@2d13e39d7d6062a5524852a9b2107e86b33c5353
+    uses: HaakTuah/agent-core/.github/workflows/codeql.yml@1a874ac49ccf0aca9b7a5667a4617e80a05b7633
     with:
       languages: '["actions", "javascript-typescript", "python"]'
