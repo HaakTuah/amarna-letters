@@ -14,6 +14,7 @@ import { newWordHome } from "../model/held-king.ts";
 import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
 import type { Order } from "../model/orders.ts";
+import { placeSpy } from "../model/order-makers.ts";
 import { powerName, quoteWords, rulerStyle, type Power } from "../model/power.ts";
 import { newJourney, Waiting, type Journey } from "../model/records.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
@@ -121,13 +122,25 @@ P.heldSeason = function (p, sub) {
   // What his letters home agreed to, arrived: carried out this season, as the court's own business, held or free.
   const arrived = S.wordHome.filter((w) => w.power === p && w.journey === "").map((w) => w.order);
   S.wordHome = S.wordHome.filter((w) => !(w.power === p && w.journey === ""));
+  for (const o of arrived.filter((o) => o.type === "cede" || o.type === "giftUnit" || o.type === "dispatch")) logEvent(S, "king-gave-in", `The court of ${p} carries out its king's word from captivity: ${describe(o)}.`, [p], "king-gave-in");
   // His word is his own, given now; a script king standing in after the seat's call failed only fills what it leaves free.
   if (king === null)
     return arrived.length === 0 && sub.caretaker === null
       ? sub
       : newTurnSubmission({ ...sub, orders: sub.fromFallback ? arrived : [...arrived, ...sub.orders], caretaker: sub.fromFallback ? newTurnSubmission({ orders: sub.orders }) : null });
-  // A spy his word posts at his captor's court goes on the errand to free him, once he is sent (`placeSpy`).
-  for (const o of arrived) if (o.type === "spy" && o.court === king.heldBy) this._freeingNow.add(o);
+  // A man his word hires or keeps on as a spy at his captor's court is on the errand to free him: his job says so
+  // (`JobErrand.frees`); one at his court is sent there now, unless the word sends him itself. A spy his word posts there
+  // goes on that errand once he is sent (`placeSpy`).
+  const host = king.heldBy!;
+  for (const [i, o] of [...arrived.entries()].reverse()) {
+    if ((o.type === "hire" || o.type === "renew") && o.what === "spy" && o.where === host) {
+      arrived[i] = { ...o, frees: king.id };
+      const man = findCharacter(S, o.character);
+      const sent = arrived.some((x) => x.type === "spy" && x.character === o.character);
+      if (!sent && man !== null && man.at === p && man.heldBy === null) arrived.splice(i + 1, 0, placeSpy(o.character, host));
+    }
+  }
+  for (const o of arrived) if (o.type === "spy" && o.court === host) this._freeingNow.set(o, king.id);
   this.captiveWrites(p, king, sub.orders);
   const care = sub.caretaker ?? newTurnSubmission();
   const kept = care.orders.filter((o) => inMandate(S, p, king.id, o));
@@ -156,7 +169,7 @@ P.captiveWrites = function (p, king, orders) {
       p,
       "Rejected",
       "Held at a foreign court",
-      `You are held at the court of ${powerName(host)}, and your realm is kept in your name: your standing orders stand, your troops defend your land and your debts, fees and tribute are kept, but nothing new is begun. From here you may only write letters (order write), and in a letter home agree to your ransom, to giving in (land ceded, troops given, an envoy sent with a tablet), or to a spy hired or posted at this court to free you. Not carried out: ${refused.join("; ")}.`,
+      `You are held at the court of ${powerName(host)}, and your realm is kept in your name: your standing orders stand, your troops defend your land and your debts, fees and tribute are kept, but nothing new is begun. From here you may only write letters (order write_from_captivity), and in a letter home agree to your ransom, to giving in (land ceded, troops given, an envoy sent with a tablet), or to a spy hired or posted at this court to free you. Not carried out: ${refused.join("; ")}.`,
       king.id,
     );
   if (king.duty === "UnderGuard") {
@@ -167,7 +180,7 @@ P.captiveWrites = function (p, king, orders) {
   const toHome = letters.find((o) => o.type === "write" && o.to === p) ?? null;
   const all: { to: Power; text: string; word: Order[] }[] = letters.map((o) => (o.type === "write" ? { to: o.to, text: o.letter, word: o === toHome ? home : [] } : { to: p, text: "", word: [] }));
   if (toHome === null && home.length > 0) all.push({ to: p, text: home.map((o) => `I agree: ${describe(o)}.`).join(" "), word: home });
-  const spy = spyWith(S, p, host);
+  const spy = spyWith(S, p, host, true);
   for (const l of all) {
     if (!isAlive(S, l.to) || l.to === host) {
       if (l.to === host) notify(S, host, "Notice", "A letter from your captive", `${king.name}, the ${rulerStyle(p)} of ${powerName(p)} you hold, writes to you: ${quoteWords(l.text)}`, king.id);

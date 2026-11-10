@@ -193,8 +193,9 @@ your court's omens darken as it nears. A table can change how long games run, or
 
 A king is a person. He may travel without his court, commanding from where he is, near the front and at the risk of his
 life. Taken in the city where he stands, in a battle or on the road, he is his captor's captive, to be put to death,
-ransomed, released or handed over, and he may get away by his own skill, helped by a spy he sends for; a court taken, in its city or stopped on the road, loses its
-treasury and flees by road to the nearest city its realm still holds. While he is held, his player plays the captive:
+ransomed, released or handed over, and he may get away by his own skill, helped by a man he sends for and hindered by his captor's watchmen; a court taken,
+in its city or stopped on the road, loses its treasury and its captives, who go free, and flees by road to the nearest
+city its realm still holds. While he is held, his player plays the captive:
 he knows of his realm only what word from his court brings him, and writes letters that leave through his captor's
 court, which reads them and may keep them, agreeing in a letter home to his ransom, to giving in or to a spy sent to free
 him; a caretaker keeps his realm in his name meanwhile, defending it and keeping its dues but beginning nothing new. He dies only by a cause where he is (in battle, in a city's fall, put to death

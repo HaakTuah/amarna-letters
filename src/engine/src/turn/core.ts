@@ -80,8 +80,8 @@ export class TurnEngine {
    * each with that unit's copy: checked and carried out on it as for one that stands (`sendOrders`).
    */
   readonly _goneNow = new Map<Order, Unit>();
-  /** #806: the postings a held king's word home orders this season: the spy, once sent, goes on the errand to free him. */
-  readonly _freeingNow = new Set<Order>();
+  /** #806: the postings a held king's word home orders this season, with the king: the spy, once sent, goes on the errand to free him. */
+  readonly _freeingNow = new Map<Order, string>();
   /** The season's battle, once the moves are resolved. */
   _battle: AdjudicationResult | null = null;
   /** The unit orders of the season, by the province of the unit. */

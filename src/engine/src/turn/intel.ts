@@ -25,6 +25,7 @@ import { learn } from "../rules/skills.ts";
 import { legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn, type WorldMap } from "../model/map.ts";
 import { StealRisk } from "./knowledge.ts";
+import { AidData } from "./kings-fate.ts";
 
 /** How long a court talks of a servant it put to death: the season of the death and this many after. */
 export const LossNewsSeasons = 3;
@@ -126,9 +127,10 @@ P.placeSpy = function (p, ps) {
   if (stir > 0 && !this.pay(p, stir, `gold for ${c.name} to spend among the people of ${Map.get(province!).name}`, ps, "he went without it")) return;
   if (c.contract !== null && job === null) c.contract.errand = newJobErrand({ what: "spy", where: court ?? province! });
   c.stirGold += stir;
-  // #806: on the errand to free his king only when the king's word home sent him; any other posting ends it.
-  S.freeing = S.freeing.filter((x) => x !== c.id);
-  if (this._freeingNow.has(ps)) S.freeing.push(c.id);
+  // #806: sent by a held king's word home, his job is to free him (one hired for it says so already).
+  const frees = this._freeingNow.get(ps);
+  const errand = c.contract?.errand ?? null;
+  if (frees !== undefined && errand !== null) errand.frees = frees;
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;
@@ -249,11 +251,15 @@ P.watchAndReport = function () {
     // A fallen court has nobody left to catch a spy, nor to decide its fate; nobody hunts a resident known to all (item 17++).
     if (host !== null && host !== employer && c.secretMaster !== host && isAlive(S, host) && !c.openly) {
       const watch = S.counterIntel.getOrDefault(host, 0);
-      const risk = this._stealing.has(c.id) ? StealRisk : 0;
+      // #806: one whose job is to free a king held here risks more, as one stealing a tablet does.
+      const e = c.contract?.errand ?? null;
+      const freeing = e !== null && e.what === "spy" && !e.done && e.frees !== "" && findCharacter(S, e.frees)?.heldBy === host;
+      const risk = (this._stealing.has(c.id) ? StealRisk : 0) + (freeing ? AidData.risk : 0);
       const caughtAt = (skill: number): number => clamp(0.05 + watch / 300.0 - skill / 400.0 + risk, 0.02, 0.6 + risk);
       const caught = rng.chance(caughtAt(c.skills.stealth));
       learn(c, "stealth", !caught, (b) => 1 - caughtAt(b));
       if (caught) {
+        if (freeing) logEvent(S, "king-aid-caught", `${c.name} was caught trying to free ${findCharacter(S, e!.frees)!.name} from ${host}.`, [host], "king-aid-caught");
         this.capture(c, host, rng);
         continue;
       }

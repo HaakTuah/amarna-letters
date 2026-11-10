@@ -1,7 +1,8 @@
 import { describe, test } from "vitest";
-import { type GameState, OrderValidator, inboxOf, type Power, captive, cede, giftUnit, heldKing, hold, move, newSleepState, newTurnSubmission, ownedBy, payRansom, placeSpy, writeLetter } from "@amarna/engine";
+import { type Character, type GameState, OrderValidator, Views, inboxOf, type Power, captive, cede, giftUnit, heldKing, hire, hold, move, newSleepState, newTurnSubmission, notify, ownedBy, payRansom, placeSpy, writeLetter } from "@amarna/engine";
 import { inMandate } from "../src/turn/held-king.ts";
-import { lettersKept } from "../src/rules/court.ts";
+import { lettersKept, spyWith } from "../src/rules/court.ts";
+import { newJobErrand } from "../src/model/people.ts";
 import { newJourney } from "../src/model/records.ts";
 import { newWordHome } from "../src/model/held-king.ts";
 import { Assert, egyptHeld } from "./support.ts";
@@ -9,6 +10,12 @@ import { Assert, egyptHeld } from "./support.ts";
 // #806: a captive king plays the captive; a caretaker keeps his realm within a narrow mandate.
 describe("HeldKingTests", () => {
   const kingOf = (s: GameState, p: Power) => s.characters.find((c) => c.id === s.reigns.get(p).character)!;
+  const servant = (s: GameState, p: Power) => s.characters.find((c) => c.employer === p && c.id !== kingOf(s, p).id && c.status === "Employed" && c.contract !== null)!;
+  // A spy posted at the captor's court whose job is to free the king.
+  const onErrand = (s: GameState, c: Character) => {
+    Object.assign(c, { duty: "SpyPosted", at: "Hatti" });
+    c.contract!.errand = newJobErrand({ what: "spy", where: "Hatti", frees: kingOf(s, "Egypt").id });
+  };
 
 
   test("A king held is his court's to keep by a caretaker; a free king is not held", () => {
@@ -55,14 +62,14 @@ describe("HeldKingTests", () => {
   test("His ransom rides home in his letter and his court pays it when the letter comes; his own spy takes it out unread", () => {
     const { s, e } = egyptHeld();
     const k = kingOf(s, "Egypt");
-    const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
+    const spy = servant(s, "Egypt");
     spy.duty = "SpyPosted";
     spy.at = "Hatti";
     // Posted for anything else, he takes nothing out: only on the errand his king's word gave him.
     e.heldSeason("Egypt", newTurnSubmission({ orders: [writeLetter("Egypt", "Hold fast.")], caretaker: newTurnSubmission() }));
     Assert.equal(k.id, Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter")).characterId);
     s.journeys = [];
-    s.freeing.push(spy.id);
+    onErrand(s, spy);
     const before = inboxOf(s, "Hatti").length;
     e.heldSeason("Egypt", newTurnSubmission({ orders: [payRansom(k.id)], caretaker: newTurnSubmission() }));
     const j = Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter"));
@@ -90,26 +97,45 @@ describe("HeldKingTests", () => {
   test("A spy his word home posts at his captor's court goes to free him only once he is sent", () => {
     const { s, e } = egyptHeld();
     const k = kingOf(s, "Egypt");
-    const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
+    const spy = servant(s, "Egypt");
     Object.assign(spy, { duty: "SpyPosted", at: "Hatti" });
+    spy.contract!.errand = null;
+    const frees = () => spy.contract!.errand?.frees ?? "";
     const post = placeSpy(spy.id, "Hatti");
     s.wordHome.push(newWordHome({ power: "Egypt", order: post }));
     // Posted there already, he is not sent: the order is refused, and he takes no letter out that season.
     const out = e.heldSeason("Egypt", newTurnSubmission({ orders: [writeLetter("Egypt", "Come for me.")], caretaker: newTurnSubmission() }));
     Assert.single(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: out.orders })).rejected);
-    Assert.empty(s.freeing);
+    Assert.equal("", frees());
     Assert.equal(k.id, Assert.single(s.journeys.filter((x) => x.kind === "CaptiveLetter")).characterId);
-    // Sent from home by any other order, he is not on that errand; by his word, he is.
+    // Sent from home by any other order, he is not on that errand; by his word, his job is to free him.
     Object.assign(spy, { duty: "None", at: "Egypt" });
     e.placeSpy("Egypt", placeSpy(spy.id, "Hatti"));
-    Assert.empty(s.freeing);
+    Assert.equal("", frees());
     Object.assign(spy, { duty: "None", at: "Egypt" });
+    spy.contract!.errand = null;
     e.placeSpy("Egypt", post);
-    Assert.equal([spy.id], s.freeing);
-    // Posted again later by an ordinary order, his errand to free the king is over.
-    Object.assign(spy, { duty: "None", at: "Egypt" });
-    e.placeSpy("Egypt", placeSpy(spy.id, "Hatti"));
-    Assert.empty(s.freeing);
+    Assert.equal(k.id, frees());
+    // Recalled, his job is done: a new job is a new errand, and he no longer helps.
+    e.recall("Egypt", spy);
+    Object.assign(spy, { duty: "SpyPosted", at: "Hatti" });
+    Assert.equal(null, spyWith(s, "Egypt", "Hatti"));
+  });
+
+  test("A man his word home hires as a spy at his captor's court has the job to free him, and his court sends him", () => {
+    const { s, e } = egyptHeld();
+    const k = kingOf(s, "Egypt");
+    const man = s.characters.find((c) => c.status === "Free" && c.heldBy === null && c.errand === null && c.contract === null)!;
+    Object.assign(man, { at: "Egypt", duty: "None" });
+    s.wordHome.push(newWordHome({ power: "Egypt", order: hire(man.id, 60, 6, 30, { what: "spy", where: "Hatti" }) }));
+    const out = e.heldSeason("Egypt", newTurnSubmission({ caretaker: newTurnSubmission() }));
+    Assert.equal(["hire", "spy"], out.orders.map((o) => o.type));
+    const h = out.orders[0];
+    Assert.equal(k.id, h.type === "hire" ? h.frees : null);
+    // Nobody else's king, and only a spy's job at the court that holds him.
+    man.at = "Mitanni";
+    const v = new OrderValidator(s).validate("Mitanni", newTurnSubmission({ orders: [{ ...hire(man.id, 60, 6, 30, { what: "spy", where: "Hatti" }), frees: k.id }] }));
+    Assert.contains("free your king", Assert.single(v.rejected).reason);
   });
 
   test("His word home may give in: land ceded goes home with his letter", () => {
@@ -132,17 +158,30 @@ describe("HeldKingTests", () => {
     Assert.empty(s.journeys.filter((x) => x.id === "j-k"));
   });
 
-  test("A disloyal, greedy spy sent to free him sells him out to his captor", () => {
+  test("A disloyal, fearful spy sent to free him sells him out to his captor", () => {
+    const { s, e } = egyptHeld();
+    const spy = servant(s, "Egypt");
+    onErrand(s, spy);
+    spy.traits.loyalty = 20;
+    spy.traits.courage = 10;
+    e.kingsHeld();
+    Assert.equal(null, spyWith(s, "Egypt", "Hatti"));
+    Assert.true(inboxOf(s, "Hatti").some((i) => i.title === "A plot to free your captive"));
+  });
+
+  test("His court taken by force, the kings it held go free", () => {
     const { s, e } = egyptHeld();
     const k = kingOf(s, "Egypt");
-    const spy = s.characters.find((c) => c.employer === "Egypt" && c.id !== k.id && c.status === "Employed")!;
-    Object.assign(spy, { duty: "SpyPosted", at: "Hatti" });
-    spy.traits.loyalty = 20;
-    spy.traits.greed = 80;
-    s.freeing.push(spy.id);
-    e.kingsHeld();
-    Assert.empty(s.freeing);
-    Assert.true(inboxOf(s, "Hatti").some((i) => i.title === "A plot to free your captive"));
+    s.owner.set(e.courtAt("Hatti"), "Mitanni");
+    e.courtFlees("Hatti", "Mitanni", false);
+    Assert.equal([false, null], [k.status === "Captured", k.heldBy]);
+  });
+
+  test("The caretaker reads his court's word as it comes; the captive, late", () => {
+    const { s } = egyptHeld();
+    s.courtLag.set("Egypt", 3);
+    notify(s, "Egypt", "Notice", "Tribute", "Tribute came.");
+    Assert.equal([true, false], [Views.court(s, "Egypt").inbox.some((i) => i.title === "Tribute"), Views.for(s, "Egypt").inbox.some((i) => i.title === "Tribute")]);
   });
 
   test("His captor's watchmen guard him: well guarded, the best of kings does not get away", () => {

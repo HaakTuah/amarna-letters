@@ -316,6 +316,8 @@ export interface HireOrder {
   payOnDone?: boolean | null;
   offerAgain?: boolean | null;
   via?: string | null;
+  /** #806: with a spy's job at a court that holds a king captive, that king (his id), whom the job is to free. */
+  frees?: string | null;
 }
 /**
  * A new job offered to one of your own people at your court (a new errand, fee and term), the advance handed over now, if
@@ -331,6 +333,8 @@ export interface RenewOrder {
   where?: string | null;
   payOnDone?: boolean | null;
   offerAgain?: boolean | null;
+  /** #806: as for a hire, the king held at that court whom the job is to free. */
+  frees?: string | null;
 }
 /** The owner's answers to item 11a: seize the hoard a living person keeps in your capital, with the tablets kept in it. */
 export interface SeizeHoardOrder {

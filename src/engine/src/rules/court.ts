@@ -88,11 +88,16 @@ export function lettersKept(s: GameState, king: string, to: Power): boolean {
 }
 
 /**
- * A spy of `p`'s posted at the court of `host` on the errand his captive king gave him in a letter home (#806,
- * `GameState.freeing`): he carries the king's letters home unread and helps him get away.
+ * A spy posted at the court of `host` whose job is to free `p`'s king held there (#806, `JobErrand.frees`), whoever hired
+ * him: he helps the king get away; one of `p`'s own (`own`) also takes the king's letters home unread, as his reports go.
  */
-export function spyWith(s: GameState, p: Power, host: Power): Character | null {
-  return s.characters.find((c) => s.freeing.includes(c.id) && c.status === "Employed" && c.employer === p && c.duty === "SpyPosted" && c.at === host && c.heldBy === null && c.secretMaster === null) ?? null;
+export function spyWith(s: GameState, p: Power, host: Power, own = false): Character | null {
+  const king = s.reigns.tryGet(p)?.character ?? "";
+  const frees = (c: Character): boolean => {
+    const e = c.contract?.errand ?? null;
+    return e !== null && e.what === "spy" && e.where === host && !e.done && king !== "" && e.frees === king;
+  };
+  return s.characters.find((c) => c.status === "Employed" && (!own || c.employer === p) && c.duty === "SpyPosted" && c.at === host && c.heldBy === null && c.secretMaster === null && frees(c)) ?? null;
 }
 
 /** #806: the most seasons word from his court is late to a held king (where no road leads, it comes by the long way). */

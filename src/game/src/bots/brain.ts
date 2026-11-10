@@ -136,6 +136,10 @@ export class Brain {
   readonly lettersKept = new HSet<string>();
   /** #806: the captors' courts our king has written from to his sworn friends, once each. */
   readonly wroteFrom = new HSet<Power>();
+  /** #806: the captors our king gave in to, ceding land for his freedom, once each. */
+  readonly gaveIn = new HSet<Power>();
+  /** #806: the season land last came to us from each king who ceded it. */
+  readonly landFrom = new Dict<Power, number>();
   readonly handedOver = new HSet<string>();
   readonly hosted = new HSet<string>();
   readonly lastSteal = new Dict<string, number>();
@@ -616,6 +620,7 @@ export class Brain {
         r.trust = Math.min(1, r.trust + (item.title === "Land received" ? 0.35 : 0.25));
         r.supportsGiven++;
         if (item.title === "Land received") {
+          this.landFrom.set(giver, item.turn);
           const ceded = Board.Map.provinces.find((x) => item.body.endsWith(` ceded ${x.name} to you.`));
           if (ceded !== undefined) this.received.add(ceded.id);
         }

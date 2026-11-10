@@ -43,7 +43,8 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   hand over or release him, never turn him. Script captors ask a king's ransom (300 shekels and 300 more by greed, a first
   guess) or, vengeful (above 0.7) against a foe, put him to death; a script king ransoms its own whatever it costs.
 - **His court flees** to the nearest city his realm still holds, and keeps his realm in his name from there, under a
-  caretaker once it has heard ([59](59-a-captive-kings-realm.md), #806). A realm that holds nothing has fallen (`fall`, as before), and its king lives on as a free man, a former
+  caretaker once it has heard ([59](59-a-captive-kings-realm.md), #806); the captives it held go free
+  ([59](59-a-captive-kings-realm.md)). A realm that holds nothing has fallen (`fall`, as before), and its king lives on as a free man, a former
   ruler. Since part C the court is lost with its own city, the king with his (`courtFlees`, `kingTaken`).
 - **He may get away**: each season he is held at a court, with a chance of his skill at going unseen in a thousand
   (`KingData.escape`; about one season in seventeen for a king of middling skill), less as his captor keeps watchmen

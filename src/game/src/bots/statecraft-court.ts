@@ -25,6 +25,7 @@ import {
   payFee,
   payRansom,
   writeLetter,
+  cede,
   placeSpy,
   recall,
   release,
@@ -446,6 +447,11 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     }
     // An envoy our besiegers caught was no spy at a post: it cannot be turned, so the cunning ransom it instead. A king
     // taken (item 17b) is worth a king's ransom to his realm, unless he is a foe's and we are vengeful.
+    // #806: a king whose realm gave in, ceding us land while we hold him, goes free, if we keep our word.
+    if (c.kingOf !== null && KingPlay.on(b.me) && brain.landFrom.getOrDefault(c.kingOf, -Infinity) >= v.turn - 3 && p.honesty >= 0.3) {
+      orders.push(captive(c.id, "Release"));
+      continue;
+    }
     const fate: CaptiveOrder =
       c.kingOf !== null && !KingPlay.on(b.me)
         ? captive(c.id, "Release")
@@ -529,8 +535,23 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const pay = "order pay_ransom for ";
   for (const item of v.inbox.filter((i) => i.kind === "Rumor" && i.body.includes(pay))) {
     const id = trimEnd(item.body.slice(item.body.indexOf(pay) + pay.length), "). ");
-    // Our own king (item 17b) is ransomed whatever it costs, if the treasury holds it.
+    // Our own king (item 17b) is ransomed whatever it costs, if the treasury holds it; held, and short of it, he gives in
+    // instead (#806): a province of ours, the least we hold beyond our homeland, ceded to his captor for his freedom.
     const ours = v.known.find((c) => c.id === id);
+    const held = v.heldAt;
+    if (ours?.kingOf === v.power && KingPlay.on(b.me) && held !== null && v.gold < (ours.ransomDemand ?? 0)) {
+      const land = sortBy(
+        [...v.owner].filter(([x, o]) => o === b.me && Board.Map.get(x).home !== b.me && x !== v.courtAt).map(([x]) => x),
+        [(x: string) => (Board.Map.neighbors(x).some((n) => b.ownerOf(n) === held) ? 0 : 1), cmpNum],
+        [(x: string) => b.value(x), cmpNum],
+        [(x: string) => x, cmpStr],
+      )[0];
+      if (land !== undefined && !brain.gaveIn.has(held)) {
+        brain.gaveIn.add(held);
+        orders.push(cede(land, held), writeLetter(held, `I cannot pay what you ask. I give you ${Board.Map.get(land).name} for my freedom.`));
+      }
+      continue;
+    }
     if (ours?.kingOf === v.power ? KingPlay.on(b.me) : p.honesty >= 0.3 && spare > 150) orders.push(payRansom(id));
   }
   brain.spareGold = spare;

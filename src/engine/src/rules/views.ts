@@ -95,7 +95,7 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
   return [...own, ...s.units.filter((u) => u.power !== p && seen.has(u.province)).map(view)];
 }
 
-function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
+function seatView(s: GameState, p: Power, map: WorldMap | null = null, court = false): SeatView {
   const m = map ?? WorldMap.default;
   const engine = new TurnEngine(s, m);
   const seen = sight(s, m, p);
@@ -132,8 +132,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     courtTo: s.kingRoads.find((r) => r.power === p && !r.alone)?.to ?? null,
     // Where the court believes him: while word of his loss is on the road, where he was.
     kingAt: kingAfield(s, p) ?? null,
-    heldAt: heldKing(s, p)?.heldBy ?? null,
-    heldOnRoad: heldKing(s, p)?.duty === "UnderGuard",
+    heldAt: court ? null : (heldKing(s, p)?.heldBy ?? null),
+    heldOnRoad: !court && heldKing(s, p)?.duty === "UnderGuard",
     kingTo: s.kingRoads.find((r) => r.power === p && r.alone)?.to ?? null,
     seat: seatOf(s, m, p),
     traits: s.reigns.tryGet(p)?.traits ?? [],
@@ -240,7 +240,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           paidUntil: ((c) => (seen.has(b.province) && c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
         }),
       ),
-    inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
+    inbox: inboxOf(s, p).filter((i) => (court ? i.turn - i.lag : i.turn) === s.turn),
     unheardHere: s.unheard.filter((a) => a.host === p).map((a) => a.envoyId),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
   });
@@ -287,7 +287,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
   // Item 17b, part C: what came to its court reaches a king away from it as a courier from there brings it (`broughtToKing`).
-  const lag = courtLagOf(s, m, p);
+  const lag = court ? 0 : courtLagOf(s, m, p);
   for (const person of s.characters) {
     // One newly come to his court he does not yet know to be there: as he last knew of it, if at all.
     const fresh = person.at === p && !broughtToKing(s, s.cameToCourt.tryGet(`${person.id}@${p}`) ?? -Infinity, lag);
@@ -550,6 +550,8 @@ export const Views = {
   ownUnitsShown: (s: GameState, p: Power, map: WorldMap | null = null) => ownUnitsShown(new TurnEngine(s, map ?? WorldMap.default), p),
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
+  /** #806: a held king's realm as his court itself knows it, for its caretaker: its own inbox and people, not his late word. */
+  court: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map, true)),
   letters,
   seenAtCourt,
   knows,

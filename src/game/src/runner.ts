@@ -833,7 +833,7 @@ export class GameRunner {
     // #806: a realm whose king is held is kept by the caretaker, asked whether its seat sleeps or not; the seat's own
     // orders are the captive's.
     const held = alive(S_).filter((p) => heldKing(S_, p) !== null);
-    const cares = await Promise.all(held.map((p) => this.recorded<TurnSubmission>(`t${turn}/caretaker/${p}`, TurnSubmissionSchema, () => this.caretaker.decide({ ...(views.tryGet(p) ?? Views.for(S_, p)), heldAt: null }, signal), null, this.caretaker.label)));
+    const cares = await Promise.all(held.map((p) => this.recorded<TurnSubmission>(`t${turn}/caretaker/${p}`, TurnSubmissionSchema, () => this.caretaker.decide(Views.court(S_, p), signal), null, this.caretaker.label)));
     held.forEach((p, i) => out.set(p, newTurnSubmission({ ...(out.tryGet(p) ?? newTurnSubmission()), caretaker: cares[i] })));
     return out;
   }

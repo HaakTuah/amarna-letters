@@ -28,16 +28,21 @@ passing out, like spies and such."
   the engine (`inMandate`): defence of its own land, its dues and debts, its standing orders as he left them; no war,
   march abroad, treaty, grant or hire.
 - The captive: his seat's orders are his letters (new order `write`, `write_from_captivity` in the request), and in a
-  letter home his ransom or a spy at his captor's court, carried out by his court when the letter arrives. The rest is
+  letter home his ransom, giving in, or a man hired, kept on or posted at his captor's court to free him, carried out by
+  his court when the letter arrives. The rest is
   not carried out, with a notice saying why.
 - His letters leave through his captor's court, read there and carried as a ransom demand is; the captor may keep them
-  (new captive fates "StopLetters" and "PassLetters", for all or one court). A spy of his realm posted at that court
-  takes his letters home unread and adds his own skill to the king's chance of getting away.
-- Script players: a captor holding a king for ransom keeps his letters to every court but his own; a captive pays
-  his ransom by his word home, asks for a spy at his captor's court, and writes once to each king sworn to him.
+  (new captive fates "StopLetters" and "PassLetters", for all or one court).
+- Freeing him is an errand of a job (`JobErrand.frees`), given by his word home: the man adds his skill to the king's
+  chance of getting away, risks more of being caught by that court's watchmen, and, if of his realm, takes his letters
+  home unread; a disloyal man who fears the errand or favours the captor sells him out.
+- A court taken by force lets its captives go, kings among them.
+- Script players: a captor holding a king for ransom keeps his letters to every court but his own, and an honest one
+  lets him go once his realm cedes it land; a captive pays his ransom by his word home or, short of it, gives in by
+  ceding a province to his captor, asks for a spy at his captor's court, and writes once to each king sworn to him.
 - The captor's guard: what he spends on watchmen in a season divides the king's chance of getting away that season
-  (`KingData.guard`, 100 shekels halve it, a first guess), and his watchmen catch a spy sent to free him as they catch
-  any posted spy; a script captor keeps watchmen while it holds a king.
+  (`KingData.guard`, 100 shekels halve it, a first guess); a script captor keeps watchmen while it holds a king.
+- The caretaker reads his court's own word as it comes there (`Views.court`), not the captive's late copy of it.
 - The measure of holding a king forever: the batch's "Captive kings" line.
 - Rulebook (`rules-intelligence.ts`), the request's COURT line, the About page and the design notes ([57](../design/57-every-person.md),
   [59](../design/59-a-captive-kings-realm.md)) say so. Save version 93.
@@ -46,8 +51,7 @@ passing out, like spies and such."
 
 - **The captive knows his realm only by word from his court:** his court's view as it stood when its last courier could
   reach him at his captor's court, kept season by season since his capture, with what befell him there himself. The
-  caretaker reads the same late inbox (one inbox per realm), with the court's own view of its land and troops, which is
-  all its narrow mandate acts on. Principle: "Everything is somewhere, and everything travels" (the one page), as for a
+  caretaker stands at the court and reads its word as it comes there. Principle: "Everything is somewhere, and everything travels" (the one page), as for a
   king away from his court (item 17b, part C).
 - **What he agreed to is carried out when it arrives, held or free:** his word stands once it reached his court.
   Principle: "Keeping a promise is an act", and his court's act once it has his word.
@@ -55,11 +59,13 @@ passing out, like spies and such."
   sends with the tablet he names, a treaty sealed as any is) and a spy at his captor's court to free him; the rest of his
   realm's business is the caretaker's. Principle: the owner's "give in or die ... So he can be pressured" and "spies and
   such" (archive items 234 and 235); the caretaker "holds the realm and does not steer it".
-- **A spy helps only on the errand his king gave him:** one posted at the captor's court by the king's own word home.
-  He is caught at it now and then, and a disloyal, greedy one sells his king out by telling the captor, his own choice
-  by his traits, as a script character's choices are (a model character's request does not ask it yet; it joins the
-  characters' requests with the next work on them). Principle: "Nothing happens unless someone orders it" and "Not: a
-  post whose errands come free" (the one page); "Skills set the odds; the character decides".
+- **Freeing him is an errand of a job, his to give:** a spy's job at the captor's court that names the king
+  (`JobErrand.frees`), given by his word home, whether the man is hired, kept on or posted for it. A friend's man is not
+  on it: friends help with gold, words and troops (below). He is caught as any spy there is, a little more for the
+  errand, and a disloyal one who fears the errand or favours the captor sells the king out, his own choice by his traits,
+  as a script character's choices are (a model character's request does not ask it yet; it joins the characters'
+  requests with the next work on them). Principle: "A job is always an errand: what to do, where and by when" and
+  "Numbers come from their causes" (the one page); "Skills set the odds; the character decides".
 - **On the road under guard he writes nothing:** he is not yet at a court whose people could carry a letter. Principle:
   "Everything is somewhere".
 - **The caretaker is a script of its own,** not the seat's: it does not carry the king's ledger or memory. Principle:
@@ -80,9 +86,13 @@ passing out, like spies and such."
   past's, kept before it is cleared (`_guardedLast`), since the escape is drawn as the next season begins (bug #878:
   the road and border checks read the cleared spend).
 - **Other kings may pay for him, demand him or march to free him** by the means every king has: gold and words by
-  envoy, an envoy's tablet, troops that stop him on the road under guard. No ransom order for a king not his own: a
-  ransom is paid to the captor's demand, and the demand goes to his realm. Principle: "No menus"; what a bargain needs
-  is already there.
+  envoy, an envoy's tablet, troops that stop him on the road under guard, and now troops that take the captor's court,
+  which lets its captives go. No ransom order for a king not his own: a ransom is paid to the captor's demand, and the
+  demand goes to his realm. Principle: "No menus"; what a bargain needs is already there; "Everything is somewhere": a
+  court taken has nobody left to guard its captives.
+- **The script captive gives in only when he cannot pay,** once, with the least province beyond his homeland, and an
+  honest captor takes land for him as a ransom. Principle: the owner's "give in or die ... So he can be pressured"
+  (archive item 234); "Words are words": the captor's release is his own choice, by his honesty.
 
 ## Script players and the measure
 

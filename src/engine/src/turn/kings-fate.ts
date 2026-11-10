@@ -38,11 +38,12 @@ import { spyWith } from "../rules/court.ts";
 export const KingData = { competence: 60, escape: 1, guard: 100 } as const;
 
 /**
- * #806, first guesses: the chance in a thousand each season that a spy on the errand to free his king is caught at it by
- * the captor's guards; and the spy who sells his king out instead, by his own traits (a script character's choice): one
- * of loyalty below `sellLoyalty` and greed of `sellGreed` or more tells the captor.
+ * #806, first guesses: what a spy on the errand to free a king adds to a posted spy's chance of being caught each season
+ * (`risk`, as a share, beside the captor's watchmen and his own skill: `watchAndReport`); and the spy who sells the king
+ * out instead, by his own traits (a script character's choice): one of loyalty below `sellLoyalty` who fears the errand
+ * (courage below `sellCourage`) or whose sympathy lies with the captor tells the captor.
  */
-export const AidData = { caught: 40, sellLoyalty: 35, sellGreed: 60 } as const;
+export const AidData = { risk: 0.04, sellLoyalty: 35, sellCourage: 40 } as const;
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -216,6 +217,8 @@ P.courtFlees = function (p, by, road) {
   } else if (gold > 0) this.spendAt(where, gold);
   if (road && taker !== null) this.takeArchive(taker, where, p);
   if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");
+  // #806: its captives, kings among them, go free with the court taken: nobody is left to guard them ("march to free him").
+  for (const x of S.characters.filter((x) => x.heldBy === p && x.status === "Captured" && x.duty !== "UnderGuard")) this.releaseCaptive(p, x);
   // Its people flee to the nearest city the realm still holds, a real journey; a realm that holds nothing has fallen.
   const held = ownedBy(S, p);
   if (held.length === 0) {
@@ -287,19 +290,15 @@ P.kingsHeld = function () {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Captured" || c.heldBy === null || c.duty === "UnderGuard") continue;
     const host = c.heldBy;
-    // #806: a spy his word posted at his captor's court to free him adds his own skill at going unseen to the king's, at
-    // the risk of being caught at it; or sells him out.
+    // #806: a man whose job is to free him adds his own skill at going unseen to the king's (caught at it as a posted spy
+    // is, `watchAndReport`); or sells him out.
     let aid = spyWith(S, p, host);
-    if (aid !== null && aid.traits.loyalty < AidData.sellLoyalty && aid.traits.greed >= AidData.sellGreed) {
-      S.freeing = S.freeing.filter((x) => x !== aid!.id);
-      notify(S, host, "Notice", "A plot to free your captive", `${aid.name}, at your court in the service of ${powerName(p)}, tells you that he was sent to free ${c.name} and carry his letters out.`, aid.id);
-      remember(aid, S.turn, `I told the court of ${land(host)} that I was sent to free my king.`);
+    if (aid !== null && aid.traits.loyalty < AidData.sellLoyalty && (aid.traits.courage < AidData.sellCourage || aid.traits.sympathy === host)) {
+      aid.contract!.errand!.frees = "";
+      notify(S, host, "Notice", "A plot to free your captive", `${aid.name}, at your court in the service of ${powerName(aid.employer!)}, tells you that he was sent to free ${c.name}.`, aid.id);
+      remember(aid, S.turn, `I told the court of ${land(host)} that I was sent to free ${c.name}.`);
       logEvent(S, "king-sold-out", `${aid.name} sold out ${c.name}, held by ${host}.`, [host], "king-sold-out");
       aid = null;
-    } else if (aid !== null && this.r("king-aid", aid.id).chance(AidData.caught / 1000)) {
-      this.capture(aid, host, this.r("king-aid-caught", aid.id));
-      logEvent(S, "king-aid-caught", `${aid.name} was caught trying to free ${c.name} from ${host}.`, [host], "king-aid-caught");
-      continue;
     }
     // #806: the captor's watchmen guard him; what holding him safely costs.
     const guard = KingData.guard / (KingData.guard + this._guardedLast.getOrDefault(host, 0));

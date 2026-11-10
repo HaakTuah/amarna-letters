@@ -13,16 +13,23 @@ export interface HeldMeasure {
   letters: [number, number, number];
   /** Kings who got away, and of them those a spy of theirs helped. */
   escapes: [number, number];
+  /** Of the seasons kings were held, those their captor kept watchmen; and the words home giving in (land, troops, an envoy). */
+  guarded: number;
+  gaveIn: number;
 }
 
 /** Watches a game season by season for the kings held. */
 export class HeldWatch {
   private readonly seasons = new Map<string, number>();
+  private guarded = 0;
 
+  /** Read once a season is played, when its watchmen still stand (`GameState.counterIntel`). */
   season(s: GameState): void {
     for (const p of AllPowers) {
       const k = isAlive(s, p) ? heldKing(s, p) : null;
-      if (k !== null) this.seasons.set(k.id, (this.seasons.get(k.id) ?? 0) + 1);
+      if (k === null) continue;
+      this.seasons.set(k.id, (this.seasons.get(k.id) ?? 0) + 1);
+      if (k.heldBy !== null && s.counterIntel.getOrDefault(k.heldBy, 0) > 0) this.guarded++;
     }
   }
 
@@ -32,7 +39,7 @@ export class HeldWatch {
       return [n, c === undefined || c.status === "Dead" ? "dead" : c.status === "Captured" ? "held" : "home"];
     });
     const count = (signal: string): number => s.events.filter((e) => e.signal === signal).length;
-    return { kings, letters: [count("captive-letter-sent"), count("captive-letter-smuggled"), count("captive-letter-kept")], escapes: [count("king-escapes") + count("king-escapes-aided"), count("king-escapes-aided")] };
+    return { kings, letters: [count("captive-letter-sent"), count("captive-letter-smuggled"), count("captive-letter-kept")], escapes: [count("king-escapes") + count("king-escapes-aided"), count("king-escapes-aided")], guarded: this.guarded, gaveIn: count("king-gave-in") };
   }
 }
 
@@ -47,6 +54,7 @@ export function heldReport(games: readonly HeldMeasure[]): string[] {
       `held ${fmt(sum(long, (n) => n) / long.length, "0.0")} seasons on average, the median ${long[Math.floor(long.length / 2)]}, the longest ${long[long.length - 1]}; ` +
       `at the age's end ${of("home")} free again, ${of("dead")} dead, ${of("held")} still held. ` +
       `Letters from captivity: ${sum(games, (g) => g.letters[0])} sent through the captor, ${sum(games, (g) => g.letters[1])} smuggled out by a spy, ${sum(games, (g) => g.letters[2])} kept by the captor. ` +
-      `Kings who got away: ${sum(games, (g) => g.escapes[0])}, ${sum(games, (g) => g.escapes[1])} of them helped by a spy of theirs.`,
+      `Kings who got away: ${sum(games, (g) => g.escapes[0])}, ${sum(games, (g) => g.escapes[1])} of them helped by a spy of theirs; ` +
+      `seasons held under his captor's watchmen: ${sum(games, (g) => g.guarded)} of ${sum(long, (n) => n)}; words home giving in: ${sum(games, (g) => g.gaveIn)}.`,
   ];
 }
