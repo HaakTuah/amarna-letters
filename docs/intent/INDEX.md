@@ -17,7 +17,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 571 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 363 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 371 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
@@ -43,7 +43,7 @@ session loads.
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 3.0 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `docs/builder-rules.md` | Rules for the builder | 6.5 |
+| `docs/builder-rules.md` | Rules for the builder | 6.2 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.8 |
@@ -63,7 +63,7 @@ session loads.
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 40.9 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.6 |
-| `docs/intent/build-order/item-19.md` | 19. The living map | 16.4 |
+| `docs/intent/build-order/item-19.md` | 19. The living map | 18.6 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.4 |
