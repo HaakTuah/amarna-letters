@@ -34,11 +34,16 @@ fi
 # looked for where that version expects it, and installed by that version if missing, as CI's smoke job does.
 if have node && node -e "require('fs').accessSync(require('playwright').chromium.executablePath())" >/dev/null 2>&1; then
   echo "playwright chromium: already there"
-elif have npx && [ "${SKIP_PLAYWRIGHT:-}" != "1" ]; then
-  if npx --no-install playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1; then
+elif [ "${SKIP_PLAYWRIGHT:-}" = "1" ]; then
+  :
+elif [ -x node_modules/.bin/playwright ]; then
+  # The locked Playwright only, never one found elsewhere on the machine.
+  if node_modules/.bin/playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1; then
     echo "playwright chromium: installed"
   else
     echo "NOT INSTALLED: Playwright's Chromium (see /tmp/playwright-install.log)"
   fi
+else
+  echo "NOT INSTALLED: Playwright's Chromium (the locked Playwright is missing: see /tmp/npm-ci.log)"
 fi
 exit 0

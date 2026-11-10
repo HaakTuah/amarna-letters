@@ -24,13 +24,17 @@ jobs:
       # The runner's own Node: the script uses Node's own modules only.
       - run: node scripts/versions.mjs "$RUNNER_TEMP/versions.md"
       - name: Open or update the issue
+        # Also after the check fails on a version it cannot read: that version is in the body too.
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
           TITLE: Versions Dependabot cannot see are behind
         run: |
           [ -f "$RUNNER_TEMP/versions.md" ] || { echo "Every version is current."; exit 0; }
+          # No pipe: a failed call stops the step (bash -e) instead of reading as "no issue yet" and opening a second.
           open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" \
-            --jq '.[] | select(.title == env.TITLE and .pull_request == null and .user.login == "github-actions[bot]") | .number' | head -n 1)
+            --jq '.[] | select(.title == env.TITLE and .pull_request == null and .user.login == "github-actions[bot]") | .number')
+          open=${open%%$'\n'*}
           if [ -n "$open" ]; then
             gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$open" -F "body=@$RUNNER_TEMP/versions.md" --silent
           else

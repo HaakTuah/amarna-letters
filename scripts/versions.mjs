@@ -1,7 +1,8 @@
 // The versions Dependabot cannot see (.github/versions.json), checked against the newest releases. Run as
 // `node scripts/versions.mjs [body-file]`: it prints one line a version, and when one is behind writes the body of the
-// enhancement issue to body-file, for the monthly workflow (.github/workflows/versions.yml) to open or update. Exits 0
-// whether or not one is behind, 2 when a version cannot be read. Node's own modules only, so it needs no install.
+// enhancement issue to body-file, for the monthly workflow (.github/workflows/versions.yml) to open or update; a
+// version that cannot be read goes into the body too. Exits 0 whether or not one is behind, 2 when a version cannot be
+// read, and fails when nodejs.org's index does not read as expected. Node's own modules only, so it needs no install.
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,8 +34,10 @@ function written(entry) {
 }
 
 /**
- * Node's releases from nodejs.org, kept only where they read as its index writes them: the version x.y.z, and `lts`
- * either false or the line's codename (a word, such as "Lithium"). Anything else is left out, never guessed at.
+ * Node's releases from nodejs.org, as its index writes them: the version x.y.z, and `lts` either false or the line's
+ * codename (a word, such as "Lithium"). An entry without such a version is left out; a release whose `lts` reads
+ * otherwise, or an index with no long-term-support release, fails the run, so a change at nodejs.org is never read
+ * as "current".
  */
 async function nodeReleases() {
   const res = await fetch("https://nodejs.org/dist/index.json");
@@ -42,9 +45,14 @@ async function nodeReleases() {
   const list = await res.json();
   if (!Array.isArray(list)) throw new Error("nodejs.org's index is not a list");
   const lts = (v) => v === false || (typeof v === "string" && /^[A-Z][a-z]+$/u.test(v));
-  return list
-    .filter((r) => typeof r?.version === "string" && VERSION.test(r.version) && lts(r.lts))
-    .map((r) => ({ version: parts(r.version), lts: r.lts !== false }));
+  const valid = list.filter((r) => typeof r?.version === "string" && VERSION.test(r.version));
+  const odd = valid.filter((r) => !lts(r.lts));
+  if (odd.length) {
+    throw new Error(`nodejs.org's index has ${odd.length} releases whose lts reads otherwise (${odd[0].version})`);
+  }
+  const releases = valid.map((r) => ({ version: parts(r.version), lts: r.lts !== false }));
+  if (!releases.some((r) => r.lts)) throw new Error("nodejs.org's index lists no long-term-support release");
+  return releases;
 }
 
 /** The newest version to move to: a newer long-term-support major, else (for an exact pin) the newest of its own. */
@@ -61,12 +69,13 @@ const { versions } = JSON.parse(readFileSync(join(root, ".github/versions.json")
 const sources = { node: nodeReleases };
 const fetched = {};
 const behind = [];
-let unreadable = false;
+const unreadable = [];
 for (const entry of versions) {
   const found = [...new Set(written(entry))];
   if (found.length !== 1 || !parts(found[0])) {
-    console.log(`${entry.what}: cannot read one version where it is written (found ${found.join(", ") || "none"})`);
-    unreadable = true;
+    const line = `cannot read one version where it is written (found ${found.join(", ") || "none"})`;
+    console.log(`${entry.what}: ${line}`);
+    unreadable.push(`- **${entry.what}:** ${line}. Fix its entry in \`.github/versions.json\` or where it is written.`);
     continue;
   }
   fetched[entry.source] ??= await sources[entry.source]();
@@ -77,13 +86,16 @@ for (const entry of versions) {
 }
 
 const out = process.argv[2];
-if (out && behind.length) {
-  const lines = behind.map((b) => `- **${b.what}:** ${b.current}, the newest is ${b.target}. ${b.move}`);
+if (out && (behind.length || unreadable.length)) {
+  const lines = [
+    ...behind.map((b) => `- **${b.what}:** ${b.current}, the newest is ${b.target}. ${b.move}`),
+    ...unreadable,
+  ];
   writeFileSync(
     out,
     [
       "**Is your feature request related to a problem? Please describe.**",
-      "Versions Dependabot cannot see have fallen behind (`.github/versions.json`):",
+      "Versions Dependabot cannot see have fallen behind, or cannot be read (`.github/versions.json`):",
       "",
       ...lines,
       "",
@@ -102,4 +114,4 @@ if (out && behind.length) {
     ].join("\n"),
   );
 }
-process.exit(unreadable ? 2 : 0);
+process.exit(unreadable.length ? 2 : 0);
