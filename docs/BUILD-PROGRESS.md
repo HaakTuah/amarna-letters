@@ -82,7 +82,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   step 3", and the fragments its dry run found that whole-line cuts leave behind, each with its rewrite), then
   `reports/2026-11-10-lean-pass.md` ("What each game changes at step 3": where a cut line's home in the core moved). Its
   workflows need the owner's yes in its PR; the builder-rule lines it replaces are cut by the design session at the
-  source.
+  source. Step 3 also drops `develop` (core archive 113, core PR 37): a last `develop` -> `main` PR, then every open PR
+  retargeted to `main`, and this game's rule files, workflows, previews and `.claude/settings.json` changed from
+  `develop` to `main`; once it merges, the owner sets `main`'s rules on GitHub and deletes `develop`.
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
