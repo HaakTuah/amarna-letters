@@ -12,7 +12,8 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   the people come to his court, so every panel of his seat shows the same), but what befalls him there himself
   (notices whose subject is the king) at once; and the rest of what his seat is shown to decide on is his court's view
   as it stood then (the runner's `captiveView`, from the realm's views kept since his capture). The caretaker reads the
-  court's own word as it comes there (`Views.court`: each notice at `turn - lag`, `InboxItem.lag`) and its own people.
+  court's own word as it comes there (`Views.court`: each notice at `turn - lag`, `InboxItem.lag`, but none of what
+  befalls the king himself abroad, which only he knows) and its own people.
 - **The caretaker keeps the realm.** The runner asks a script of its own (`GameRunner.caretaker`, a `ScriptLeader` that
   sees the realm's view as its court knows it, without `heldAt`) for the realm's orders every season, whether the seat sleeps or not, logged as
   `t<turn>/caretaker/<power>`, and hands them to the engine in `TurnSubmission.caretaker`. The engine keeps those within

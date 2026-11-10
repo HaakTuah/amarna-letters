@@ -12,7 +12,7 @@ import { repudiationKnown, type Tablet, type TabletCopy } from "../model/records
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf } from "../model/works.ts";
-import { huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState } from "../model/state.ts";
+import { CourtKinds, huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState } from "../model/state.ts";
 import { type Unit } from "../model/units.ts";
 import { PointsPerDay } from "../model/travel.ts";
 import { EconomyData, harvestOf } from "../model/economy.ts";
@@ -240,7 +240,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null, court = f
           paidUntil: ((c) => (seen.has(b.province) && c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
         }),
       ),
-    inbox: inboxOf(s, p).filter((i) => (court ? i.turn - i.lag : i.turn) === s.turn),
+    // The caretaker's: what came to the court, not what befell the king himself abroad, which only he knows at once.
+    inbox: court
+      ? inboxOf(s, p).filter((i) => i.turn - i.lag === s.turn && !(i.subject !== null && i.subject === heldKing(s, p)?.id && !CourtKinds.has(i.kind)))
+      : inboxOf(s, p).filter((i) => i.turn === s.turn),
     unheardHere: s.unheard.filter((a) => a.host === p).map((a) => a.envoyId),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
   });

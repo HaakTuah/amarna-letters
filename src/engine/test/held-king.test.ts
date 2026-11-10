@@ -182,6 +182,9 @@ describe("HeldKingTests", () => {
     s.courtLag.set("Egypt", 3);
     notify(s, "Egypt", "Notice", "Tribute", "Tribute came.");
     Assert.equal([true, false], [Views.court(s, "Egypt").inbox.some((i) => i.title === "Tribute"), Views.for(s, "Egypt").inbox.some((i) => i.title === "Tribute")]);
+    // What befalls him at his captor's court is his at once, and never his court's.
+    notify(s, "Egypt", "Rejected", "Held at a foreign court", "Not carried out.", kingOf(s, "Egypt").id);
+    Assert.equal([false, true], [Views.court(s, "Egypt").inbox.some((i) => i.title === "Held at a foreign court"), Views.for(s, "Egypt").inbox.some((i) => i.title === "Held at a foreign court")]);
   });
 
   test("His captor's watchmen guard him: well guarded, the best of kings does not get away", () => {

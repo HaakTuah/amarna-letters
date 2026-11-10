@@ -65,7 +65,8 @@ passing out, like spies and such."
   errand, and a disloyal one who fears the errand or favours the captor sells the king out, his own choice by his traits,
   as a script character's choices are (a model character's request does not ask it yet; it joins the characters'
   requests with the next work on them). Principle: "A job is always an errand: what to do, where and by when" and
-  "Numbers come from their causes" (the one page); "Skills set the odds; the character decides".
+  "Numbers come from their causes" (the one page); "Skills set the odds; the character decides". Sent to the owner as
+  #882, since "any man hired for it" may mean a friend's man too.
 - **On the road under guard he writes nothing:** he is not yet at a court whose people could carry a letter. Principle:
   "Everything is somewhere".
 - **The caretaker is a script of its own,** not the seat's: it does not carry the king's ledger or memory. Principle:
@@ -112,5 +113,6 @@ part F2 measures it on the full seed sets.
 
 ## Questions for the owner
 
-Questions for the owner: none new (#806 answered and closed with this PR). Filed: #878, a bug, a king's watchmen never
+Questions for the owner: none new (#806 answered and closed with this PR). Opened: #882, a question, whether only the captive king can send a man to free him, or a friendly king too (the reading
+taken: only he). Filed: #878, a bug, a king's watchmen never
 counting on the road or at the border (their spend cleared before those checks).
