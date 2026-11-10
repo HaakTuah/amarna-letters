@@ -1,7 +1,8 @@
 // The sync (README, "How a project takes the core", point 1): run from a project's root, it brings the project's copy
 // of the core to a newer commit of the core, as a sync PR carries it. It writes `core/` whole at that commit, moves the
 // manifest's "Core:" line to it, and moves each call to a core workflow whose workflow changed (as `core.yml` checks),
-// listing those calls, since moving them changes `.github/` and needs the owner's yes (floor rule 3). It commits and
+// listing those calls; a moved call needs the owner's yes only if its workflow gains a permission, a secret or a trigger
+// (floor rule 3), which the sync PR's security review checks. It commits and
 // pushes nothing: the session that runs it reviews the diff and opens the PR. Git and Node's own modules only.
 //
 //   node core/scripts/sync.mjs              to the core's newest main
@@ -55,7 +56,7 @@ function sync(tmp) {
   const changed = git(["diff", "--stat", "--format=", old, pin], tmp).split("\n").pop() || "no files";
   console.log(`core/ ${old.slice(0, 7)} -> ${pin.slice(0, 7)} (${changed.trim()}); ${manifest} moved.`);
   console.log(moved.length
-    ? `Workflow calls moved, so the sync PR needs the owner's yes (floor rule 3):\n  ${moved.join("\n  ")}`
+    ? `Workflow calls moved; the sync PR needs the owner's yes only if one of these workflows gains a permission, a secret or a trigger (floor rule 3):\n  ${moved.join("\n  ")}`
     : "No workflow call moved: the PR changes no workflow.");
 }
 

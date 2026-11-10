@@ -3,7 +3,8 @@ import { WorldMap, isGreatKing, newGameEvent, type Power } from "@amarna/engine"
 import { Assert } from "../../engine/test/support.ts";
 import { city } from "../src/map/features.ts";
 import { knownRuins } from "../src/map/known.ts";
-import { bedAt, cuesAt, moodAt, shadeAt } from "../src/audio/situation.ts";
+import { Heat, shadeAt, signalAt } from "../src/audio/mood.ts";
+import { bedAt, cuesAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 import { frame } from "./audio-frame.ts";
@@ -24,7 +25,7 @@ function heard(frames: SeasonFrame[], viewer: Power) {
   const near = { at: city(capital.id), zoom: 5 };
   const place = (id: string) => city(id);
   return JSON.stringify({
-    mood: moodAt(frames, i, viewer),
+    signal: signalAt(frames, i, viewer),
     shade: shadeAt(frames, i, viewer),
     sting: c.sting,
     moment: c.moment,
@@ -64,7 +65,8 @@ describe("AudioFogTests", () => {
     // God view hears the true map: the same seasons are not quiet there.
     Assert.null(cuesAt(quiet, 2, null).sting);
     Assert.equal("capital", cuesAt(hidden, 2, null).sting);
-    Assert.equal("battle", moodAt(hidden.slice(0, 2), 1, null));
+    // A great king's capital besieged: the world's temperature at its height, the siege's music.
+    Assert.equal({ heat: Heat.battle, top: "siege" }, (({ heat, top }) => ({ heat, top }))(signalAt(hidden.slice(0, 2), 1, null)));
   });
 
   test("A battle out of the seat's sight is never placed there, though it saw the move begin", () => {
@@ -80,8 +82,8 @@ describe("AudioFogTests", () => {
   test("A seat whose sight the record lacks sees nothing, never everything", () => {
     const units = [{ id: "h1", power: "Hatti" as Power, kind: "Army" as const, province: "gaza" }];
     const knownOwner = new Map([["Egypt" as Power, new Map([["gaza", { owner: "Egypt" as Power, turn: 1 }]])]]);
-    Assert.equal("tension", moodAt([frame(0), frame(1, { units, knownOwner, sight: new Map([["Egypt", new Set(["gaza"])]]) })], 1, "Egypt"));
-    Assert.equal("calm", moodAt([frame(0), frame(1, { units, knownOwner })], 1, "Egypt"));
+    Assert.equal(Heat.unease, signalAt([frame(0), frame(1, { units, knownOwner, sight: new Map([["Egypt", new Set(["gaza"])]]) })], 1, "Egypt").heat);
+    Assert.equal(0, signalAt([frame(0), frame(1, { units, knownOwner })], 1, "Egypt").heat);
     // And a seat with no knowledge of owners in the record knows none: a change of hands it never learned brings no sting.
     const fell = [frame(0, { owner: new Map([[capital.id, victim]]) }), frame(1, { owner: new Map([[capital.id, "Hatti"]]) })];
     Assert.null(cuesAt(fell, 1, "Egypt").sting);

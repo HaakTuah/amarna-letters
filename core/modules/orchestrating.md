@@ -2,41 +2,25 @@
 
 Read by the orchestrator, the session that starts builder sessions, when it starts.
 
-**The orchestrator builds nothing itself** (core archive 27). Every lane, the main lane included, goes to a builder
-session of its own, with its own brief; every session it starts runs at the builder's model (`modules/claude.md`), never
-the orchestrator's. Helpers belong to builders: a lane is never a helper of the orchestrator's. It keeps its own context
-small, for what only it does: claims, starting and handing over sessions, merging Codex's work, the owner's questions.
-Only if it cannot start builder sessions at all does it say so and stop, and the owner starts them. Why: its context is
-re-read on every turn, so building in it costs the most, and if it dies, every lane stops with it.
+**It builds nothing itself** (core archive 27): every lane goes to a builder session of its own, with its own brief, at
+the builder's model and effort (`modules/claude.md`). Its own context stays small: claims, starting and handing over
+sessions, passing on the owner's word, merging Codex's work. Only if it cannot start builder sessions does it say so and
+stop.
 
-**The rules, re-read when they change** (core archive 42 and 44). A running orchestrator remembers the rules as they
-stood when it started, so on every wake, the hourly check included, it pulls `main`; if any rule file
-(`floor/security.md`, rule 3) changed since it last read them, it re-reads the changed parts, passes what touches them
-to its running builders in one message, and says so in one line to the owner. The same wake checks the core (core
-archive 124): when its newest `main` is past the project's pin, a routine lane runs `core/scripts/sync.mjs` and opens
-the sync PR, which needs the owner's yes when it moves a workflow call. The same wake reads the *progress file*'s diff
-and acts on what is new (an entry added or moved, an answer of the owner's, a lane opened or a bug put first), skipping
-its own builders' done-marks. **Its report on every wake counts** the lanes open and every independent entry it is not
-running, each with its reason ("waits on 2y's files" is one, none given is not) (core archive 45); the fallback
-reviewer's security reviews since the last wake, each with its PR and why it qualified; and every PR merged on the
-security gate's fallback or without passing it.
-
-- **Keep the cache warm** (core archive 10). One session per task, continued for its review fixes while its context
-  is under an hour old. A new task goes to whichever session does the most work for the fewest tokens without losing
-  quality: one already open when the task touches the same files, its context is under an hour old and still small, and
-  its last task has merged; otherwise a fresh one, always when a session's context has grown large.
-- **Bigger review fixes in a session of their own:** more than about an hour's work goes to a fresh session with the PR,
-  the review and nothing else; the builder goes on.
-- **Hand over at once:** start the next session as soon as a task merges, woken by the merge, with an hourly check as
-  the fallback.
-- **A lane for every independent entry you can see** (core archive 11), each a builder session with its own brief and
-  check-in, by `modules/work-flow.md`; the brake ("Usage" in `modules/claude.md`) closes lanes first.
-- **Where the agents run side by side** (floor rule 18), it starts every session, Claude's builders and Codex alike,
-  through the tool that runs them, each with a clone of its own, at the model its table gives (`modules/claude.md`;
-  Codex's: `modules/codex-building.md`) and at the effort its table gives. It watches their states there (working,
-  blocked, done), and a state that changes wakes it as a merge does.
-- **Every other provider is spent to its end** (core archive 76): Codex, and any provider the owner keeps only for the
-  projects. Where an environment can read every provider's usage (where the agents run side by side, or the owner's own
-  computer), the orchestrator spreads the work so each is spent by its weekly reset before Claude reaches 90%.
-- **Questions go on word for word:** every lane's "Questions for the owner" passed to him exactly as written (core
-  archive 7).
+- **On every wake,** the hourly check included (core archive 42, 44 and 124): pull `main`; if a rule file changed,
+  re-read it and pass what touches them to the running builders in one message; if the core's newest `main` is past the
+  project's pin, start a routine lane that runs `core/scripts/sync.mjs` and opens the sync PR (the owner's yes only as
+  floor rule 3 says); act on what is new in the *progress file*.
+- **Hand over at once:** start the next session as soon as a task merges. One session per task, continued for its review
+  fixes while its context is under an hour old and small; otherwise a fresh one (core archive 10).
+- **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`; the brake in `modules/claude.md`
+  closes lanes first.
+- **A lane whose session is gone** (core archive 133): one whose session it cannot reach (started elsewhere, such as on
+  another account, or ended), with no push to its branch for a few hours, goes to a fresh builder from its branch,
+  without asking.
+- **It asks the owner nothing** that the rules, his past words or the stand-in settle (core archive 133 and 134): it
+  does it and reports it in a line. Only the yeses floor rules 3 and 14 name wait for him, and nothing else waits on
+  them. Before it reports anything as waiting on him, it checks GitHub: a yes already in the PR (his or the design
+  session's relay), a branch already deleted or a setting already made is never reported again (core archive 137).
+- **Where the agents run side by side** (floor rule 18), it starts every session through the tool that runs them, each
+  in a clone of its own, and wakes when one's state changes.
