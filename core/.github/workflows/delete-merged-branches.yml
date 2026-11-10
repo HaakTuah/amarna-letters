@@ -1,0 +1,56 @@
+# Deletes merged branches, for every project that takes the core. The owner's button is the project's own
+# .github/workflows/delete-merged-branches.yml (Actions → "Delete merged branches" → Run workflow), which calls this one
+# (workflow_call), pinned to a full commit SHA ("How a project takes the core" in README.md, point 5), and grants it
+# contents: write and pull-requests: read.
+# Deletes only branches whose every commit is already in main, that no open pull request uses, and whose newest
+# commit is more than a day old (unless their pull request was merged). main, pr-media and gh-pages are never touched.
+# Branch names reach the shell only through git and gh, quoted.
+name: Delete merged branches
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: "Only list what would be deleted"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - name: Delete branches fully merged into main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          open=$(gh api "repos/$REPO/pulls?state=open&per_page=100" --paginate --jq '.[].head.ref')
+          cut=$(( $(date +%s) - 86400 ))
+          deleted=0; kept=0
+          for ref in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin); do
+            case "$ref" in HEAD|main|pr-media|gh-pages) continue;; esac
+            if grep -qxF -- "$ref" <<<"$open"; then echo "keep (open pull request): $ref"; kept=$((kept+1)); continue; fi
+            if ! git merge-base --is-ancestor "origin/$ref" origin/main; then echo "keep (not merged into main): $ref"; kept=$((kept+1)); continue; fi
+            if [ "$(git log -1 --format=%ct "origin/$ref")" -gt "$cut" ]; then
+              # (the branch name goes in as a query field of its own, encoded by gh, never pasted into the address)
+              merged=$(gh api -X GET "repos/$REPO/pulls" -f state=closed -f head="${REPO%%/*}:$ref" --jq '[.[]|select(.merged_at!=null)]|length')
+              if [ "$merged" -eq 0 ]; then echo "keep (under a day old, no merged pull request): $ref"; kept=$((kept+1)); continue; fi
+            fi
+            if [ "$DRY_RUN" = "true" ]; then echo "would delete: $ref"; deleted=$((deleted+1))
+            elif git push --quiet origin --delete "refs/heads/$ref"; then echo "deleted: $ref"; deleted=$((deleted+1))
+            else echo "not deleted (refused): $ref"; kept=$((kept+1)); fi
+          done
+          verb=$([ "$DRY_RUN" = "true" ] && echo "would delete" || echo "deleted")
+          echo "Done: $verb $deleted, kept $kept." | tee -a "$GITHUB_STEP_SUMMARY"

@@ -1,7 +1,12 @@
 # Calibration
 
-The log of the checks that keep the review bar from slipping, the weekly blind re-reviews, the canaries, and the monthly
-history spot-checks and slop checks, newest first ("Reviews", point 5, in `docs/claude-and-codex.md`).
+The log of the checks that keep the review bar from slipping (`core/modules/calibration.md`), newest first. Besides the
+core's checks, this game runs **a history spot-check every month** (archive items 164 and 167): a fresh reviewer picks
+about 30 facts from `docs/history/`, two from each dossier and the rest among those the game uses most, and checks each
+against the words of its source that its line quotes, and against the source itself (the letter, the edition, the
+study) where it can reach it. Every fact that does not hold is a miss: the dossier and the game are fixed, and a `bug`
+issue tracks it until the fix is live. More than one miss in fifteen facts checked: every dossier a miss came from gets
+a full check.
 
 | Date | Check | PR | Reviewer checked | Misses | What changed |
 | --- | --- | --- | --- | --- | --- |
