@@ -30,6 +30,12 @@ const Accusation = rx(
 );
 
 const LandOrGold = rx(`\\b(?:lands?|gold|tributes?)\\b`, "i");
+/**
+ * A refusal or a cold word, read broadly: "I will not seal", "I refuse", "we reject", "this cannot be". It errs towards
+ * finding one, since it only keeps an honest envoy from calling a court warm (#591).
+ */
+const Refusal = rx(`\\b(?:refus\\w*|reject\\w*|declin\\w*|deny|denies|denied|will\\s+not|shall\\s+not|cannot|can\\s+not|won't|never|regret|withdraw|punish|liars?|false|broke|detain\\w*)\\b`, "i");
+
 const Weighing = rx(
   `\\b(?:weigh(?:s|ed|ing|ers?|ts?)?|scales|inventor(?:y|ies)|shortfall|(?:fell|falls|came|comes|is|was)\\s+short|hands\\s+(?:are|were)\\s+heavy|heavy\\s+with\\s+(?:my|the|our)\\s+gold)\\b`,
   "i",
@@ -80,9 +86,9 @@ const Determiners = new Set(["the", "a", "an", "your", "his", "my", "our", "thy"
 const Help = new Set(["aid", "side", "help", "defence", "defense", "support", "rescue", "assistance"]);
 // "your enemies", "your call", "your leave": what is the target's, not the target.
 const Shield = new Set(["enemy", "enemies", "foe", "foes", "rival", "rivals", "call", "cause", "banner", "leave", "behalf", "command", "request", "word", "wish", "wishes", "march"]);
-// Capitalised words that are no third party: "the King of Alashiya", "the Great King".
+// Capitalised words that are no third party: "the King of Alashiya", "the Great King", "the Chief of the Kaska".
 const Filler = new Set([
-  "king", "kings", "great", "lord", "land", "lands", "people", "house", "city", "cities", "army", "armies", "troops", "men", "chariots",
+  "king", "kings", "chief", "chiefs", "great", "lord", "land", "lands", "people", "house", "city", "cities", "army", "armies", "troops", "men", "chariots",
   "fleet", "fleets", "ships", "capital", "border", "borders", "fields", "walls", "gates", "court", "realm", "kingdom", "homeland", "province", "provinces",
 ]);
 
@@ -277,6 +283,8 @@ export const TextKit = {
   praised,
   /** Whether a text accuses someone: of lies, deceit or falsehood, of breaking an oath, of betrayal, of faithlessness. */
   isAccusation: (text: string): boolean => Accusation.test(text),
+  /** Whether a sentence refuses or speaks coldly, read broadly (see Refusal). */
+  isRefusal: (sentence: string): boolean => Refusal.test(sentence.replaceAll("’", "'")),
   /** Whether a sentence speaks of the weighing of gold. */
   speaksOfWeighing: (sentence: string): boolean => Weighing.test(sentence.replaceAll("’", "'")),
   /** Whether a text speaks of land, gold or tribute. */

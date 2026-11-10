@@ -6,6 +6,7 @@
  */
 import {
   AllPowers,
+  journeyGroups,
   mandateText,
   type UnitView,
   Views,
@@ -18,8 +19,8 @@ import {
   fmt,
   groupBy,
   isEnvoyWaiting,
-  kingFor,
-  claimedName,
+  rulerOf,
+  standout,
   landGrowth,
   sortBy,
   terrainOf,
@@ -35,13 +36,19 @@ import {
   grantPlace,
   menOf,
   season,
+  counted,
+  EconomyData,
+  type InboxItem,
+  type CharacterView,
 } from "@amarna/engine";
 import { GoldLifeline, economyLines, worksLines } from "./prompt-economy.ts";
 import { person } from "./prompt-audience.ts";
-import { NoneRead, inFull, letterBrief, letterLine, lettersGold, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
-import { Sb, joinS } from "./text.ts";
-export function identity(p: Power): string {
-  return `You are ${kingFor(p, p)}, Great King of ${claimedName(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
+import { NoneRead, copySource, inFull, letterBrief, letterLine, lettersGold, openingTreaties, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
+import { Sb, andList, asViewFigures, joinS, num } from "./text.ts";
+export function identity(p: Power, traits: readonly number[]): string {
+  // Item 17b: the king is a person, and plays as the man the sources show; his traits shape his play, his stakes decide it.
+  const nature = traits.length === 0 ? "" : ` By nature you are ${andList(standout(traits))}.`;
+  return `You are ${rulerOf(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.${nature}`;
 }
 
     /// <summary>
@@ -114,15 +121,15 @@ export function rankLine(v: SeatView): string
             parts.push(c.established === null
                 ? `${c.power}'s claim to be a Great King is still new${c.overlord !== null ? ` (${c.overlord} holds ${c.power} its vassal)` : ``}`
                 : `${c.power}'s claim to be a Great King is established (since turn ${c.established})`);
-        const called = (to: Power, from: Power): string => {
-            const r = v.greetings.find((x) => x.from === from && x.to === to);
-            if (r === undefined) return "";
-            return r.brotherSince !== null ? `brother since turn ${r.brotherSince}` : `not brother in the last greeting (turn ${r.lastTurn})`;
+        // The greetings sent between this court and the others, by who calls whom brother, each named once.
+        const greetings = (lines: SeatView["greetings"], who: (x: SeatView["greetings"][number]) => Power, brother: string, not: string): void => {
+            const yes = lines.filter((x) => x.brotherSince !== null).map((x) => `${who(x)} (since turn ${x.brotherSince})`);
+            const no = lines.filter((x) => x.brotherSince === null).map((x) => `${who(x)} (turn ${x.lastTurn})`);
+            if (yes.length > 0) parts.push(`${brother}: ${joinS(`, `, yes)}`);
+            if (no.length > 0) parts.push(`${not}: ${joinS(`, `, no)}`);
         };
-        const others = v.greetings.filter((x) => x.to === v.power).map((x) => `${x.from}: ${called(v.power, x.from)}`);
-        const mine = v.greetings.filter((x) => x.from === v.power).map((x) => `${x.to}: ${called(x.to, v.power)}`);
-        if (others.length > 0) parts.push(`what other kings call you: ${joinS(`; `, others)}`);
-        if (mine.length > 0) parts.push(`what you call them: ${joinS(`; `, mine)}`);
+        greetings(v.greetings.filter((x) => x.to === v.power), (x) => x.from, `Kings who call you brother`, `Kings who did not call you brother in their last greeting`);
+        greetings(v.greetings.filter((x) => x.from === v.power), (x) => x.to, `You call brother`, `You did not call brother in your last greeting`);
         const rank = parts.length === 0 ? "" : `RANK: ${joinS(`. `, parts)}.`;
         const names = namesLine(v);
         return rank.length > 0 && names.length > 0 ? `${rank}\n${names}` : rank + names;
@@ -141,6 +148,38 @@ export function namesLine(v: SeatView): string
         return `NAMES CLAIMED (each king as your orders name him): you go by the name of ${v.claimedName}. ${joinS(`. `, parts)}.`;
     }
 
+/**
+ * The treasury as the king's ledger has it: his gold, what came in, what each season costs, what his servants' fees still
+ * owe and how far people trust his word, and his standing orders for carriers and troops (their orders: the rulebook).
+ */
+function treasuryLine(v: SeatView): string {
+  const came = v.income > 0 ? `${num(v.income)} came in since your last orders (mines and sales)` : `Nothing came in since your last orders`;
+  const works = v.worksUpkeep > 0 ? `, what you keep and build in gold ${num(v.worksUpkeep)}` : ``;
+  const due = v.feesDue > 0 || v.feesOwed > 0
+    ? ` Of their fees, ${num(v.feesDue)} more falls due as their jobs are done${v.feesOwed > 0 ? `, and you let ${num(v.feesOwed)} fall due unpaid` : ``}.`
+    : ``;
+  const promises = v.kept + v.broken === 0 ? `none kept or broken yet` : `you kept ${v.kept} promises to pay and broke ${v.broken}`;
+  const carriers = v.payCarriers ? `You pay the carriers of your letters on delivery, by your standing order.` : `You do not pay the carriers of your letters on delivery.`;
+  const troops = v.payTroops && v.feedTroops ? "pays and feeds your troops" : v.payTroops ? "pays your troops but does not feed them from your stores" : v.feedTroops ? "feeds your troops but pays them nothing" : "neither pays nor feeds your troops";
+  const pay = v.payHeld.length > 0 ? `, ${v.payTroops ? "pay held back from" : "but pays"} those in ${joinS(", ", v.payHeld)}` : "";
+  const food = v.feedHeld.length > 0 ? `, ${v.feedTroops ? "food held back from" : "but feeds"} those in ${joinS(", ", v.feedHeld)}` : "";
+  return `TREASURY: ${num(v.gold)} shekels by your ledger. ${came}. Each season: your troops' pay ${num(v.upkeep)}${works}, your servants' fees about ${num(v.fees)}.${due} `
+    + `People count on ${v.trust}% of what you promise (${promises}). ${carriers} Your standing order ${troops}${pay}${food}.`;
+}
+
+/**
+ * How long an envoy takes to each court, by the length of the journey (`journeyGroups`, shared with the human's orders): the
+ * courts most journeys reach in the same time are "every other court", the rest named. A journey the view words otherwise
+ * stands as it is.
+ */
+function travelLine(v: SeatView): string {
+  const { most, others, odd } = journeyGroups(v.travelTimes);
+  const seasons = (n: number): string => `${counted(n)} season${n === 1 ? `` : `s`} each way`;
+  const parts = [...others.map((g) => `${seasons(g.seasons)} to ${andList(g.courts)}`), ...odd];
+  if (most !== null) parts.push(`${seasons(most.seasons)} to every ${parts.length === 0 ? `` : `other `}court`);
+  return joinS(`; `, parts);
+}
+
 export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): string
     {
         const map = WorldMap.default;
@@ -150,15 +189,20 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
         // Item 16, "Omens of the end": what the court's diviners read this season, in words only.
         if (v.omens !== ``) sb.appendLine(`OMENS: ${v.omens}`);
-        // Item 13: where the king is, his court and capital, from where his orders go out.
-        if (v.courtAt !== ``) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``}; your orders go out from here (see COMMAND AT A DISTANCE).`);
+        // Item 13: where the court is, and (item 17b, part C) where the king stands apart from it, from where his orders go out.
+        const courtRoad = v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``;
+        if (v.courtAt !== `` && v.kingAt === null) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${courtRoad}; your orders go out from here (see COMMAND AT A DISTANCE).`);
+        else if (v.courtAt !== ``)
+          sb.appendLine(`COURT: you are in ${v.kingAt}${v.kingTo !== null ? `, on the road to ${v.kingTo}` : ``}, apart from your court, and your orders go out from there; your court, with your treasury and archive, is in ${v.courtAt}${courtRoad}, where envoys and letters come (see COMMAND AT A DISTANCE).`);
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.worksUpkeep > 0 ? `, what you keep and build in gold ${v.worksUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); ${v.payCarriers ? "you pay the carriers of your letters on delivery, by your standing order" : "you do not pay the carriers of your letters on delivery (pay_carriers would)"}; what people ask follows only what they have heard jobs pay. Your standing order ${v.payTroops && v.feedTroops ? "pays and feeds your troops" : v.payTroops ? "pays your troops but does not feed them from your stores" : v.feedTroops ? "feeds your troops but pays them nothing" : "neither pays nor feeds your troops"}${v.payHeld.length > 0 ? `, ${v.payTroops ? "pay held back from" : "but pays"} those in ${joinS(", ", v.payHeld)}` : ""}${v.feedHeld.length > 0 ? `, ${v.feedTroops ? "food held back from" : "but feeds"} those in ${joinS(", ", v.feedHeld)}` : ""} (pay_troops, stop_paying_troops, feed_troops, stop_feeding_troops; command hold_pay, give_pay, hold_food, give_food for one province's troops)`);
+        sb.appendLine(treasuryLine(v));
         sb.appendLine(GoldLifeline);
+        // Order names stand in a section's header only, never in its entries.
+        if (v.debts.length > 0) sb.appendLine("DEBTS YOU OWE (repay, to a tablet's holder standing at your court):");
         for (const d of v.debts)
-            sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.sealedTurn > 0 ? `${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
-        if (v.debtsHeld.length > 0) sb.appendLine("DEBT TABLETS YOU HOLD (claims on others: collect by envoy, or sell_tablet):");
+            sb.appendLine(`  Your debt ${d.id}: ${d.left === d.owed ? `${num(d.owed)} shekels, none yet repaid` : `${num(d.left)} shekels left of ${num(d.owed)} to repay`} (${d.sealedTurn > 0 ? `${num(d.principal)} lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court` : ``}.`);
+        if (v.debtsHeld.length > 0) sb.appendLine("DEBT TABLETS YOU HOLD (claims on others):");
         for (const d of v.debtsHeld)
             sb.appendLine(`  Tablet ${d.id}: ${d.holder} owes ${d.left} (${d.sealedTurn > 0 ? `lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn})${d.here ? `; they stand at your court` : ``}.`);
         for (const l of economyLines(v)) sb.appendLine(l);
@@ -169,7 +213,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(standings(v));
 
         sb.appendLine();
-        sb.appendLine(`LANDS (see WHAT YOU SEE and NEWS AND TRAVEL; a province you do not see is listed under its holder as last you heard, "heard in turn N"):`);
+        sb.appendLine(`LANDS (see WHAT YOU SEE and NEWS AND TRAVEL):`);
         const units = new Map(v.units.map(u => [u.province, u] as const));
         const troop = (id: string): string => {
           const u = units.get(id);
@@ -184,21 +228,31 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             if (w !== undefined) marks.push(`walls ${w}`);
             if (terrainOf(id) === "Rough" && v.prices.getOrDefault(`terrainDefence`, 1) > 0) marks.push(`rough ground`);
             if (terrainOf(id) === "Desert") marks.push(`desert`);
-            // Not seen now (item 7b): how old the news is, and who brought it if one of your people did.
-            const asOf = v.ownerAsOf.tryGet(id);
-            if (asOf !== undefined) {
-              const from = v.ownerFrom.tryGet(id) ?? ``;
-              marks.push(`heard in turn ${asOf}` + (from === `seen` ? `, when you last saw it` : from.length > 0 && from !== `word from abroad` ? `, from ${from}` : ``));
-            }
             return marks.length === 0 ? `` : ` (${joinS(`, `, marks)})`;
         };
-        for (const [key, group] of sortBy(groupBy(v.owner, x => x[1]), [g => (g[0] === null ? 99 : AllPowers.indexOf(g[0])), cmpNum]))
-        {
-            const who = key !== null ? (key === v.power ? `${key} (you)` : key) : `Held by no one`;
-            const list = sortBy(group.map(x => x[0]), [x => x, cmpStr])
-                .map(id => id + marksOf(id) + troop(id));
-            sb.appendLine(`- ${who}: ${joinS(`, `, list)}`);
-        }
+        // In sight now; else (item 7b) how old the news is, and who brought it if one of your people did; else as every court knew it at the start.
+        const sighted = new Set(v.visible);
+        const heard = (id: string): string => {
+            if (sighted.has(id)) return `in sight`;
+            const asOf = v.ownerAsOf.tryGet(id);
+            if (asOf === undefined) return `as it stood at the start`;
+            const from = v.ownerFrom.tryGet(id) ?? ``;
+            return `heard in turn ${asOf}` + (from === `seen` ? `, when you last saw it` : from.length > 0 && from !== `word from abroad` ? `, from ${from}` : ``);
+        };
+        // A holder's provinces by how the court knows them: those in sight, those as at the start, then each date of word, oldest first.
+        const byWord = (who: string, ids: string[]): string =>
+            joinS(`; `, sortBy(groupBy(ids, heard), [g => (sighted.has(g[1][0]) ? -1 : v.ownerAsOf.tryGet(g[1][0]) ?? 0), cmpNum], [g => g[0], cmpStr])
+                .map(([h, xs], i) => `${i === 0 ? `${who}, ` : ``}${h}: ${joinS(`, `, xs.map(id => id + marksOf(id) + troop(id)))}`));
+        // A power holding only the province of its own name (Gath, gath) goes in one line with the rest of its kind.
+        const single = (p: Power | null, ids: string[]): boolean => p !== null && p !== v.power && ids.length === 1 && ids[0] === p.toLowerCase();
+        const holders = sortBy(groupBy(v.owner, x => x[1]), [g => (g[0] === null ? 99 : AllPowers.indexOf(g[0])), cmpNum])
+            .map(([key, group]) => [key, sortBy(group.map(x => x[0]), [x => x, cmpStr])] as const);
+        for (const [key, ids] of holders.filter(([key, ids]) => key !== null && !single(key, ids)))
+            sb.appendLine(`- ${byWord(key === v.power ? `${key} (you)` : `${key}`, ids)}`);
+        const singles = holders.filter(([key, ids]) => single(key, ids)).flatMap(([, ids]) => ids);
+        if (singles.length > 0) sb.appendLine(`- ${byWord(`Powers that hold only the land of their name`, singles)}`);
+        const none = holders.find(([key]) => key === null);
+        if (none !== undefined) sb.appendLine(`- ${byWord(`Held by no one`, [...none[1]])}`);
         const sieges = siegesLine(v);
         if (sieges.length > 0) sb.appendLine(sieges);
         const atSea = v.units.filter(u => map.get(u.province).isSea);
@@ -206,12 +260,14 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(`You can see troops in: ${joinS(`, `, v.visible)}.`);
 
         sb.appendLine();
-        sb.appendLine(`YOUR PEOPLE:`);
+        // A list where someone offers news says how to buy it in its header.
+        const newsFor = (cs: readonly CharacterView[]): string => (cs.some((c) => c.news.length > 0) ? ` (order buy_news for the news each offers)` : ``);
+        sb.appendLine(`YOUR SERVANTS${newsFor(v.court)}:`);
         if (v.court.length === 0) sb.appendLine(`- nobody`);
         for (const c of v.court) sb.appendLine(`- ` + person(c));
         if (v.known.length > 0)
         {
-            sb.appendLine(`OTHER PEOPLE YOU KNOW OF:`);
+            sb.appendLine(`OTHER PEOPLE YOU KNOW OF${newsFor(v.known)}:`);
             for (const c of v.known) sb.appendLine(`- ` + person(c));
         }
         // Item 12: envoys waiting at court whom nobody understands.
@@ -227,11 +283,13 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
 
         if (v.tablets.length > 0)
         {
-            sb.appendLine(`YOUR ARCHIVE (kept at your capital; a tablet you have read in full at an earlier orders by its opening words):`);
-            for (const t of v.tablets)
-                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)}${(t.vassal !== null ? ` A vassal treaty: ${t.vassal} the vassal.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
+            sb.appendLine(`YOUR ARCHIVE (kept at your capital):`);
+            const { lines, rest } = openingTreaties(v.tablets, v.power, read);
+            for (const l of lines) sb.appendLine(`- ${l}`);
+            for (const t of rest)
+                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)}${(t.vassal !== null ? ` A vassal treaty: ${t.vassal} the vassal.` : ``)} (${copySource(t)}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
         }
-        sb.appendLine(`ENVOY TRAVEL (about, by the fastest road open this season): ${joinS(`; `, v.travelTimes)}.`);
+        sb.appendLine(`ENVOY TRAVEL (about, by the fastest road open this season): ${travelLine(v)}.`);
         if (v.roadsClosed.length > 0) sb.appendLine(`YOUR ROADS ARE CLOSED to the people of: ${joinS(`, `, v.roadsClosed)}.`);
         if (v.roadsClosedToUs.length > 0) sb.appendLine(`ROADS CLOSED TO YOUR PEOPLE, as far as you have heard, by: ${joinS(`, `, v.roadsClosedToUs)}.`);
         if (v.grants.length > 0)
@@ -276,7 +334,7 @@ export function councilBrief(v: SeatView): string
         const c = v.council;
         if (c === null) return ``;
         const sb = new Sb();
-        sb.appendLine(`YOUR ROYAL COUNCIL (four advisors who only inform; they see only what you see, with rivals' gold estimated and troops remembered, so they can be confidently wrong; "pictured seasons" are eight ways this season may go, played out by the rules from your view; troop orders and levies only, diplomacy is yours):`);
+        sb.appendLine(`YOUR ROYAL COUNCIL (four advisors on troop orders and levies only, who act on nothing; they see only what you see, so they can be wrong; "pictured seasons" are eight ways this season may go, played out from your view):`);
         if (c.agreed.length > 0) sb.appendLine(`- All four advise: ${joinS(`; `, c.agreed.map((l) => l.text))}.`);
         for (const a of c.advisors)
             sb.appendLine(`- ${a.title.charAt(0).toUpperCase() + a.title.slice(1)} (the ${a.advisor}; ${a.tilt}): ${a.reading}${a.lines.length > 0 ? ` Proposes: ${joinS(`; `, a.lines.map((l) => l.text))}.` : ``}`);
@@ -294,14 +352,16 @@ export function siegesLine(v: SeatView): string
         const tight = (x: SiegeView): string => {
           const city = WorldMap.default.get(x.province);
           return x.tightness !== null && city.capital && city.home === x.holder
-            ? `; tightness ${x.tightness} (see WALLS AND SIEGES: envoys ${(x.holder === v.power ? `of yours` : `of ${x.holder}`)} leaving or coming home may be caught)`
+            ? `; tightness ${x.tightness} (envoys ${(x.holder === v.power ? `of yours` : `of ${x.holder}`)} leaving or coming home may be caught)`
             : ``;
         };
+        // Its walls are breached once worn down this many steps (WALLS AND SIEGES), as the siege's news counts them.
+        const worn = (x: SiegeView): string => `worn down ${x.progress} of ${x.walls * EconomyData.breachPerLevel} steps to a breach`;
         const line = (x: SiegeView): string =>
-            x.besieger === v.power ? `your army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `held by no one`)}, walls ${x.walls}): worn down ${x.progress} of ${x.walls}, since turn ${x.since}${tight(x)}`
-            : x.holder === v.power ? `${x.besieger}'s army besieges your city of ${x.province} (walls ${x.walls}): worn down ${x.progress} of ${x.walls}, since turn ${x.since}${tight(x)}`
-            : `${x.besieger}'s army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `held by no one`)}, walls ${x.walls}): worn down ${x.progress} of ${x.walls}`;
-        return `SIEGES (a city surrenders when it is worn down as far as its walls are high): ${joinS(`; `, v.sieges.map(line))}.`;
+            x.besieger === v.power ? `your army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `held by no one`)}, walls ${x.walls}): ${worn(x)}, since turn ${x.since}${tight(x)}`
+            : x.holder === v.power ? `${x.besieger}'s army besieges your city of ${x.province} (walls ${x.walls}): ${worn(x)}, since turn ${x.since}${tight(x)}`
+            : `${x.besieger}'s army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `held by no one`)}, walls ${x.walls}): ${worn(x)}`;
+        return `SIEGES (see WALLS AND SIEGES): ${joinS(`; `, v.sieges.map(line))}.`;
     }
 
     /// <summary>A standing order as its king reads it: its id, the move it waits for, and its orders.</summary>
@@ -407,15 +467,77 @@ export function whileYouSlept(v: SeatView): string
         if (v.digest.length > 0)
         {
             sb.appendLine(`In brief${(v.digestLeftOut > 0 ? ` (${v.digestLeftOut} earlier lines left out)` : ``)}:`);
-            for (const d of v.digest) sb.appendLine(`- ${d}`);
+            for (const d of v.digest) sb.appendLine(`- ${asViewFigures(d)}`);
         }
         if (v.whileAsleep.length > 0)
         {
             sb.appendLine(`The news of those seasons, oldest first (routine treasury notices left out${(v.whileAsleepLeftOut > 0 ? `; ${v.whileAsleepLeftOut} earlier items left out` : ``)}):`);
-            for (const i of v.whileAsleep) sb.appendLine(`[turn ${i.turn}] [${i.kind}] ${i.title}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
+            for (const [turn, items] of groupBy(v.whileAsleep, (i) => i.turn)) for (const line of newsLines(items)) sb.appendLine(`[turn ${turn}] ${line.text}`);
         }
         return sb.toString();
     }
+
+/** The kinds of news that are word, not certain fact, and how a headline names them. */
+const Hearsay: Partial<Record<InboxItem["kind"], string>> = { Rumor: "rumour", SpyReport: "a spy's report" };
+
+/**
+ * A piece of news's headline: its title, without its kind where the title repeats it ("Catastrophe: Earthquake" is
+ * "Earthquake"), and named as rumour or a spy's report where it is one, so word does not read as fact.
+ */
+function headline(i: InboxItem): string {
+  const title = i.title.startsWith(`${i.kind}: `) ? i.title.charAt(i.kind.length + 2).toUpperCase() + i.title.slice(i.kind.length + 3) : i.title;
+  const word = Hearsay[i.kind];
+  return word === undefined ? title : title === i.kind ? word.charAt(0).toUpperCase() + word.slice(1) : `${title} (${word})`;
+}
+
+/**
+ * A season's news as lines, each "headline: body", in the view's figures. Notices of the season under one headline, with
+ * no clauses of their own, share one line where the first stood: sentences that open alike say the opening once ("You
+ * settled loose men: about 2,600 in Harran, 973 in Taidu."), others follow one another.
+ */
+function newsLines(items: readonly InboxItem[]): { text: string; clauses: InboxItem["clauses"] }[] {
+  const body = (i: InboxItem): string => asViewFigures(i.kind === "Battle" ? withoutHolds(i.body) : i.body);
+  const lines: { head: string; bodies: string[]; clauses: InboxItem["clauses"] }[] = [];
+  for (const i of items) {
+    const head = headline(i);
+    const same = i.clauses.length === 0 ? lines.find((l) => l.head === head && l.clauses.length === 0) : undefined;
+    if (same !== undefined) same.bodies.push(body(i));
+    else lines.push({ head, bodies: [body(i)], clauses: i.clauses });
+  }
+  return lines.map((l) => ({ text: `${l.head}: ${merged(l.bodies)}`, clauses: l.clauses }));
+}
+
+/**
+ * Bodies under one headline, one after another, except that sentences that open with the same two words say the opening
+ * once, where the first of them stood.
+ */
+function merged(bodies: readonly string[]): string {
+  const sentence = (b: string): boolean => b.endsWith(`.`) && !b.slice(0, -1).includes(`. `);
+  const opening = (b: string): string => b.split(` `).slice(0, 2).join(` `);
+  const runs: string[][] = [];
+  for (const b of bodies) {
+    const run = sentence(b) ? runs.find((r) => sentence(r[0]) && opening(r[0]) === opening(b)) : undefined;
+    if (run !== undefined) run.push(b);
+    else runs.push([b]);
+  }
+  return joinS(` `, runs.map(saidOnce));
+}
+
+/**
+ * Sentences that open alike, with their opening said once. An opening that ends in a colon is a list's: it stops there, so
+ * each item keeps all of its own words ("about 2,600 in Harran"), and the items are parted by commas where none holds one.
+ */
+function saidOnce(run: readonly string[]): string {
+  if (run.length === 1) return run[0];
+  const words = run.map((b) => b.split(` `));
+  let shared = 0;
+  while (words.every((w) => shared < w.length - 1 && w[shared] === words[0][shared])) shared++;
+  const colon = words[0].slice(0, shared).map((w) => w.endsWith(`:`)).lastIndexOf(true);
+  if (colon >= 0) shared = colon + 1;
+  if (shared < 2) return joinS(` `, run);
+  const items = words.map((w) => w.slice(shared).join(` `).slice(0, -1));
+  return `${words[0].slice(0, shared).join(` `)} ${joinS(colon >= 0 && !items.some((i) => i.includes(`, `)) ? `, ` : `; `, items)}.`;
+}
 
     /// <summary>The season's news as the court has it: everything delivered to it this season, oldest first.</summary>
 export function news(v: SeatView): string
@@ -423,9 +545,9 @@ export function news(v: SeatView): string
         const sb = new Sb();
         sb.appendLine(`NEWS THIS SEASON:`);
         if (v.inbox.length === 0) sb.appendLine(`- nothing`);
-        for (const i of v.inbox) {
-            sb.appendLine(`[${i.kind}] ${i.title}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
-            if (i.clauses.length > 0) sb.appendLine(`  The answer in clauses, as reported: ${joinS(`; `, i.clauses.map(clauseTag))}.`);
+        for (const line of newsLines(v.inbox)) {
+            sb.appendLine(line.text);
+            if (line.clauses.length > 0) sb.appendLine(`  The answer in clauses, as reported: ${joinS(`; `, line.clauses.map(clauseTag))}.`);
         }
         return sb.toString();
     }
@@ -457,15 +579,20 @@ export function courtBrief(v: SeatView, ordersStand = false): string
 
     /// <summary>
     /// Every power's land standing, which any court can reckon from who holds what: a land-yield ratio (the land it holds
-    /// now against its homeland's yield), labelled as not growth, in one line; fallen kingdoms are named at the end.
+    /// now against its homeland's yield), labelled as not growth, in one line: those changed since the start with their ratio,
+    /// then the rest by their yield; fallen kingdoms are named at the end.
     /// </summary>
 export function standings(v: SeatView): string
     {
         const all = Views.landStandings(v.owner, v.fallen);
-        const living = all.filter(x => !x.fallen).map(x =>
-            `${x.power}${(x.power === v.power ? ` (you)` : ``)} ${fmt(landGrowth(x), "0.00")} (land yield ${x.yield}, at the start ${x.startYield})`);
+        const living = all.filter(x => !x.fallen);
+        const who = (p: Power): string => `${p}${(p === v.power ? ` (you)` : ``)}`;
+        const changed = living.filter(x => x.yield !== x.startYield).map(x => `${who(x.power)} ${fmt(landGrowth(x), "0.00")} (land yield ${x.yield}, was ${x.startYield})`);
+        const same = living.filter(x => x.yield === x.startYield).map(x => `${who(x.power)} ${x.yield}`);
         const fallen = all.filter(x => x.fallen).map(x => x.power);
-        return `LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): ${joinS(`; `, living)}.`
+        return `LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE):`
+               + (changed.length > 0 ? ` Changed since the start: ${joinS(`; `, changed)}.` : ``)
+               + (same.length > 0 ? ` Unchanged, ratio 1.00 (land yield): ${joinS(`, `, same)}.` : ``)
                + (fallen.length > 0 ? ` Fallen: ${joinS(`, `, fallen)}.` : ``);
     }
 
@@ -476,12 +603,11 @@ export function grantLine(g: GrantView, me: Power): string {
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : `, until revoked`} (${g.tablet}).`;
 }
 
-/** A unit's men where it is short of a full levy (item 11a+): ", 600 men"; nothing for a full one. */
 /** An own unit's command (item 13): its commander, on his way or with it, word recalling him, and its mandate. */
 function commandNote(u: UnitView, v: SeatView): string {
   const parts: string[] = [];
   if (u.reported > 0) parts.push(`as reported in turn ${u.reported}`);
-  if (u.hiredMen > 0 && u.hiredUntil !== null) parts.push(`${u.hiredMen} of its men an enlisted band serving until turn ${u.hiredUntil}`);
+  if (u.hiredMen > 0 && u.hiredUntil !== null) parts.push(`${num(u.hiredMen)} of its men an enlisted band serving until turn ${u.hiredUntil}`);
   if (u.commander !== null) {
     const name = v.court.find((c) => c.id === u.commander)?.name ?? u.commander;
     parts.push(u.commandFrom > v.turn ? `${name} on his way to command it, from turn ${u.commandFrom}` : `commanded by ${name} (${u.commander})`);
@@ -491,8 +617,9 @@ function commandNote(u: UnitView, v: SeatView): string {
   return parts.length === 0 ? `` : `; ` + joinS(`; `, parts);
 }
 
+/** A unit's men where it is not a full levy (item 11a+): ", 4,887 men"; nothing for a full one. */
 function menNote(u: { kind: "Army" | "Fleet"; men: number; march?: string | null; marchDays?: number }): string {
   // Since item 13 units start at the sizes the sources give, so any that is not a full levy's says its men.
-  const men = u.men > 0 && u.men !== menOf(u.kind) ? `, ${u.men} men` : ``;
+  const men = u.men > 0 && u.men !== menOf(u.kind) ? `, ${num(u.men)} men` : ``;
   return men + (u.march != null ? `, on the road to ${u.march}, about ${u.marchDays} days of road left` : ``);
 }

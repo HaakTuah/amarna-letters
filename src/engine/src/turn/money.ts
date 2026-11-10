@@ -14,6 +14,7 @@ import { newLossAbroad } from "../model/records.ts";
 import { land, type Power, powerName } from "../model/power.ts";
 import { char, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { realmOfKing } from "../rules/court.ts";
 import { pick } from "../rules/wording.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { trustIn } from "./jobs.ts";
@@ -48,8 +49,10 @@ P.partyName = function (x) {
   return findCharacter(this.s, x)?.name ?? x;
 };
 
-/** The province a character is in: its court's capital, the province it watches, or none on the road. */
+/** The province a character is in: its court's capital (a reigning king's, where he stands apart from it), the province it watches, or none on the road. */
 P.whereIs = function (c) {
+  const realm = c.duty === "Ruling" ? realmOfKing(this.s, c.id) : null;
+  if (realm !== null && this.s.kingAt.has(realm)) return this.s.kingAt.get(realm);
   if (c.at !== null) return this.courtAt(c.at);
   return c.watchProvince;
 };
@@ -271,6 +274,8 @@ P.debtsSeason = function () {
  */
 P.livingSeason = function () {
   const S = this.s;
+  // Item 18 (#837): the seasons each has sought service unhired, wherever it went.
+  for (const c of S.characters) c.idle = c.status === "Free" && c.seeking ? c.idle + 1 : 0;
   for (const c of sortBy(
     S.characters.filter((c) => c.status === "Free"),
     [(c: Character) => idNumber(c.id), cmpNum],

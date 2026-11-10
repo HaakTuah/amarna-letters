@@ -56,9 +56,11 @@ goods entering the holder's land, at most `tollMost` 50, in all his land or one 
 most particular rate applies (`tollRate`: partner and province, then partner, then province, then all: a promise to a
 partner holds in all the land). Goods pay at each
 border into a king's land, from a province not his (a ship at his harbour too): grain in kind into that province's stores
-(what does not fit is lost), gold into his treasury. A free city and land without a king charge none (city-states set
+(what does not fit is lost), gold where `credit` puts it (his treasury, or a far province's coffer, #587). A free city and land without a king charge none (city-states set
 their own in item 11+). A rate of nothing for a partner or a province is kept, as the exception to any wider rate. Each holder reads one notice a
-season of what his tolls and seizures brought (`TollsTitle`). Since item 10+b a court knows other kings' tolls on its goods
+season from each border where his tolls or seizures brought something in, saying where its gold went (`TollsTitle`),
+and it comes as word from that border does (`tell`); the toll and smuggling events name him only where his couriers
+reach (`nearOf`, #736). Since item 10+b a court knows other kings' tolls on its goods
 only as last reported (`20-people-across-borders.md`); its own it always knows (`SeatView.tolls`).
 
 **Trade rights** are the clauses `tollFree` (the writer takes no toll on the reader's goods) and `askTollFree` (asks it of
@@ -91,7 +93,10 @@ causes and the king's share travels home as a load (`20-people-across-borders.md
 every court learns the markets in the land it sees, as they stand then; since item 10+b the rest only as its caravans,
 ships and envoys bring word home, and the half-season reach (`wordSeasonsShare` 2) is what it knows at the start
 (`20-people-across-borders.md`). The reading of "Prices are known where they are and through news". `SeatView.markets`; the
-model's view lists the dearest and cheapest it knows (FOREIGN MARKETS) and the tolls on its goods.
+model's view gives the markets it knows (FOREIGN MARKETS): where all pay one price, that price once and the purses of
+the first eight, with how many more; up to eight, all by price; more, the four dearest and the four cheapest of those that
+pay less than the dearest (`byPrice` in `llm/src/prompt-economy.ts`, which names all of a king's own markets); and the
+tolls on its goods.
 
 ### Orders, rulebook and the web app
 

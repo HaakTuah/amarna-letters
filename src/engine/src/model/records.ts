@@ -36,7 +36,7 @@ export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, 
   offerAgain: B,
 });
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer", "LetterPrice"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -44,7 +44,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * tells a court of the world: a king closed or opened his roads to it, a kingdom fell, or (#618) a vassal or ally
  * reports a change of hands its court saw.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "KingTaken", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Loot", "Succession", "KingDead", "HeirClaim"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -59,6 +59,7 @@ export interface Journey {
   cargo: HomeCargo | null;
   report: SpyReport | null;
   text: string | null;
+  /** The gold it carries; for word of a succession (item 17b), how many heirs the realm has had by then. */
   gold: number;
   /** For a rumour about one of the receiving court's own people ({@link CharacterId}): what it tells. */
   news: NewsKind | null;
@@ -97,6 +98,18 @@ export interface Journey {
    */
   border: string | null;
   fee: number;
+  /**
+   * #543: a province's offer carried by a caravan (its id) going from there to its claimant's land, as a traveller going
+   * that way would carry it; it arrives by his couriers from where the caravan ends its road there. Null otherwise.
+   */
+  caravan: string | null;
+  /** #592: an offer its captor sent on to its claimant, or sold him: that court. Null otherwise. */
+  sentOnBy: Power | null;
+  /**
+   * Item 17b, part C2: the province word is carried to, for word of a king's death to his court as it stood when he died;
+   * a court that has moved since has it sent on. Null otherwise.
+   */
+  toProvince: string | null;
 }
 
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
@@ -146,6 +159,9 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     carrier: null,
     border: null,
     fee: 0,
+    caravan: null,
+    sentOnBy: null,
+    toProvince: null,
     ...init,
   };
 }
@@ -178,6 +194,9 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   carrier: opt(S),
   border: opt(S),
   fee: I,
+  caravan: opt(S),
+  sentOnBy: opt(S),
+  toProvince: opt(S),
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */
@@ -619,6 +638,8 @@ export interface TabletCopy {
   acquiredTurn: number;
   source: string;
   authResult: string | null;
+  /** Item 17b, part C: the season its check (`authResult`) was done, which reaches a king away from his court as its notice does. */
+  authTurn: number;
   /**
    * Item 12, "Reading a tablet": true while nobody at its holder's court has read it (it waits for a reader); false once
    * read or readable; null until the holder's court first looks at it, as the next season begins.
@@ -634,6 +655,7 @@ export function newTabletCopy(init: Partial<TabletCopy> = {}): TabletCopy {
     acquiredTurn: 0,
     source: "",
     authResult: null,
+    authTurn: 0,
     unread: null,
     ...init,
   };
@@ -646,6 +668,7 @@ export const TabletCopySchema: ObjSchema<TabletCopy> = obj("TabletCopy", newTabl
   acquiredTurn: I,
   source: S,
   authResult: S,
+  authTurn: I,
   unread: opt(B),
 });
 

@@ -57,11 +57,11 @@ Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true 
 
 - **Par** for each starting position: since item 11e the results a power that started there reaches in the script
   games, each ranked ([31](31-cities-defended.md)); before, the mean growth over all games, a fall counted as 0 (item
-  11d, [29](29-answers-to-11plus.md)). The winner is the living power with the highest final score, size blended with
-  performance. The scripts weigh rivals by performance (`Board.growth`) and size by strength; playing for place is item
+  11d, [29](29-answers-to-11plus.md)). The winner is the first on the one scoreboard of every person
+  ([57, part D](57-every-person.md#part-d-one-scoreboard-for-every-person-turnscoreboardts)). The scripts weigh rivals by performance (`Board.growth`) and size by strength; playing for place is item
   18's ([31](31-cities-defended.md)).
-- **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth); the alternative
-  (the gold a land can still produce in the seasons likely left) is the report's reading, for item 18.
+- **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth), kept in item 18
+  ([58](58-the-balance-pass.md)).
 - **When one power is left** the game ends, as before; a vassal is still a power, so holding vassals is not having them.
 
 ### The state of the realm (`rules/realm.ts`)
@@ -83,9 +83,13 @@ dossier's table; generated names, marked so). The city-states' rulers get no hou
 `--no-vassal-play`, `--vassal-play-half`. Each season (`vassalSeason`, before strategy) a script player reads every bond
 it knows (the opening bonds, public, and the tablets it holds):
 
-- **As vassal**, it weighs each bond once a year: the overlord's power over it (strength against its own, nearer counts
-  more), his protection against a third king who threatens it, its honesty and caution against its greed, and whether the
-  overlord attacked it. While it serves, it sends the tribute its tablet names once a year (a humble letter, the gold,
+- **As vassal**, it weighs each bond once a year as an investment (item 18 part E; `tributeReturn` in
+  `bots/investment.ts`, "tribute buys peace"): it keeps serving while what the tribute buys over the seasons it believes
+  are left returns more than the tribute costs over them. It buys peace with the overlord, who never makes war on a vassal
+  that pays but may, as hostile as it reckons him, on one that does not; and his troops between it and the third king who
+  threatens it most, by his troops against that king's; each weighed as a gift's return is (what an attack would take of
+  what the king can reach, by his odds). Nothing, if the overlord attacked it within the year. Its honesty is how much it
+  believes its sealed word is worth (×0.5 to ×1.5). A bond with no tribute is always kept. While it serves, it sends the tribute its tablet names once a year (a humble letter, the gold,
   `tribute` and `askProtect`), and never makes war on that overlord.
 - **As overlord**, it notes the gold a vassal's envoy brings; a vassal that paid within a year and the road's grace is a
   friend (`Brain.bondFriends`, counted by `isFriend`), worth more paying than conquered; one in arrears hears a demand
@@ -95,3 +99,19 @@ it knows (the opening bonds, public, and the tablets it holds):
   nobody, offers itself (`tribute`, `serve`, `askProtect`). `sealBond` seals a vassal tablet by the same sums: as
   overlord, real tribute from a sender not hostile; as vassal, a bearable price to an overlord it fears or needs.
 - **Third kings** weigh an overlord's troops near a vassal, and his friendship, before falling on it (`bondWar`).
+
+## A small state as a seat (item 17++++)
+
+Any city-state's or chief's seat can be taken by a human or a model, from the same seat choice as a Great King's: the
+start screen lists the seven Great Kings first, "the advised start", then "a small state: harder, not the advised start",
+and says why when one is chosen. Nothing checks which power a seat is: it plays by the same rules, with its own seat view,
+letters and council, and is judged on the one scoreboard against its own start ("Relative score"). What the item changed
+is how a seat is styled where it was written for a Great King: the seat's own identity line in every request
+(`rulerOf`: "Rib-Hadda, king of Gubla", "the king of Tunip", "the Great King of Alashiya", "the chief of the Kaska",
+an unnamed ruler under the realm he claims), the rulebook's line on whom a seat plays, the phrasing of a court's answers
+("a ruler … a Great King, a city's king or a land's chief"), both chronicle narrators' annals, and the script kings'
+words that named their own rank; `rulerStyle` gives the style, from the seven Great
+Kings and the lands under chiefs, and no rule reads it. Rank beyond it is earned in greetings ("Recognition is earned"). And the seat's orders give the
+envoys' journeys grouped by their length once the list is long, by the grouping the model's request uses (`journeyGroups`) ("1 season to every court but these; Arrapha, Elam: 2
+seasons"), since a small state's seat, like any, reads forty-six courts, most a season away.
+

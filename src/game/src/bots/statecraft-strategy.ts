@@ -45,7 +45,7 @@ import { censusOrders, corveeShares, demandOrders, levyOrder } from "./counts.ts
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import { WarPlay, keptBond } from "./siege-tactics.ts";
-import type { Brain } from "./brain.ts";
+import { WarMarginScale, closeness, warOdds, type Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
 // ================================================================= strategy
@@ -57,7 +57,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
   const leader = b.leader();
   const reach = reachableLand(b);
   // Troops a king can field, from what we see and what we have seen of him lately.
-  const force = (x: Power): number => Math.max(count(b.others, (u) => u.power === x), brain.armySeen.tryGet(x)?.[0] ?? 0);
+  const force = (x: Power): number => brain.force(x, b);
 
   // What a war on a king could win this year: each province of his within reach, by the chance our troops there beat what he
   // can hold it with (a unit and its supports, walls, or troops that can block).
@@ -110,7 +110,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
         // Allies and the bonds of vassalage we keep are never the war; a plain peace is its price, weighed below.
         if (WarPlay.on(me) && keptBond(brain, x)) return [x, -Number.MAX_VALUE];
         // A war is worth what it can win: the odds of our troops against his,
-        const odds = clamp((ours + 0.5) / (force(x) + 0.5), 0.25, 1.6);
+        const odds = warOdds(ours, force(x));
         // what we can take from him (see prize),
         if (![...reach].some((t) => b.ownerOf(t) === x)) return [x, -Number.MAX_VALUE];
         // and the kings who could fall on us while we are busy with him.
@@ -144,13 +144,20 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
           bondWar(b, brain, x);
         return [x, score];
       });
-    const best = sortBy(scored, [(t: [Power, number]) => t[1], desc(cmpNum)], [(t: [Power, number]) => t[0], cmpPower])[0];
+    const ranked = sortBy(scored, [(t: [Power, number]) => t[1], desc(cmpNum)], [(t: [Power, number]) => t[0], cmpPower]);
+    const best = ranked[0];
     // In the first year, letters are still on the road: only the warlike or the wronged start a war.
     const patience = b.v.turn <= 3 ? 80 * (1 - p.aggression) : 0;
-    if (best[1] > 140 * (1 - p.aggression) + 40 + patience) {
+    const bar = 140 * (1 - p.aggression) + 40 + patience;
+    if (best[1] > bar) {
       brain.warTarget = best[0];
       brain.warSince = b.v.turn;
     }
+    // How close the call was (item 18, "What a call is worth"): the best war against the next, or against the bar it had
+    // to clear; standing in peace, the bar against the best war. With no war weighed it stays null: the season's call is the
+    // plan's, or one beyond the formulas.
+    const next = ranked.length > 1 ? ranked[1][1] : -Number.MAX_VALUE;
+    brain.margins.war = closeness(best[1] > bar ? best[1] - Math.max(next, bar) : bar - best[1], WarMarginScale);
   }
 
   // Betrayal: only for the faithless, only when an ally's land lies open, never against a sworn partner near the end.

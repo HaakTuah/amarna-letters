@@ -3,8 +3,8 @@
  * believe and remember. Built from the frames only (the court's own earlier sights, its own people as it believes them, the
  * news that reached it), never from anything it could not know.
  */
-import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
+import { WorldMap, newGameConfig, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
+import { coverOf, isMove, ownerFor, type FrameBand, type FrameCover, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, between, city, lengthOf, route, type Pt } from "./art.ts";
 import { ownFiguresAt } from "./known.ts";
@@ -268,7 +268,8 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
     const now = f.sight.get(p) ?? new Set<string>();
     units.push(
       ...stack(
-        f.units.filter((u) => u.power === p || now.has(u.province)),
+        // Its own as it knows them (bug #615; frames saved before have none: as they stand), others' where it sees them.
+        [...(f.knownUnits?.get(p) ?? f.units.filter((u) => u.power === p)), ...f.units.filter((u) => u.power !== p && now.has(u.province))],
         false,
         0,
         index,
@@ -563,18 +564,17 @@ function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
   return [travellers, people];
 }
 
-const AtCourt = /at the court of (\w+)/u;
-const InProvince = /^in (\w+)$/u;
-const SetOut = /set out in turn (\d+) for (\w+)/u;
+const SetOut = /set out in turn (\d+)/u;
 const DueThere = /due there about turn (\d+)/u;
 const DueBack = /due back about turn (\d+)/u;
 
-function placeOf(where: string): string | null {
-  const m = AtCourt.exec(where);
-  const court = m !== null ? parsePower(m[1]) : null;
-  if (court !== null) return capOf(court);
-  const n = InProvince.exec(where);
-  return n !== null && Map_.exists(n[1]) ? n[1] : null;
+/**
+ * Where a court believes a servant stands: the province it keeps for him (bug #734), else the court he stands at, by its
+ * id (bug #797), never read from words that name it as the court gives it.
+ */
+function placeOf(cover: FrameCover): string | null {
+  if (cover.province !== null && Map_.exists(cover.province)) return cover.province;
+  return cover.whereText.startsWith("at the court of ") && cover.court !== null ? capOf(cover.court) : null;
 }
 
 /**
@@ -595,12 +595,12 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
       }
       switch (cover.believed) {
         case "SpyPosted": {
-          const post = placeOf(cover.whereText);
+          const post = placeOf(cover);
           if (post !== null) people.push({ id: c.id, kind: "Spy", owner: p, province: post, title: `${c.name}, your spy, at their post as far as you know`, believed: true, double: false });
           break;
         }
         case "EnvoyAtCourt": {
-          const court = placeOf(cover.whereText);
+          const court = placeOf(cover);
           if (court !== null) people.push({ id: c.id, kind: "Envoy", owner: p, province: court, title: `${c.name}, your envoy, at that court as far as you know`, believed: true, double: false });
           break;
         }
@@ -608,8 +608,7 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
           const due = DueBack.exec(cover.timingText);
           if (due === null) break;
           const arrive = Number.parseInt(due[1], 10);
-          const so = SetOut.exec(cover.timingText);
-          const abroad = so !== null ? parsePower(so[2]) : null;
+          const abroad = SetOut.test(cover.timingText) ? cover.court : null;
           const from = abroad !== null ? capOf(abroad) : c.mission !== null ? capOf(c.mission) : (c.watch ?? home);
           const depart = arrive - travelTurns(newGameConfig(), Map_, from, home, now);
           travellers.push({
@@ -632,7 +631,7 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
         case "EnvoyOutbound": {
           const so = SetOut.exec(cover.timingText);
           const dt = DueThere.exec(cover.timingText);
-          const dest = so !== null ? parsePower(so[2]) : null;
+          const dest = cover.court;
           if (so === null || dt === null || dest === null) break;
           const depart = Number.parseInt(so[1], 10);
           const arrive = Number.parseInt(dt[1], 10);

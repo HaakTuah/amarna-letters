@@ -10,9 +10,11 @@ import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, Fo
 import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, powerName, type Power, quoteWords, courtHead } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
-import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy, type Unit } from "../model/state.ts";
+import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { counted, listed, notTaken, pick, seasonsWords, upper } from "../rules/wording.ts";
+import { fallenRealmOf, realmOfKing } from "../rules/court.ts";
 import { cap } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import { OrderValidator } from "../rules/validator.ts";
@@ -44,7 +46,8 @@ declare module "./core.ts" {
     spyReportArrives(j: Journey): void;
     capture(c: Character, host: Power, rng: Rng): void;
     captive(host: Power, co: CaptiveOrder): void;
-    releaseCaptive(host: Power, c: Character): void;
+    /** `where`: the province it is let go in, when not at its captor's court (a convoy stopped on the road). */
+    releaseCaptive(host: Power, c: Character, where?: string): void;
     payRansom(payer: Power, pr: PayRansomOrder): void;
     ransomArrives(j: Journey): void;
     rumor(to: Power, from: Power, text: string, about?: string | null, news?: NewsKind | null, demand?: string | null): void;
@@ -188,7 +191,9 @@ P.recallCovered = function (p, c, cover) {
   cover.believed = "EnvoyHomebound";
   cover.recalled = true;
   cover.dutyText = "on the road home";
-  cover.whereText = c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
+  // As a free one's would read (bug #734): the province by its name, and its place for looking it up.
+  cover.whereText = c.watchProvince !== null ? `in ${Map.get(c.watchProvince).name}` : "travelling";
+  cover.province = c.watchProvince;
   const post = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
   const place = c.missionTarget !== null ? `the court of ${powerName(c.missionTarget)}` : c.watchProvince !== null ? Map.get(c.watchProvince).name : p;
   const due = S.turn + this.travelTurnsBetween(post, this.courtAt(p));
@@ -545,19 +550,22 @@ P.captive = function (host, co) {
   const employer = c.employer;
   switch (co.fate) {
     case "Execute": {
-      // Its master goes on believing what it believed until the rumour of the death arrives.
-      if (employer !== null) this.coverFor(c, employer, "None");
+      // Its master goes on believing what it believed until the rumour of the death arrives; a king's realm knows at once,
+      // for his heir reigns from this season (item 17b).
+      const realm = realmOfKing(S, c.id);
+      if (employer !== null && realm === null) this.coverFor(c, employer, "None");
       c.status = "Dead";
       c.duty = "None";
       // The dead are never paid: what any court owed it is gone.
       c.owed.clear();
       logEvent(S, "execution", `${host} executed ${c.name}.`, [host]);
       // The rumour reaches its king, and every court that still believes the dead one serves it.
-      for (const heard of AllPowers.filter((p) => p === employer || coverOf(c, p) !== null)) this.rumor(heard, host, `It is said that ${c.name} was put to death in ${powerName(host)}.`, c.id, "Death");
+      for (const heard of AllPowers.filter((p) => p !== realm && (p === employer || coverOf(c, p) !== null))) this.rumor(heard, host, `It is said that ${c.name} was put to death in ${powerName(host)}.`, c.id, "Death");
       // Other courts hear of it only from their envoys and spies at this court (see lossesHeard).
       let master: Power | null = null;
       for (const l of S.losses) if (l.characterId === c.id && l.court === host && l.kind === "Captured") master = l.master;
       S.losses.push(newLossAbroad({ turn: S.turn, kind: "PutToDeath", characterId: c.id, court: host, master }));
+      if (realm !== null || fallenRealmOf(S, c.id) !== null) this.kingDied(c, `put to death by ${powerName(host)}`, this.courtAt(host));
       break;
     }
     case "Ransom": {
@@ -615,17 +623,23 @@ P.captive = function (host, co) {
  * is home; one that has heard of the capture sees it on the road home at once, so that no ransom is paid for a captive
  * already free.
  */
-P.releaseCaptive = function (host, c) {
+P.releaseCaptive = function (host, c, where) {
   // A captive on the road under guard (item 10+b) is let go where it is: its convoy is over.
+  let at = where ?? (c.at !== null ? this.courtAt(c.at) : this.courtAt(host));
   if (c.duty === "UnderGuard") {
-    this.s.journeys = this.s.journeys.filter((j) => !(j.kind === "CaptiveConvoy" && j.characterId === c.id));
+    const convoy = this.s.journeys.find((j) => j.kind === "CaptiveConvoy" && j.characterId === c.id);
+    if (convoy !== undefined && convoy.route.length > 0) at = convoy.route[convoy.leg];
+    this.s.journeys = this.s.journeys.filter((j) => j !== convoy);
     c.duty = "None";
   }
   c.status = c.employer === null ? "Free" : "Employed";
   c.heldBy = null;
   c.intercepted = false;
   remember(c, this.s.turn, `${land(host)} set me free.`);
-  if (c.employer !== null && isAlive(this.s, c.employer)) {
+  // Item 17b: a king set free walks home to his court, and reigns again when he is there.
+  const realm = realmOfKing(this.s, c.id);
+  if (realm !== null) this.kingGoesHome(c, realm, at);
+  else if (c.employer !== null && isAlive(this.s, c.employer)) {
     c.duty = "SpyOutbound";
     this.recall(c.employer, c);
   } else {
@@ -733,7 +747,7 @@ P.assay = function (p, a) {
   const weighed = `The lot of ${formatMoney(lot.face)} weighed from ${powerName(lot.from)}`;
   let text =
     pct < 100
-      ? `${weighed} holds only ${formatMoney(lot.true)} of fine gold, ${pct} in a hundred.`
+      ? `${weighed} holds only ${formatMoney(lot.true)} of fine gold, ${pct}%.`
       : lot.true === lot.face
         ? `${weighed} is ${FullWeight}.`
         : `${weighed} is ${FullWeight} near enough: ${formatMoney(lot.true)} of it.`;
@@ -778,6 +792,7 @@ P.finishAuthentication = function (task) {
     } else result = genuine;
   }
   copy.authResult = result;
+  copy.authTurn = S.turn;
   // The tablet as every court names it, the court's own mark for its copy, and its text in full.
   notify(
     S,

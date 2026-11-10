@@ -8,7 +8,7 @@ import { I, type ObjSchema, S, obj, opt } from "../core/json.ts";
 import { clamp, idiv } from "../core/num.ts";
 import type { Province } from "./map.ts";
 import type { Power } from "./power.ts";
-import type { Unit } from "./state.ts";
+import type { Unit } from "./units.ts";
 
 /**
  * First guesses (item 18 tunes them):

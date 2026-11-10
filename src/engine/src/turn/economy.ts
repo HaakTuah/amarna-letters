@@ -24,7 +24,8 @@ import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
-import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit } from "../model/state.ts";
+import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf } from "../model/state.ts";
+import { unitLabel, type Unit, loseUnit } from "../model/units.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
 import { listed } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
@@ -142,7 +143,7 @@ P.harvestSeason = function () {
   const mined = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
     const owner = S.owner.getOrDefault(prov.id, null);
-    const book = owner === null || this.wordTo(owner, prov.id) === 0 ? owner : `${owner}@${prov.id}`;
+    const book = owner === null || this.fromCourt(owner, prov.id) === 0 ? owner : `${owner}@${prov.id}`;
     // The fields grow by this season's hands and weather; in its season the crop is reaped into the granaries.
     const crop = S.crop.getOrDefault(prov.id, 0) + this.harvestNow(prov.id);
     let granary = S.granary.getOrDefault(prov.id, 0);
@@ -289,8 +290,9 @@ P.payTroops = function (p) {
       u.unpaid++;
       // Item 17++: wages unpaid are a taking its men remember of their king.
       this.armyEntry(u, u.power, -UnrestData.unpaid);
-      held.push(unitLabel(u));
-      logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
+      // A far unit's, as its missing pay is, its own report's to tell (bug #615).
+      if (!this.isFar(p, u.province)) held.push(unitLabel(u));
+      logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, this.nearOf(u.province, p), "pay-held");
       continue;
     }
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
@@ -402,7 +404,8 @@ P.feedTroops = function () {
         u.savings -= r.paid;
         eaten += r.taken;
         buying = true;
-        bought.set(u.power, (bought.getOrDefault(u.power, 0) + r.paid));
+        // A far unit's buying its own report tells (bug #615).
+        if (!this.isFar(u.power, u.province)) bought.set(u.power, bought.getOrDefault(u.power, 0) + r.paid);
       }
     }
     if (eaten < need) {
@@ -432,7 +435,7 @@ P.feedTroops = function () {
           this._foodNow.set(prov.id, Math.max(0, this._foodNow.getOrDefault(prov.id, 0) - take - waste));
           eaten += take;
           taken.add(prov.id, u.power, take + waste);
-          foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
+          if (!this.isFar(u.power, u.province)) foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
         }
       }
     }
@@ -445,6 +448,11 @@ P.feedTroops = function () {
       u.hungry++;
       // Hunger is a taking, held against the hand that feeds them.
       this.armyEntry(u, this.armyHand(u), -UnrestData.starved);
+      // Bug #615: a far unit's hunger comes home by the road, from where it went hungry.
+      if (this.isFar(u.power, u.province)) {
+        this.tell(u.power, u.province, "Notice", EconomyTitle, `Hungry this season, with nothing left in depot, baggage or field: your ${unitLabel(u)}. A unit hungry ${EconomyData.hungryMutiny} seasons running mutinies.`);
+        continue;
+      }
       let h = hungry.tryGet(u.power);
       if (!h) hungry.set(u.power, (h = []));
       h.push(unitLabel(u));
@@ -470,8 +478,7 @@ P.feedTroops = function () {
     const rng = this.r("mutiny-head", u.id);
     if (u.kind === "Army" && !this.map.get(u.province).isSea && rng.chance(Math.min(90, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
       const men = u.men;
-      const i = S.units.indexOf(u);
-      if (i >= 0) S.units.splice(i, 1);
+      loseUnit(S, u);
       this.liftSiegesOf(u.id);
       const b = this.headRises(u.province, men, "mutiny", rng);
       gain(S.characters.find((c) => c.id === b.leaderId)!, u.savings, "Loot");
@@ -494,8 +501,7 @@ P.feedTroops = function () {
  */
 P.disbandUnit = function (u, settle = false) {
   const S = this.s;
-  const i = S.units.indexOf(u);
-  if (i >= 0) S.units.splice(i, 1);
+  loseUnit(S, u);
   this.liftSiegesOf(u.id);
   // The men carry their savings with them: home when they arrive, or where they settle (the owner, 28 October 2026).
   return this.menHome(u, settle);
@@ -671,7 +677,7 @@ P.holdings = function (p) {
   for (const u of S.units) if (u.power === p) w += carriedWorth(u.food, u.savings);
   // Discharged men walking home carry their savings to a province of this realm (item 10+a).
   for (const x of S.walking) if (S.owner.getOrDefault(x.home, null) === p) w += x.savings;
-  // #587: and the gold on the road with its couriers to a far coffer or back.
+  // #587, #740: and the gold on the road with its couriers, to a far coffer or back, or loot coming home.
   w += goldSent(this, p);
   for (const c of S.caravans) if (c.power === p) w += carriedWorth(c.grain, c.gold + c.pay) + (c.ship !== null ? carriedWorth(c.ship.food, c.ship.savings) : 0);
   return w;

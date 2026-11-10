@@ -7,7 +7,8 @@
  */
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
-import { type GameState, UnitSchema, type Unit } from "./state.ts";
+import { type GameState } from "./state.ts";
+import { UnitSchema, type Unit } from "./units.ts";
 import { type Word, WordSchema, newWord } from "./word.ts";
 
 export interface Market {
@@ -71,10 +72,15 @@ export interface Caravan {
    * court knows it as the newest whose word has come (`caravansKnown` in rules/caravans-known.ts).
    */
   trail: string[];
+  /**
+   * #543: the provinces whose people's leaning toward an absent king it heard talk of where it passed: it tells the court
+   * of each land where its road ends, as travellers' talk (`TurnEngine.talkCarried`).
+   */
+  talk: string[];
 }
 
 export function newCaravan(init: Partial<Caravan> = {}): Caravan {
-  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, pay: 0, bill: null, trade: false, sneak: false, ship: null, word: newWord(), archive: [], archiveOf: "", trail: [], ...init };
+  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, pay: 0, bill: null, trade: false, sneak: false, ship: null, word: newWord(), archive: [], archiveOf: "", trail: [], talk: [], ...init };
 }
 
 export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
@@ -98,6 +104,7 @@ export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
   archive: list(S),
   archiveOf: S,
   trail: list(S),
+  talk: list(S),
 });
 
 /** Where a caravan stands now. */

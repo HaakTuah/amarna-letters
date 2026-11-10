@@ -1,0 +1,51 @@
+# The licence check (floor rule 10), for every project that takes the core: on every pull request, Dependabot's
+# included, it fails one that adds or updates a package under a licence off its list. GitHub's dependency review holds
+# what the PR changes to the tools' list (it cannot tell what ships), letting the data and font packages the project
+# names through; core/scripts/licences.mjs then holds every package of the project's lockfiles, and its audit's
+# entries, each to its own list: what ships to floor rule 10's, tools that only run to the tools'. Both lists come from
+# that script, so they stand in one place. The script reads each package's licence and dependencies from the lockfile
+# as npm wrote it (npm checks a package's bytes, not those fields), so a hand edit to them is a review finding; the
+# dependency review reads GitHub's own licence data. A project calls it (workflow_call) from its own
+# .github/workflows/licences.yml on every pull request, pinned to a full commit SHA ("How a project takes the core" in
+# README.md, point 5), passing its config's path. Reads only, with no secret: nothing is installed, and besides GitHub's
+# dependency review nothing runs but the caller's own core/scripts/licences.mjs, which core.yml holds to the core pin.
+name: licences
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: The licence check's config, a JSON file in the calling repository (core/scripts/licences.mjs).
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  licences:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # nothing after the checkout pushes or fetches
+      - name: The lists, for the dependency review
+        id: lists
+        env:
+          CONFIG: ${{ inputs.config }}
+        run: node core/scripts/licences.mjs "$CONFIG" --action >> "$GITHUB_OUTPUT"
+      - name: New and updated packages
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          license-check: true
+          vulnerability-check: false # (the vulnerability alerts are Dependabot's)
+          fail-on-scopes: runtime, development, unknown # (every package, not only the runtime ones)
+          allow-licenses: ${{ steps.lists.outputs.allow-licenses }}
+          allow-dependencies-licenses: ${{ steps.lists.outputs.allow-dependencies-licenses }}
+          comment-summary-in-pr: never
+      - name: Every package and audit entry, each to its own list
+        env:
+          CONFIG: ${{ inputs.config }}
+        run: node core/scripts/licences.mjs "$CONFIG"

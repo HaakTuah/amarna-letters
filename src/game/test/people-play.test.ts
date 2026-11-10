@@ -61,7 +61,7 @@ describe("PeoplePlayTests", () => {
     Assert.false(v.yields.has("hattusa"));
     Assert.false(v.resistance.has("sapinuwa"));
     const lines = peopleLines(v).join("\n");
-    Assert.contains("YOUR PEOPLE, as your scribes last counted them: on the land", lines);
+    Assert.contains("YOUR PEOPLE (census to count a province afresh, welcome_loose to settle loose men, return_runaways to send runaways back), as your scribes last counted them: on the land", lines);
     Assert.contains("What you ask: 33% of the harvest in", lines);
     Assert.contains("Men of fighting age in your homeland", lines);
   });

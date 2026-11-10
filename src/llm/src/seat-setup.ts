@@ -9,6 +9,7 @@ import {
   ScriptMind,
   TemplateNarrator,
   type GameLog,
+  type KingShadowing,
   type ICharacterMind,
   type INarrator,
   type ISeat,
@@ -21,7 +22,8 @@ import { NewPlan, alertsReply, planReply, routineCourt } from "./king-ladder.ts"
 import { Ladder, counselSchema, withLadder } from "./ladder.ts";
 import { Spending, newSpendingSettings, type SpendingSettings } from "./spending.ts";
 import { AnthropicProvider, type ApiTransport } from "./anthropic.ts";
-import { AnthropicId, ModelClient, splitModel, type Provider } from "./client.ts";
+import { ModelClient, splitModel, type Provider } from "./client.ts";
+import { AnthropicId } from "./endpoints.ts";
 import { CompatibleProvider, type ProviderSetting } from "./compatible.ts";
 import { LlmLeaderSeat } from "./leader-seat.ts";
 import { ModelIds, PriceTable, type PriceSetting } from "./models.ts";
@@ -173,6 +175,8 @@ export class SeatChoices {
 
 export interface SeatSet {
   seats: Dict<Power, ISeat>;
+  /** Item 18, "Shadow scripts": the script beside every king a model, a local agent or a file plays, and its log. */
+  shadowing: KingShadowing;
   minds: ICharacterMind;
   narrator: INarrator;
 }
@@ -273,7 +277,10 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
   const bridge = choices.usesLocalAgents ? new LocalBridge(choices.bridgeAddress, Math.min(Math.max(choices.localAgentMinutes, 1), 24 * 60) * 60000) : null;
 
   const bridgeCharacters = new Set(choices.bridgeCharacters);
+  // The script seats; and, item 18's "Shadow scripts", the script beside every king a model, a local agent or a file
+  // plays (its brains are by power, so the kings it shadows are apart from those it plays and from the runner's stand-in).
   const script = new ScriptLeader(state.seed);
+  const shadowing: KingShadowing = { script, log: (k) => log().addKingShadow(k) };
   const seats = new Dict<Power, ISeat>();
   for (const p of AllPowers) {
     const kind = choices.leaders.get(p);
@@ -301,6 +308,8 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
               })
             : script,
     );
+    const seat = seats.get(p);
+    if (seat instanceof LlmLeaderSeat) seat.shadow = shadowing;
   }
   // Model characters' decisions are logged beside the script's for the same situations (the log's shadow lines).
   const cm = characterModel(choices.characters);
@@ -322,7 +331,7 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
   }
   const nm = narratorModel(choices.narrator);
   const narrator: INarrator = nm !== null ? new LlmNarrator(client!, nm) : new TemplateNarrator();
-  return { seats, minds, narrator, client };
+  return { seats, shadowing, minds, narrator, client };
 }
 
 /** Reads seat choices back from a log header's labels, to continue a saved game. */

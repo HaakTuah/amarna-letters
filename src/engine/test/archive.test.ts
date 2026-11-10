@@ -4,6 +4,7 @@ import {
   ArchiveTakenTitle,
   type Character,
   Dict,
+  ownedBy,
   type GameState,
   type Order,
   type Power,
@@ -223,10 +224,15 @@ describe("ArchiveTests", () => {
     Assert.doesNotContain("Babylonia", holdersOf(s, "t900"));
     Assert.doesNotContain(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle);
 
-    // Ashur is Babylonia's (given to it, for the test), and Assyria falls with it as the season resolves; Babylonia cedes
+    // Ashur is Babylonia's (given to it, for the test), the last Assyria held (its other land Babylonia's too, its people
+    // indifferent), and Assyria falls with it as the season resolves (item 17b: a realm falls when it holds nothing); Babylonia cedes
     // the city to Egypt that season: the archive lies in the city, and Egypt gains copies of it. (A king cannot cede his
     // own capital since the siege package.)
     s.owner.set(capital, "Babylonia");
+    for (const id of ownedBy(s, "Assyria")) {
+      s.owner.set(id, "Babylonia");
+      s.ledger.set(id, new Dict());
+    }
     // Item 17++: land ceded passes at once only where the receiver's troops stand, which is his taking it up.
     removeAll(s.units, (u) => u.province === capital);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: capital }));
@@ -241,8 +247,8 @@ describe("ArchiveTests", () => {
   });
 
   test("An empty archive is said to be empty", () => {
-    // (Until the siege package this test also had Assyria retake its capital and gain nothing from its own archive; a
-    // kingdom now falls with its capital, so there is no king left to retake it.)
+    // (Until the siege package this test also had Assyria retake its capital and gain nothing from its own archive; from
+    // then a kingdom fell with its capital, and since item 17b its king is taken with it.)
     let [s, capital, from] = babyloniaNextToAshur();
     smallWorld(s, "Babylonia", "Assyria");
     begin(s).resolve(orders("Babylonia", move(from, capital)));
@@ -252,6 +258,6 @@ describe("ArchiveTests", () => {
       "With " + WorldMap.default.get(capital).name + " you took the archive of Assyria; it held no tablet you did not hold already.",
       single(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle).body,
     );
-    Assert.contains("Assyria", s.eliminated);
+    Assert.equal("Babylonia", s.characters.find((c) => c.id === s.reigns.get("Assyria").character)!.heldBy);
   });
 });

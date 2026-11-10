@@ -2,7 +2,7 @@ import { WorldMap, powerOrdinal, type Power } from "@amarna/engine";
 import { memo } from "react";
 import { captureLine, unitKindName, type MapScene, type MoveStyle } from "../map/scene.ts";
 import type { FrameNews, FrameSleep } from "../session/frames.ts";
-import { cap, dated, powerName, provinceName, shekels, when, whenCap } from "../ui/format.ts";
+import { cap, winnerName, dated, powerName, provinceName, shekels, when, whenCap } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
 const rank = (s: MoveStyle): number => (s === "Attack" ? 0 : s === "Bounce" ? 1 : s === "Move" ? 2 : s === "Convoy" ? 3 : 4);
@@ -11,6 +11,13 @@ const tag = (s: MoveStyle): string =>
 const powerRank = (p: Power): number => powerOrdinal(p);
 const personRank = (k: string): number => ["Envoy", "Spy", "Captive", "Missing"].indexOf(k);
 const ordinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+
+/** Lines said word for word more than once (eight unread tablets at one court) as one line and how many times, in order. */
+function alike(lines: readonly string[]): [string, number][] {
+  const count = new Map<string, number>();
+  for (const l of lines) count.set(l, (count.get(l) ?? 0) + 1);
+  return [...count];
+}
 
 /** A sleeping seat's line, with the date labels: asleep since when, woken by when at the latest, and why it last woke. */
 export function sleepLine(s: FrameSleep, court: Power | null): string {
@@ -65,7 +72,7 @@ export const SeasonPanel = memo(function SeasonPanel({
 
       {f.ended && scene.index === f.index && (
         <div className="notice">
-          <strong>{f.endReason === null ? "The age has ended" : cap(f.endReason)}.</strong> Winner: {f.winners.map(powerName).join(" and ")}. The richest characters are ranked under Standings.
+          <strong>{f.endReason === null ? "The age has ended" : cap(f.endReason)}.</strong> Winner: {f.winners.map(winnerName).join(" and ")}. Every person is ranked on the scoreboard under Standings.
         </div>
       )}
 
@@ -143,7 +150,7 @@ export const SeasonPanel = memo(function SeasonPanel({
           <ul className="lines">
             {news.map((n, i) => (
               <li key={i} onClick={() => newsAt(n)}>
-                <span className="mv-tag">{n.kind === "SpyReport" ? "agent" : "rumour"}</span> <strong>{n.title}</strong>: {dated(n.body, v)}
+                <span className="mv-tag">{n.kind === "SpyReport" ? "spy" : "rumour"}</span> <strong>{n.title}</strong>: {dated(n.body, v)}
               </li>
             ))}
           </ul>
@@ -154,9 +161,14 @@ export const SeasonPanel = memo(function SeasonPanel({
         <>
           <h4>Also this season</h4>
           <ul className="lines plain">
-            {events.slice(-30).map((e, i) => (
-              <li key={i}>{dated(e.text, v)}</li>
-            ))}
+            {alike(events.map((e) => cap(dated(e.text, v))))
+              .slice(-30)
+              .map(([text, n], i) => (
+                <li key={i}>
+                  {text}
+                  {n > 1 && <small className="muted"> ×{n}</small>}
+                </li>
+              ))}
           </ul>
         </>
       )}

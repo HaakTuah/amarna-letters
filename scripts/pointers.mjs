@@ -1,24 +1,30 @@
-// The pointer check (archive item 217): every pointer in the rule files to a file, a section or a numbered point must
-// lead to one that exists, or the check fails, saying which. The forms it reads: a path in backticks or a Markdown link
-// (`docs/developing.md`, a folder ending in /, a :line after it); a section by its quoted title, "Title" in `file`, in
-// the builder rules, in this file, above or below, as a heading or a bold lead; a numbered point of a file or a section
-// ("point 4" of `SECURITY.md`, "Reviews", point 2); and archive items (the numbered entries of
-// docs/archive/instructions/). A form it cannot read, such as a path with a <placeholder> in it or a bare file name, is
-// listed, never guessed. Node's own modules only, so the check needs no install (.github/workflows/pointers.yml;
-// scripts/test.sh runs it too).
+// The pointer check (archive item 217): every pointer in this game's rule files to a file, a section or a numbered
+// point must lead to one that exists, or the check fails, saying which. The forms it reads: a path in backticks or a
+// Markdown link (`docs/threat-model.md`, a folder ending in /, a :line after it), into `core/` too; a section by its
+// quoted title, "Title" in `file`, in the builder rules, in this file, above or below, as a heading or a bold lead; a
+// numbered point of a file or a section (`SECURITY.md`, rule 3, found in it or in the floor it takes whole; "Reviews",
+// point 2); and the archive citations, "archive item N" (the numbered entries of docs/archive/instructions/) and "core
+// archive N" (of core/archive/instructions/). A form it cannot read, such as a path with a <placeholder> in it or a
+// bare file name, is listed, never guessed. Node's own modules only, so the check needs no install
+// (.github/workflows/pointers.yml; scripts/test.sh runs it too).
 //
 //   node scripts/pointers.mjs             the check
 //   node scripts/pointers.mjs --unread    also list each pointer it could not read
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ruleFiles } from "../core/scripts/rule-files.mjs";
 process.chdir(fileURLToPath(new URL("..", import.meta.url)));
 
-// The rule files (SECURITY.md, point 3) and the developer guide that holds their update and GitHub rules.
-const RULES = ["AGENTS.md", "CLAUDE.md", "SECURITY.md", "docs/builder-rules.md", "docs/claude-and-codex.md", "docs/codex-building.md",
-  "docs/orchestrating.md", "docs/review-guidelines.md", "docs/threat-model.md", "docs/developing.md"];
+// This game's rule files: those the floor names by path (core/floor/security.md, rule 3) and those SECURITY.md, rule 3,
+// lists (core/scripts/rule-files.mjs). The copy of the core under core/ is not read: it is checked in the core, and
+// only pointed into from here.
+const RULES = ["AGENTS.md", "CLAUDE.md", "core-manifest.md", ...ruleFiles()];
+// The builder rules come from the design document and are never edited here (AGENTS.md): what is broken in them is
+// listed for the design session's next refresh of its copy, and does not fail the check.
+const FROM_DESIGN = "docs/builder-rules.md";
 const ALIASES = { "the builder rules": "docs/builder-rules.md", "the progress file": "docs/BUILD-PROGRESS.md" };
-const ARCHIVE = "docs/archive/instructions";
+const ARCHIVES = { "archive item": "docs/archive/instructions", "core archive": "core/archive/instructions" };
 const ROOTS = /^(\.claude|\.github|docs|scripts|src|sim|tests|core)\//u;
 const ROOT_FILE = /^[\w.-]+\.(md|json|yml|yaml|sh|mjs|ts)$/u;
 
@@ -53,9 +59,14 @@ function findSection(file, title) {
   if (!begun.length) return undefined;
   return new Set(begun.map((s) => s.title)).size === 1 ? begun[0] : null;
 }
-const hasPoint = (lines, n) => lines.some((l) => new RegExp(`^\\s*${n}\\.\\s`, "u").test(l));
-const archiveItems = new Set(fs.readdirSync(ARCHIVE).flatMap((f) =>
-  [...read(path.join(ARCHIVE, f)).matchAll(/^(\d+)\.\s/gmu)].map((m) => Number(m[1]))));
+// A numbered point: "4. " at a line's start, or "**4. " as the floor writes its rules.
+const hasPoint = (lines, n) => lines.some((l) => new RegExp(`^\\s*(\\*\\*)?${n}\\.\\s`, "u").test(l));
+// SECURITY.md adds under the floor's numbers, so a rule of it may stand in either file of the floor ("The floor").
+const FLOOR = ["core/floor/security.md", "core/floor/topics.md"];
+const linesOf = (file) => [file, ...(file === "SECURITY.md" ? FLOOR : [])].flatMap((f) => read(f).split("\n"));
+const itemsIn = (dir) => new Set(fs.readdirSync(dir).flatMap((f) =>
+  [...read(path.join(dir, f)).matchAll(/^(\d+)\.\s/gmu)].map((m) => Number(m[1]))));
+const archiveItems = Object.fromEntries(Object.entries(ARCHIVES).map(([cite, dir]) => [cite, itemsIn(dir)]));
 
 /** The file a path pointer names, or null when it is not a path this check reads. */
 function asPath(token) {
@@ -74,12 +85,13 @@ function target(rest, here) {
 }
 
 const broken = [];
+const stale = [];
 const unread = [];
 let checked = 0;
 for (const file of RULES) {
   read(file).split("\n").forEach((line, i) => {
     const where = `${file}:${i + 1}`;
-    const fail = (what) => broken.push(`${where}: ${what}`);
+    const fail = (what) => (file === FROM_DESIGN ? stale : broken).push(`${where}: ${what}`);
     for (const m of line.matchAll(/`([^`\n]+)`|\]\(([^)\s]+)\)/gu)) {
       const p = asPath(m[1] ?? m[2]);
       if (!p) continue;
@@ -104,18 +116,20 @@ for (const file of RULES) {
     for (const m of line.matchAll(/`([\w./-]+\.md)`,?\s+(?:point|rule)s?\s+(\d+)/gu)) {
       if (!fs.existsSync(m[1])) continue;
       checked++;
-      if (!hasPoint(read(m[1]).split("\n"), m[2])) fail(`${m[1]} has no point ${m[2]}`);
+      if (!hasPoint(linesOf(m[1]), m[2])) fail(`${m[1]} has no point ${m[2]}`);
     }
-    for (const m of line.matchAll(/archive items? ((?:\d+(?:,\s*|\s+and\s+|\s*-\s*)?)+)/gu)) {
-      for (const n of m[1].match(/\d+/gu)) {
+    for (const m of line.matchAll(/(archive item|core archive)s? ((?:\d+(?:,\s*|\s+and\s+|\s+to\s+|\s*-\s*)?)+)/gu)) {
+      for (const n of m[2].match(/\d+/gu)) {
         checked++;
-        if (!archiveItems.has(Number(n))) fail(`archive item ${n} is not in ${ARCHIVE}/`);
+        if (!archiveItems[m[1]].has(Number(n))) fail(`${m[1]} ${n} is not in ${ARCHIVES[m[1]]}/`);
       }
     }
   });
 }
 
-console.log(`${checked} pointers checked in ${RULES.length} rule files, ${broken.length} broken, ${unread.length} not read`);
+console.log(`${checked} pointers checked in ${RULES.length} rule files, ${broken.length} broken, ${stale.length} broken in ` +
+  `${FROM_DESIGN} (for the design session), ${unread.length} not read`);
 if (process.argv.includes("--unread")) for (const u of unread) console.log(`  not read: ${u}`);
+for (const s of stale) console.log(`  for the design session: ${s}`);
 for (const b of broken) console.log(`  BROKEN ${b}`);
 process.exit(broken.length ? 1 : 0);

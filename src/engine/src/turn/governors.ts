@@ -14,7 +14,8 @@ import { raise } from "../model/order-makers.ts";
 import { type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import { type Power, powerName } from "../model/power.ts";
-import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, notify, unitAt } from "../model/state.ts";
+import { type Unit, loseUnit } from "../model/units.ts";
 import { courierSeasons, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -71,7 +72,8 @@ P.grantGovernorship = function (p, o) {
     logEvent(S, "governor", `${p} granted ${c.name} the governorship of ${this.map.get(o.province).name} beside his own.`, [p], "governor");
     return;
   }
-  const seasons = wordFromKing(S, this.map, p, o.province);
+  // He sets out from the court, wherever the king is (item 17b, part C).
+  const seasons = this.fromCourt(p, o.province);
   const from = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
   S.governors.push(newGovernor({ province: o.province, seat: o.province, character: c.id, power: p, levies: o.levies, from }));
   c.duty = "Governing";
@@ -170,7 +172,7 @@ P.governorsSeason = function () {
       // they cannot reach him.
       const u = levies[0];
       for (const o of levies.slice(1)) {
-        S.units.splice(S.units.indexOf(o), 1);
+        loseUnit(S, o);
         S.armies.delete(o.id);
         if (o.province === u.province) {
           u.men += o.men;

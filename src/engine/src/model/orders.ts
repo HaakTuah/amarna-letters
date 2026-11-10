@@ -12,6 +12,7 @@ import type { GreetingOptions, TabletProposal } from "./records.ts";
 import type { Authority, GrantKind } from "./authority.ts";
 import type { JobWhat } from "./people.ts";
 import type { Mandate } from "./command.ts";
+import type { LetterFate } from "./held-letters.ts";
 
 export interface HoldOrder {
   type: "hold";
@@ -449,12 +450,25 @@ export interface EnlistOrder {
   term: number;
 }
 /**
- * Item 13 ("The capital is wherever the king is"): the king himself sets out for `to`, a province of his own or any he may
- * reach, with his court; it costs gold and takes the road's time, and his orders travel from wherever he is.
+ * Item 17++++a ("Raiders from beyond the map": paid off): offer the chief of the band in `province`, carried as an
+ * enlistment is, `fee` shekels, paid now, to take his band out of the king's land and keep out of it for `term`
+ * seasons; a band based beyond the map goes home. The chief takes it or not, and keeps his word or not, by his own lights.
+ */
+export interface PayOffOrder {
+  type: "payOff";
+  province: string;
+  fee: number;
+  term: number;
+}
+/**
+ * Item 13 ("The capital is wherever the king is"): the court sets out for `to`, a province of his own or any he may reach,
+ * with the king if he is with it; it costs gold and takes the road's time. Item 17b, part C: `alone`, the king sets out
+ * without his court, with his guard, and commands from wherever he is; to where his court is, he goes back to it.
  */
 export interface CourtOrder {
   type: "court";
   to: string;
+  alone?: boolean;
 }
 export interface HuntOrder {
   type: "hunt";
@@ -622,6 +636,25 @@ export interface PayRansomOrder {
   character: string;
 }
 /**
+ * #592: what to do with a province's offer the court holds, caught on the road: send it to `to` (its claimant or the
+ * land's king), or ask `to` a `price` for it.
+ */
+export interface LetterOrder {
+  type: "letter";
+  province: string;
+  fate: LetterFate;
+  to: Power;
+  price: number;
+  /** The turn its people wrote it, where the court holds more than one of theirs (`HeldLetterView.written`); null: the newest. */
+  written?: number | null;
+}
+/** #592: buy a province's offer another court holds and asked the price of; `written` as for `LetterOrder`. */
+export interface BuyLetterOrder {
+  type: "buyLetter";
+  province: string;
+  written?: number | null;
+}
+/**
  * An order a reply named but left incomplete or unreadable (a cession to no power anyone knows): the validator refuses it
  * with `reason`, so its king is told next season instead of the order vanishing.
  */
@@ -641,6 +674,7 @@ export type Order =
   | UnseatOrder
   | CourtOrder
   | EnlistOrder
+  | PayOffOrder
   | HoldOrder
   | MoveOrder
   | SupportOrder
@@ -695,6 +729,8 @@ export type Order =
   | ForgeOrder
   | CaptiveOrder
   | PayRansomOrder
+  | LetterOrder
+  | BuyLetterOrder
   | SeizeHoardOrder
   | SellDebtOrder
   | PayCarriersOrder

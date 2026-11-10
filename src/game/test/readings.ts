@@ -33,3 +33,6 @@ export function reading(t: string, to: Power, from: Power, by: "letter" | "host"
 export function saysOneOf(text: string, forms: readonly string[], fill: Record<string, string> = {}): boolean {
   return forms.some((f) => text.includes(Object.entries(fill).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, v), f)));
 }
+
+/** A share written as a percentage, which no one of the age would say. */
+export const ModernShare = /\d\s*%|\bper ?cent\b|\bin (?:a hundred|100)\b/i;

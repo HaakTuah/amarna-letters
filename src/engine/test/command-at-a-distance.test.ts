@@ -28,7 +28,7 @@ import {
   unitAt,
   Views,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls, smallWorld } from "./support.ts";
+import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls, smallWorld, courtGoing } from "./support.ts";
 
 // Build order item 13, "Command at a distance": armies at the sources' sizes, battles with losses and falling back,
 // marching by distance, commanders and their mandates, standing orders through commanders, the court wherever the king is
@@ -187,7 +187,7 @@ describe("CommandAtADistanceTests", () => {
     Assert.empty(s.couriers);
   });
 
-  test("The king moves his court, is taken where he stands, and the kingdom comes apart", () => {
+  test("The king moves his court, is taken where he stands, and his court flees to a city his realm still holds", () => {
     const s = board();
     commanded(s, "Babylonia");
     s.walls.delete("durkurigalzu");
@@ -200,19 +200,19 @@ describe("CommandAtADistanceTests", () => {
     Assert.equal("durkurigalzu", s.court.get("Babylonia"));
     Assert.empty(s.kingRoads);
     Assert.equal("durkurigalzu", Views.for(s, "Babylonia").courtAt);
-    // Assyria takes Dur-Kurigalzu, where the king is: Babylonia falls, though Babylon is still its own.
+    // Assyria takes Dur-Kurigalzu, where the king is (item 17b): he is Assyria's captive, under guard to its court, and his
+    // court flees to the nearest city his realm still holds; Babylonia does not fall.
     season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu")] } }));
     // Item 17++: the city, its people indifferent to their king for the test, answers to Assyria as the next season begins.
     s.ledger.set("durkurigalzu", new Dict());
     season(s);
-    Assert.contains("Babylonia", s.eliminated);
     Assert.equal("Assyria", s.owner.get("durkurigalzu"));
-    // The rest falls lawless, and the commanded armies are their commanders' bands, once word of the fall reaches them.
-    Assert.equal("Babylonia", s.owner.get("babylon"));
-    season(s);
-    Assert.null(s.owner.get("babylon"));
-    Assert.doesNotContain(s.units, (u) => u.power === "Babylonia");
-    Assert.true(s.bands.some((b) => b.province === "babylon"));
+    Assert.doesNotContain(s.eliminated, (p) => p === "Babylonia");
+    const king = s.characters.find((c) => c.id === s.reigns.get("Babylonia").character)!;
+    Assert.equal(["Captured", "Assyria"], [king.status, king.heldBy]);
+    const court = courtGoing(s, "Babylonia");
+    Assert.notEqual("durkurigalzu", court);
+    Assert.equal("Babylonia", s.owner.get(court));
   });
 
   test("A governor raises a levy on his own when foreign troops stand beside his province", () => {

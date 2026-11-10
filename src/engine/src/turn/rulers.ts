@@ -12,8 +12,10 @@ import { BandData, type Band } from "../model/bands.ts";
 import { forMen, levySize, menAvailable } from "../model/land.ts";
 import { remember, spend, type Character } from "../model/people.ts";
 import { addRisen, AllPowers, land, type Power, type RisenPower, powerName } from "../model/power.ts";
-import { isAlive, logEvent, newId, newTreasury, newUnit, notify, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, newId, newTreasury, notify } from "../model/state.ts";
+import { newUnit, type Unit, keepGone } from "../model/units.ts";
 import { UnrestData } from "../model/unrest.ts";
+import { newReign, risenTraits } from "../model/kings.ts";
 import { levelOf } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { stateOfRealm } from "../rules/realm.ts";
@@ -26,7 +28,7 @@ import { TurnEngine } from "./core.ts";
 const WallsWords = ["low", "stout", "high"];
 
 /** How a character came to rule: see `RisenPower.how`. */
-export type RiseHow = "governor" | "turned" | "revolt" | "chief" | "elder" | "granted";
+export type RiseHow = "turned" | "revolt" | "chief" | "elder" | "granted";
 
 export interface Rising {
   how: RiseHow;
@@ -88,13 +90,13 @@ P.ruleOwn = function (id, c, r) {
     capital: id,
     turn: S.turn,
     from: was ?? "",
-    // His traits as a seat's temper: ambition its appetite for war, fear its caution, loyalty its honesty, greed its greed.
-    temper: [t.ambition, 100 - t.courage, t.loyalty, t.greed],
     how: r.how,
   };
   S.risen.push(risen);
   addRisen(risen);
   const p = risen.power;
+  // Item 17b: he reigns as the person he was, his traits his own.
+  S.reigns.set(p, newReign({ traits: risenTraits(t), since: S.turn, character: c.id }));
   // His purse becomes his realm's treasury, with any of the people's gold that comes to him: nothing appears or vanishes.
   S.treasuries.set(p, newTreasury({ gold: spend(c, c.purse) + r.gold }));
   S.inbox.set(p, []);
@@ -123,6 +125,8 @@ P.ruleOwn = function (id, c, r) {
     followed.push(u);
   }
   for (const u of followed) {
+    // Bug #600: their king knows them as he last heard of them, until word of the turning comes.
+    keepGone(S, u);
     u.power = p;
     u.commander = null;
     u.mandate = null;
@@ -153,7 +157,7 @@ P.ruleOwn = function (id, c, r) {
     c.id,
   );
   notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));
-  const tag = r.how === "governor" ? "risen" : `risen-${r.how}`;
+  const tag = `risen-${r.how}`;
   logEvent(S, "rise", `${r.line}${men > 0 ? `, with ${men} men` : ""}.`, [p, ...AllPowers.filter((x) => x !== p && isAlive(S, x) && Views.sight(S, this.map, x).has(id))], tag);
   // Others hear of it as word travels from his city.
   for (const other of AllPowers.filter((x) => x !== p && isAlive(S, x) && !Views.sight(S, this.map, x).has(id))) this.word(p, other, "Realm", `Rumor|A new ruler|Word comes that ${r.line}.`);
@@ -176,7 +180,7 @@ P.joinRealm = function (province, c, p) {
 
 /** A unit of `men` men of `province`, standing there, its home. */
 function newUnitFor(e: TurnEngine, p: Power, province: string, men: number): Unit {
-  const u = newUnit({ id: newId(e.s, "u"), power: p, kind: "Army", province, home: province, men });
+  const u = newUnit({ id: newId(e.s, "u"), power: p, kind: "Army", province, home: province, men, since: e.s.turn });
   e.s.units.push(u);
   return u;
 }
@@ -184,6 +188,8 @@ function newUnitFor(e: TurnEngine, p: Power, province: string, men: number): Uni
 P.bandToArmy = function (b, p) {
   const S = this.s;
   S.bands = S.bands.filter((x) => x !== b);
+  // A realm's army keeps no captives: a raider band's go free (item 17++++a).
+  this.freeCaptives(b);
   if (b.men < BandData.least || S.units.some((u) => u.province === b.province)) {
     // Too few to be an army, or another's troops stand there: his men go back to the loose men of the land.
     this.peopleOf(b.province).loose += b.men;

@@ -94,7 +94,8 @@ marches armies by distance.
 ### Sieges
 
 A city falls by hunger (it was `starving` as the season began and the siege still stands) or by a breach, once its wear
-reaches `breachPerLevel` 3 for each level of its walls (it was the walls' level until 9+a). Wear still advances as in
+reaches `breachPerLevel` 6 for each level of its walls (it was the walls' level until 9+a; 3 until item 18, part C,
+[58](58-the-balance-pass.md)). Wear still advances as in
 item 5 (a step, two with an uncut support, less when the city is supplied by sea). An unblockaded coastal city is fed from
 the sea and ate nothing from its stores until item 9+b; since then ships carry its grain (`17-the-economy-abroad.md`). Water inside the
 walls is not built: the dossiers give no city's wells, so every city holds as long as its food (reading in the report).
@@ -118,7 +119,7 @@ land gives nothing to forage, so an army there lives on its baggage, its king's 
 `SeatView.provinces` (each own province's stores, capacity, tax, need, market stock, purse and price), `caravans`,
 `cityPrices`, and each own unit's food, carried, hungry, unpaid and savings; `income` is the gold that came in since the
 last orders (mines this season and sales last season). A model king reads it compactly (`llm/src/prompt-economy.ts`):
-totals, the provinces with grain in store, the towns short of grain, the dearest and cheapest markets, purses nearly
+totals, the provinces with grain in store, the towns short of grain, the markets by price, purses nearly
 empty, the troops' grain and the caravans; the rulebook's ECONOMY part is `llm/src/rules-economy.ts`. The web app shows a
 province's stores and market in its panel, and has a Grain row in the orders panel.
 

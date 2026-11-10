@@ -1,0 +1,463 @@
+import { describe, test } from "vitest";
+import {
+  Dict,
+  TurnEngine,
+  Views,
+  WorldMap,
+  command,
+  hold,
+  inboxOf,
+  mandateOrder,
+  move,
+  newGame,
+  newGameConfig,
+  newMandate,
+  newOwnerChange,
+  newPlannedOrder,
+  newScheduledOrders,
+  newStandingRequest,
+  newSleepState,
+  newTurnSubmission,
+  newUnit,
+  loseUnit,
+  relieve,
+  supply,
+  unitReport,
+  upkeep,
+  type Order,
+  type Power,
+  type TurnSubmission,
+} from "@amarna/engine";
+import { Assert, smallWorld } from "./support.ts";
+
+/** Egypt holds Nippur, far from its court, with an army there that has sent a few seasons' reports. */
+function farArmy() {
+  const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Babylonia");
+  s.owner.set("nippur", "Egypt");
+  s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 0, owner: "Egypt" }));
+  s.ledger.set("nippur", new Dict([["Egypt", 5000]]));
+  s.units = s.units.filter((u) => u.province !== "nippur");
+  const u = newUnit({ id: "u990", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 1000 });
+  s.units.push(u);
+  const season = () => {
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    new TurnEngine(s, WorldMap.default).resolve(new Dict());
+  };
+  return { s, u, season };
+}
+
+const shown = (s: ReturnType<typeof farArmy>["s"]) => Views.for(s, "Egypt").units.filter((x) => x.power === "Egypt" && x.province === "nippur");
+
+describe("UnitsKnownTests", () => {
+  test("A far unit lost out of sight stays in its king's view, as last reported, until word of its end could come (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    Assert.true(d >= 1);
+    const before = shown(s);
+    Assert.equal(1, before.length);
+    Assert.true(before[0].reported > 0);
+    loseUnit(s, u);
+    const gone = s.turn;
+    // Word of its end, from the season it ended, comes a season and the couriers' road later; till then the reports it
+    // sent before it come in, never one after.
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal(1, shown(s).length);
+      Assert.true(shown(s)[0].reported <= gone);
+      Assert.equal(before[0].men, shown(s)[0].men);
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.empty(shown(s));
+  });
+
+  test("A unit raised far off is known to its king once word of its raising could come (bug #600)", () => {
+    const { s, season } = farArmy();
+    s.units = s.units.filter((x) => x.id !== "u990");
+    season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    s.units.push(newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "nippur", men: 1000, since: s.turn }));
+    const raised = s.turn;
+    while (s.turn <= raised + d) {
+      Assert.empty(shown(s));
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.equal(1, shown(s).length);
+  });
+
+  test("An order for a far unit lost out of sight rides out, and its failure comes home by the road (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    loseUnit(s, u);
+    const failed = () => inboxOf(s, "Egypt").filter((i) => i.kind === "Rejected" && i.turn === s.turn);
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("nippur")] })]]));
+    // Not refused at court: the king still knows the army there, and the order goes out by courier.
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    Assert.empty(failed());
+    let told = false;
+    for (let i = 0; i < 2 * d + 2 && !told; i++) {
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      told = failed().some((x) => x.title === "Order failed" && x.body.includes("no longer stood in Nippur"));
+    }
+    Assert.true(told);
+  });
+
+  test("A scheduled or standing order for a far unit lost out of sight is kept, as for one that stands, until word of its end (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    loseUnit(s, u);
+    const gone = s.turn;
+    const sub = newTurnSubmission({
+      scheduled: [newScheduledOrders({ turn: s.turn + 2 * d + 4, orders: [move("nippur", "ur")] })],
+      standing: [newStandingRequest({ when: "UnitAttacked", province: "nippur", orders: [hold("nippur")] })],
+    });
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", sub]]));
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    // Not refused at court: both are bound to the army its king still knows there.
+    Assert.false(inboxOf(s, "Egypt").some((i) => i.kind === "Rejected" && i.title.endsWith("orders not kept")));
+    Assert.equal("u990", s.sleep.get("Egypt").scheduled[0]?.unitId);
+    Assert.equal("u990", s.standing.get("Egypt").orders[0]?.unitId);
+    // Once word of its end comes, both drop, as for a unit lost in sight.
+    while (s.turn < gone + 1 + d) {
+      Assert.equal(1, s.sleep.get("Egypt").scheduled.length);
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    Assert.empty(s.sleep.get("Egypt").scheduled);
+    Assert.empty(s.standing.get("Egypt").orders);
+  });
+
+  test("A standing order for a far unit lost out of sight fires only as it would for one that stands (bug #600)", () => {
+    // Egypt's standing order waits on Babylonia's troops entering a province it sees near its court; its army in Nippur,
+    // far off, is to hold. In one world that army is lost out of sight as Babylonia moves in: the seat reads the same.
+    const fired = (lost: boolean) => {
+      const { s, u, season } = farArmy();
+      for (let i = 0; i < 3; i++) season();
+      const map = WorldMap.default;
+      const next = (subs: Dict<Power, TurnSubmission> = new Dict()) => {
+        new TurnEngine(s, map).beginTurn();
+        new TurnEngine(s, map).resolve(subs);
+      };
+      const sight = Views.sight(s, map, "Egypt");
+      const empty = (x: string): boolean => !map.get(x).isSea && !s.units.some((v) => v.province === x);
+      const [target, from] = [...sight].filter(empty).flatMap((t) => map.neighbors(t).filter(empty).map((f) => [t, f]))[0];
+      // Babylonia's king stands with the army, so his order to move runs the season he gives it.
+      s.court.set("Babylonia", from);
+      s.units.push(newUnit({ id: "u997", power: "Babylonia", kind: "Army", province: from, home: from, men: 1000 }));
+      next(new Dict([["Egypt", newTurnSubmission({ standing: [newStandingRequest({ when: "UnitEnters", power: "Babylonia", province: target, orders: [hold("nippur")] })] })]]));
+      new TurnEngine(s, map).beginTurn();
+      if (lost) loseUnit(s, u);
+      new TurnEngine(s, map).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move(from, target)] })]]));
+      new TurnEngine(s, map).beginTurn();
+      const read = inboxOf(s, "Egypt")
+        .filter((i) => i.turn === s.turn)
+        .map((i) => `${i.title}: ${i.body}`);
+      return { read, left: s.standing.get("Egypt").orders.length };
+    };
+    const [lost, stands] = [fired(true), fired(false)];
+    Assert.equal(stands.read, lost.read);
+    Assert.equal(stands.left, lost.left);
+  });
+
+  test("A commanded far army's standing order, fired after it was lost out of sight, is given, checked and told as for one that stands (bug #600)", () => {
+    // Each case: the order it gives (from the army's province and one not beside it), whether the army's province is taken
+    // by the time it fires, whether a recall had reached its commander, and what the seat reads of it.
+    const cases: [string, (at: string, far: string) => Order, boolean, boolean, string | null][] = [
+      ["a hold", (at) => hold(at), false, false, "It gave these orders"],
+      ["a move it cannot make", (at, far) => move(at, far), false, false, "Refused"],
+      ["a move it cannot make, its province taken", (at, far) => move(at, far), true, false, "Refused"],
+      ["a hold, its province taken", (at) => hold(at), true, false, "It gave these orders"],
+      ["food, with gold", (at) => supply(at, true, 50), false, false, "It gave these orders"],
+      ["a recall", (at) => relieve(at), false, false, "It gave these orders"],
+      ["a mandate", (at) => mandateOrder(at, newMandate({ task: "guard" })), false, false, "It gave these orders"],
+      ["a hold, its commander recalled", (at) => hold(at), false, true, null],
+    ];
+    for (const [name, give, taken, recalled, told] of cases) {
+      const fired = (lost: boolean) => {
+        const map = WorldMap.default;
+        const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Babylonia");
+        const e = new TurnEngine(s, map);
+        const sight = Views.sight(s, map, "Hatti");
+        const empty = (x: string): boolean => !map.get(x).isSea && !s.units.some((v) => v.province === x);
+        // Hatti's army stands where word home takes a season (Taidu, at the start), next to land its king sees
+        // (`target`), which Babylonia's army enters from beside it (`from`); its commander sees the move and carries out
+        // the order.
+        const [at, target, from] = map.provinces
+          .filter((x) => !x.isSea && empty(x.id) && e.wordFrom("Hatti", x.id) >= 1 && Number.isFinite(e.wordTo("Hatti", x.id)))
+          .flatMap((x) => map.neighbors(x.id).filter((t) => empty(t) && sight.has(t)).flatMap((t) => map.neighbors(t).filter((f) => f !== x.id && empty(f)).map((f) => [x.id, t, f])))[0];
+        const u = newUnit({ id: "u990", power: "Hatti", kind: "Army", province: at, home: "hattusa", men: 1000 });
+        u.trail = [unitReport(u)];
+        s.units.push(u);
+        const c = s.characters.find((x) => x.employer === "Hatti" && x.status === "Employed" && x.at === "Hatti")!;
+        c.at = null;
+        c.duty = "Commanding";
+        c.watchProvince = at;
+        c.traits.loyalty = 100;
+        u.commander = c.id;
+        s.court.set("Babylonia", from);
+        s.units.push(newUnit({ id: "u997", power: "Babylonia", kind: "Army", province: from, home: from, men: 1000 }));
+        // A move it cannot make (to a province not beside it) is refused, as for an army that stands.
+        const far = map.provinces.find((x) => !x.isSea && x.id !== at && !map.neighbors(at).includes(x.id))!.id;
+        const order = give(at, far);
+        const next = (subs: Dict<Power, TurnSubmission> = new Dict()) => {
+          new TurnEngine(s, map).beginTurn();
+          new TurnEngine(s, map).resolve(subs);
+        };
+        next(new Dict([["Hatti", newTurnSubmission({ standing: [newStandingRequest({ when: "UnitEnters", power: "Babylonia", province: target, orders: [order] })] })]]));
+        // Word of it reaches the army.
+        for (let i = 0; i < 3; i++) next();
+        new TurnEngine(s, map).beginTurn();
+        // A recall that reached him before the army was lost: where it stands, he has left it.
+        if (recalled) {
+          u.relieveAt = s.turn;
+          new TurnEngine(s, map).commandSeason();
+        }
+        if (lost) loseUnit(s, u);
+        // Lost to those who now hold its province: their troops stand where its king last knew it.
+        if (lost && taken) s.units.push(newUnit({ id: "u998", power: "Babylonia", kind: "Army", province: at, home: from, men: 1000 }));
+        new TurnEngine(s, map).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move(from, target)] })]]));
+        // What the season spent (gold sent with food that finds the army gone comes back later: #615).
+        const gold = s.treasuries.get("Hatti").gold;
+        new TurnEngine(s, map).beginTurn();
+        const read = inboxOf(s, "Hatti")
+          .filter((i) => i.turn === s.turn && i.kind !== "Battle")
+          .map((i) => `${i.title}: ${i.body}`);
+        return { s, read, left: s.standing.get("Hatti").orders.length, gold };
+      };
+      const [lost, stands] = [fired(true), fired(false)];
+      // Told alike, its gold spent alike, and fired in both or in neither (each check names its case).
+      Assert.equal([name, stands.read, stands.gold, stands.left], [name, lost.read, lost.gold, lost.left]);
+      Assert.equal([name, told === null ? 1 : 0], [name, stands.left]);
+      if (told !== null) Assert.contains(lost.read, (x) => x.includes(told));
+      // Given, it went out by courier to find the army gone.
+      Assert.equal([name, told === "It gave these orders"], [name, lost.s.couriers.some((x) => x.power === "Hatti" && x.plan.unitId === "u990")]);
+    }
+  });
+
+  test("A unit that leaves its king twice is lost to him when word of its last leaving comes (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    const next = () => {
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    };
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    // It leaves (as a fleet into cargo service) and comes back, the same unit, then is lost far off.
+    loseUnit(s, u);
+    for (let i = 0; i < 3; i++) next();
+    s.units.push(u);
+    for (let i = 0; i < 2; i++) next();
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn + 10, order: move("nippur", "ur"), unitId: "u990", given: s.turn }));
+    loseUnit(s, u);
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal(1, s.sleep.get("Egypt").scheduled.length);
+      Assert.equal(1, shown(s).length);
+      next();
+    }
+    Assert.empty(s.sleep.get("Egypt").scheduled);
+  });
+
+  test("A far levy's army lost before word of its raising keeps its orders, named by its levy, until word of its end (bug #600)", () => {
+    const { s, season } = farArmy();
+    s.units = s.units.filter((x) => x.id !== "u990");
+    s.sleep.tryAdd("Egypt", newSleepState());
+    season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    const raised = newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "nippur", men: 1000, since: s.turn });
+    raised.trail.push(unitReport(raised));
+    s.units.push(raised);
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn + 2 * d + 4, order: move("nippur", "ur"), unitId: "u991", given: s.turn }));
+    const listed = () => JSON.stringify(Views.for(s, "Egypt").scheduled);
+    const before = listed();
+    Assert.contains("the army to be raised in nippur", before);
+    loseUnit(s, raised);
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal(before, listed());
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.empty(s.sleep.get("Egypt").scheduled);
+  });
+
+  test("Command, recall, mandate and food for a far unit lost out of sight are given as for one that stands, and fail where they arrive (bug #600)", () => {
+    const orders: [string, Order, boolean][] = [
+      ["relieve", relieve("nubia"), true],
+      ["mandate", mandateOrder("nubia", newMandate({ task: "guard" })), true],
+      ["command", command("nubia", ""), false],
+      ["supply", supply("nubia", true), false],
+    ];
+    for (const [name, order, commanded] of orders) {
+      // The king's receipts the season after his order, its only one: in the world where the army was lost as the season
+      // began, and in the one where it stands. His court in Nippur, two seasons of couriers from his army in Kush: word of
+      // the loss, and his recall's taking effect, come after that season.
+      const [lost, stands] = [true, false].map((gone) => {
+        const { s, u, season } = farArmy();
+        s.court.set("Egypt", "nippur");
+        s.units = s.units.filter((x) => x.province !== "nubia");
+        u.province = "nubia";
+        const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed" && x.at === "Egypt")!;
+        if (commanded) {
+          u.commander = c.id;
+          c.at = null;
+          c.duty = "Commanding";
+          c.watchProvince = "nubia";
+        }
+        season();
+        new TurnEngine(s, WorldMap.default).beginTurn();
+        Assert.equal(2, new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nubia"));
+        if (gone) loseUnit(s, u);
+        const o = order.type === "command" ? { ...order, character: c.id } : order;
+        new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [o] })]]));
+        new TurnEngine(s, WorldMap.default).beginTurn();
+        const receipts = JSON.stringify({
+          // The treasury's pay is the army's as it truly is (#587).
+          inbox: inboxOf(s, "Egypt")
+            .filter((i) => i.turn === s.turn && i.title !== "The treasury")
+            .map((i) => `${i.title}: ${i.body}`),
+          units: Views.for(s, "Egypt").units.filter((x) => x.power === "Egypt" && x.province === "nubia"),
+          man: Views.character(s, c, "Egypt"),
+        });
+        return { s, receipts };
+      });
+      Assert.equal(stands.receipts, lost.receipts);
+      Assert.false(lost.receipts.includes("could not be carried out"), name);
+      Assert.contains('"province":"nubia"', lost.receipts);
+      // Its word finds the army gone, and that comes home by the road.
+      let told = false;
+      for (let i = 0; i < 6 && !told; i++) {
+        new TurnEngine(lost.s, WorldMap.default).resolve(new Dict());
+        new TurnEngine(lost.s, WorldMap.default).beginTurn();
+        told = inboxOf(lost.s, "Egypt").some((x) => x.title === "Order failed" && x.turn === lost.s.turn);
+      }
+      Assert.true(told, name);
+    }
+  });
+
+  test("Its orders name a far unit where its view shows it, a gone one given way by an older report (bug #600)", () => {
+    const { s, u } = farArmy();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    Assert.equal(1, new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur"));
+    // A live army reported in Nippur; one placed before it, its last reports from Ur and then Nippur, lost out of sight.
+    const live = newUnit({ id: "u995", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 800 });
+    live.trail = [unitReport(live), unitReport(live), unitReport(live)];
+    u.trail = [unitReport({ ...u, province: "ur" }), unitReport(u), unitReport(u)];
+    s.units.push(live);
+    loseUnit(s, u);
+    const v = Views.for(s, "Egypt").units.filter((x) => x.power === "Egypt" && ["nippur", "ur"].includes(x.province));
+    Assert.equal("nippur:800,ur:1000", v.map((x) => `${x.province}:${x.men}`).sort().join(","));
+    // Each where the view shows it is the unit an order there names.
+    const e = new TurnEngine(s, WorldMap.default);
+    Assert.equal("u995", e.unitShownAt("Egypt", "nippur")?.id);
+    Assert.equal("u990", e.unitShownAt("Egypt", "ur")?.id);
+    e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("ur")] })]]));
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const titles = inboxOf(s, "Egypt").filter((i) => i.turn === s.turn).map((i) => i.title);
+    Assert.false(titles.includes("Orders that could not be carried out"));
+    Assert.true(titles.includes("Orders on the road"));
+  });
+});
+
+/**
+ * Bug #615: the rest of a far unit as its king knows it, beyond its raising and end: what befalls it comes home by the
+ * road. The twin canary (`src/web/test/twin-canary.test.ts`) finds the leaks; these pin the rules.
+ */
+describe("FarUnitToldTests", () => {
+  /** `farArmy` once its reports have begun, at the start of a season, with the seasons word from Nippur takes. */
+  function reported() {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    Assert.true(d >= 1);
+    return { s, u, d };
+  }
+
+  test("A part that stays when a far army leaves its king is known to him once word of their parting could come", () => {
+    const { s, u, d } = reported();
+    // Its commander takes most of it away as his own; the rest stay their king's, a new unit.
+    loseUnit(s, u);
+    s.units.push(newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 400, since: s.turn, raisedAt: "nippur" }));
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal([1000], shown(s).map((x) => x.men));
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.equal([400], shown(s).map((x) => x.men));
+  });
+
+  test("Gold sent for a far army's food that finds it gone comes home with the courier, as word from there does", () => {
+    const { s, u } = reported();
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [supply("nippur", true, 30)] })]]));
+    const word = s.foodWord.find((w) => w.power === "Egypt" && w.gold === 30)!;
+    loseUnit(s, u);
+    const back = () => inboxOf(s, "Egypt").filter((i) => i.body.includes("you sent for your troops' food in Nippur came back"));
+    // The word arrives where it was sent, in its season, and finds the army gone: the gold rides home.
+    while (s.foodWord.includes(word)) {
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    }
+    const home = s.sent.find((x) => x.power === "Egypt" && x.food)!;
+    Assert.true(home.due > s.turn);
+    // Its court sees no gold sent while it is on the road, and hears of it in the season it comes.
+    for (let i = 0; i < 6 && back().length === 0; i++) {
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      Assert.empty(Views.for(s, "Egypt").goldSent);
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    }
+    Assert.equal([home.due], back().map((i) => i.turn));
+  });
+
+  test("A far unit's scheduled order runs on the unit where it truly stands, though its king's view shows it elsewhere", () => {
+    const { s, u } = reported();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn, order: hold("nippur"), unitId: "u990" }));
+    // It marched on to Ur out of its king's sight: his view still shows it in Nippur.
+    u.province = "ur";
+    new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "Orders that could not be carried out"));
+  });
+
+  test("A far unit's scheduled order refused where it truly stands is told by the road, naming it where its king's view shows it (#759)", () => {
+    const { s, u } = reported();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn, order: move("nippur", "sippar"), unitId: "u990" }));
+    // It marched on to Ur out of its king's sight, from where Sippar is no march.
+    u.province = "ur";
+    const given = s.turn;
+    const heard = new TurnEngine(s, WorldMap.default).heardAt("Egypt", "ur");
+    Assert.true(heard > given);
+    const refusals = () => inboxOf(s, "Egypt").filter((i) => i.title === "Orders that could not be carried out");
+    while (s.turn < heard) {
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.equal([heard], refusals().map((i) => i.turn));
+    Assert.true(refusals()[0].body.startsWith("- The troops in Nippur march to Sippar"));
+  });
+
+  test("Pay held back in a province holds the troops its king's view shows there, not those that truly stand there", () => {
+    const { s, u } = reported();
+    // It marched on to Ur out of its king's sight: his view still shows it in Nippur.
+    u.province = "ur";
+    Assert.equal(1, shown(s).length);
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [upkeep(false, null, "nippur")] })]]));
+    Assert.equal(["u990"], s.upkeep.get("Egypt").payExcept);
+  });
+});

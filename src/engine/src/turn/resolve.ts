@@ -5,14 +5,16 @@ import { idiv, roundTo, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, placesNamed, told } from "../model/order-reading.ts";
-import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
-import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
+import { describe, placesNamed, told, unitOf } from "../model/order-reading.ts";
+import { placesKnown } from "../rules/units-known.ts";
+import { newTurnSubmission, type RejectedOrder, type TurnSubmission } from "../model/submission.ts";
+import { type CourtOrder, type CommandOrder, type EnlistOrder, type PayOffOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type LetterOrder, type BuyLetterOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power, whose, powerName } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
-import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit } from "../model/state.ts";
+import { alive, findCharacter, isAlive, ledger, logEvent, newId, newKingdomFall, notify, ownedBy, unitAt, wallsOf } from "../model/state.ts";
+import { newUnit, unitLabel, type Unit, loseUnit, keepGone } from "../model/units.ts";
 import { listed, upper } from "../rules/wording.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
@@ -26,11 +28,18 @@ import { finalScore, strength as scoringStrength, standingOf, type FinalScore } 
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
+import { placing } from "./scoreboard.ts";
+import { chooseStrategy } from "../rules/strategy.ts";
+
+/** The notice of a seat's orders refused. */
+export const RefusedTitle = "Orders that could not be carried out";
 
 declare module "./core.ts" {
   interface TurnEngine {
     resolve(submissions: Dict<Power, TurnSubmission>): Dict<Power, ValidationResult>;
     resolveSeason(submissions: Dict<Power, TurnSubmission>): Dict<Power, ValidationResult>;
+    /** A seat's orders refused this season, told it: one for a far unit of its own by the road from where it stands (#759). */
+    refused(p: Power, rejected: RejectedOrder[]): void;
     resolveMovement(unitOrders: [Power, Order][]): void;
     updateOwnership(): void;
     /** A remnant marches to the troops of its own side next to it and joins them (item 17++). */
@@ -38,20 +47,17 @@ declare module "./core.ts" {
     resolveTransfers(cessions: [Power, CedeProvinceOrder][], gifts: [Power, GiftUnitOrder][]): void;
     raise(p: Power, r: RaiseOrder): void;
     capitalsTaken(): void;
-    /** `ceded`: the king ceded his capital by agreement (item 11d) rather than losing it. */
-    fall(p: Power, conqueror: Power | null, taker: Power | null, ceded?: boolean): void;
+    /**
+     * A realm's fall: since item 17b, part B, one that holds nothing after the moves, `conqueror` holding its last city; or,
+     * `ceded`, one whose king ceded his capital by agreement (item 11d), its land passing whole to `conqueror`.
+     */
+    fall(p: Power, conqueror: Power | null, ceded?: boolean): void;
     strength(p: Power): number;
     landYield(p: Power): number;
     growth(p: Power): number;
-    /** The final score of each living power, highest first, with its size and performance beside it (item 11e). */
-    finalScores(): FinalScore[];
     endOfTurn(): void;
-    decideWinners(): void;
   }
 }
-
-/** The courts of the kings falling this season, while their falls are reckoned. */
-const fallingCourts = new WeakMap<TurnEngine, Set<string>>();
 
 /** The seasons abroad after which a servant's long years at a foreign court become part of its past (item 10). */
 export const LongAbroad = 12;
@@ -70,7 +76,7 @@ P.resolve = function (submissions) {
 
 P.resolveSeason = function (submissions) {
   const S = this.s;
-  const validator = new OrderValidator(S, this.map);
+  const validator = new OrderValidator(S, this.map, (o) => this._goneNow.get(o) ?? null);
   const valid = new Dict<Power, ValidationResult>();
   this._stealing.clear();
   this._scheduledNow.clear();
@@ -79,6 +85,8 @@ P.resolveSeason = function (submissions) {
   this._mandatedNow.clear();
   this._marchNow.clear();
   this._cededNow.clear();
+  this._goneNow.clear();
+  this._riddenNow.clear();
   // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
   for (const p of alive(S)) S.wallsSeen.set(p, Views.wallsKnown(S, this.map, p));
   // And who held the land it saw (item 7b): elsewhere it knows only what word and its travellers bring.
@@ -89,11 +97,19 @@ P.resolveSeason = function (submissions) {
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);
-    const v = validator.validate(p, sub);
+    // Bug #600: orders for a unit lost out of sight, its end unheard, are checked as if it stood (`_riddenNow`): first in
+    // the list, so it is the unit its province names, though another's troops stand there now.
+    const ridden = this._riddenNow.tryGet(p) ?? new Map<Order, Unit>();
+    const v = (ridden.size === 0 ? validator : new OrderValidator({ ...S, units: [...ridden.values(), ...S.units] }, this.map, (o) => this._goneNow.get(o) ?? null)).validate(p, sub);
     valid.set(p, v);
-    if (v.rejected.length > 0)
-      notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`).join("\n"));
+    if (v.rejected.length > 0) this.refused(p, v.rejected);
     this.afterValidation(p, sub, v);
+    // Given, they ride out and find it gone, instead of running.
+    for (const [o, u] of ridden) {
+      if (!v.accepted.includes(o)) continue;
+      removeAll(v.accepted, (x) => x === o);
+      this.goneWord(p, o, u);
+    }
   }
 
   // A kingdom that falls with its capital this season gives no more orders after the moves: only the living's run.
@@ -129,8 +145,9 @@ P.resolveSeason = function (submissions) {
   // Item 13: kings on the road with their courts go on (setting out from next season).
   this.kingsTravel();
   for (const [p, o] of all((o): o is CourtOrder => o.type === "court")) this.setOutCourt(p, o);
-  // A kingdom falls with its capital: its land passes to whoever took it, and its orders for the rest of the season lapse.
+  // Item 17b: kings taken where they stand are captives, courts lost flee; a realm that holds nothing falls.
   this.capitalsTaken();
+  this.courtLags();
   // Item 13+: the parts of fallen kingdoms that word of the fall has reached come apart.
   this.fallsSpread();
   this.resolveTransfers(
@@ -168,8 +185,14 @@ P.resolveSeason = function (submissions) {
   }
   for (const [p, o] of all((o): o is SendOrder => o.type === "send")) this.sendGold(p, o);
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
-  // Item 13: bands enlisted where an army of their new master stands with them.
-  for (const [p, o] of all((o): o is EnlistOrder => o.type === "enlist")) this.enlistBand(p, o);
+  // Item 13: bands enlisted where an army of their new master stands with them; item 17++++a: bands paid to leave. Where
+  // kings offer for the same band, to serve or to go, its chief hears the best offer first, the seed deciding between
+  // equal ones ("The order of resolution never decides").
+  const offers = this.r("band-offers").shuffle(all((o): o is EnlistOrder | PayOffOrder => o.type === "enlist" || o.type === "payOff"));
+  for (const [p, o] of offers.sort((a, c) => c[1].fee - a[1].fee)) {
+    if (o.type === "enlist") this.enlistBand(p, o);
+    else this.payOffBand(p, o);
+  }
   // Item 13: governors raise their own levies where foreign troops threaten their provinces.
   this.governorsLevy();
   // The season's trades at the markets, grain handed to towns, and caravans setting out (item 9+a).
@@ -191,6 +214,9 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is DemandOrder => o.type === "demand")) this.setDemand(p, o);
   for (const [p, o] of all((o): o is CensusOrder => o.type === "census")) this.sendCensus(p, o);
   for (const [p, o] of all((o): o is AnswerOrder => o.type === "answer")) this.answerProvince(p, o);
+  // #592: a caught offer sent on or offered for sale, then those bought.
+  for (const [p, o] of all((o): o is LetterOrder => o.type === "letter")) this.letterOrder(p, o);
+  for (const [p, o] of all((o): o is BuyLetterOrder => o.type === "buyLetter")) this.buyLetter(p, o);
   // People in a king's hands (item 10+b): runaways sent back first, then the loose settled, deportation, mouths put out.
   for (const [p, o] of all((o): o is ReturnRunawaysOrder => o.type === "returnRunaways")) this.returnRunaways(p, o);
   for (const [p, o] of all((o): o is WelcomeOrder => o.type === "welcome")) this.welcome(p, o);
@@ -269,6 +295,8 @@ P.resolveMovement = function (unitOrders) {
 
   // What the battles cost (item 13): men on both sides; a unit beaten from its place falls back, or is destroyed.
   const gone = this.battles(result, sightBefore);
+  // Item 17b, part C: a king where his side lost a battle may die in it, be taken, or get away with his men.
+  this.kingsInBattle(result);
   this.marchesDone(result, byProvince, marching);
   for (const id of result.dislodgedUnitIds) {
     const u = S.units.find((x) => x.id === id)!;
@@ -281,15 +309,16 @@ P.resolveMovement = function (unitOrders) {
     for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" was beaten from its place")) l.text = l.text.replace(/ was beaten from its place$/, to === undefined || to === null ? " was destroyed" : ` was beaten back to ${Map.get(to).name}`);
   }
   for (const u of gone) {
-    S.units.splice(S.units.indexOf(u), 1);
+    loseUnit(S, u);
     result.newPositions.delete(u.id);
     // Some of its men die, and the rest run and turn loose where it fell (item 10+a).
     this.unitDestroyed(u);
-    logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
+    // Its own king reads of it here only where his couriers reach; farther off, by the battle's word (bug #600).
+    logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), ...this.nearOf(u.province, u.power)]);
   }
   // Moves the people of a land held off (item 10+a).
   for (const l of result.lines.filter((x) => x.failure?.stop === "Resisted"))
-    logEvent(S, "resisted", `The people of ${Map.get(l.failure!.province).name} held off ${l.power}'s troops.`, [...AllPowers.filter((p) => sightBefore.get(p).has(l.failure!.province)), ...(l.power !== null ? [l.power] : [])], "resisted");
+    logEvent(S, "resisted", `The people of ${Map.get(l.failure!.province).name} held off ${l.power}'s troops.`, [...AllPowers.filter((p) => sightBefore.get(p).has(l.failure!.province)), ...(l.power !== null ? this.nearOf(l.failure!.province, l.power) : [])], "resisted");
   const lostToWinter = this.winterCrossings(result.newPositions);
   this._movedNow.clear();
   for (const [id, prov] of result.newPositions) if (S.units.find((x) => x.id === id)?.province !== prov) this._movedNow.add(id);
@@ -342,7 +371,7 @@ P.updateOwnership = function () {
     this.lowerWalls(u.province);
     this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
     S.breached.set(u.province, u.power);
-    notify(S, u.power, "Battle", "Walls stormed", `Your troops stormed the walls of ${this.map.get(u.province).name} and stand within them.`);
+    this.tell(u.power, u.province, "Battle", "Walls stormed", `Your troops stormed the walls of ${this.map.get(u.province).name} and stand within them.`);
   }
 };
 
@@ -369,10 +398,11 @@ P.foldUnit = function (p, o) {
     this.armyEntry(into, a, v - (joined?.getOrDefault(a, 0) ?? 0));
   }
   S.armies.delete(u.id);
-  S.units.splice(S.units.indexOf(u), 1);
+  loseUnit(S, u);
   this.liftSiegesOf(u.id);
-  logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
-  notify(S, p, "Resolution", "Troops joined", `Your ${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, who are now ${into.men} men strong.`);
+  // Bug #615: told from where they joined, as word of far troops comes.
+  logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, this.nearOf(into.province, p), "fold");
+  this.tell(p, into.province, "Resolution", "Troops joined", `Your ${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, who are now ${into.men} men strong.`);
 };
 
 P.resolveTransfers = function (cessions, gifts) {
@@ -413,15 +443,16 @@ P.resolveTransfers = function (cessions, gifts) {
   }
   for (const [p, g] of gifts) {
     const u = unitAt(S, g.unit);
+    // Bug #600: its king reads how a gift far off went when word of it comes, and knows the unit till then.
     if (u === null || u.power !== p) {
-      this.failed(p, g, "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} when the moves were done, so none was given to ${powerName(g.to)}.`, "the unit is gone", false);
+      this.tell(p, g.unit, "Rejected", "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} when the moves were done, so none was given to ${powerName(g.to)}.`);
       continue;
     }
+    keepGone(S, u);
     u.power = g.to;
-    notify(S, p, "Resolution", "Troops given", `Your ${unitLabel(u)} now serves ${powerName(g.to)}.`);
+    this.tell(p, u.province, "Resolution", "Troops given", `Your ${unitLabel(u)} now serves ${powerName(g.to)}.`);
     notify(S, g.to, "Resolution", "Troops received", `${upper(powerName(p))} has placed its ${unitLabel(u)} under your command.`);
-
-    logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
+    logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [...this.nearOf(u.province, p), g.to]);
   }
   // A king who cedes his own capital this season can receive none: whichever were reckoned first would decide it.
   const ceding = new Set(capitals.map(([p]) => p));
@@ -479,7 +510,7 @@ P.raise = function (p, r) {
   else this.spendAt(prov.id, cost);
   // Its men come from the province's men of fighting age (item 10+a).
   this.levyMen(prov.id, men);
-  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
+  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men, since: S.turn });
   S.units.push(u);
   this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ", every man of fighting age the province could give" : ""}` : ""}.`
 );
@@ -488,64 +519,37 @@ P.raise = function (p, r) {
 };
 
 /**
- * A kingdom falls with its capital: a king whose capital another power holds after the moves has fallen, and his kingdom
- * with him. His remaining land passes to the power that took the capital, every troop of his disbands, his sieges are
- * lifted, and his debts die with him ({@link TurnEngine.fall}). The kingdoms that fall in one season are found first, so
- * one fall revives nobody. If a capital's taker falls in the same season, the land passes on with his own to whoever took
- * his capital, and so on down the chain; a ring of kings who took each other's capitals leaves it free. Every heir is
- * found before any land passes, so the order the falls are reckoned in changes nothing.
+ * Item 17b, part B: a king taken where he stands, or stopped on the road, is his taker's captive, or dies in a city's fall
+ * (part C), and a court lost flees to the nearest city its realm still holds (`TurnEngine.kingTaken`, `courtFlees`); only a
+ * realm that holds nothing falls.
  */
 P.capitalsTaken = function () {
   const S = this.s;
-  // Item 13: the capital is wherever the king is; he is taken where he stands, or on the road.
   const taken = this.kingsTaken();
-  const fallen = alive(S).filter((p) => taken.has(p));
-  const takers = new Dict(fallen.map((p) => [p, taken.get(p) ?? null] as const));
-  const heir = (p: Power): Power | null => {
-    const passed = new HSet<Power>([p]);
-    let next = takers.get(p);
-    while (next !== null && takers.has(next)) {
-      if (!passed.add(next)) return null;
-      next = takers.get(next);
-    }
-    return next !== null && isAlive(S, next) ? next : null;
-  };
-  const heirs = new Dict(fallen.map((p) => [p, heir(p)] as const));
-  // A capital taken by a king who falls too passes on down the chain with his own.
-  fallingCourts.set(this, new Set(fallen.map((p) => this.courtAt(p))));
-  for (const p of fallen) this.fall(p, heirs.get(p), takers.get(p));
-  fallingCourts.delete(this);
+  const lost = this.courtsLost();
+  for (const p of alive(S).filter((x) => taken.has(x))) this.kingTaken(p, taken.get(p)!.by, taken.get(p)!.city);
+  for (const p of alive(S).filter((x) => lost.has(x))) this.courtFlees(p, lost.get(p)!.by, lost.get(p)!.road);
+  // A realm left holding nothing falls, wherever its king is (one whose court stood abroad among them).
+  for (const p of alive(S).filter((x) => ownedBy(S, x).length === 0)) this.fall(p, S.owner.getOrDefault(this.courtAt(p), null));
 };
 
-/**
- * A kingdom's fall: what passes with it, and what goes with it. `conqueror` is the power its land passes to; `taker` the
- * one holding its capital after the moves, the same unless the taker fell too.
- */
-P.fall = function (p, conqueror, taker, ceded = false) {
+P.fall = function (p, conqueror, ceded = false) {
   const S = this.s;
   // Item 13: the capital is wherever the king was.
   const capital = this.map.get(this.courtAt(p));
-  const landHeld = ownedBy(S, p);
-  // Item 13 ("A kingdom falls with its capital", revised 27 October 2026): the realm comes apart province by province. The
-  // capital passes at once to whoever holds it; since item 13+ the rest comes apart only as word of the fall reaches each
-  // part (fallsSpread, turn/falls.ts), life there going on as before until then. A capital ceded by sealed tablet (item
-  // 11d) passes whole with its land, as agreed.
-  const passes = (id: string): boolean => ceded || id === capital.id || (fallingCourts.get(this)?.has(id) ?? false);
-  const passed: string[] = [];
-  for (const id of landHeld) {
-    if (!passes(id)) continue;
+  // A capital ceded by sealed tablet (item 11d) passes whole with its land, as agreed; a realm taken holds nothing.
+  const passed = ceded ? ownedBy(S, p) : [];
+  for (const id of passed) {
     this.setOwner(id, conqueror);
-    if (conqueror !== null) passed.push(id);
     // A siege the conqueror pressed against land that is now his is over.
     if (conqueror !== null) endSieges(S, this.map, (x) => x.province === id && x.power === conqueror);
   }
-  const apart = landHeld.filter((x) => !passes(x));
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: passed }));
   S.eliminated.push(p);
   // A fallen court claims no name (item 17+).
   this.syncNames();
   this.endSleep(p);
-  // Its court's journey and its couriers on the road end with it.
+  // Its court's journey and its couriers on the road end with it; its king stands apart from no court (below).
   S.kingRoads = S.kingRoads.filter((r) => r.power !== p);
   S.couriers = S.couriers.filter((x) => x.power !== p);
   // Item 13: its armies in the field are their commanders' to decide once word of the fall reaches them (item 13+,
@@ -580,19 +584,35 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     c.employer = null;
     c.contract = null;
     if (c.status === "Employed") c.status = "Free";
-    // A risen power's ruler (item 13+) has fallen with it, and lives on as a free man where he is.
+    // Its king (item 17b), as a risen power's ruler (item 13+), has fallen with it, and lives on as a free man where he is.
     if (c.duty === "Ruling") c.duty = "None";
   }
-  const who = ceded ? `its king ceded its capital, ${capital.name}, to ${taker}` : taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
+  const ruler = findCharacter(S, S.reigns.get(p).character);
+  if (ruler !== null && ruler.status !== "Dead") {
+    ruler.calling = `former ruler of ${land(p)}`;
+    for (const f of ruler.facts) if (f.tag === "origin" && f.text.startsWith("Rules ")) f.text = `Ruled ${f.text.slice("Rules ".length)}`;
+    if (ruler.status === "Free") {
+      ruler.seeking = true;
+      chooseStrategy(ruler);
+      // Item 17b, part C: one away from his court stands where he was, and walks to the nearest court still standing.
+      const afield = S.kingAt.tryGet(p);
+      const host = afield === undefined ? undefined : sortBy(alive(S), [(q: Power) => this.travelTurnsBetween(afield, this.courtAt(q)), cmpNum], [(q: Power) => AllPowers.indexOf(q), cmpNum])[0];
+      if (afield !== undefined && host !== undefined) {
+        ruler.at = null;
+        this.startTravel(ruler, host, null, afield);
+      }
+    }
+  }
+  S.kingAt.delete(p);
+  S.kingHeard.delete(p);
+  const who = ceded ? `its king ceded its capital, ${capital.name}, to ${conqueror}` : conqueror !== null ? `${conqueror} took ${capital.name}, the last it held` : `${capital.name}, the last it held, was lost`;
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
   const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));
-  const parts = conqueror === null ? "" : ceded ? `, and its land passes to ${powerName(conqueror)}` : `, and ${powerName(conqueror)} holds it${passed.length > 0 ? ` with ${passed.map((x) => this.map.get(x).name).join(", ")}` : ""}`;
-  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${parts}${!ceded && apart.length > 0 ? `; the rest of it comes apart as word of the fall reaches it` : ""}.`, [p, ...seeing], null);
-  // The rumour names the capital once where the kingdom bears its name ("Assyria has taken Arrapha, and its kingdom is no more").
-  const kingdom = capital.name === powerName(p).replace(/^the /, "") ? "its kingdom" : `the kingdom of ${powerName(p)}`;
+  const parts = ceded && conqueror !== null ? `, and its land passes to ${powerName(conqueror)}` : "";
+  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${parts}.`, [p, ...seeing], null);
   const text = ceded
-    ? `Word spreads that the king of ${powerName(p)} has ceded his capital, ${capital.name}, to ${powerName(taker!)}, and his kingdom is no more.`
-    : `Word spreads that ${taker !== null ? `${powerName(taker)} has taken ${capital.name}` : `${capital.name} has fallen`}, and ${kingdom} is no more.`;
+    ? `Word spreads that the king of ${powerName(p)} has ceded his capital, ${capital.name}, to ${powerName(conqueror!)}, and his kingdom is no more.`
+    : `Word spreads that ${conqueror !== null ? `${powerName(conqueror)} has taken ${capital.name}` : `${capital.name} has fallen`}, the last land of ${powerName(p)}, and its kingdom is no more.`;
   for (const other of alive(S).filter((x) => x !== conqueror)) {
     if (seeing.includes(other)) {
       S.fallsHeard.set(other, [...(S.fallsHeard.tryGet(other) ?? []), p]);
@@ -604,24 +624,15 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   // The fallen claim nothing, as each court that has heard of the fall knows (item 17+).
   this.syncNames();
   if (conqueror !== null) {
-    const winner = conqueror;
     const rest = passed.filter((x) => x !== capital.id).map((x) => this.map.get(x).name);
-    const gone = apart.map((x) => this.map.get(x).name);
-    const yours =
-      (rest.length === 0 ? "none of his other land is yours" : ceded ? `his land is yours: ${listed(rest)}` : `of his land you hold ${listed(rest)}, where your troops stand`) +
-      (gone.length === 0
-        ? "."
-        : `; the rest, ${listed(gone)}, comes apart as word of the fall reaches it by road: where your troops stand then it is yours, held by force; a governor there rules his province in his own name, and the rest falls lawless.`);
     notify(
       S,
-      winner,
+      conqueror,
       "Battle",
       KingdomFallsTitle,
       ceded
-        ? `${king(p).charAt(0).toUpperCase() + king(p).slice(1)} has ceded ${capital.name} to you, and with it the kingdom of ${powerName(p)}: his troops have disbanded, and ${yours}`
-        : taker === winner
-        ? `With ${capital.name} you took the kingdom of ${powerName(p)}: its king has fallen, his armies are their own commanders' or disband as word reaches them, and ${yours}`
-        : `${upper(powerName(taker!))} took ${capital.name}, the capital of ${powerName(p)}, but fell himself in the same season, and the kingdom of ${powerName(p)} passes to you with his: its king has fallen, his armies are their own commanders' or disband as word reaches them, and ${yours}`,
+        ? `${upper(king(p))} has ceded ${capital.name} to you, and with it the kingdom of ${powerName(p)}: his troops have disbanded, and ${rest.length === 0 ? "none of his other land is yours" : `his land is yours: ${listed(rest)}`}.`
+        : `With ${capital.name} you took the last land of ${powerName(p)}: the kingdom has fallen, and its armies are their own commanders' or disband as word reaches them.`,
     );
   }
 };
@@ -673,10 +684,13 @@ P.endOfTurn = function () {
   for (const c of S.characters.filter((c) => c.at !== null && c.employer !== null && c.at !== c.employer)) {
     c.turnsAbroad++;
     // Long years abroad become part of a character's past (item 10, "a past made in play"), known to both courts.
-    if (c.turnsAbroad === LongAbroad && c.status !== "Dead")
+    // Not of Pharaoh's open residents, whose post already says where they sit.
+    if (c.turnsAbroad === LongAbroad && c.status !== "Dead" && !c.openly)
       c.facts.push(newFact({ id: newId(S, "f"), text: `Spent three years and more at the court of ${land(c.at!)}.`, secrecy: "Hidden", tag: "abroad", knownBy: [c.employer!, c.at!] }));
   }
 
+  // Item 17b, part C: who came to each court this season, for a king away from it.
+  this.cameToCourts();
   let reason: string | null = null;
   if (alive(S).length <= 1) reason = OneKingdomLeft;
   // The last season was drawn in secret at the start (rules/ending.ts); an open age has none.
@@ -686,9 +700,10 @@ P.endOfTurn = function () {
     S.ended = true;
     S.endReason = reason;
     this.decideWinners();
-    // The score that decides, with size and performance beside it (item 11e): every placement counts.
-    const placings = this.finalScores().map((x, i) => `${i + 1}. ${x.power} ${fmt(x.score, "0.00")} (size ${fmt(x.size, "0.00")}, performance ${fmt(x.performance, "0.00")})`);
-    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. Final scores: ${placings.join("; ")}.`);
+    // Every person on one scoreboard (item 17b, part D): every placement counts. The winner is the first on the board.
+    const board = this.scoreboard();
+    const shown = board.slice(0, 10).map(placing).join("; ") + (board.length > 10 ? `; and ${board.length - 10} more` : "");
+    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. The scoreboard: ${shown}.`);
     return;
   }
   S.turn++;
@@ -696,49 +711,21 @@ P.endOfTurn = function () {
   this.courtsSee();
 };
 
-P.finalScores = function () {
+P.refused = function (p, rejected) {
   const S = this.s;
-  const living = alive(S);
-  // Size: the realm's wealth as a share of the largest living realm's. Performance: where its growth ranks among its own
-  // starting position's results ("One scoreboard for every power", item 11e).
-  const largest = Math.max(1, ...living.map((p) => this.strength(p)));
-  const rows = living.map((p) => {
-    const size = Math.max(0, this.strength(p)) / largest;
-    const performance = standingOf(p, this.growth(p)) / 2;
-    return { power: p, score: finalScore(S.config.sizeWeight, size, performance), size, performance };
-  });
-  return sortBy(rows, [(x: FinalScore) => x.score, desc(cmpNum)], [(x: FinalScore) => x.power, cmpPower]);
-};
-
-P.decideWinners = function () {
-  const S = this.s;
-  const living = alive(S);
-  const scores = this.finalScores();
-  const score = new Dict(scores.map((x) => [x.power, x.score] as const));
-  if (scores.length === 0) {
-    S.winners = [];
-    return;
+  const place = placesKnown(this, p);
+  const near: string[] = [];
+  for (const r of rejected) {
+    const named = unitOf(r.order);
+    // One lost out of sight, its end unheard, by its copy (`_riddenNow`), as it was checked: first, though others' troops
+    // stand where it stood now.
+    const u = named === null ? null : (this._riddenNow.tryGet(p)?.get(r.order) ?? unitAt(S, named));
+    // #759: an order for a unit of its own beyond its couriers' season is refused where the unit stands: its king hears of it
+    // by the road from there, the unit named where his view shows it.
+    if (u !== null && u.power === p && this.heardAt(p, u.province) > S.turn + S.deliveryOffset) {
+      const shown = { ...r.order, unit: place(u) } as Order;
+      this.tell(p, u.province, "Rejected", RefusedTitle, `- ${upper(told(shown))}: ${placesNamed(r.reason)}.`);
+    } else near.push(`- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`);
   }
-  const best = scores[0].power;
-
-  if (S.config.sharedVictory) {
-    let bestPair: [Power, Power, number] | null = null;
-    for (const t of S.tablets.filter((t) => t.allianceOath && isSealedAgreement(t))) {
-      const a = t.proposedBy;
-      const b = t.partner!;
-      if (!isAlive(S, a) || !isAlive(S, b)) continue;
-      // The pair's score together: each partner's, weighed by its starting strength.
-      const start = S.startStrength.get(a) + S.startStrength.get(b);
-      const combined = (score.get(a) * S.startStrength.get(a) + score.get(b) * S.startStrength.get(b)) / start;
-      const others = living.filter((p) => p !== a && p !== b).map((p) => score.get(p));
-      const rivals = others.length === 0 ? 0 : max(others, (x) => x);
-      if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
-    }
-    if (bestPair !== null) {
-      S.winners = [bestPair[0], bestPair[1]];
-      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (score together ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
-      return;
-    }
-  }
-  S.winners = [best];
+  if (near.length > 0) notify(S, p, "Rejected", RefusedTitle, near.join("\n"));
 };

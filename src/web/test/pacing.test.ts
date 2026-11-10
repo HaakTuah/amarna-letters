@@ -119,7 +119,7 @@ describe("PacingTests", () => {
     const arrivals = (f1: SeasonFrame, viewer: "Egypt" | "Hatti" | "Mitanni" | null): string[] => momentsOf(buildScene([before, f1], 1, viewer)).filter((x) => x.phase === "arrival").map((x) => x.title);
     // Caught by Mitanni on his last road (travel.ts, caughtOnRoad): Egypt keeps a cover, Hatti never saw him.
     for (const believed of ["EnvoyOutbound", "EnvoyAtCourt"] as const) {
-      const caught = after({ ...envoy, status: "Captured", heldBy: "Mitanni", duty: "None", covers: [{ for: "Egypt", believed, heldAt: null, whereText: "at the court of Hatti", timingText: "", since: f0.turn }] });
+      const caught = after({ ...envoy, status: "Captured", heldBy: "Mitanni", duty: "None", covers: [{ for: "Egypt", believed, heldAt: null, whereText: "at the court of Hatti", province: null, court: "Hatti", timingText: "", since: f0.turn }] });
       for (const viewer of ["Egypt", "Hatti", "Mitanni", null] as const) Assert.true(arrivals(caught, viewer).length === 0, `${viewer ?? "god"} (Egypt believes ${believed})`);
     }
     // Received at Hattusa: his king, his host and god view see him arrive; a court with no part in it does not.

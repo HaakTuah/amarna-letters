@@ -7,7 +7,7 @@
  */
 import { policedShare } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
-import { clamp, idiv } from "../core/num.ts";
+import { clamp, fmtN, idiv } from "../core/num.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
@@ -16,7 +16,8 @@ import { climateOf, DroughtRegions, RiverFloods, Rivers } from "../model/geograp
 import { climatePercentIn, countryNeed, harvestIn, LandData, menAvailable, reckonedOf, resistanceOf, wallMenOf, type People } from "../model/land.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent, type Unit } from "../model/state.ts";
+import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { fastestPoints, PointsPerDay } from "../model/travel.ts";
 import { Views } from "../rules/views.ts";
 import { listed, upper } from "../rules/wording.ts";
@@ -253,11 +254,14 @@ P.peopleSeason = function (food) {
   return lines;
 };
 
-/** A count of people as a king reads it. */
+/**
+ * A count of people as a king reads it, grouped by thousands as his view's figures are: exact below a thousand, to the
+ * hundred below ten thousand, to the thousand above, and said to be "about" that where the rounding changed it ("about
+ * 2,600"), so a rounded count never reads as exact.
+ */
 export function people(n: number): string {
-  if (n < 1000) return `${n}`;
-  const k = n >= 10_000 ? `${Math.round(n / 1000)}` : (n / 1000).toFixed(1).replace(/\.0$/, "");
-  return k === "1" ? "a thousand" : `${k} thousand`;
+  const shown = n < 1000 ? n : n >= 10_000 ? Math.round(n / 1000) * 1000 : Math.round(n / 100) * 100;
+  return `${shown === n ? "" : "about "}${fmtN(shown, 0)}`;
 }
 
 /** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */
@@ -292,7 +296,7 @@ P.menHome = function (u, settle) {
   if (settle) {
     shift(this.peopleOf(u.province), men, men);
     this.spendAt(u.province, savings);
-    logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
+    logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, this.nearOf(u.province, u.power), "colonists");
     return `its men settled in ${where.name} as colonists, ${people(men)} of them`;
   }
   if (u.province === u.home) {
@@ -399,7 +403,7 @@ P.climateSeason = function () {
     for (const p of AllPowers.filter((p) => isAlive(S, p))) {
       const mine = c.provinces.filter((x) => S.owner.getOrDefault(x, null) === p);
       if (mine.length > 0) {
-        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}. For three seasons ${listed(mine.map((x) => Map.get(x).name))} will reap only ${c.percent} in a hundred of a full harvest.`);
+        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}. For three seasons ${listed(mine.map((x) => Map.get(x).name))} will reap only ${c.percent}% of a full harvest.`);
         continue;
       }
       if (c.provinces.some((x) => sight.get(p).has(x))) notify(S, p, "Notice", "News from nearby", `Travellers say ${c.kind === "Drought" ? `the rains have failed over ${c.name}` : `${c.name} has flooded badly`}.`);

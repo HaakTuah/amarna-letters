@@ -25,6 +25,7 @@ import { tongueClaims } from "./languages.ts";
 import { askingPrice } from "./court.ts";
 import { recordKnown, restOf, trustIn } from "./jobs.ts";
 import { strangerAt } from "./names.ts";
+import { realmOfKing } from "../rules/court.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -494,7 +495,8 @@ P.travellerArrives = function (j) {
   if (to === undefined || !isAlive(S, to)) return;
   // It gives the court its name as it arrives: the invented one it chose, where the court knows nothing of it (item 11a+).
   const stranger = strangerAt(c, to);
-  c.duty = "None";
+  // Item 17b: a king home at his court reigns again.
+  c.duty = realmOfKing(S, c.id) === to ? "Ruling" : "None";
   c.lastLife = null;
   if (stranger && j.asName !== null) this.declare(c, to, j.asName, null);
   c.at = to;
@@ -509,5 +511,5 @@ P.travellerArrives = function (j) {
   }
 };
 
-/** How many characters are alive, which the pool keeps near its baseline. */
-export const living = (e: TurnEngine): number => count(e.s.characters, (c) => c.status !== "Dead");
+/** How many characters are alive on the map, which the pool keeps near its baseline. */
+export const living = (e: TurnEngine): number => count(e.s.characters, (c) => c.status !== "Dead" && c.duty !== "Abroad");

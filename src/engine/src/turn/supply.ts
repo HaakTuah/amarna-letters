@@ -13,11 +13,13 @@ import { cmpStr, sortBy } from "../core/seq.ts";
 import type { SupplyOrder } from "../model/orders.ts";
 import { gain, remember } from "../model/people.ts";
 import { type Power, powerName } from "../model/power.ts";
-import { isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, notify, unitAt } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { wordFromKing } from "../rules/court.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
+import { newRemittance } from "../model/coffers.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -34,13 +36,14 @@ const P = TurnEngine.prototype;
 
 P.setSupply = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p) return;
   const gold = Math.max(0, o.gold);
-  if (gold > 0 && !this.pay(p, gold, `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}`, o, "no word was sent")) return;
-  const seasons = wordFromKing(S, this.map, p, u.province);
-  const at = S.turn + (Number.isFinite(seasons) ? seasons : 1);
+  // Where its king named it, and so reckons its word's road (bug #615).
   const named = o.named ?? o.unit;
+  if (gold > 0 && !this.pay(p, gold, `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name}`, o, "no word was sent")) return;
+  const seasons = wordFromKing(S, this.map, p, named);
+  const at = S.turn + (Number.isFinite(seasons) ? seasons : 1);
   S.foodWord.push({ power: p, unit: u.id, province: named, buy: o.buy, gold, at });
   logEvent(S, "supply", `${p} sent word to its army in ${this.map.get(named).name} to ${o.buy ? "buy" : "take"} its food${gold > 0 ? `, with ${gold} shekels` : ""}.`, [p], o.buy ? "supply-word-buy" : "supply-word-take");
   notify(
@@ -50,6 +53,7 @@ P.setSupply = function (p, o) {
     "Word on the army's food",
     `Your couriers carry word to your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} to ${o.buy ? "buy its food where it stands" : "take its food from the land"}${gold > 0 ? `, with ${formatMoney(gold)}` : ""}; the word reaches it in turn ${at}.${o.buy && gold === 0 ? " No gold went with it, so it will take what it must." : ""}`,
   );
+  this.goneWord(p, o, u);
 };
 
 P.foodArrives = function () {
@@ -60,9 +64,11 @@ P.foodArrives = function () {
   for (const w of due) {
     const u = S.units.find((x) => x.id === w.unit) ?? null;
     if (u === null || u.power !== w.power) {
-      // The army is gone or no longer his: the courier brings the gold back, or, his king fallen, it stays where he
-      // carried it, in the purse of that land's people (nothing vanishes).
-      if (w.gold > 0 && isAlive(S, w.power)) this.credit(w.power, w.gold, this.courtAt(w.power), false);
+      // The army is gone or no longer his: the courier brings the gold back, as word from there comes (bug #615), or, his
+      // king fallen, it stays where he carried it, in the purse of that land's people (nothing vanishes).
+      const back = this.heardAt(w.power, w.province);
+      if (w.gold > 0 && isAlive(S, w.power) && back > S.turn + S.deliveryOffset) S.sent.push(newRemittance({ power: w.power, province: w.province, gold: w.gold, due: back, home: true, food: true }));
+      else if (w.gold > 0 && isAlive(S, w.power)) this.credit(w.power, w.gold, this.courtAt(w.power), false);
       else if (w.gold > 0) this.spendAt(this.map.get(w.province).isSea ? this.courtAt(w.power) : w.province, w.gold);
       continue;
     }

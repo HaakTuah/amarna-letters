@@ -16,4 +16,7 @@ new day (UTC) starts that day's file, `instructions/<yyyy-mm-dd>.md`, and its ro
 | [2 November 2026](instructions/2026-11-02.md) | 134 to 184 (two items carry 178) |
 | [3 November 2026](instructions/2026-11-03.md) | 185 to 216 |
 | [4 November 2026](instructions/2026-11-04.md) | 217 to 220 |
-| [5 November 2026](instructions/2026-11-05.md) | 221 on |
+| [5 November 2026](instructions/2026-11-05.md) | 221 to 228 |
+| [6 November 2026](instructions/2026-11-06.md) | 229 to 232 |
+| [7 November 2026](instructions/2026-11-07.md) | 233 to 234 |
+| [9 November 2026](instructions/2026-11-09.md) | 235 on |

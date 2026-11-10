@@ -27,6 +27,7 @@ import {
 } from "@amarna/engine";
 import { isThreadsKey, readThreads } from "./threads.ts";
 import { MindBook, MindPageSchema, readMindPage } from "./minds.ts";
+import { KingShadowSchema, type KingShadow } from "./king-shadows.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -370,6 +371,8 @@ export class GameLog {
   readonly calls: ModelCall[] = [];
   /** Model characters' decisions beside the script's for the same situations. Not used in replay. */
   readonly shadows: ShadowDecision[] = [];
+  /** Item 18: model kings' decisions beside the shadow script's (king-shadows.ts). Not used in replay. */
+  readonly kingShadows: KingShadow[] = [];
   /** The audits of lower rungs' decisions. Not used in replay. */
   readonly audits: Audit[] = [];
   /** Item 17+++: the minds' own words season by season, each page kept when it changed (minds.ts). Not used in replay. */
@@ -426,6 +429,10 @@ export class GameLog {
     this.shadows.push(shadow);
   }
 
+  addKingShadow(shadow: KingShadow): void {
+    this.kingShadows.push(shadow);
+  }
+
   addAudit(audit: Audit): void {
     this.audits.push(audit);
   }
@@ -456,6 +463,8 @@ export class GameLog {
     // Ordered by key, so that two runs of a game write the same lines whatever order parallel calls finished in.
     for (const sh of sortBy(this.shadows, [(x: ShadowDecision) => x.turn, cmpNum], [(x: ShadowDecision) => x.key, cmpStr]))
       out += withType(serialize(ShadowDecisionSchema, sh), "shadow") + "\n";
+    for (const k of sortBy(this.kingShadows, [(x: KingShadow) => x.turn, cmpNum], [(x: KingShadow) => x.key, cmpStr]))
+      out += withType(serialize(KingShadowSchema, k), "king-shadow") + "\n";
     for (const a of sortBy(this.audits, [(x: Audit) => x.turn, cmpNum], [(x: Audit) => x.key, cmpStr])) out += withType(serialize(AuditSchema, a), "audit") + "\n";
     for (const m of this.minds.pages) out += withType(serialize(MindPageSchema, m), "mind") + "\n";
     return out;
@@ -489,6 +498,9 @@ export class GameLog {
           break;
         case "shadow":
           log.shadows.push(deserialize<ShadowDecision>(ShadowDecisionSchema, line));
+          break;
+        case "king-shadow":
+          log.kingShadows.push(deserialize<KingShadow>(KingShadowSchema, line));
           break;
         case "audit":
           log.audits.push(deserialize<Audit>(AuditSchema, line));

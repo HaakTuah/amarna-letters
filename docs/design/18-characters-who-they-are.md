@@ -18,8 +18,10 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
   left out. Kings, queens and princes are seats or their households, never characters. `Character.attested` marks them.
 - **Nubians in Egypt's service** (`NubianCast`): Hekanefer, prince of Miam and a child of the royal nursery (attested; his
   career spans 1346), and two captains of Nubian troops, generated with Egyptian names as many of them bore. They stand at
-  Pharaoh's court and carry the public fact "A Nubian in Egypt's service, who speaks a Nubian tongue as well as
-  Egyptian" (languages come with item 12).
+  Pharaoh's court and carry the public fact "A Nubian in Egypt's service"; their tongues, a Nubian one and Egyptian, are in what they
+  say they speak (item 12). The cast's lines were rewritten in the period's voice by the slop audit (#764; report
+  `docs/rounds/2026-11-07-slop-audit-biographies.md`): the calling's line says what a person is, the sources' lines
+  lose their bracketed citations, and the first draw's attested envoys are royal envoys. Save version 71.
 - **Everyone else** is generated in its region's name style (`Styles`), with competence the lower of two draws (15-95):
   mostly ordinary people, few excellent ones ("Enough people, not enough good ones").
 
@@ -47,7 +49,8 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
 ### A name made of outcomes
 
 - **Outcomes are facts** (`TurnEngine.outcome`), hidden, known to the court that saw them, tagged `outcome` or
-  `outcome-bad`: a mission carried and the answer brought home; a turn back on the road; siege lines slipped through; a
+  `outcome-bad`: a mission carried and the answer brought home (or, where the envoy was never received, remembered as
+  that: bug #784); a turn back on the road; siege lines slipped through; a
   post watched unseen (two seasons or more); a spy caught; an envoy caught by besiegers. Each moves the name at that court
   (+6, -10, first guesses) and spreads as rumour (`NewsKind` "Name") to every other living court except the character's
   master, a secret master, any court still holding a cover for it (its news comes its own ways), and, for a post watched

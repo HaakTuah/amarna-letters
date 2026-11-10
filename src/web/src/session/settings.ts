@@ -27,6 +27,8 @@ export interface GameSettings {
   chronicles: boolean;
   customsPrimer: boolean;
   sharedVictory: boolean;
+  /** Off by default: the kings of 1346 by their traits from the sources; on, rolled for the game (item 18). */
+  rolledTraits: boolean;
   /** On by default: a player whose kingdom has fallen watches the rest in god view. */
   fallenSeeAll: boolean;
   /** On by default: a model king sleeps after its orders until something concerns it. */
@@ -92,6 +94,7 @@ export function newSettings(): GameSettings {
     chronicles: true,
     customsPrimer: true,
     sharedVictory: false,
+    rolledTraits: false,
     fallenSeeAll: true,
     sleepingSeats: true,
     maxSleep: 12,
@@ -177,6 +180,7 @@ export function toConfig(s: GameSettings): GameConfig {
   return newGameConfig({
     customsPrimer: s.customsPrimer,
     sharedVictory: s.sharedVictory,
+    rolledTraits: s.rolledTraits,
     fallenSeeAll: s.fallenSeeAll,
     sleepingSeats: s.sleepingSeats,
     maxSleep: Math.min(Math.max(s.maxSleep, 1), 30),
@@ -199,6 +203,7 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
       seed: header.seed,
       customsPrimer: header.config.customsPrimer,
       sharedVictory: header.config.sharedVictory,
+      rolledTraits: header.config.rolledTraits,
       fallenSeeAll: header.config.fallenSeeAll,
       sleepingSeats: header.config.sleepingSeats,
       maxSleep: header.config.maxSleep,
@@ -217,10 +222,15 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
 }
 
 /**
- * A fallen player's game is over: once every human seat at the table has fallen, and the table's setting allows it (on by
+ * A fallen player's game is over, and so is one whose king has died (item 17b): once every human seat at the table is out, and the table's setting allows it (on by
  * default), the players watch the rest in god view. While one of them still plays, a fallen player on the same screen
  * would see what the other cannot, so nobody does. With the setting off, a fallen player keeps his own view.
  */
 export function fallenSeesAll(s: GameState, humans: readonly Power[]): boolean {
-  return s.config.fallenSeeAll && humans.length > 0 && humans.every((p) => s.eliminated.includes(p));
+  return s.config.fallenSeeAll && humans.length > 0 && humans.every((p) => playerOut(s, p));
+}
+
+/** Item 17b: a player is out when his kingdom has fallen or his king has died, his heir's seat played by a script. */
+export function playerOut(s: GameState, p: Power): boolean {
+  return s.eliminated.includes(p) || s.reignsEnded.some((x) => x.power === p);
 }

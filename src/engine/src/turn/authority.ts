@@ -17,7 +17,8 @@ import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
 import { land, type Power, quoteWords, powerName, whose } from "../model/power.ts";
 import type { Clause } from "../model/clauses.ts";
-import { isAlive, logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
+import { type Unit } from "../model/units.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {

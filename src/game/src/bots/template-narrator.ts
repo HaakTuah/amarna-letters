@@ -1,5 +1,5 @@
 /** The offline narrator: template personas, plain check reports, boastful annals, and the threads to watch in plain words. */
-import { groupBy, king, land, personaTemplate, risenOf, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
+import { groupBy, land, rulerOf, personaTemplate, risenOf, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator, ThreadContext } from "../contracts.ts";
 import { threadWords } from "./thread-words.ts";
 import { pick } from "./voices.ts";
@@ -28,7 +28,7 @@ export class TemplateNarrator implements INarrator {
   chronicle(ctx: ChronicleContext, _signal?: AbortSignal): Promise<string> {
     const p = ctx.power;
     let sb = "";
-    sb += `The Annals of ${king(p)}, Great King of ${land(p)}\n`;
+    sb += `The Annals of ${rulerOf(p)}\n`;
     sb += "\n";
     for (const [y, events] of groupBy(
       ctx.known.filter((e) => e.kind !== "start"),
@@ -78,7 +78,7 @@ function spin(p: Power, e: GameEvent): string | null {
     case "bribe":
       return "A foreign messenger was moved by His Majesty's generosity.";
     case "detention":
-      return "A presumptuous messenger was taught the patience due to a Great King.";
+      return "A presumptuous messenger was taught the patience due to a king.";
     case "spy-caught":
       return "A spy was caught in the palace and learned the king's justice.";
     case "forgery-detected":

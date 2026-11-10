@@ -14,9 +14,11 @@ import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./ma
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { reseason, seasonLayer } from "./seasons.ts";
 import { type MapScene } from "./scene.ts";
-import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
+import { attach, detach, focus, getView, panBy, reset, setView, zoomBy } from "./zoom.ts";
 import { Land, bands, cities, fog, retint, tints, tintsKey } from "./land-layers.ts";
-import { peopleAtCourts, reconcile, travellerItem, unitItems } from "./tokens.ts";
+import { peopleAtCourts, reconcile, travellerItem, travellerShift, unitItems } from "./tokens.ts";
+import { playRoad, trailMarkup, travellerRoad, unitRoad } from "./marching.ts";
+import { glyphId } from "./glyphs.ts";
 import { moves, outlaws, roads, selection } from "./ways.ts";
 
 /** Each river's path as the whole board draws it. */
@@ -104,7 +106,7 @@ export class SvgMapRenderer implements MapRenderer {
       `<svg class="map map-realms" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g></svg>` +
       `<svg class="map map-relief" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${Relief}</svg>` +
       `<svg class="map map-marks" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g data-layer="scenes"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
+      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="scenes"></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
@@ -185,8 +187,27 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set("units", s);
     this.drawn.set("unitsKey", key);
     this.changed = true;
+    const stood = new Map([...this.units].map(([k, el]) => [k, el.getAttribute("data-province")] as const));
     // A unit gone (destroyed, or out of the viewer's sight) stays until the season's results land (item 17+++).
-    reconcile(this.layers.get("units")!, items, this.units, this.landWait(s));
+    const wait = this.landWait(s);
+    reconcile(this.layers.get("units")!, items, this.units, (el) => (wait > 0 ? this.later(`leave${++this.leaving}`, () => el.remove(), wait) : el.remove()));
+    // Part E: each unit that marched goes along its road, drawn as what it is.
+    const plan = this.marching(s);
+    if (plan === null) return;
+    for (const u of s.units) {
+      const from = stood.get(u.key);
+      const el = this.units.get(u.key);
+      if (from === undefined || from === null || el === undefined || u.ghost || plan.played.has(u.key)) continue;
+      const road = unitRoad(u.kind, u.power, from, u.province, s.moves);
+      if (road !== null) plan.played.add(u.key);
+      if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, trailMarkup(u.kind, u.men, glyphId(u.power))));
+    }
+  }
+
+  /** The season's marching as it plays out (part E), for the pieces drawn while it is due; null when nothing marches. */
+  private marching(s: MapScene): { start: number; ms: number; played: Set<string> } | null {
+    const p = this.marchPlan;
+    return p !== null && p.index === s.index && p.viewer === s.viewer && p.start + p.ms > performance.now() ? p : null;
   }
 
   render(input: MapInput): void {
@@ -210,6 +231,7 @@ export class SvgMapRenderer implements MapRenderer {
     const s = input.scene;
     this.scene = s;
     this.playSeason(s, input.playout ?? null);
+    this.hold(input.held === true && this.timers.size > 0);
     const lower = this.view?.querySelector(".map-lower");
     lower?.setAttribute("aria-label", s.viewer !== null ? `Map of the Great Kings' lands as ${powerName(s.viewer)} sees it` : "Map of the Great Kings' lands (god view)");
     const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
@@ -241,12 +263,12 @@ export class SvgMapRenderer implements MapRenderer {
       () => this.layer("outlaws", s, () => outlaws(s)),
     ];
     const wait = this.landWait(s);
-    clearTimeout(this.landTimer);
     if (wait > 0)
-      this.landTimer = window.setTimeout(() => {
+      this.later("land", () => {
         this.steps.push(...land, () => this.changed && this.placeNames());
         this.stepSoon();
       }, wait);
+    else this.cancelLater("land");
     this.steps = [
       () => {
         if (this.drawn.get("season") !== seasonKey) {
@@ -277,6 +299,20 @@ export class SvgMapRenderer implements MapRenderer {
             s.travellers.map((t, i) => travellerItem(t, i, s.travellers, input)),
             this.travellers,
           );
+          // Part E: each traveller known before goes on along his road; an envoy and gold with their caravan.
+          const plan = this.marching(s);
+          const was = this.travelWas;
+          this.travelWas = new Map(s.travellers.map((t) => [t.key, `${t.fromProvince}|${t.toProvince}|${t.progress}`] as const));
+          if (plan !== null)
+            s.travellers.forEach((t, i) => {
+              const [from, to, progress] = (was.get(t.key) ?? "").split("|");
+              const el = this.travellers.get(t.key);
+              if (from !== t.fromProvince || to !== t.toProvince || el === undefined || plan.played.has(t.key)) return;
+              const road = travellerRoad(t, Number(progress), travellerShift(t, i, s.travellers));
+              if (road === null) return;
+              plan.played.add(t.key);
+              this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, t.kind === "Spy" ? "" : trailMarkup("Caravan", 0)));
+            });
         }
       },
       () => {
@@ -326,10 +362,66 @@ export class SvgMapRenderer implements MapRenderer {
    * motion, when stepping back, or jumping: the season then shows as it ended.
    */
   private sceneFrom: { index: number; viewer: Power | null } | null = null;
-  private sceneTimer = 0;
-  private marchTimer = 0;
-  private landTimer = 0;
-  private closeTimer = 0;
+  /**
+   * The season's marching (part E): when it starts (`performance.now()`), how long it runs, and the pieces already sent on
+   * their way (each once, however often the pieces are drawn again meanwhile); and the slides themselves.
+   */
+  private marchPlan: { index: number; viewer: Power | null; start: number; ms: number; played: Set<string> } | null = null;
+  private marchAnims: Animation[] = [];
+  /** Where each traveller was drawn: his road and how far along it, so he goes on from there. */
+  private travelWas = new Map<string, string>();
+  /**
+   * The season's timers by name (its scenes taken away, its marching's end, its closing line, its results landing): each
+   * with what it runs and when, so a season held still keeps them and they run on when it plays again (item 17+++a).
+   */
+  private timers = new Map<string, { id: number; run: () => void; due: number }>();
+  /** The tokens gone still waiting to be taken away, counted so each has a timer of its own. */
+  private leaving = 0;
+  /** When the season playing out was held still (null: it plays). */
+  private heldAt: number | null = null;
+
+  private later(name: string, run: () => void, ms: number): void {
+    this.cancelLater(name);
+    const due = (this.heldAt ?? performance.now()) + ms;
+    this.timers.set(name, { id: this.heldAt !== null ? 0 : this.arm(name, run, ms), run, due });
+  }
+  private arm(name: string, run: () => void, ms: number): number {
+    return window.setTimeout(() => {
+      this.timers.delete(name);
+      run();
+    }, Math.max(0, ms));
+  }
+  private cancelLater(name: string): void {
+    clearTimeout(this.timers.get(name)?.id);
+    this.timers.delete(name);
+  }
+
+  /**
+   * Holds the season playing out still, or lets it play on (item 17+++a: "Space pauses and unpauses, even while a season
+   * plays out"): the map's animations pause where they stand (the pieces' slides, the land's change, the scenes), its
+   * timers stop, and on playing again everything goes on from where it stood, as the page's own clock does.
+   */
+  private hold(on: boolean): void {
+    if (on === (this.heldAt !== null) || this.view === null) return;
+    const now = performance.now();
+    const playing = this.view.getAnimations({ subtree: true });
+    if (on) {
+      this.heldAt = now;
+      for (const a of playing) if (a.playState === "running") a.pause();
+      for (const x of this.timers.values()) clearTimeout(x.id);
+      return;
+    }
+    const shift = now - this.heldAt!;
+    this.heldAt = null;
+    if (this.holdLand !== null) this.holdLand.until += shift;
+    if (this.marchPlan !== null) this.marchPlan.start += shift;
+    for (const a of playing) if (a.playState === "paused") a.play();
+    for (const [name, x] of this.timers) {
+      x.due += shift;
+      x.id = this.arm(name, x.run, x.due - now);
+    }
+  }
+
   /** The season whose results are held back, and until when (`performance.now()`). */
   private holdLand: { index: number; viewer: Power | null; until: number } | null = null;
 
@@ -341,7 +433,7 @@ export class SvgMapRenderer implements MapRenderer {
   /** How long until the results of the season shown land: 0 if they are not held back. */
   private landWait(s: MapScene): number {
     const h = this.holdLand;
-    return h !== null && h.index === s.index && h.viewer === s.viewer ? Math.max(0, h.until - performance.now()) : 0;
+    return h !== null && h.index === s.index && h.viewer === s.viewer ? Math.max(0, h.until - (this.heldAt ?? performance.now())) : 0;
   }
 
   private playSeason(s: MapScene, playout: MapInput["playout"]): void {
@@ -349,9 +441,13 @@ export class SvgMapRenderer implements MapRenderer {
     this.sceneFrom = { index: s.index, viewer: s.viewer };
     if (last !== null && last.index === s.index && last.viewer === s.viewer) return;
     const g = this.layers.get("scenes")!;
-    for (const t of [this.sceneTimer, this.marchTimer, this.closeTimer]) clearTimeout(t);
+    // A season held still lets go first, so nothing it paused stays paused.
+    this.hold(false);
+    for (const name of ["scene", "march", "close"]) this.cancelLater(name);
     g.innerHTML = "";
     this.holdLand = null;
+    this.marchPlan = null;
+    for (const a of this.marchAnims.splice(0)) a.cancel();
     this.march(null);
     this.closingLine(null);
     this.moveSeason(0);
@@ -372,14 +468,15 @@ export class SvgMapRenderer implements MapRenderer {
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
-      this.marchTimer = window.setTimeout(() => this.march(null), Math.max(0, t.marchAt + t.marchMs - gone) + 50);
+      this.marchPlan = { index: s.index, viewer: s.viewer, start: now + t.marchAt - gone, ms: t.marchMs, played: new Set() };
+      this.later("march", () => this.march(null), Math.max(0, t.marchAt + t.marchMs - gone) + 50);
     }
-    const markup = t.beats.map((b) => (b.moment.kind === "great" ? momentMarkup(b.moment, b.at - gone, b.ms) : "")).join("");
+    const markup = t.beats.map((b) => momentMarkup(b.moment, b.at - gone, b.ms)).join("");
     if (markup !== "") {
       g.innerHTML = markup;
-      this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), Math.max(0, t.closeAt - gone) + 100);
+      this.later("scene", () => (g.innerHTML = ""), Math.max(0, t.closeAt - gone) + 100);
     }
-    this.closeTimer = window.setTimeout(() => this.closingLine(line), Math.max(0, t.closeAt - gone));
+    this.later("close", () => this.closingLine(line), Math.max(0, t.closeAt - gone));
   }
 
   /** The shortest the land's change moves over (shorter: at once), and the longest (part D, first guesses). */
@@ -681,6 +778,10 @@ export class SvgMapRenderer implements MapRenderer {
   zoomBy(factor: number): void {
     if (this.view !== null) zoomBy(this.view, factor);
   }
+  panBy(dx: number, dy: number): void {
+    if (this.view !== null) panBy(this.view, dx, dy);
+  }
+
 
   fit(): void {
     if (this.view !== null) reset(this.view);
@@ -705,7 +806,8 @@ export class SvgMapRenderer implements MapRenderer {
     cancelAnimationFrame(this.stepping);
     this.steps = [];
     detach(this.view);
-    for (const t of [this.sceneTimer, this.marchTimer, this.landTimer, this.closeTimer]) clearTimeout(t);
+    for (const x of this.timers.values()) clearTimeout(x.id);
+    this.timers.clear();
     this.view.querySelector(".mapzoom")?.remove();
     this.view.querySelector(":scope > .omen")?.remove();
     this.view.querySelector(":scope > .season-close")?.remove();

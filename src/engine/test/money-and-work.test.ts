@@ -235,9 +235,7 @@ describe("MoneyAndWorkTests", () => {
     new TurnEngine(s).goldAndTabletsTaken();
     Assert.equal(910, rich.diedWith);
     Assert.null(rich.hoard);
-    const ranking = Wealth.ranking(s);
-    Assert.equal(rich, ranking.filter((w) => w.dead).sort((x, y) => y.total - x.total)[0].character);
-    Assert.true(ranking.findIndex((w) => w.character === rich) > ranking.findIndex((w) => !w.dead && w.total === 0));
+    Assert.equal(910, Wealth.of(rich).total);
   });
 
   test("A free person lives from the market where it stays; a servant at its master's court pays nothing", () => {

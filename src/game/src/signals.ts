@@ -36,7 +36,14 @@ export const SignalKinds: readonly string[] = [
   "job-done", "hire-abroad", "ride-hired", "ride-back", "hoard-seized", "tablet-sold", "purse-taken",
   "unheard", "unheard-home", "unheard-lie", "go-between", "court-go-between", "bridged-servant", "mandate-slow", "envoy-mute", "tablet-unread", "tablet-read-late", "bent-words", "bent-noticed",
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
-  "risen", "fall-held", "fall-lawless",
+  // Item 17++++a: raiders from beyond the map come and go home, and bands paid off.
+  "raiders-came", "raiders-home", "band-paid-off", "band-pay-refused",
+  // Item 17b: kings taken, escaping and dying.
+  "king-taken", "king-escapes", "king-dies",
+  // Item 17b, part C: a king setting out without his court, and one getting away from a battle lost where he stood.
+  "king-alone", "king-away",
+  // Item 17b, part C2: a court's treasury lost where it stood, a court taken on the road, an heir in exile, and one restored.
+  "court-treasury", "court-taken-road", "king-exile", "crown-exile",
   "revolt-crushed", "revolt-led", "revolt-lawless", "revolt-home", "risen-revolt", "risen-turned", "risen-chief", "risen-elder",
   "supply-buy", "supply-take", "supply-kept", "supply-word-buy", "supply-word-take", "stir",
   "raze", "wall-repair", "harbour-short", "station-read",
@@ -52,6 +59,11 @@ export const SignalKinds: readonly string[] = [
   // Item 17++, part D: a province's offer sent, talk of it, its carriers (a spy, a man of the king's, paid or hired from the
   // people's purse), known to its carrier as news to sell, taken from him by robbers, and arrived.
   "offer-sent", "offer-talk", "offer-spy", "offer-own", "offer-paid", "offer-hired", "offer-news", "offer-robbed", "offer-read", "offer-arrived",
+  // #543: an offer taken by a caravan (the claimant's own, or another's paid), brought into his land or ending elsewhere,
+  // and talk of a leaning carried by traders.
+  "offer-caravan", "offer-caravan-paid", "offer-caravan-brought", "offer-caravan-lost", "offer-talk-traders",
+  // #592: a caught offer sent on to its claimant or to the land's king, offered for a price, and bought.
+  "letter-sent-on", "letter-sent-holder", "letter-asked", "letter-bought",
   // Item 17++, part C: a governor given a province beside his own, governed from his seat.
   "govern-region", "cession-unkept",
   // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.

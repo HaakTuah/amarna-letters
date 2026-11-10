@@ -41,14 +41,11 @@ import { support as supportOrder } from "@amarna/engine";
 
 // Sleeping seats: what the kings read, fresh orders, the stand-in, the switch and replays.
 describe("SleepTests", () => {
-  // ------------------------------------------------------------ what the kings read
-
-  test("Every request opens with how long the king slept and what woke it", async () => {
-    // The king reopens its orders at the audience, so an orders request follows it in the same season.
-    let recorder = new ModelRecorder(true);
+  // <summary>A game in which Egypt sends one envoy to Alashiya in the given season, a model king the recorder listens to is Alashiya, and the rest do nothing.</summary>
+  function alashiyaGame(recorder: ModelRecorder, sendTurn: number): { state: GameState; envoyId: string; runner: GameRunner } {
     let envoyId = "";
     let egypt = new Scripted((v) =>
-      v.turn === 1 ? newTurnSubmission({ orders: [dispatch(envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
+      v.turn === sendTurn ? newTurnSubmission({ orders: [dispatch(envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
     );
     let state = newGame(31, Quiet);
     envoyId = firstOf(state.characters, (c) => c.employer === "Egypt").id;
@@ -59,6 +56,15 @@ describe("SleepTests", () => {
       (p) => (p === "Alashiya" ? king : p === "Egypt" ? egypt : new Scripted()),
     );
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    return { state: state, envoyId: envoyId, runner: runner };
+  }
+
+  // ------------------------------------------------------------ what the kings read
+
+  test("Every request opens with how long the king slept and what woke it", async () => {
+    // The king reopens its orders at the audience, so an orders request follows it in the same season.
+    let recorder = new ModelRecorder(true);
+    let { state, runner } = alashiyaGame(recorder, 1);
     let travel = new TurnEngine(state).travelTurns("Egypt", "Alashiya");
     for (let i = 0; i < 1 + travel; i++) await runner.playTurn();
 
@@ -99,19 +105,7 @@ describe("SleepTests", () => {
     // Alashiya sleeps from turn 1. News reaches it in turn 2; Egypt's envoy, sent in turn 2, wakes it later for an
     // audience, where it reopens its orders.
     let recorder = new ModelRecorder(true);
-    let envoyId = "";
-    let egypt = new Scripted((v) =>
-      v.turn === 2 ? newTurnSubmission({ orders: [dispatch(envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
-    );
-    let state = newGame(31, Quiet);
-    envoyId = firstOf(state.characters, (c) => c.employer === "Egypt").id;
-    let king = new LlmLeaderSeat("Alashiya", recorder, "claude-sonnet-5-5", "medium", true, state.config);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Alashiya" ? king : p === "Egypt" ? egypt : new Scripted()),
-    );
-    let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    let { state, envoyId, runner } = alashiyaGame(recorder, 2);
     await runner.playTurn();
     inboxOf(state, "Alashiya").push(newInboxItem({ turn: 2, kind: "Rumor", title: "Rumor", body: "Word spreads that Hatti is restless." }));
     await runner.playTurn();
@@ -121,11 +115,11 @@ describe("SleepTests", () => {
 
     let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${due}/court/`)).user.replaceAll("\r\n", "\n");
     Assert.contains("WHILE YOU SLEPT (since you gave orders in turn 1):", host);
-    Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", host);
+    Assert.contains("[turn 2] Rumour: Word spreads that Hatti is restless.", host);
     // Before the season's news, as in the orders request.
     Assert.true(host.indexOf("WHILE YOU SLEPT") < host.indexOf("NEWS THIS SEASON"));
     let orders = single(recorder.specs, (x) => x.key === `t${due}/orders/Alashiya`).user.replaceAll("\r\n", "\n");
-    Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", orders);
+    Assert.contains("[turn 2] Rumour: Word spreads that Hatti is restless.", orders);
   });
 
   test("With sleeping off an orders request says nothing of sleep", async () => {
@@ -146,7 +140,7 @@ describe("SleepTests", () => {
     let season = rules.indexOf("HOW A SEASON RESOLVES");
     Assert.true(win < sleep && sleep < season);
     Assert.contains(
-      "After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; a siege of a city of yours begun, or about to make it surrender; land or troops lost; a scheduled or standing order that others foiled; a fee you let fall due unpaid; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.",
+      "After you give your orders, you sleep. Only these wake you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; a siege of a city of yours begun, or about to make it surrender; land or troops lost; a scheduled or standing order that others foiled; a fee you let fall due unpaid; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.",
       rules,
     );
     // The sentence six kings of the second agent simulation read as a contradiction is gone.

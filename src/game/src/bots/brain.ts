@@ -2,7 +2,7 @@
  * A script king's memory and judgement: relations with every other king, the war it has chosen, the people it has checked,
  * the evidence it has sent. One per power, kept across seasons.
  */
-import { claimantsTalkedOf, CourtTrust, offersCaught, TalkHeeded } from "./talk.ts";
+import { claimantsTalkedOf, CourtTrust, offersCaught, offersSentUs, TalkHeeded } from "./talk.ts";
 import {
   AllPowers,
   RoadsTitle,
@@ -12,6 +12,7 @@ import {
   StartGold,
   StartUnits,
   clamp,
+  count,
   cmpNum,
   cmpOpt,
   cmpPower,
@@ -36,7 +37,7 @@ import {
   FullWeight,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
-import { personalityFor, type Personality } from "./personality.ts";
+import { archetype, personalityOf, type Personality } from "./personality.ts";
 import type { Landing } from "./seas.ts";
 import { againstIn, readReport, type SupportPromise } from "./statecraft-clauses.ts";
 
@@ -62,6 +63,21 @@ export class Relation {
 }
 
 const WagesGuess = 25;
+/** The least hostility {@link Brain.hostility} ever reckons: some danger from every king. */
+export const HostilityFloor = 0.05;
+/**
+ * How a script court's trust moves (one place, for its audiences and for the gifts it weighs as investments): gold weighed
+ * warms it `perShekel` a shekel, at most `giftMost` a gift; it drifts back towards indifference by `fades` a season; and a
+ * point of it cools the hostility the court reckons by `hostilityPerTrust`.
+ */
+export const TrustRules = { perShekel: 1 / 400, giftMost: 0.25, fades: 0.05, hostilityPerTrust: 0.3 } as const;
+/** First guesses (untuned), about the median gap measured between the best option and the next (part E2): the gap at which a call counts as obvious, in each score's units. */
+export const WarMarginScale = 450;
+export const PlanMarginScale = 260;
+/** How close a call was, from the gap between the best option and the next (or the bar it had to clear): 0 to 1. */
+export const closeness = (gap: number, scale: number): number => clamp(gap / scale, 0, 1);
+/** A war's odds as a king weighs them: his troops against his foe's, from a quarter to 1.6. */
+export const warOdds = (ours: number, theirs: number): number => clamp((ours + 0.5) / (theirs + 0.5), 0.25, 1.6);
 
 /**
  * A book of every king we know, that opens a page for a king risen in play (items 13+ and 17) the first time we look him
@@ -81,7 +97,13 @@ class Book<V> extends Dict<Power, V> {
 
 export class Brain {
   readonly me: Power;
-  readonly p: Personality;
+  /**
+   * How this king plays: given (a test's, a rival's picture), or his own king's traits as his view shows them (item 17b),
+   * read each season so a new king plays as himself; `tilt` shapes them (a council advisor's).
+   */
+  p: Personality;
+  private readonly given: boolean;
+  private readonly tilt: (x: Personality) => Personality;
   readonly seed: number;
   readonly rel: Dict<Power, Relation> = new Book(() => new Relation());
   lastOwner = new Dict<string, Power | null>();
@@ -168,6 +190,11 @@ export class Brain {
   lastSpyCaught = -10;
   warTarget: Power | null = null;
   warSince = 0;
+  /**
+   * How close this season's calls were (item 18, "What a call is worth"), 0 for a coin toss to 1 for an obvious call: the
+   * war choice and the plan search; null where the season made none. Read by the budget beside a model king's decision.
+   */
+  margins: { war: number | null; plan: number | null } = { war: null, plan: null };
   betraying: Power | null = null;
   /** The landing we have set our mind on (see seas.ts), and the turn before which we set our mind on no other. */
   landing: Landing | null = null;
@@ -209,10 +236,12 @@ export class Brain {
   private swornFor: Board | null = null;
   private sworn = new HSet<Power>();
 
-  constructor(me: Power, seed: number, p: Personality | null = null) {
+  constructor(me: Power, seed: number, p: Personality | null = null, tilt: (x: Personality) => Personality = (x) => x) {
     this.me = me;
     this.seed = seed;
-    this.p = p ?? personalityFor(me, seed);
+    this.given = p !== null;
+    this.tilt = tilt;
+    this.p = p ?? tilt(archetype(me));
     for (const x of AllPowers.filter((x) => x !== me)) this.rel.set(x, new Relation());
     // Every court knows how many troops and how much gold each king started with.
     for (const [k, g] of groupBy(
@@ -234,6 +263,7 @@ export class Brain {
   learn(v: SeatView, b: Board): void {
     if (v.turn === this.turn) return;
     this.turn = v.turn;
+    if (!this.given && v.traits.length > 0) this.p = this.tilt(personalityOf(this.me, v.traits));
     const P = this.p;
     // Item 17++, part D: talk that a rival's land leans toward someone: we court him ("his enemies by courting the claimant").
     for (const x of claimantsTalkedOf(b)) if (this.rel.has(x)) this.rel.get(x).trust = Math.min(1, this.rel.get(x).trust + CourtTrust);
@@ -244,6 +274,8 @@ export class Brain {
       if (b.ownerOf(o.province) === this.me) this.offersRead.set(o.province, v.turn);
       else if (o.claimant !== this.me && this.rel.has(o.claimant)) this.rel.get(o.claimant).trust = Math.min(1, this.rel.get(o.claimant).trust + CourtTrust);
     }
+    // #592: a court that sent on to us an offer it caught did us a favour.
+    for (const x of offersSentUs(b)) if (this.rel.has(x)) this.rel.get(x).trust = Math.min(1, this.rel.get(x).trust + CourtTrust);
     for (const g of v.governors) {
       const word = v.moods.find((x) => x.province === g.province);
       const bad = word !== undefined && word.source === "governor" && (word.mood === "restless" || word.mood === "near revolt");
@@ -255,7 +287,7 @@ export class Brain {
     // Wrongs fade; trust drifts back towards indifference.
     for (const r of this.rel.values()) {
       r.grudge *= 1 - 0.12 * (1 - P.vengeance);
-      r.trust += (0 - r.trust) * 0.05;
+      r.trust += (0 - r.trust) * TrustRules.fades;
       r.treaty = false;
       r.allied = false;
       r.against = null;
@@ -356,7 +388,7 @@ export class Brain {
             const weighed = Weighed.exec(item.body);
             if (weighed !== null) {
               const w = shekels(weighed[1]);
-              if (w > 0) r.trust = Math.min(1, r.trust + Math.min(0.25, w / 400.0));
+              if (w > 0) r.trust = Math.min(1, r.trust + Math.min(TrustRules.giftMost, w * TrustRules.perShekel));
             }
             r.trust += sentiment(item.body) * 0.05;
             break;
@@ -497,7 +529,12 @@ export class Brain {
     }
   }
 
-  /** How likely another king is to attack us this season. */
+  /** Another king's troops as this court reckons them: those in sight, or the most it has heard he has. */
+  force(x: Power, b: Board): number {
+    return Math.max(count(b.others, (u) => u.power === x), this.armySeen.tryGet(x)?.[0] ?? 0);
+  }
+
+  /** How likely another king is to attack us this season, never below {@link HostilityFloor}. */
   hostility(other: Power, b: Board): number {
     const r = this.rel.get(other);
     let h = 0.3;
@@ -511,11 +548,11 @@ export class Brain {
     if (r.lastAttackedUs >= this.turn - 3) h += 0.35;
     if (r.lastWeAttacked >= this.turn - 3) h += 0.3;
     h += Math.min(0.3, r.grudge * 0.04);
-    h -= r.trust * 0.3;
+    h -= r.trust * TrustRules.hostilityPerTrust;
     if (r.treaty && r.oathsBroken === 0) h -= 0.3;
     if (r.allied && r.oathsBroken === 0) h -= 0.2;
     if (b.leader() === this.me) h += 0.15;
-    return clamp(h, 0.05, 0.95);
+    return clamp(h, HostilityFloor, 0.95);
   }
 
   /**
@@ -623,7 +660,7 @@ function overdue(c: CharacterView): boolean {
 
 /** The words a letter's warmth is read by (see sentiment), anywhere in a word. */
 export const Warmth = {
-  warm: ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious", "kindly"],
+  warm: ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious"],
   cold: ["not forgotten", "regret", "withdraw", "war", "punish", "liar", "false", "broke", "detain", "will not seal"],
 } as const;
 

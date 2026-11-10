@@ -72,6 +72,17 @@ export class Rng {
     return items[this.next(items.length)];
   }
 
+  /** One of `items`, each as likely as its weight (at least one draw, so every seed draws alike). */
+  weighted<T>(items: readonly T[], weight: (x: T) => number): T {
+    const total = items.reduce((a, x) => a + weight(x), 0);
+    let roll = this.range(1, Math.max(1, total));
+    for (const x of items) {
+      roll -= weight(x);
+      if (roll <= 0) return x;
+    }
+    return items[items.length - 1];
+  }
+
   shuffle<T>(items: Iterable<T>): T[] {
     const list = [...items];
     for (let i = list.length - 1; i > 0; i--) {

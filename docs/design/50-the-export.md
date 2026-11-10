@@ -17,7 +17,8 @@ know (#424); the page's session asks its worker for no export otherwise.
     plans, ledger and standing orders are in it), tokens read, written and cached, cost, whether the provider fell back,
     the kind of failure if any, request size and attempt. No model is asked to think in this build, so there is no
     thinking to keep; the change that turns thinking on keeps its text in the call;
-  - the shadow scripts beside model characters (what each faced, the model's choice, the script's, the kind of failure);
+  - the shadow scripts beside model characters (what each faced, the model's choice, the script's, the kind of failure)
+    and beside model kings (each side's orders or answer in brief, how far they differ, the kind of failure);
   - the audits of lower rungs' decisions.
 - **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without his
   words, in a game with a human seat, every text is a blank of the same length, each letter a `▒` and its spaces kept

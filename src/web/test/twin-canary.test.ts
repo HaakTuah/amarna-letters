@@ -38,9 +38,16 @@ import {
   feed,
   grant,
   hunt,
+  hold,
+  loseUnit,
+  mandateOrder,
+  move,
+  newMandate,
+  supply,
+  support,
+  relieve,
   revoke,
   roads,
-  move,
   raise,
   sell,
   send,
@@ -64,10 +71,10 @@ interface Twin {
   make(fact: boolean): GameState;
   /** A fact that comes about later, after the seat's first orders set out: done in the true world during season `at`. */
   later?: { at: number; happen(s: GameState): void };
-  /** The orders the seat gives each season: the same in both worlds, since it sees the same. */
-  orders: Order[];
-  /** Another king's orders in the first season, in the world where the fact is true: his doing is the fact. */
-  others?: { power: Power; orders: Order[] };
+  /** The orders the seat gives each season, or in season `turn`: the same in both worlds, since it sees the same. */
+  orders: Order[] | ((turn: number) => Order[]);
+  /** Another king's orders in season `at` (the first, if none), in the world where the fact is true: his doing is the fact. */
+  others?: { power: Power; orders: Order[]; at?: number };
   /** The orders the seat schedules in its first season, for later seasons. */
   scheduled?: ScheduledOrders[];
   /** Whether the seat could know the fact by now, in the world where it is true: the twins may differ from then. */
@@ -94,6 +101,12 @@ function differences(a: GameState, b: GameState, p: Power): string[] {
   };
   for (const k of Object.keys(va)) {
     if (k === "inbox" || JSON.stringify(va[k]) === JSON.stringify(vb[k])) continue;
+    // Strength counts the treasury's gold: a difference that is not the gold's alone is told apart, so a known gold leak
+    // (#587) excuses nothing else in it.
+    if (k === "strength" && (va.strength as number) - (va.gold as number) !== (vb.strength as number) - (vb.gold as number)) {
+      out.push(`view.strength beyond its gold: ${(va.strength as number) - (va.gold as number)} against ${(vb.strength as number) - (vb.gold as number)}`);
+      continue;
+    }
     const [la, lb] = [va[k], vb[k]];
     if (Array.isArray(la) && Array.isArray(lb) && [...la, ...lb].every((x) => typeof x === "object" && x !== null && ("province" in x || "from" in x))) {
       for (const at of new Set([...la, ...lb].map(place))) {
@@ -128,8 +141,9 @@ function play(t: Twin): { line: string; difference: string }[] {
     if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const d of differences(worlds[0], worlds[1], t.seat)) found.push({ line: `season ${worlds[0].turn}, ${d}`, difference: d });
     for (const s of worlds) {
-      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders), scheduled: s.turn === 1 ? structuredClone(t.scheduled ?? []) : [] })]]);
-      if (s === worlds[0] && t.others !== undefined && s.turn === 1) subs.set(t.others.power, newTurnSubmission({ orders: structuredClone(t.others.orders) }));
+      const orders = typeof t.orders === "function" ? t.orders(s.turn) : t.orders;
+      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(orders), scheduled: s.turn === 1 ? structuredClone(t.scheduled ?? []) : [] })]]);
+      if (s === worlds[0] && t.others !== undefined && s.turn === (t.others.at ?? 1)) subs.set(t.others.power, newTurnSubmission({ orders: structuredClone(t.others.orders) }));
       new TurnEngine(s).resolve(subs);
     }
   }
@@ -289,15 +303,6 @@ const siegeAfterOrders = (f: Far): Twin => ({
  * here, and each must still be found, so the list shrinks as they are fixed.
  */
 const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
-  // A far levy's army is shown at once, its upkeep counted and the orders waiting for it bound to it, before word of its
-  // raising could come (#600, the far unit known by its reports).
-  ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),
-  // Only the order named by its levy or by its army: an order missing from one twin's list is a leak of its own (#569).
-  { issue: 600, what: "view.scheduled (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => /^view\.scheduled: \[\{"turn":5,.* against \[\{"turn":5,/.test(d) },
-  // Its season's movements, in the notice and the view, at a court whose word from the levy takes two seasons (#566's
-  // second place).
-  { issue: 600, what: "view.lastSeason (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith("view.lastSeason[nubia]") },
-  { issue: 600, what: "the movements notice (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => /^only where (true|false): Movements last season: /.test(d) },
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */
@@ -420,7 +425,7 @@ const tabletRepudiated: Twin = {
     s.tablets.push(
       newTablet({ id: "t990", text: "Passage through the delta.", clauses: [clause("askPassage", { province: "delta" })], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false }),
     );
-    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, authTurn: 0, unread: null });
     s.grants.push(newGrant({ id: "p990", grantor: "Egypt", grantee: "Babylonia", province: "delta", sinceTurn: 0, tabletId: "t990" }));
     return s;
   },
@@ -444,7 +449,7 @@ const grantRepudiatedByGrantee: Twin = {
     s.tablets.push(
       newTablet({ id: "t990", text: "Passage for Elam.", clauses: [clause("passage", { province: at })], proposedBy: "Libya", partner: "Elam", seals: ["Libya", "Elam"], sealedTurn: 0, byHandOf: "Elam", byHand: "Kutir", within: false }),
     );
-    for (const holder of ["Elam", "Libya"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    for (const holder of ["Elam", "Libya"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, authTurn: 0, unread: null });
     s.grants.push(newGrant({ id: "p990", grantor: "Libya", grantee: "Elam", province: at, sinceTurn: 0, tabletId: "t990" }));
     s.sleep.tryAdd("Libya", newSleepState());
     return s;
@@ -485,7 +490,7 @@ const allyWord: Twin = {
   make() {
     const s = world("Egypt", "Babylonia", "Elam");
     s.tablets.push(newTablet({ id: "t990", text: "Let us be allies.", clauses: [clause("alliance")], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, allianceOath: true }));
-    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, authTurn: 0, unread: null });
     return s;
   },
   later: {
@@ -501,9 +506,144 @@ const allyWord: Twin = {
   heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordFrom("Egypt", "babylon") || wordHomeAt(s, map, new TurnEngine(s).courtAt("Egypt"), "ashur", 1) <= s.turn,
 };
 
+/**
+ * Egypt holds Nippur, far from its court, with an army there; Babylonian armies stand beside it in both twins. In the twin
+ * where the fact is true, they attack it in the second season, once its reports have begun, and beat it: it is destroyed,
+ * or falls back, out of Egypt's sight.
+ */
+const farUnitBeaten: Twin = {
+  name: "a far army beaten out of sight",
+  seat: "Egypt",
+  seasons: 6,
+  make() {
+    const s = world("Egypt", "Babylonia");
+    holds(s, "nippur", "Egypt", 0);
+    s.units = s.units.filter((u) => !["nippur", "babylon", "durkurigalzu"].includes(u.province));
+    // Commanded by one of Egypt's own, whom Egypt believes in command until word comes.
+    const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed" && x.at === "Egypt")!;
+    c.at = null;
+    c.duty = "Commanding";
+    c.watchProvince = "nippur";
+    s.units.push(newUnit({ id: "u990", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 1000, commander: c.id }));
+    for (const [id, at] of [["u991", "babylon"], ["u992", "durkurigalzu"]]) s.units.push(newUnit({ id, power: "Babylonia", kind: "Army", province: at, home: at, men: 6000 }));
+    return s;
+  },
+  others: { power: "Babylonia", orders: [move("babylon", "nippur"), support("durkurigalzu", "babylon", "nippur")], at: 2 },
+  // Its king orders the army every season: an order for it rides out, and finds it gone only where it arrives.
+  orders: [hold("nippur"), supply("nippur", true)],
+  // Once word of the battle, fought in the second season, could reach Egypt's court by the road home from Nippur.
+  heard: (s) => wordHomeAt(s, map, new TurnEngine(s).courtAt("Egypt"), "nippur", 2) <= s.turn,
+};
+
+/**
+ * Egypt's king holds court at Nippur, two seasons of couriers out to Nubia and one home, where his army stands under one of his own. In the
+ * twin where the fact is true, it is lost out of his sight (to mutiny or plague) as the second season begins; that season
+ * his only order takes back its command, as for one that stands (bug #600).
+ */
+const farUnitRelieved: Twin = {
+  name: "a far army lost out of sight, its command taken back",
+  seat: "Egypt",
+  seasons: 6,
+  make() {
+    const s = world("Egypt", "Babylonia");
+    holds(s, "nippur", "Egypt", 0);
+    s.court.set("Egypt", "nippur");
+    s.units = s.units.filter((u) => u.province !== "nubia");
+    const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed" && x.at === "Egypt")!;
+    c.at = null;
+    c.duty = "Commanding";
+    c.watchProvince = "nubia";
+    s.units.push(newUnit({ id: "u990", power: "Egypt", kind: "Army", province: "nubia", home: "thebes", men: 1000, commander: c.id }));
+    return s;
+  },
+  later: { at: 2, happen: (s) => loseUnit(s, s.units.find((u) => u.id === "u990")!) },
+  orders: (turn) => (turn === 2 ? [relieve("nubia")] : []),
+  // Once word of its end could come: a season, and the road home from Nubia (#616's `wordFrom`), after it.
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
+};
+
+/** As `farUnitRelieved`, but the king's only order gives the army a mandate. */
+const farUnitMandated: Twin = { ...farUnitRelieved, name: "a far army lost out of sight, given a mandate", orders: (turn) => (turn === 2 ? [mandateOrder("nubia", newMandate({ task: "guard" }))] : []) };
+
+/**
+ * As `farUnitRelieved`, but the army stands, and none in Thebes: in the twin where the fact is true, it marches down to
+ * Thebes, out of its king's sight, as the second season begins (on its commander's word), while that season its king takes
+ * back its command, gives it a mandate and orders its food where his reports place it (bug #615).
+ */
+const farUnitMoved: Twin = {
+  ...farUnitRelieved,
+  name: "a far army moved out of sight",
+  make() {
+    const s = farUnitRelieved.make(true);
+    s.units = s.units.filter((u) => u.province !== "thebes");
+    return s;
+  },
+  later: { at: 2, happen: (s) => void (s.units.find((u) => u.id === "u990")!.province = "thebes") },
+  orders: (turn) => (turn === 2 ? [relieve("nubia"), mandateOrder("nubia", newMandate({ task: "guard" })), supply("nubia", true)] : []),
+};
+
+/**
+ * As `farUnitRelieved`, but the army stands, and a fleet of Egypt's lies in the Red Sea, far from its court: in the twin
+ * where the fact is true, the fleet's food and gold spoil out of sight as the second season begins, and at sea, with
+ * nothing to take and its king's stores kept from it, it goes hungry (bug #615).
+ */
+const farUnitHungry: Twin = {
+  ...farUnitRelieved,
+  name: "a far fleet gone hungry out of sight",
+  make() {
+    const s = farUnitRelieved.make(true);
+    s.units = s.units.filter((u) => u.province !== "redsea");
+    s.units.push(newUnit({ id: "u989", power: "Egypt", kind: "Fleet", province: "redsea", home: "thebes", men: 400, food: 40, savings: 40, chest: 20 }));
+    // Its king's standing order keeps his stores from it: it eats what it carries.
+    s.upkeep.set("Egypt", { pay: true, feed: true, payExcept: [], feedExcept: ["u989"] });
+    return s;
+  },
+  later: {
+    at: 2,
+    happen: (s) => {
+      const u = s.units.find((x) => x.id === "u989")!;
+      [u.food, u.chest, u.savings] = [0, 0, 0];
+    },
+  },
+  orders: [],
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "redsea"),
+};
+
+/**
+ * As `farUnitRelieved`, but the army stands, under a march its king scheduled in the first season (to Thebes in the third):
+ * in the twin where the fact is true, Babylonian troops stand in Thebes, out of his sight, as the march is due, and stop it
+ * (bug #615).
+ */
+const farMarchStopped: Twin = {
+  ...farUnitRelieved,
+  name: "a far army's scheduled march stopped out of sight",
+  make() {
+    const s = farUnitRelieved.make(true);
+    s.units = s.units.filter((u) => u.province !== "thebes");
+    s.sleep.tryAdd("Egypt", newSleepState());
+    return s;
+  },
+  later: { at: 3, happen: (s) => void s.units.push(newUnit({ id: "u995", power: "Babylonia", kind: "Army", province: "thebes", home: "babylon", men: 6000 })) },
+  orders: [],
+  scheduled: [newScheduledOrders({ turn: 3, orders: [move("nubia", "thebes")] }), newScheduledOrders({ turn: 5, orders: [hold("thebes")] })],
+  heard: (s) => s.turn >= 3 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
+};
+
+/**
+ * As `farUnitMoved`, but its king scheduled in the first season a march from Kush to Thebes for the third: in the twin
+ * where the fact is true, the army already stands in Thebes when the order comes due, and it is refused there (#759).
+ */
+const farOrderRefused: Twin = {
+  ...farMarchStopped,
+  name: "a far army's scheduled order refused where it truly stands",
+  later: { at: 2, happen: (s) => void (s.units.find((u) => u.id === "u990")!.province = "thebes") },
+  scheduled: [newScheduledOrders({ turn: 3, orders: [move("nubia", "thebes")] })],
+  heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
+};
+
 /** The twins bound to a far place, each played at every one of {@link Places}. */
 const AtPlaces = [farLoss, farSiege, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, cofferAfterLoss, cofferAfterSiege, levyUnraised, rideBeforeLoss];
-const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord];
+const Twins = [...AtPlaces.flatMap((twin) => Places.map(twin)), deathAbroad, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, farUnitBeaten, farUnitRelieved, farUnitMandated, farUnitMoved, farUnitHungry, farMarchStopped, farOrderRefused];
 
 describe("TwinCanaryTests", () => {
   const named = Twins.map((t) => ({ ...t, where: t.at === undefined ? "" : `, at ${t.at.province}` }));

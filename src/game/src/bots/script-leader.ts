@@ -5,9 +5,13 @@
  * sees exactly what any seat sees: the SeatView. The same bot stands in for a model seat whenever a model call fails,
  * playing in that king's character.
  */
+import { kingAfield } from "./afield.ts";
 import { vassalSeason } from "./vassals.ts";
-import { huntBands, huntOrders } from "./outlaws.ts";
+import { huntBands, huntOrders, worthHunting } from "./outlaws.ts";
+import { payOffOrders } from "./raiders.ts";
 import {
+  natureTraits,
+  drawTraits,
   AllPowers,
   Dict,
   HSet,
@@ -31,6 +35,7 @@ import { Board } from "./board.ts";
 import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
 import { crownOrders } from "./crowns.ts";
 import { answerOrders } from "./declarations.ts";
+import { letterOrders } from "./held-letters.ts";
 import { unseatOrders } from "./audit-play.ts";
 import { spyCheckOrders } from "./spy-check.ts";
 import { nameClaims } from "./claims.ts";
@@ -38,7 +43,7 @@ import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
 import { asRead } from "./tidings.ts";
 import { Contingencies } from "./contingencies.ts";
-import { personalityFor, type Personality } from "./personality.ts";
+import { personalityOf, type Personality } from "./personality.ts";
 import { roadPolicy } from "./roads.ts";
 import { heardRepudiations, keepMoving, leaveByOrder, repudiations, revocations } from "./authority.ts";
 import { Search } from "./search.ts";
@@ -86,6 +91,16 @@ export class ScriptLeader implements ISeat {
     brain.learn(view, new Board(view));
   }
 
+  /**
+   * How close the calls of the season it last decided for a power were ({@link Brain.margins}): the closer of its war choice
+   * and its plan, 0 for a coin toss to 1 for an obvious call, or null where it made neither.
+   */
+  marginOf(p: Power): number | null {
+    const m = this.brains.tryGet(p)?.margins;
+    const xs = m === undefined ? [] : [m.war, m.plan].filter((x): x is number => x !== null);
+    return xs.length === 0 ? null : Math.min(...xs);
+  }
+
   /** The memory this bot keeps for a power, if it has played or watched it. */
   brainOf(p: Power): Brain | null {
     return this.brains.tryGet(p) ?? null;
@@ -102,12 +117,13 @@ export class ScriptLeader implements ISeat {
     const board = new Board(view, brain.remembered(view), brain.treasury, brain.offersRead);
     const rng = brain.r(view.turn, "decide");
 
+    brain.margins = { war: null, plan: null };
     heardRepudiations(board, brain);
     // The vassal bonds we know, the overlord we still serve and the tribute we owe this year (item 11+).
     vassalSeason(board, brain);
     Statecraft.strategy(board, brain, rng);
     const plan = Tactics.make(board, brain);
-    Search.improve(board, brain, plan, brain.r(view.turn, "search"));
+    brain.margins.plan = Search.improve(board, brain, plan, brain.r(view.turn, "search"));
     Tactics.besiege(board, brain, plan);
     // Guests by passage move on, or they overstay and take a friend's land (item 9).
     keepMoving(board, plan);
@@ -142,6 +158,8 @@ export class ScriptLeader implements ISeat {
     crownOrders(board, orders, busy);
     // Item 17++: provinces that look to us, taken up where they pay and refused where they cost more than they bring.
     answerOrders(board, brain, orders);
+    // #592: offers caught on the road, sent on to a friend or sold; those offered us, bought if the gold is to spare.
+    letterOrders(board, brain, orders);
     // The audit's find 4: a governor whose reports keep calling his land restless, with no foe beside it, is recalled.
     unseatOrders(board, brain, orders, busy);
     // #459: a governor whose letters hide what our own spy finds there is recalled.
@@ -149,10 +167,14 @@ export class ScriptLeader implements ISeat {
     commandOrders(board, brain, orders, busy);
     enlistOrders(board, brain, orders);
     courtMove(board, brain, orders);
+    // Item 17b, part C: the king to the front without his court, or back to it.
+    kingAfield(board, orders);
     // Item 17+: a realm's name claimed, by the capital held.
     nameClaims(board, orders);
     // The owner's answers to item 11b: armies fall on bands only by the king's order.
     huntOrders(board, orders);
+    // Item 17++++a: raiders it cannot break are paid to go home.
+    payOffOrders(board, orders, (x, army) => worthHunting(board, x, army));
     orders.splice(0, orders.length, ...collecting(board, orders));
     roadPolicy(board, brain, orders);
     // Tablets our envoys sealed beyond what we allow, and leave granted to kings turned foe (item 9).
@@ -247,7 +269,10 @@ export function seatSeed(gameSeed: number, p: Power): number {
   return (hi & 0x1fffff) * 4294967296 + lo;
 }
 
-/** The temperament a script king plays with in a game with this seed (drawn from its seat seed). */
+/**
+ * The temperament a king of 1346 plays with in a game with this seed: his traits as the engine draws them (item 17b), for
+ * the tests; a seat reads its own king's from its view.
+ */
 export function temperament(p: Power, gameSeed: number): Personality {
-  return personalityFor(p, seatSeed(gameSeed, p));
+  return personalityOf(p, drawTraits(gameSeed, p, natureTraits(p)));
 }

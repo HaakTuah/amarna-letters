@@ -11,18 +11,15 @@ import {
   type GameState,
   type MoveOrder,
   type Power,
-  Rng,
   TurnSubmissionSchema,
   Views,
   WorldMap,
   publicWorthOf,
   distinct,
-  newAudienceView,
   newGame,
   newId,
   newTablet,
   newTabletCopy,
-  newTabletView,
   newUnit,
   range,
   roundTo,
@@ -32,6 +29,7 @@ import {
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
 import { removeAll, Assert, formerHome, oldWorld, unruled } from "../../engine/test/support.ts";
+import { hear } from "./hatti-audience.ts";
 
 /** A province's holder set by hand, as if long ago, so word of it has reached every court (item 7b). */
 function known(s: GameState, province: string, owner: Power | null): void {
@@ -46,19 +44,34 @@ describe("BotTests", () => {
       let games = range(1, 20).map((s) => temperament(p, s));
       Assert.all(games, (t) => {
         Assert.equal(a.epithet, t.epithet);
-        Assert.inRange(t.aggression, a.aggression - 0.151, a.aggression + 0.151);
-        Assert.inRange(t.honesty, a.honesty - 0.151, a.honesty + 0.151);
-        Assert.inRange(t.commerce, a.commerce - 0.151, a.commerce + 0.151);
+        Assert.inRange(t.aggression, a.aggression - 0.101, a.aggression + 0.101);
+        Assert.inRange(t.honesty, a.honesty - 0.101, a.honesty + 0.101);
+        Assert.inRange(t.commerce, a.commerce - 0.101, a.commerce + 0.101);
       });
       Assert.true(distinct(games.map((t) => roundTo(t.aggression, 3))).length > 5, `${p} should vary between games`);
       Assert.equal(games[3], temperament(p, 4));
     }
-    // The archetypes are far enough apart to stay recognisable whatever the seed.
+    // The kings of 1346 are far enough apart to stay recognisable whatever the seed.
     for (let s = 1; s <= 20; s++) {
       Assert.true(temperament("Hatti", s).aggression > temperament("Alashiya", s).aggression);
       Assert.true(temperament("Alashiya", s).commerce > temperament("Hatti", s).commerce);
       Assert.true(temperament("Mitanni", s).honesty > temperament("Assyria", s).honesty);
     }
+  });
+
+  test("A script king plays the king on its throne, as its view shows him, and a new king as himself (item 17b)", () => {
+    const s = newGame(1);
+    const brain = new Brain("Egypt", 1);
+    let v = Views.for(s, "Egypt");
+    brain.learn(v, new Board(v));
+    Assert.equal(temperament("Egypt", 1), brain.p);
+    // Another man on the throne: the seat plays as him from the season it sees him.
+    Object.assign(s.reigns.get("Egypt"), { traits: [90, 10, 20, 50, 50, 50, 50, 90, 50, 50], since: 2 });
+    s.turn = 2;
+    v = Views.for(s, "Egypt");
+    brain.learn(v, new Board(v));
+    Assert.equal(0.9, brain.p.aggression);
+    Assert.equal(0.9, brain.p.cunning);
   });
 
   test("The same view gets the same orders", async () => {
@@ -209,22 +222,7 @@ describe("BotTests", () => {
   });
 
   test("A king who seals a peace at an audience keeps it that same season", () => {
-    let s = newGame(5);
-    let court = Views.for(s, "Hatti");
-    let brain = new Brain("Hatti", 5);
-    brain.learn(court, new Board(court));
-    let board = new Board(court, undefined, brain.treasury);
-    let audience = newAudienceView({
-      audienceId: "a1",
-      turn: 1,
-      round: 1,
-      maxRounds: 2,
-      from: "Arzawa",
-      host: "Hatti",
-      proposal: newTabletView({ text: Statecraft.peaceTablet("Arzawa", "Hatti"), proposedBy: "Arzawa", partner: "Hatti" }),
-    });
-
-    let reply = Statecraft.host(audience, board, brain, Rng.for(5, 1, "test", "host"));
+    let { reply, brain, board } = hear(Statecraft.peaceTablet("Arzawa", "Hatti"));
 
     Assert.true(reply.sealProposal);
     Assert.true(brain.rel.get("Arzawa").treaty);

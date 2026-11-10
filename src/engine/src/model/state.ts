@@ -2,7 +2,7 @@ import { Dict } from "../core/collections.ts";
 import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import { distinct, sortBy, sum } from "../core/seq.ts";
 import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
-import { type UnitKind, WorldMap } from "./map.ts";
+import { WorldMap } from "./map.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
 import { AllPowers, type Power, type RisenPower, cmpPower, namedFor, unmarked } from "./power.ts";
@@ -18,13 +18,16 @@ import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
+import { type HeldLetter, HeldLetterSchema } from "./held-letters.ts";
 import { type SiegeEnded, SiegeEndedSchema } from "./sieges-ended.ts";
 import { type ProvinceReport, ProvinceReportSchema } from "./province-reports.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
-import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
+import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema } from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 import { type Bill, BillSchema, type Coffer, CofferSchema, type Remittance, RemittanceSchema } from "./coffers.ts";
+import { type Unit, UnitSchema } from "./units.ts";
+import { type Reign, type ReignEnded, ReignEndedSchema, ReignSchema } from "./kings.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -89,7 +92,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 61;
+export const CURRENT_VERSION = 92;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -114,8 +117,8 @@ export const FoodWordSchema: ObjSchema<FoodWord> = obj(
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
-  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], how: "governor", ...init }),
-  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I), how: S },
+  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", how: "revolt", ...init }),
+  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, how: S },
 );
 
 /**
@@ -309,6 +312,8 @@ export interface GameState {
   moodReads: MoodRead[];
   /** Item 17++ ("taken up, never thrust on anyone"): provinces declared for a power, and claims ceded by treaty, until answered or lapsed. */
   declarations: Declaration[];
+  /** #592: provinces' offers caught on the road, held by their captors. */
+  lettersHeld: HeldLetter[];
   /** The men levied this season to build and keep what stands (the corvée, item 15), by province: away from the next harvest. */
   corvee: Dict<string, number>;
   /** How well each province's countryside ate last season, in thousandths, where it went short (item 10+a). */
@@ -373,7 +378,22 @@ export interface GameState {
    * court sits and from where his orders travel; a king never moved is at his map capital and left out.
    */
   court: Dict<Power, string>;
-  /** Item 13: the kings on the road with their courts. */
+  /**
+   * Item 17b, part C ("A realm holds by its ledger"): the province where each king stands apart from his court, from where
+   * he commands; a king with his court is left out.
+   */
+  kingAt: Dict<Power, string>;
+  /**
+   * Item 17b, part C: where a court still believes its king stands apart from it, while word that he was taken or died
+   * there is on its way; he commands from nowhere meanwhile, and its orders go out from the court.
+   */
+  kingHeard: Dict<Power, string>;
+  /**
+   * Item 17b, part C: the season each person standing at a court came to stand there, by `<character>@<court>`, by which
+   * one newly come reaches its king away from it as the notices of the court's business do (`broughtToKing`).
+   */
+  cameToCourt: Dict<string, number>;
+  /** Item 13: the courts on the road, with their kings or without them; item 17b, part C: kings on the road alone. */
   kingRoads: KingRoad[];
   /** Item 13: orders on the road with the realm's couriers, from a king's court to where they are carried out. */
   couriers: Courier[];
@@ -409,11 +429,26 @@ export interface GameState {
    */
   starving: string[];
   units: Unit[];
+  /**
+   * Bug #600: units that left the game lately (destroyed, disbanded, mutinied, lost to winter or plague), each with its
+   * reports, kept until word of its end could reach its king; till then he knows it as its last report has it.
+   */
+  unitsGone: Unit[];
   treasuries: Dict<Power, Treasury>;
+  /**
+   * Each realm's strength when its reigning king came to the throne: at the start, at a rise or grant, and since item 17b
+   * part D at each heir's accession. Its growth, and its king's score, are measured from it.
+   */
   startStrength: Dict<Power, number>;
   eliminated: Power[];
   /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */
   risen: RisenPower[];
+  /** Item 17b: each power's king as a person, his traits as this game drew them. */
+  reigns: Dict<Power, Reign>;
+  /** Item 17b, part B: the reigns ended by a king's death, as they ended. */
+  reignsEnded: ReignEnded[];
+  /** Item 17b, part B: by realm, how many of its heirs each other court has heard of, as word of each reaches it. */
+  reignsHeard: Dict<Power, Dict<Power, number>>;
   /**
    * Item 17: each held province's unrest as last reckoned, from item 17++ how far its holder's lead in its people's eyes
    * falls short of a firm hold (its holder never sees the number: his governor, spies and the people's complaints tell
@@ -484,6 +519,11 @@ export interface GameState {
   // computed in C#: Powers.All.Where(IsAlive)
   /** While a season resolves, news is stamped for the next season, when the courts read it. */
   deliveryOffset: number; // not serialized
+  /**
+   * Item 17b, part C: for each king apart from his court, the seasons a courier takes from his court to him, by which the
+   * court's business it sends on reaches him (`CourtKinds`); set each season by the engine, not serialized.
+   */
+  courtLag: Dict<Power, number>;
 }
 
 export function newGameState(init: Partial<GameState> = {}): GameState {
@@ -546,6 +586,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     governorsGone: [],
     crowns: [],
     court: new Dict(),
+    kingAt: new Dict(),
+    kingHeard: new Dict(),
+    cameToCourt: new Dict(),
     kingRoads: [],
     couriers: [],
     lettersCarried: new Dict(),
@@ -560,10 +603,14 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     tollsKnown: new Dict(),
     starving: [],
     units: [],
+    unitsGone: [],
     treasuries: new Dict(),
     startStrength: new Dict(),
     eliminated: [],
     risen: [],
+    reigns: new Dict(),
+    reignsEnded: [],
+    reignsHeard: new Dict(),
     restless: new Dict(),
     takenAt: new Dict(),
     breached: new Dict(),
@@ -588,6 +635,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     censuses: [],
     moodReads: [],
     declarations: [],
+    lettersHeld: [],
     corvee: new Dict(),
     fed: new Dict(),
     losses: [],
@@ -604,6 +652,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     winners: [],
     idCounters: new Dict(),
     deliveryOffset: 0,
+    courtLag: new Dict(),
     ...init,
   };
 }
@@ -651,6 +700,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   censuses: list(() => CensusSchema),
   moodReads: list(() => MoodReadSchema),
   declarations: list(() => DeclarationSchema),
+  lettersHeld: list(() => HeldLetterSchema),
   corvee: dict(I),
   fed: dict(I),
   caravans: list(() => CaravanSchema),
@@ -678,6 +728,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   governorsGone: list(() => GovernorGoneSchema),
   crowns: list(() => CrownSchema),
   court: dict(S),
+  kingAt: dict(S),
+  kingHeard: dict(S),
+  cameToCourt: dict(I),
   kingRoads: list(() => KingRoadSchema),
   couriers: list(() => CourierSchema),
   lettersCarried: dict(I),
@@ -692,10 +745,14 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   tollsKnown: dict(list(() => TollSchema)),
   starving: list(S),
   units: list(() => UnitSchema),
+  unitsGone: list(() => UnitSchema),
   treasuries: dict(() => TreasurySchema),
   startStrength: dict(I),
   eliminated: list(S),
   risen: list(() => RisenPowerSchema),
+  reigns: dict(() => ReignSchema),
+  reignsEnded: list(() => ReignEndedSchema),
+  reignsHeard: dict(dict(I)),
   restless: dict(I),
   takenAt: dict(I),
   breached: dict(S),
@@ -725,118 +782,6 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   winners: list(S),
   idCounters: dict(I),
   alive: computed(list(S), (o: GameState) => alive(o)),
-});
-
-export interface Unit {
-  id: string;
-  power: Power;
-  kind: UnitKind;
-  province: string;
-  /** Where it was raised (its men's homes): their savings go into that province's purse when it disbands (item 9+a). */
-  home: string;
-  /** The grain it carries, in measures (item 9+a, "Armies need food as well as pay"). */
-  food: number;
-  /** The part of its men's pay and loot they have not spent, carried home ("Soldiers carry savings home"). */
-  savings: number;
-  /** Seasons in a row it went hungry, and went unpaid: a few of either and it mutinies. */
-  hungry: number;
-  unpaid: number;
-  /** Its men, levied from the men of fighting age of its home (item 10+a); they go home when it disbands. */
-  men: number;
-  /**
-   * Item 13, distance-based marching: the neighbouring province it is marching to across a connection longer than a
-   * season's march, and the points it has made on it ({@link travel.legPoints}); null and 0 while it is not.
-   */
-  march: string | null;
-  along: number;
-  /**
-   * Item 13, "Generals lead armies": the character the king granted command of it, and the season he joins it (he travels
-   * from where the grant was given); null while nobody commands it. Command is a grant of authority, not a job: no fee.
-   */
-  commander: string | null;
-  commandFrom: number;
-  /** Item 13, "Army mandates": the king's intent with limits, and the season it reaches the army; null if none was given. */
-  mandate: Mandate | null;
-  mandateFrom: number;
-  /** Item 13: the season word that the king takes back the command reaches the commander, or null. */
-  relieveAt: number | null;
-  /**
-   * Item 13 ("Distance inside your own realm"): where it stood at the end of each of the last few seasons, newest last, as
-   * `province|men`: what its king knows of it is the report his couriers bring, as old as the road from it is long.
-   */
-  trail: string[];
-  /**
-   * Item 13: men of a band enlisted into it (hiring bands as soldiers): how many, the last season of their term, after which
-   * they leave as their chief's band again, and their chief; 0 and null otherwise.
-   */
-  hiredMen: number;
-  hiredUntil: number | null;
-  hiredChief: string | null;
-  /**
-   * Item 17 ("Armies need food as well as pay"): whether its king's word, as it last reached it, is to buy its food where it
-   * stands by leave (at home or in a friend's land) with the gold it carries, or to take it; and the gold it carries for
-   * food (`chest`), carried in its men's packs with their savings (so never more than `savings`). Without the gold, it
-   * takes what it must, whatever it was told; its commander may keep the gold and take.
-   */
-  buy: boolean;
-  chest: number;
-  // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
-}
-
-export function newUnit(init: Partial<Unit> = {}): Unit {
-  return {
-    id: "",
-    power: "Egypt",
-    kind: "Army",
-    province: "",
-    home: "",
-    food: 0,
-    savings: 0,
-    hungry: 0,
-    unpaid: 0,
-    men: 0,
-    march: null,
-    along: 0,
-    commander: null,
-    commandFrom: 0,
-    mandate: null,
-    mandateFrom: 0,
-    relieveAt: null,
-    trail: [],
-    hiredMen: 0,
-    hiredUntil: null,
-    hiredChief: null,
-    buy: false,
-    chest: 0,
-    ...init,
-  };
-}
-
-export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
-  id: S,
-  power: S,
-  kind: S,
-  province: S,
-  home: S,
-  food: I,
-  savings: I,
-  hungry: I,
-  unpaid: I,
-  men: I,
-  march: opt(S),
-  along: I,
-  commander: opt(S),
-  commandFrom: I,
-  mandate: opt(() => MandateSchema),
-  mandateFrom: I,
-  relieveAt: opt(I),
-  trail: list(S),
-  hiredMen: I,
-  hiredUntil: opt(I),
-  hiredChief: opt(S),
-  buy: B,
-  chest: I,
-  label: computed(S, (o: Unit) => unitLabel(o)),
 });
 
 /**
@@ -1037,10 +982,18 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
 }
 
 /**
- * A notice to a court: its powers named as that court knows and gives them (item 17+, {@link namedFor}), unless `named` is
- * false, for a notice that speaks of a name itself rather than the power it names.
+ * Item 17b, part C: the notices of a court's own business (audiences, envoys' and spies' reports, foreign news, people
+ * presenting themselves, tablets and the checks of them), which a court sends on to its king when he is away from it.
  */
-export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true): void {
+export const CourtKinds: ReadonlySet<InboxKind> = new Set<InboxKind>(["Audience", "EnvoyReport", "SpyReport", "Rumor", "CheckResult", "Candidates", "Assay", "Authentication", "Tablet"]);
+
+/**
+ * A notice to a court: its powers named as that court knows and gives them (item 17+, {@link namedFor}), unless `named` is
+ * false, for a notice that speaks of a name itself rather than the power it names. A notice of the court's own business
+ * (`CourtKinds`) reaches a king away from it when his court's courier could bring it (`GameState.courtLag`), unless `atCourt`
+ * is false, for word timed by its own road.
+ */
+export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true, atCourt = true): void {
   title = named ? namedFor(p, title) : unmarked(title);
   body = named ? namedFor(p, body) : unmarked(body);
   // A person the court knows by a false name (item 10) is named to it by that name.
@@ -1051,7 +1004,8 @@ export function notify(s: GameState, p: Power, kind: InboxKind, title: string, b
     title = title.replace(own, alias);
     body = body.replace(own, alias);
   }
-  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset, kind, title, body, subject }));
+  const lag = atCourt && CourtKinds.has(kind) ? s.courtLag.getOrDefault(p, 0) : 0;
+  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset + lag, kind, title, body, subject }));
 }
 
 export function logEvent(s: GameState, kind: string, text: string, visibleTo: Iterable<Power> | null = null, signal: string | null = null): GameEvent {
@@ -1095,12 +1049,6 @@ export const IdKinds: ReadonlyMap<string, string> = new Map([
 
 /** Standing orders are numbered per seat ("s1", "s2", ...) by StandingBook.last, not here; no kind may take "s". */
 export const StandingOrderPrefix = "s";
-
-/** "A memphis", "F delta". */
-export function unitLabel(u: Unit): string {
-  // Item 17+ ("Requests are rules too"): the unit by what it is and where it stands, by the place's own name, never "A memphis".
-  return `${u.kind === "Army" ? "army" : "fleet"} in ${WorldMap.default.exists(u.province) ? WorldMap.default.get(u.province).name : u.province}`;
-}
 
 /** What the owner's ledger counts: fine gold, and received lots at face value. */
 export function ledger(t: Treasury): number {

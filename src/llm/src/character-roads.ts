@@ -4,7 +4,7 @@
  * field is asked only where it applies, in the words of what it means ("Requests are rules too").
  */
 import { z } from "zod";
-import { land, newChiefChoice, newReportsChoice, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "@amarna/engine";
+import { bandCost, land, newChiefChoice, newReportsChoice, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "@amarna/engine";
 import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
@@ -27,7 +27,7 @@ export function chiefText(v: ChiefView): string {
   sb.appendLine(`It is season ${v.turn}. You lead a band of ${v.men} men in ${v.here.name}${v.ship ? ", with a ship: you also fall on travellers and ships at sea off its coast" : ""}. You decide what your band does next season.`);
   sb.appendLine(`The age: ${v.ending} Idrimi of Alalakh is a legend already: a king's son who fled, lived seven years among the Habiru, and came back to take a city.`);
   sb.appendLine(
-    `Your purse holds ${v.purse} shekels; what your band robs of gold is yours, and you pay your men from it. Your men cost about ${v.cost} shekels' worth a season in pay and food.${v.short > 0 ? ` For ${v.short} season${v.short === 1 ? "" : "s"} in a row you could not pay them all: men leave a band that does not pay, and a large band long unpaid turns on its chief.` : ""}`,
+    `Your purse holds ${v.purse} shekels; what your band robs of gold is yours, and you pay your men from it. Your men cost about ${v.cost > 0 ? v.cost : bandCost(v.men)} shekels' worth a season in pay and food.${v.short > 0 ? ` For ${v.short} season${v.short === 1 ? "" : "s"} in a row you could not pay them all: men leave a band that does not pay, and a large band long unpaid turns on its chief.` : ""}`,
   );
   sb.appendLine("The land where you work and the land next door, as you hear of it:");
   sb.appendLine(landLine(v.here, true));
@@ -46,7 +46,13 @@ export function chiefText(v: ChiefView): string {
   sb.appendLine(
     `When your men rob a traveller, you choose whom they kill${v.kill !== null ? ` (now: ${KillWords[v.kill]})` : ""}. Any traveller let go names you: word that you rode with the Habiru reaches the land's king and the traveller's master, and follows you if you ever seek service; one killed names nobody, but a death on the road is heard of, and a king whose land it is may hunt you for it.`,
   );
-  sb.appendLine("You may give up the road: your men go back to the loose men, and you seek service like anyone, carrying the hidden fact that you rode with the Habiru.");
+  if (v.home !== null) {
+    // Item 17++++a: a band based beyond the map, and its way home.
+    sb.appendLine(
+      `Your band's home is ${v.home}.${v.captives > 0 ? ` You hold ${v.captives} people you carried off, to sell at home.` : ""} ${v.canGoHome ? "You can go home from here now, with your men, your captives and your purse: you are then off the map until you choose to raid again." : v.ship ? "A ship can sail home from any coast." : "You can go home only from the land where your road from home comes in, so move towards it first."} Men who go unpaid or lose their chief far from home stay behind as loose men, and your captives go free.`,
+    );
+  } else sb.appendLine("You may give up the road: your men go back to the loose men, and you seek service like anyone, carrying the hidden fact that you rode with the Habiru.");
+  if (v.paidBy !== null) sb.appendLine(`You took the gold of the king of ${v.paidBy} to keep your band out of his land until season ${v.paidUntil}. Whether you keep your word is yours to choose; he will know if you do not.`);
   sb.appendLine("Choose for yourself. Your band stays where it is unless you move it, or a king's army falls on it and drives it off: then it flees to the land you named to go to, if no army stands there, and otherwise where it can.");
   return sb.toString();
 }
@@ -57,19 +63,21 @@ export function chiefSchema(v: ChiefView): ReplySchema {
   if (v.next.length > 0) f.push(["go", z.enum(["", ...v.next.map((l) => l.name)] as [string, ...string[]]).describe("Land next door to move your band to, or empty to stay.")]);
   if (v.shipCost !== null && v.purse >= v.shipCost) f.push(["buy_ship", z.boolean().describe("True to buy a ship here from your purse.")]);
   f.push(["kill", z.enum([KillWords.none, KillWords.servants, KillWords.all]).describe("Whom your men kill of the travellers they rob, until you say otherwise.")]);
-  f.push(["give_up_the_road", z.boolean().describe("True to give up the road now.")]);
+  if (v.home === null) f.push(["give_up_the_road", z.boolean().describe("True to give up the road now.")]);
+  else if (v.canGoHome) f.push(["go_home", z.boolean().describe("True to go home now with your men, captives and purse.")]);
   return object(...f);
 }
 
 /** The reply as choices; the engine checks each against what can be done. `turn` is set by the engine. */
 export function chiefOf(o: JsonObject, v: ChiefView): ChiefChoice {
   const go = v.next.find((l) => l.name === o.go) ?? null;
-  return newChiefChoice({ turn: v.turn, go: go?.province ?? null, ship: o.buy_ship === true, giveUp: o.give_up_the_road === true, kill: killOf(o.kill) ?? v.kill ?? "none" });
+  return newChiefChoice({ turn: v.turn, go: go?.province ?? null, ship: o.buy_ship === true, giveUp: o.give_up_the_road === true, home: o.go_home === true, kill: killOf(o.kill) ?? v.kill ?? "none" });
 }
 
 export function chiefSummary(ch: ChiefChoice | null): string {
   if (ch === null) return "by its traits";
   if (ch.giveUp) return "give up the road";
+  if (ch.home) return "go home";
   return [ch.go !== null ? `move to ${ch.go}` : "stay", ...(ch.ship ? ["buy a ship"] : []), `kill ${KillWords[ch.kill]}`].join("; ");
 }
 

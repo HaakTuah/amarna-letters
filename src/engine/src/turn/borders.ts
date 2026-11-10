@@ -22,6 +22,7 @@ import { cheapestRoute, fastestPoints, legPoints, PointsPerDay } from "../model/
 import { TurnEngine } from "./core.ts";
 import { people, share, shift } from "./people.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
+import { EconomyTitle } from "./economy.ts";
 
 /** The notice title for what happens to people across borders and in a king's hands. */
 export const PeopleTitle = "People";
@@ -203,11 +204,11 @@ P.robbing = function () {
       S.loot.set(prov.id, loot - spent);
       this.spendAt(prov.id, spent);
     }
-    if (holder !== null && isAlive(S, holder) && gold + grainWorth(grain + country) >= 5)
-      lines.set(
-        holder,
-        [...lines.getOrDefault(holder, []), country > 0 ? `${prov.name} (${measures(country)} from the farmers' granaries outside the walls)` : `${prov.name} (${formatMoney(gold)} from its people's purse${grain > 0 ? `, ${measures(grain)} from your stores` : ""})`],
-      );
+    if (holder === null || !isAlive(S, holder) || gold + grainWorth(grain + country) < 5) continue;
+    const line = country > 0 ? `${prov.name} (${measures(country)} from the farmers' granaries outside the walls)` : `${prov.name} (${formatMoney(gold)} from its people's purse${grain > 0 ? `, ${measures(grain)} from your stores` : ""})`;
+    // Of a far province, by the word from there (bug #615, as troops standing there change what is taken).
+    if (this.isFar(holder, prov.id)) this.tell(holder, prov.id, "Notice", EconomyTitle, `Loose men robbed ${line}.`);
+    else lines.set(holder, [...lines.getOrDefault(holder, []), line]);
   }
   for (const [p, l] of lines.entries()) logEvent(S, "robbed", `Loose men robbed ${p}'s land: ${l.join("; ")}.`, [p], "robbed");
   return lines;
@@ -232,7 +233,8 @@ P.welcome = function (p, o) {
   x.loose -= n;
   shift(x, n, idiv(n * LandData.menPercent, 100));
   this.looseLeave(o.province, n);
-  this.tell(p, o.province, "Resolution", PeopleTitle, `You settled ${people(n)} loose men on the land of ${name}.`);
+  // Said as a list, so a season's settlements share one line in the view ("You settled loose men: about 2,600 in Harran, 973 in Taidu.").
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You settled loose men: ${people(n)} in ${name}.`);
   logEvent(S, "welcome", `${p} settled ${people(n)} loose men in ${name}${fled.length > 0 ? `, among them runaways from ${fled.join(" and ")}` : ""}.`, this.nearOf(o.province, p), "welcomed");
 };
 
@@ -406,7 +408,7 @@ P.expel = function (p, o) {
   const [n] = share(x, townsfolk);
   shift(x, -n, 0);
   x.loose += n;
-  this.tell(p, o.province, "Resolution", PeopleTitle, `You put ${people(n)} people who cannot fight out of ${prov.name}: they are refugees outside the walls, and the city eats ${after} in a hundred less while the siege lasts.`);
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You put ${people(n)} people who cannot fight out of ${prov.name}: they are refugees outside the walls, and the city eats ${after}% less while the siege lasts.`);
   logEvent(S, "expel", `${p} put ${people(n)} people out of besieged ${prov.name}.`, this.nearOf(o.province, p), "mouths-expelled");
   this.refuge(o.province, n, "the siege");
 };

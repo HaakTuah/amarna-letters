@@ -35,6 +35,7 @@ export function TopBar() {
         <NavLink to="play">{"Play & watch"}</NavLink>
         <NavLink to="about">How it works</NavLink>
         <NavLink to="listen">Music</NavLink>
+        <NavLink to="keys">Keys</NavLink>
       </nav>
     </header>
   );

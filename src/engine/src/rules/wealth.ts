@@ -1,13 +1,10 @@
 /**
- * The richest characters: at the end of a game, beside the kings' standings, every character ranked by wealth, the
- * second game played under the kings'. During play a character knows its own wealth, never the ranking. Since item 11a
- * wealth is what it holds, purse and hoard; fees owed it and debt tablets count for nothing ("Debts are facts; repayment
- * is a choice"), and the dead rank below every living character, among themselves by what they held when they died.
+ * A character's wealth, what it holds on the one scoreboard of every person (item 17b, part D; `turn/scoreboard.ts`). During
+ * play a character knows its own wealth, never the ranking. Since item 11a wealth is what it holds, purse and hoard; fees
+ * owed it and debt tablets count for nothing ("Debts are facts; repayment is a choice"), and the dead rank below every
+ * living person, among themselves by what they held when they died.
  */
-import { cmpBool, cmpNum, desc, sortBy } from "../core/seq.ts";
-import { nameFrom, type Character, type Earnings } from "../model/people.ts";
-import type { GameState } from "../model/state.ts";
-import { idNumber } from "../turn/core.ts";
+import type { Character, Earnings } from "../model/people.ts";
 
 /** One character's wealth at a moment: the gold in its purse and in its hoard. */
 export interface CharacterWealth {
@@ -18,9 +15,9 @@ export interface CharacterWealth {
   dead: boolean;
 }
 
-/** What counts, said wherever the ranking is shown. */
+/** What counts on the one scoreboard, said wherever it is shown (item 17b, part D). */
 export const WealthCounts =
-  "Wealth is what a character holds: the gold in its purse and in its hoard. Fees owed it and debt tablets count for nothing. The dead rank below every living character, by what they held when they died.";
+  "Every person is on one scoreboard, by what he holds blended with how he did against par for his own start. A king holds his realm, measured from his accession against what he inherited; a character holds the gold in his purse and hoard, measured by what he gained since he came into play against what characters gained in the trial games. Fees owed and debt tablets count for nothing. The dead rank below every living person, by what they held when they died.";
 
 /** A character's wealth: its purse and its hoard (a hoard seized or lost is gone); the dead's as it was when it died. */
 export function wealthOf(c: Character): CharacterWealth {
@@ -31,19 +28,11 @@ export function wealthOf(c: Character): CharacterWealth {
   return { character: c, purse: dead ? total - hoard : c.purse, hoard, total, dead };
 }
 
-/** Every character, the living first, richest first (ties by id). */
-export function wealthRanking(s: GameState): CharacterWealth[] {
-  return sortBy(
-    s.characters.map(wealthOf),
-    [(w: CharacterWealth) => w.dead, cmpBool],
-    [(w: CharacterWealth) => w.total, desc(cmpNum)],
-    [(w: CharacterWealth) => idNumber(w.character.id), cmpNum],
-  );
-}
-
 /** Who a character is at the end, in a few words: whom it serves, or that it is free, held or dead. */
 export function wealthStanding(c: Character): string {
   if (c.status === "Dead") return "dead";
+  // A king (item 17b) and a risen ruler rule; they serve nobody.
+  if (c.duty === "Ruling" && c.employer !== null) return `ruling ${c.employer}`;
   if (c.status === "Captured" && c.heldBy !== null) return `captive in ${c.heldBy}` + (c.employer !== null ? `, serving ${c.employer}` : "");
   return c.employer !== null ? `serving ${c.employer}` : "free";
 }
@@ -63,9 +52,4 @@ export function wealthSources(e: Earnings): string {
   return e.spent > 0 ? `${gained}; spent ${e.spent}` : gained;
 }
 
-/** One character's line in a ranking: "Mane of Ugarit (serving Egypt): 312 (purse 280, hoard 32; fees 250, skimmed 30)". */
-export function wealthLine(w: CharacterWealth): string {
-  return `${nameFrom(w.character)} (${wealthStanding(w.character)}): ${w.total} (purse ${w.purse}, hoard ${w.hoard}; ${wealthSources(w.character.earned)})`;
-}
-
-export const Wealth = { WhatCounts: WealthCounts, of: wealthOf, ranking: wealthRanking, standing: wealthStanding, sources: wealthSources, line: wealthLine };
+export const Wealth = { WhatCounts: WealthCounts, of: wealthOf, standing: wealthStanding, sources: wealthSources };

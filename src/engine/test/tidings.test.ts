@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, type Power, TidingsTitle, TurnEngine, Views, WorldMap, clause, inboxOf, newGame, newGameConfig, newKnown, newOwnerChange, newTablet, newTurnSubmission } from "@amarna/engine";
+import { Dict, type GameState, type Power, TidingsTitle, TurnEngine, Views, WorldMap, clause, inboxOf, newGame, newGameConfig, newKnown, newOwnerChange, newTablet } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 const map = WorldMap.default;
@@ -26,7 +26,7 @@ function world(bond: "ally" | "vassal" | "none", repudiated = false): GameState 
         byHandOf: repudiated ? "Babylonia" : null,
       }),
     );
-  if (bond !== "none") for (const holder of ["Babylonia", "Egypt"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
+  if (bond !== "none") for (const holder of ["Babylonia", "Egypt"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, authTurn: 0, unread: null });
   return s;
 }
 

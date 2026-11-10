@@ -1,0 +1,41 @@
+# CodeQL, for every project that takes the core (modules/updates.md, "CodeQL checks every PR"). A project
+# calls it (workflow_call) from its own .github/workflows/codeql.yml, which keeps the triggers (every PR into main, every
+# push to it, and weekly), pinned to a full commit SHA ("How a project takes the core" in README.md,
+# point 5), passing its languages and granting the job actions: read, contents: read and security-events: write.
+# Findings on a PR show on it as notes, which builders can read and fix in the same PR.
+name: CodeQL
+
+on:
+  workflow_call:
+    inputs:
+      languages:
+        description: 'The languages to analyze, a JSON list, such as ["actions", "javascript-typescript"]; each one CodeQL analyzes without a build.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJSON(inputs.languages) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}

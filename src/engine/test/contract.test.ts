@@ -10,6 +10,7 @@ import {
   TurnEngine,
   type TurnSubmission,
   Views,
+  askingPrice,
   basePrice,
   trustIn,
   talkWeight,
@@ -25,7 +26,6 @@ import {
   newGameConfig,
   newHoard,
   newJobErrand,
-  newMindReply,
   newTurnSubmission,
   payCarriers,
   payFee,
@@ -36,6 +36,7 @@ import {
   sellDebt,
   single,
 } from "@amarna/engine";
+import { begin } from "./turn-begin.ts";
 import { Assert, speaksAll, smallWorld } from "./support.ts";
 
 // <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by the owner's answers to items 11a and 11a+): a job is one
@@ -43,13 +44,6 @@ import { Assert, speaksAll, smallWorld } from "./support.ts";
 // with envoys; a court's record of paying is news; and the hard acts: seizing a hoard, selling a tablet, taking a captive's
 // purse, a levy of the king's size.</summary>
 describe("ContractTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]` }));
-    return e;
-  }
-
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();
   }
@@ -264,6 +258,49 @@ describe("ContractTests", () => {
     new TurnEngine(s).resolve(orders("Egypt", hire(e.id, 800, 20, 800, { what: "envoy", where: "Hatti" })));
     Assert.equal("Employed", e.status);
     Assert.notNull(d.heardRate);
+  });
+
+  test("When many wait for work, fees fall: one who seeks service past its patience asks less each season, to a floor (#837)", () => {
+    const s = still(smallWorld(newGame(5), "Egypt", "Hatti", "Babylonia", "Assyria", "Mitanni"));
+    const c = freeAt(s);
+    const own = basePrice(c, "Egypt");
+    c.seeking = true;
+    c.idle = MoneyData.patience;
+    Assert.equal(own, basePrice(c, "Egypt"));
+    c.idle = MoneyData.patience + 2;
+    Assert.equal(own - Math.trunc((own * 2 * MoneyData.waitFall) / 100), basePrice(c, "Egypt"));
+    c.idle = 100;
+    Assert.equal(own - Math.trunc((own * MoneyData.waitFallMost) / 100), basePrice(c, "Egypt"));
+    // Not seeking, it asks its own price again.
+    c.seeking = false;
+    Assert.equal(own, basePrice(c, "Egypt"));
+  });
+
+  test("A master sees what his own servant at court asks for a new job, in person; of one away, nothing (#837)", () => {
+    const [s, c] = servant();
+    c.contract = newContract({ fee: 600, advance: 300, startTurn: 1, untilTurn: 30, errand: newJobErrand({ what: "envoy", where: "Hatti" }) });
+    const shown = (): number | null => Views.for(s, "Egypt").court.find((x) => x.id === c.id)!.askingPrice;
+    Assert.equal(askingPrice(c, "Egypt"), shown());
+    [c.at, c.duty] = [null, "Travelling"];
+    Assert.null(shown());
+  });
+
+  test("The seasons one seeks service unhired count wherever it goes, and end when it is hired or works for itself (#837)", () => {
+    const s = still(smallWorld(newGame(5), "Egypt", "Hatti", "Babylonia", "Assyria", "Mitanni"));
+    const c = freeAt(s);
+    c.seeking = true;
+    new TurnEngine(s).livingSeason();
+    c.waited = 0; // as when it sets out for another court
+    new TurnEngine(s).livingSeason();
+    Assert.equal(2, c.idle);
+    c.seeking = false;
+    new TurnEngine(s).livingSeason();
+    Assert.equal(0, c.idle);
+    c.seeking = true;
+    new TurnEngine(s).livingSeason();
+    c.status = "Employed";
+    new TurnEngine(s).livingSeason();
+    Assert.equal(0, c.idle);
   });
 
   test("Hard acts: a hoard seized, a tablet sold, a captive's purse kept until its captor takes it, and a levy of every man", () => {

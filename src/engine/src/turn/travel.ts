@@ -20,6 +20,7 @@ import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power, quoteWords, whose, powerName } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind, type InboxKind } from "../model/records.ts";
+import { lootArrives, lootOf } from "./trade.ts";
 import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
@@ -461,7 +462,7 @@ P.convoyStopped = function (j, c, province, stop) {
     notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, was taken from the guards in ${name} by ${whose(taker)} men.`, c.id);
     if (taker === lord) {
       c.duty = "None";
-      this.releaseCaptive(taker, c);
+      this.releaseCaptive(taker, c, province);
       remember(c, S.turn, `My own king's men freed me from ${land(giver)}'s guards in ${name}.`);
       logEvent(S, "captive", `${taker}'s men freed ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-freed");
       return;
@@ -478,7 +479,7 @@ P.convoyStopped = function (j, c, province, stop) {
   // Outlaws, or anything else on the road: the guards scattered, the captive slips away.
   c.duty = "None";
   c.at = null;
-  this.releaseCaptive(meant, c);
+  this.releaseCaptive(meant, c, province);
   remember(c, S.turn, `Outlaws fell on ${land(giver)}'s guards in ${name}, and I slipped away in the confusion.`);
   notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, escaped in ${name} when outlaws fell on the guards.`, c.id);
   logEvent(S, "captive", `${c.name} escaped ${giver}'s guards in ${name} when outlaws fell on them.`, [giver], "captive-escaped");
@@ -504,7 +505,7 @@ P.captiveArrives = function (j) {
     j.to,
     "Notice",
     "A captive given to you",
-    `${whose(j.from)} guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
+    `${j.from === j.to ? "Your" : whose(j.from)} guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
     c.id,
   );
   logEvent(S, "captive-handed", `${c.name}, handed over by ${j.from}, reached ${j.to} under guard.`, [j.from, j.to], "captive-arrived");
@@ -627,6 +628,16 @@ P.word = function (from, to, news, text) {
 
 P.wordArrives = function (j) {
   const S = this.s;
+  // Item 17b, part C2: word of a king's death reaches his realm even if it has fallen meanwhile, for his heir in exile.
+  if (j.news === "KingDead") {
+    this.kingDeadHeard(j);
+    return;
+  }
+  // Part C2: word to a man of the record, already elsewhere, that he is a fallen realm's heir.
+  if (j.news === "HeirClaim") {
+    this.heirClaimHeard(j);
+    return;
+  }
   if (!isAlive(S, j.to)) return;
   switch (j.news) {
     case "RoadsClosed":
@@ -642,14 +653,20 @@ P.wordArrives = function (j) {
       notify(S, j.to, "Notice", GrantTitle, j.text ?? "");
       break;
     case "Realm": {
-      // Item 13: a report from afar in the realm, as its courier brings it.
+      // Item 13: a report from afar in the realm, as its courier brings it, timed to where the king is (`tellAt`).
       const [kind, title, ...text] = (j.text ?? "").split("|");
-      notify(S, j.to, kind as InboxKind, title, text.join("|"));
+      notify(S, j.to, kind as InboxKind, title, text.join("|"), null, true, false);
       break;
     }
     case "Job":
       notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
       break;
+    case "Loot": {
+      // #726, #740: loot sent home by courier where no road took it as a load (TurnEngine.lootByWord).
+      const loot = lootOf(j);
+      lootArrives(this, j.to, loot.gold, loot.ids, loot.court, loot.place);
+      break;
+    }
     case "TidingsVassal":
     case "TidingsAlly":
       this.tidingsArrive(j);
@@ -657,6 +674,15 @@ P.wordArrives = function (j) {
     case "Foiled":
       // Bug #467: a scheduled order foiled on land lost far away wakes its seat as the word of it comes (TurnEngine.lostOrder).
       S.sleep.tryGet(j.to)?.pendingWake.push(j.text ?? "");
+      break;
+    case "Succession":
+      // Item 17b: word that a king has died, and who reigns now: the court knows him by his name from here.
+      this.heirHeard(j.from, j.to, j.gold);
+      notify(S, j.to, "Rumor", "A king is dead", j.text ?? "");
+      break;
+    case "KingTaken":
+      // Item 17b, part C: word that the king was taken away from his court reaches it.
+      this.kingLostHeard(j.to, j.text ?? "");
       break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);

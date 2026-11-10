@@ -1,9 +1,10 @@
 // The reading-size check (archive item 217): the files every session reads, each against its mark and their total
-// against its own, and every file past the Step 0 mark that a PR changes ("Split by meaning" in AGENTS.md), which must
-// shrink in that PR. The marks are in scripts/reading-size.json; a PR that crosses one moves it there and says why, and
-// against the branch a PR merges into (READING_BASE, as the workflow sets it) a raised mark is named in the output, so
-// the review sees it. Node's own modules only, so the check needs no install (.github/workflows/pointers.yml;
-// scripts/test.sh runs it too, without the Step 0 part unless READING_BASE is set).
+// against its own, and every file past the Step 0 mark that a PR changes ("Split by meaning" in
+// core/modules/how-to-work.md), which must shrink in that PR. The marks are in scripts/reading-size.json; a PR that
+// crosses one moves it there and says why, and against the branch a PR merges into (READING_BASE, as the workflow sets
+// it) a raised mark is named in the output, so the review sees it. Node's own modules only, so the check needs no
+// install (.github/workflows/pointers.yml; scripts/test.sh runs it too, without the Step 0 part unless READING_BASE is
+// set).
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
