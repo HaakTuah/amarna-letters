@@ -117,14 +117,17 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
   }
   const own = owners(f, viewer);
   const sight = sightOf(f, viewer)!;
-  const home = capitals.find((c) => c.home === viewer && own.get(c.id) === viewer)?.id ?? null;
+  // Whose land a fight was in, and the capital it defends, as the seat knew them when the season began: a province it
+  // took this season was not its own land, and one it lost this season was.
+  const held = index > 0 ? owners(frames[index - 1], viewer) : own;
+  const home = capitals.find((c) => c.home === viewer && held.get(c.id) === viewer)?.id ?? null;
   // Its own fights: a real battle (sizeable, against a Great King, or in its own land) is battle; a skirmish adds a little.
   for (const m of moves) {
     if (!(hostile(m) || m.destroyed) || !involves(m, viewer)) continue;
     const at = m.target ?? m.from;
     const foe: Power | null = m.power === viewer ? m.targetOwner : m.power;
     if (at === home && m.power !== viewer) out.capital = true;
-    const real = (foe !== null && foe !== viewer && isGreatKing(foe)) || own.get(at) === viewer || sizeable(moves, at, m.targetOwner);
+    const real = (foe !== null && foe !== viewer && isGreatKing(foe)) || held.get(at) === viewer || sizeable(moves, at, m.targetOwner);
     if (real) raise(Heat.battle, "battle");
     else out.add = Skirmish.add;
   }

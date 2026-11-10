@@ -40,12 +40,18 @@ describe("AudioMoodTests", () => {
   test("A real battle is battle; a skirmish with a city-state adds only a little, a fight the seat did not see nothing", () => {
     // Against a Great King, or in its own land, or sizeable: a real battle.
     Assert.equal(Heat.battle, signalAt([frame(0), fight(1, "Egypt", [attack("Egypt", "kadesh", "Hatti")])], 1, "Egypt").heat);
-    Assert.equal("battle", signalAt([frame(0), fight(1, "Egypt", [attack("Byblos", "gaza", "Egypt")], { knownOwner: known("Egypt", { gaza: "Egypt" }) })], 1, "Egypt").top);
+    const gaza = { knownOwner: known("Egypt", { gaza: "Egypt" }) };
+    Assert.equal("battle", signalAt([frame(0, gaza), fight(1, "Egypt", [attack("Byblos", "gaza", "Egypt")], gaza)], 1, "Egypt").top);
     const big = [attack("Egypt", "byblos", "Byblos"), attack("Egypt", "byblos", "Byblos", "y"), { ...attack("Byblos", "byblos", "Byblos"), from: "byblos", order: "hold", target: null }];
     Assert.equal(Heat.battle, signalAt([frame(0), fight(1, "Egypt", big as FrameMove[])], 1, "Egypt").heat);
     // One unit against a city-state abroad: a skirmish, its drums, a little heat.
     const small = signalAt([frame(0), fight(1, "Egypt", [attack("Egypt", "byblos", "Byblos")])], 1, "Egypt");
     Assert.equal([0, Skirmish.add, null], [small.heat, small.add, small.top]);
+    // Its own land is what it held as the season began: a province it takes is not, one it loses is.
+    const taken = [frame(0, { knownOwner: known("Egypt", { byblos: "Byblos" }) }), fight(1, "Egypt", [attack("Egypt", "byblos", "Byblos")], { knownOwner: known("Egypt", { byblos: "Egypt" }) })];
+    Assert.equal([0, Skirmish.add], ((x) => [x.heat, x.add])(signalAt(taken, 1, "Egypt")));
+    const lost = [frame(0, { knownOwner: known("Egypt", { gaza: "Egypt" }) }), fight(1, "Egypt", [attack("Byblos", "gaza", "Egypt")], { knownOwner: known("Egypt", { gaza: "Byblos" }) })];
+    Assert.equal(Heat.battle, signalAt(lost, 1, "Egypt").heat);
     Assert.equal(0, signalAt([frame(0), frame(1, { moves: [attack("Hatti", "gaza", "Egypt")], seenBy: new Map([["Egypt", []]]) })], 1, "Egypt").heat);
     Assert.equal(0, signalAt([frame(0), fight(1, "Egypt", [attack("Hatti", "ugarit", "Mitanni")])], 1, "Egypt").heat);
   });
@@ -54,7 +60,7 @@ describe("AudioMoodTests", () => {
     const siege = (province: string, besieger: Power) => ({ province, besieger, progress: 1, walls: 2, since: 1 });
     const sight = new Map([["Egypt" as Power, new Set(["gaza", egyptsCapital])]]);
     const owns = known("Egypt", { gaza: "Egypt", [egyptsCapital]: "Egypt" });
-    const at = (s: ReturnType<typeof siege>) => signalAt([frame(0), frame(1, { sieges: [s], knownOwner: owns, sight } as Partial<SeasonFrame>)], 1, "Egypt");
+    const at = (s: ReturnType<typeof siege>) => signalAt([frame(0, { knownOwner: owns }), frame(1, { sieges: [s], knownOwner: owns, sight } as Partial<SeasonFrame>)], 1, "Egypt");
     Assert.equal([Heat.battle, "siege", false], ((x) => [x.heat, x.top, x.capital])(at(siege("gaza", "Hatti"))));
     Assert.true(at(siege(egyptsCapital, "Hatti")).capital);
     Assert.equal([Heat.war, null], ((x) => [x.heat, x.top])(at(siege("kadesh", "Egypt"))));

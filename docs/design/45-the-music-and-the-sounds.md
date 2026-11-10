@@ -59,7 +59,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
   Empire Earth's music does: a season watched at speed passes in under two seconds, and the sounds and stings carry the
   events. A **heat** picks the mood (`mood.ts`). Each season raises it to at least (`Heat`, first guesses): 8 for a real
   battle of the seat's own (sizeable, two units or more attacking or four or more on both sides, as far as it saw;
-  against a Great King; or in its own land) or its own land besieged; 5 for a siege it lays; 3 for foreign troops in its land in its sight, troubled omens,
+  against a Great King; or in its own land, as it held it when the season began) or its own land besieged; 5 for a siege it lays; 3 for foreign troops in its land in its sight, troubled omens,
   a province of its own in its sight past 60% of the unrest at which land rises, or a rumour in the last two seasons. A
   skirmish with a city-state (none of those) adds 1.5, up to 5 at most: its drums, and war at most. The heat halves
   every 2 seasons or every 30 s, whichever is slower, so a season watched at speed cools by the clock and one played by
