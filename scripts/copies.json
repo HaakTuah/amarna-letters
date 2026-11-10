@@ -11,8 +11,7 @@
     "CLAUDE.md",
     "core-manifest.md",
     "core/floor/*.md",
-    "core/modules/*.md",
-    ":!docs/builder-rules.md"
+    "core/modules/*.md"
   ],
   "proseFromSecurity": true
 }

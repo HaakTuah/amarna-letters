@@ -63,9 +63,6 @@ game's own, which "Principles over rules" never reaches: no model games until th
   document's copy, and leaves this file in the same PR.
 - **Sessions:** a long item may end a session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md`
   saying where to pick up.
-- **The next item on top:** branched from `main`, or, while the item before it is still in review, from that item's PR
-  branch, which (or `main`, once that merged) is merged into it before its own PR. Where the builder rules still name
-  `develop` or milestones, read `main`, until the design session's refresh cuts them.
 - **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
 - **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
