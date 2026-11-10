@@ -116,7 +116,8 @@ holding baseline kings for a ransom never paid, which shows no gain beyond what 
 a king pays is item 18's measure (part F2), with its levers the escape odds and what holding him costs. The weakness found and patched on the way: when script captors guarded every king
 they held (at 577b62d), 1,197 of 2,707 seasons under watchmen cost the kings who played captivity their lead (0.79
 against 0.80, 18 wins to 20), since against a ransom alone a season's watch costs more than the escape it prevents is
-worth; they now guard only once a plot is found or a spy caught. Before this round (at 1c541ec, without giving in, the
+worth; they now keep no watchmen just because they hold a
+king, only as after any spy caught, once a plot is found. Before this round (at 1c541ec, without giving in, the
 guard or the errand's risk): 0.83 against 0.78, 24 wins to 17. Holding a king to the end happens (22 in 50 games)
 without a rule against it, as the owner asked; item 18 part F2 measures it on the full seed sets.
 
