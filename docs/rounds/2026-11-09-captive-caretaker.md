@@ -103,16 +103,24 @@ held. Letters from captivity: 117 sent through the captor, 3 smuggled out by a s
 away, 5 of them helped by a spy of theirs. Before the script captives asked for a spy and wrote to their sworn friends,
 no letter was smuggled or kept and no spy helped (the patch, as "Every weakness found is patched" asks).
 
-**Use against ignore** (`--king-play-half`, seeds 1-50, at 1c541ec; the escalation's fix after it only orders the king's
-word before scheduled orders and counts a spy once sent): kings that play captivity (ransom their own by their word,
-send for a spy, write to their sworn friends, keep a captive's letters) grow 0.83 against 0.78 and win 24 games to 17.
-418 kings were held while their courts knew it, 6.4 seasons on average (median 3, longest 59); at the age's end 289 free
-again, 106 dead, 23 still held. Letters: 235 sent through the captor, 4 smuggled, 6 kept; 150 kings got away, 6 helped
-by a spy. Holding a king to the end happens (23 in 50 games) without a rule against it, as the owner asked; item 18
-part F2 measures it on the full seed sets.
+**Use against ignore** (`--king-play-half`, seeds 1-50, at bb9dffc): kings that play captivity (ransom their own by their
+word or, short of the ransom, give in with land; send for a spy; write to their sworn friends; keep a captive's letters;
+let a king go whose realm ceded them land; guard a king once a plot is found) grow 0.83 against 0.82 and win 19 games to
+22. 395 kings were held while their courts knew it, 6.3 seasons on average (median 2, longest 59); at the age's end 274
+free again, 99 dead, 22 still held. Letters: 225 sent through the captor, 2 smuggled, 6 kept; 132 kings got away, 6
+helped by a spy; 86 of 2,485 seasons held under the captor's watchmen; 8 words home gave in. It pays a little in growth
+and not in wins, a gap within what 50 games can tell apart: what the captive's play needs most, a captor who weighs
+holding him against his realm's weakness, is item 18's lever ("what holding him costs"), so the feature does not win
+yet rather than being played badly. The weakness found and patched on the way: when script captors guarded every king
+they held (at 577b62d), 1,197 of 2,707 seasons under watchmen cost the kings who played captivity their lead (0.79
+against 0.80, 18 wins to 20), since against a ransom alone a season's watch costs more than the escape it prevents is
+worth; they now guard only once a plot is found or a spy caught. Before this round (at 1c541ec, without giving in, the
+guard or the errand's risk): 0.83 against 0.78, 24 wins to 17. Holding a king to the end happens (22 in 50 games)
+without a rule against it, as the owner asked; item 18 part F2 measures it on the full seed sets.
 
 ## Questions for the owner
 
-Questions for the owner: none new (#806 answered and closed with this PR). Opened: #882, a question, whether only the captive king can send a man to free him, or a friendly king too (the reading
-taken: only he). Filed: #878, a bug, a king's watchmen never
-counting on the road or at the border (their spend cleared before those checks).
+- #882 (opened): may only the captive king send a man to free him, or a friendly king too? The reading taken: only he.
+- #878 (filed, a bug): a king's watchmen never count on the road or at the border, their spend cleared before those
+  checks.
+- #806 (answered) closes with this PR.
