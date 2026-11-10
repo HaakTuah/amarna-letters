@@ -66,12 +66,11 @@ game's own, which "Principles over rules" never reaches: no model games until th
 - **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
   touch; a lane's draft PR's title names its entry.
-- **Updates:** the cue to move Node (`core/modules/updates.md`) is a new major of `@types/node`.
 
 ## Commands
 
 ```bash
-scripts/cloud-setup.sh        # cloud machines: npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts)
+scripts/cloud-setup.sh        # cloud machines: the core's Node, npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts, without Chromium)
 scripts/test.sh               # type-check, lint, the copies check and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 npm run dev --workspace src/web                       # the web app at http://localhost:5183
