@@ -46,7 +46,8 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   caretaker once it has heard ([59](59-a-captive-kings-realm.md), #806). A realm that holds nothing has fallen (`fall`, as before), and its king lives on as a free man, a former
   ruler. Since part C the court is lost with its own city, the king with his (`courtFlees`, `kingTaken`).
 - **He may get away**: each season he is held at a court, with a chance of his skill at going unseen in a thousand
-  (`KingData.escape`; about one season in seventeen for a king of middling skill). Set free or escaped, he walks home like
+  (`KingData.escape`; about one season in seventeen for a king of middling skill), less as his captor keeps watchmen
+  ([59](59-a-captive-kings-realm.md)). Set free or escaped, he walks home like
   any traveller and reigns again at his court.
 - **He dies only by a cause where he is**: put to death, in battle or a city's fall (part C), or on the road (outlaws); never of plague or famine, which are
   dice. His reign, and his player's game, end where he dies; his court hears of it by word from there (at once if he died

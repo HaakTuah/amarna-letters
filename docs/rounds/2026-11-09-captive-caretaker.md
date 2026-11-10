@@ -1,12 +1,13 @@
 # A captive king's realm under a caretaker (#806)
 
-Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session).
-
 Built before item 18 part F2, at the orchestrator's word, since it changes play and F2 measures play. The design: the
 follow-up "A captive king's realm under a caretaker" in `docs/BUILD-PROGRESS.md`; as built:
 [`docs/design/59-a-captive-kings-realm.md`](../design/59-a-captive-kings-realm.md). **The check for changes:** the live
-design document refuses this account (the docs connector answers "forbidden"), so it is built from the follow-up's text
-and the copy on `develop` at 1cfdc8f.
+design document refused this account when the item began (the docs connector answered "forbidden"), so it was built from
+the follow-up's text and the copy on `develop` at 1cfdc8f. Asked again on 10 November, after `main` was merged in: the
+owner's answer is now written in Victory, "One scoreboard for every person" (revision 28), and adds that the captor's
+guard watches against an escape, with "what holding him costs" a lever item 18 measures; built below as the captor's
+guard. The Build order tab's changes since revision 354 are process only.
 
 ## The owner's words
 
@@ -34,6 +35,9 @@ passing out, like spies and such."
   takes his letters home unread and adds his own skill to the king's chance of getting away.
 - Script players: a captor holding a king for ransom keeps his letters to every court but his own; a captive pays
   his ransom by his word home, asks for a spy at his captor's court, and writes once to each king sworn to him.
+- The captor's guard: what he spends on watchmen in a season divides the king's chance of getting away that season
+  (`KingData.guard`, 100 shekels halve it, a first guess), and his watchmen catch a spy sent to free him as they catch
+  any posted spy; a script captor keeps watchmen while it holds a king.
 - The measure of holding a king forever: the batch's "Captive kings" line.
 - Rulebook (`rules-intelligence.ts`), the request's COURT line, the About page and the design notes ([57](../design/57-every-person.md),
   [59](../design/59-a-captive-kings-realm.md)) say so. Save version 93.
@@ -70,6 +74,16 @@ passing out, like spies and such."
 - **A spy smuggles only letters home:** he sends them as his own reports go, to his master's court. Principle:
   "Everything is somewhere": the spy's road is home.
 
+- **The captor's guard is his watchmen,** paid season by season: what holding him safely costs. Principle: "Nothing
+  happens unless someone orders it" (the one page) and an existing lever before a new one ("Keep it lean"); the design
+  document names the escape odds and what holding him costs as item 18's levers. The spend read is the season just
+  past's, kept before it is cleared (`_guardedLast`), since the escape is drawn as the next season begins (bug #878:
+  the road and border checks read the cleared spend).
+- **Other kings may pay for him, demand him or march to free him** by the means every king has: gold and words by
+  envoy, an envoy's tablet, troops that stop him on the road under guard. No ransom order for a king not his own: a
+  ransom is paid to the captor's demand, and the demand goes to his realm. Principle: "No menus"; what a bargain needs
+  is already there.
+
 ## Script players and the measure
 
 A first look on seeds 1-8 (`--verify-replay`, all eight replayed exactly): 70 kings held while their courts knew it, in
@@ -88,4 +102,5 @@ part F2 measures it on the full seed sets.
 
 ## Questions for the owner
 
-Questions for the owner: none new (#806 answered and closed with this PR).
+Questions for the owner: none new (#806 answered and closed with this PR). Filed: #878, a bug, a king's watchmen never
+counting on the road or at the border (their spend cleared before those checks).

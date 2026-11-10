@@ -141,6 +141,19 @@ describe("HeldKingTests", () => {
     Assert.true(inboxOf(s, "Hatti").some((i) => i.title === "A plot to free your captive"));
   });
 
+  test("His captor's watchmen guard him: well guarded, the best of kings does not get away", () => {
+    const { s, e } = egyptHeld();
+    const k = kingOf(s, "Egypt");
+    k.skills.stealth = 99;
+    // KingData.guard: the chance is multiplied by 100 / (100 + the watch), here about a hundred-thousandth of itself.
+    e._guardedLast.set("Hatti", 10_000_000);
+    for (let i = 0; i < 200; i++) {
+      s.turn++;
+      e.kingsHeld();
+    }
+    Assert.equal(["Captured", "Hatti"], [k.status, k.heldBy]);
+  });
+
   test("A free king does not write so, and a captor keeps only a king's letters", () => {
     const { s } = egyptHeld();
     const v = new OrderValidator(s).validate("Mitanni", newTurnSubmission({ orders: [writeLetter("Egypt", "Hello.")] }));

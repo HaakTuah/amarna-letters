@@ -36,6 +36,10 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
 - **What he agreed to** rides with the letter (`GameState.wordHome`) and his court carries it out in the season after it
   arrives, as its own business and as orders given now, before his scheduled orders and the caretaker's (a stand-in's
   too, once he is free); a letter lost or kept takes it with it.
+- **The captor's guard:** what he spends on watchmen in a season (`counterIntel`) guards the kings he holds: the king's
+  chance of getting away that season is multiplied by 100 / (100 + that spend) (`KingData.guard`, a first guess; kept
+  as `TurnEngine._guardedLast` since `kingsHeld` runs after the season's watch is cleared), so 100 shekels halve it.
+  That is what holding him safely costs; his watchmen also catch a spy sent to free him as they catch any posted spy.
 - **Getting away:** a spy his court sends to the captor's court by the king's own word home goes on the errand to free
   him once he is sent (`GameState.freeing`, `placeSpy`, `spyWith`): his skill at going unseen adds to the king's in the chance each season
   (`kingsHeld`), and each season he is caught at it 40 times in a thousand (`AidData.caught`); one of loyalty below 35

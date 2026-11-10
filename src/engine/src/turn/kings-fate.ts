@@ -32,9 +32,10 @@ import { spyWith } from "../rules/court.ts";
 
 /**
  * First guesses (item 18 tunes them): a king's competence as a person, from which his skills are drawn; the chance in a
- * thousand each season, for each point of his skill at going unseen, that a king held at his captor's court gets away.
+ * thousand each season, for each point of his skill at going unseen, that a king held at his captor's court gets away;
+ * and the guard (#806): what the captor spent on watchmen that season, in shekels, that halves that chance.
  */
-export const KingData = { competence: 60, escape: 1 } as const;
+export const KingData = { competence: 60, escape: 1, guard: 100 } as const;
 
 /**
  * #806, first guesses: the chance in a thousand each season that a spy on the errand to free his king is caught at it by
@@ -300,7 +301,9 @@ P.kingsHeld = function () {
       logEvent(S, "king-aid-caught", `${aid.name} was caught trying to free ${c.name} from ${host}.`, [host], "king-aid-caught");
       continue;
     }
-    if (!this.r("king-escape", c.id).chance(((c.skills.stealth + (aid?.skills.stealth ?? 0)) * KingData.escape) / 1000)) continue;
+    // #806: the captor's watchmen guard him; what holding him safely costs.
+    const guard = KingData.guard / (KingData.guard + this._guardedLast.getOrDefault(host, 0));
+    if (!this.r("king-escape", c.id).chance(((c.skills.stealth + (aid?.skills.stealth ?? 0)) * KingData.escape * guard) / 1000)) continue;
     S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
     c.status = "Employed";
     c.heldBy = null;
