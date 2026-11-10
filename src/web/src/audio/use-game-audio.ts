@@ -1,6 +1,6 @@
 /**
- * The game screen's ear (item 19+++): tells the player the mood of the season shown, plays what a newly arrived season
- * brings, and keeps the world's bed to what the map shows. Reads only what the screen already shows: the stream of seasons
+ * The game screen's ear (item 19+++): tells the player the mood the seat's state has reached (item 19+++b), plays what
+ * a newly arrived season brings, and keeps the world's bed to what the map shows. Reads only what the screen already shows: the stream of seasons
  * item 17a's worker sends (`Session.frames`, one `SeasonFrame` per season, its `events`, `moves` and `news`), as a reader
  * beside the map's, never changing it.
  */
@@ -11,7 +11,8 @@ import type { SeasonFrame } from "../session/frames.ts";
 import { bedLevel } from "./mix.ts";
 import { player } from "./player.ts";
 import { knownRuins } from "../map/known.ts";
-import { bedAt, cuesAt, moodAt, shadeAt } from "./situation.ts";
+import { MoodDirector, shadeAt } from "./mood.ts";
+import { bedAt, cuesAt } from "./situation.ts";
 import { schedule, type View } from "./schedule.ts";
 
 const NoRuins: ReadonlySet<string> = new Set();
@@ -19,15 +20,25 @@ const NoRuins: ReadonlySet<string> = new Set();
 /** At most one season's cues this often: watching at top speed, the seasons' sounds do not pile up. */
 const CueGap = 1200;
 
+/** Seconds of play, the mood's clock. */
+const clock = (): number => performance.now() / 1000;
+
 export function useGameAudio(frames: readonly SeasonFrame[], index: number, viewer: Power | null, game: string, view: () => View | null): void {
   const cued = useRef<{ key: string; index: number; at: number } | null>(null);
   const key = `${game}:${viewer ?? "god"}`;
 
-  // The mood of the season shown, whether played live or stepped through.
+  // The mood follows the seat's state, from a heat each season shown raises and time cools (mood.ts).
+  const director = useRef(new MoodDirector());
   useEffect(() => {
-    player.setMood(frames.length === 0 ? "menu" : moodAt(frames, index, viewer));
+    if (frames.length === 0) {
+      player.setMood("menu");
+      player.setShade(0, viewer);
+      return;
+    }
+    director.current.season(frames, index, viewer, key, clock());
+    player.setMood(director.current.at(clock()));
     // Darker as the seat's situation worsens, brighter as it improves; the fallback plays in its court's home mode.
-    player.setShade(frames.length === 0 ? 0 : shadeAt(frames, index, viewer), viewer);
+    player.setShade(shadeAt(frames, index, viewer), viewer);
   }, [frames.length, index, key]);
 
   useEffect(() => {
@@ -50,6 +61,8 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
     const t = window.setInterval(() => {
       const v = view();
       const { frames: fs, index: i } = shown.current;
+      // The heat cools and the hold runs out between seasons too.
+      if (fs.length > 0) player.setMood(director.current.at(clock()));
       // A town sounds as the viewer knows it: in ruins only once it has learned of the sack.
       const at = Math.min(i, fs.length - 1);
       const ruins = at >= 0 && v !== null && v.zoom >= 4 ? knownRuins(fs, at, viewer) : NoRuins;

@@ -1,9 +1,9 @@
 /**
- * What the music and the sounds follow (item 19+++): the situation of the seat being played, read only from what that
- * seat knows (its sight, the news that reached it, the owners as it knows them), or of the whole map in god view. Pure,
- * so it is tested without a browser. Presentation only: nothing here touches the game.
+ * What the sounds follow (item 19+++; the music's mood and shade are in mood.ts): the situation of the seat being played,
+ * read only from what that seat knows (its sight, the news that reached it, the owners as it knows them), or of the whole
+ * map in god view. Pure, so it is tested without a browser. Presentation only: nothing here touches the game.
  */
-import { Crossings, Rivers, UnrestData, WorldMap, isGreatKing, type Power } from "@amarna/engine";
+import { Crossings, Rivers, WorldMap, isGreatKing, type Power } from "@amarna/engine";
 import type { FrameMove, SeasonFrame } from "../session/frames.ts";
 
 /** The music's moods, as Empire Earth's dynamic music chose its pieces by them (docs/design/45-the-music-and-the-sounds.md). */
@@ -41,25 +41,26 @@ export const MomentPieces: Record<Moment, string> = {
 };
 
 const map = WorldMap.default;
-const capitals = map.provinces.filter((p) => p.capital && p.home !== null);
+/** Every court's capital. */
+export const capitals = map.provinces.filter((p) => p.capital && p.home !== null);
 
 /** The moves of a season the viewer saw resolve (all of them in god view). */
-function seen(f: SeasonFrame, viewer: Power | null): FrameMove[] {
+export function seen(f: SeasonFrame, viewer: Power | null): FrameMove[] {
   if (viewer === null) return f.moves;
   const idx = f.seenBy.get(viewer) ?? [];
   return idx.map((i) => f.moves[i]).filter((m): m is FrameMove => m !== undefined);
 }
 
 /** A move against someone else's land or troops: an attack, whoever it was. */
-const hostile = (m: FrameMove): boolean => m.target !== null && m.targetOwner !== null && m.targetOwner !== m.power;
+export const hostile = (m: FrameMove): boolean => m.target !== null && m.targetOwner !== null && m.targetOwner !== m.power;
 
-const involves = (m: FrameMove, viewer: Power | null): boolean => viewer === null || m.power === viewer || m.targetOwner === viewer;
+export const involves = (m: FrameMove, viewer: Power | null): boolean => viewer === null || m.power === viewer || m.targetOwner === viewer;
 
 /**
  * Who holds each province, as the viewer knows it (the truth in god view). What the record lacks counts as unknown, never
  * as the truth (the owner, 1 November 2026: "The music must never reveal what's outside the fog of war").
  */
-function owners(f: SeasonFrame, viewer: Power | null): Map<string, Power | null> {
+export function owners(f: SeasonFrame, viewer: Power | null): Map<string, Power | null> {
   if (viewer === null) return f.owner;
   const known = f.knownOwner.get(viewer);
   if (known === undefined) return new Map();
@@ -67,81 +68,14 @@ function owners(f: SeasonFrame, viewer: Power | null): Map<string, Power | null>
 }
 
 /** What the viewer sees this season (null: all of it, in god view); a seat whose sight the record lacks sees nothing. */
-function sightOf(f: SeasonFrame, viewer: Power | null): ReadonlySet<string> | null {
+export function sightOf(f: SeasonFrame, viewer: Power | null): ReadonlySet<string> | null {
   if (viewer === null) return null;
   return f.sight.get(viewer) ?? new Set<string>();
 }
 
-function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
+/** A fight the viewer saw this season and was party to (any fight in god view). */
+export function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
   return seen(f, viewer).some((m) => (hostile(m) || m.destroyed) && involves(m, viewer));
-}
-
-function besieged(f: SeasonFrame, viewer: Power | null): boolean {
-  if (viewer === null) return f.sieges.length > 0;
-  const own = owners(f, viewer);
-  const sight = sightOf(f, viewer)!;
-  // Its own siege, or one of a city it holds as far as it knows and can see (a city lost unheard of tells it nothing).
-  return f.sieges.some((s) => s.besieger === viewer || (own.get(s.province) === viewer && sight.has(s.province)));
-}
-
-/** Foreign troops standing in the viewer's own land, as far as it can see. */
-function threatened(f: SeasonFrame, viewer: Power): boolean {
-  const own = owners(f, viewer);
-  const sight = sightOf(f, viewer)!;
-  return f.units.some((u) => u.power !== viewer && own.get(u.province) === viewer && sight.has(u.province));
-}
-
-const grave = (f: SeasonFrame): boolean => f.omen === "Grave" || f.omen === "Borrowed" || f.omen === "Darkest";
-
-/**
- * The mood at a season: battle where the viewer's men fought this season, siege where it besieges or is besieged, war
- * where it fought in the last three seasons, the last seasons when the diviners read the omens of the end as grave,
- * tension where foreign troops stand in its land, the omens are troubled, unrest runs high or rumours came, calm
- * otherwise. In god view the whole map: any battle or siege anywhere, war when fighting was seen in the last two.
- */
-export function moodAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null): Mood {
-  const f = frames[index];
-  if (f === undefined) return "calm";
-  if (f.ended) return "last";
-  if (index > 0 && fightingAt(f, viewer)) return "battle";
-  if (besieged(f, viewer)) return "siege";
-  const span = viewer === null ? 2 : 3;
-  for (let k = index; k > Math.max(0, index - span); k--) if (fightingAt(frames[k], viewer)) return "war";
-  if (grave(f)) return "last";
-  if (f.omen === "Troubled") return "tension";
-  if (viewer === null) {
-    for (let k = index; k > Math.max(0, index - 6); k--) if (frames[k].sieges.length > 0 || fightingAt(frames[k], null)) return "tension";
-    return "calm";
-  }
-  if (threatened(f, viewer)) return "tension";
-  const own = owners(f, viewer);
-  // Its own people's mood it knows (in words); restless well short of rising is tension enough.
-  const sight = sightOf(f, viewer)!;
-  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer && sight.has(p)) return "tension";
-  if (f.news.some((n) => n.court === viewer && n.kind === "Rumor" && n.turn >= f.turn - 2)) return "tension";
-  return "calm";
-}
-
-/**
- * How the mood is heard within a piece (item 19+++): darker as the situation worsens, brighter as it improves, as the
- * viewer knows it. -2 in a battle or a siege, or a king or capital of its own fallen in the last three seasons (mourning);
- * -1 at war, on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land, or a harvest
- * it saw with no hunger in it and no war; 0 otherwise.
- */
-export function shadeAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null): -2 | -1 | 0 | 1 {
-  const mood = moodAt(frames, index, viewer);
-  if (mood === "battle" || mood === "siege") return -2;
-  for (let k = index; k > Math.max(0, index - 3); k--) {
-    const c = cuesAt(frames, k, viewer);
-    if (c.moment === "fall" || c.moment === "solemn") return -2;
-  }
-  const f = frames[index];
-  if (f === undefined) return 0;
-  const seenHere = (kind: string): boolean => f.events.some((e) => e.kind === kind && (viewer === null || e.visibleTo.includes(viewer)));
-  if (mood === "war" || grave(f) || seenHere("hunger") || seenHere("famine")) return -1;
-  const c = cuesAt(frames, index, viewer);
-  if (c.moment === "triumph" || seenHere("harvest")) return 1;
-  return 0;
 }
 
 /** What a season brings to the ear, in the order it is heard. */
