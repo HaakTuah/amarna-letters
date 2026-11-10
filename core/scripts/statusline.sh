@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Status line for Claude Code. Claude Code passes the session's data as JSON on stdin, including the
-# plan's rate limits; this keeps them in a file that scripts/usage.sh reads, so a session can check its
+# plan's rate limits; this keeps them in a file that usage.sh (beside this file) reads, so a session can check its
 # weekly usage. It prints a short status line.
 f="${TMPDIR:-/tmp}/claude-usage.json"
 input=$(cat)

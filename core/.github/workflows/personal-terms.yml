@@ -1,0 +1,62 @@
+# Nothing personal, ever (floor rule 11). Fails a pull request whose files, commit messages, title or description hold
+# a term from the PERSONAL_TERMS secret: one term per line, set by the owner in the repository's Actions secrets and
+# never written into the repository, since the list itself would be personal. It prints only where a term was found
+# (file and line), never the term. Without the secret (a fork, Dependabot) it passes with a note.
+# It checks this repository, and every project that takes the core calls it (workflow_call), pinned to a full commit SHA
+# (README.md, point 5), passing only that secret: the caller's event, checkout and token are the caller's own.
+name: Personal terms
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_call:
+    secrets:
+      PERSONAL_TERMS:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: personal-terms-${{ github.repository }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Look for personal terms
+        env:
+          TERMS: ${{ secrets.PERSONAL_TERMS }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "$TERMS" ]; then echo "::notice::PERSONAL_TERMS is not set here, so nothing was checked."; exit 0; fi
+          umask 077
+          list="$RUNNER_TEMP/terms"
+          printf '%s\n' "$TERMS" | sed '/^[[:space:]]*$/d' > "$list"
+          found=0
+          hits=$(git grep -I -n -i -F -f "$list" -- . | cut -d: -f1,2 || true)
+          if [ -n "$hits" ]; then echo "A personal term is in these files (file:line):"; echo "$hits"; found=1; fi
+          if [ -n "$BASE" ]; then
+            # Only commits made since the rule (2 November 2026): older ones cannot be changed without rewriting history.
+            # One commit at a time, so every new commit's message is checked, not only the newest.
+            # --since-as-filter skips older commits without stopping the walk; a failing rev-list fails the job.
+            commits=$(git rev-list --since-as-filter='2026-11-02T17:30:00Z' "$BASE..HEAD")
+            bad=""
+            for c in $commits; do
+              if git log -1 --format=%B "$c" | tr '\n' ' ' | grep -q -i -F -f "$list"; then bad="$bad $(git rev-parse --short "$c")"; fi
+            done
+            if [ -n "$bad" ]; then echo "A personal term is in these commits' messages:"; echo "$bad"; found=1; fi
+          fi
+          if grep -q -i -F -f "$list" <<< "$TITLE"$'\n'"$BODY"; then echo "A personal term is in the PR's title or description."; found=1; fi
+          rm -f "$list"
+          exit "$found"

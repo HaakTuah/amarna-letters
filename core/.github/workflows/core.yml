@@ -1,0 +1,58 @@
+# The copy of the core ("How a project takes the core" in README.md, points 1 and 5), for every project that takes it:
+# fails a change whose core/ is not this repository, whole and unchanged, at the commit its core-manifest.md pins, or
+# whose calls to the core's workflows are pinned to a commit where the called workflow differs from the one at that pin.
+# A project calls it (workflow_call) on every pull request and push to main, docs-only changes included,
+# pinned to a full commit SHA. Reads only, with no secret: it fetches this public repository at the pin it reads, which
+# must be a full commit SHA before it is used, and runs nothing from either repository.
+name: core
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # nothing after the checkout needs the token
+      - name: The core pin
+        id: pin
+        run: |
+          set -euo pipefail
+          pin=$(sed -n 's|^Core: HaakTuah/agent-core at \([0-9a-f]\{40\}\), copied whole under core/.*|\1|p' core-manifest.md)
+          if [ "$(printf '%s' "$pin" | grep -c .)" -ne 1 ]; then
+            echo "core-manifest.md has no one \"Core: HaakTuah/agent-core at <full commit SHA>, copied whole under core/\" line"; exit 1
+          fi
+          echo "sha=$pin" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: HaakTuah/agent-core
+          ref: ${{ steps.pin.outputs.sha }}
+          path: .core-at-pin
+          fetch-depth: 0 # (the workflow pins are older commits of it)
+          persist-credentials: false
+      - name: core/ is the core at its pin, and each call to a core workflow is pinned where that workflow is the same
+        run: |
+          set -euo pipefail
+          bad=0
+          if ! diff -r -q --exclude=.git .core-at-pin core; then echo "core/ differs from the core at its pin (above)"; bad=1; fi
+          # (every mention outside a comment, in whatever form the YAML writes the call)
+          calls=$(sed 's/#.*//' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null \
+            | grep -o -i -E 'haaktuah/agent-core/[^"'\''[:space:]},]*' | sort -u || true)
+          while IFS= read -r call; do
+            [ -n "$call" ] || continue
+            if ! [[ "$call" =~ ^HaakTuah/agent-core/\.github/workflows/([A-Za-z0-9._-]+\.ya?ml)@([0-9a-f]{40})$ ]]; then
+              echo "a call to the core not written HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>: $call"; bad=1; continue
+            fi
+            name=${BASH_REMATCH[1]} sha=${BASH_REMATCH[2]}
+            if ! git -C .core-at-pin cat-file -e "$sha^{commit}" 2>/dev/null; then echo "$name: $sha is not a commit of the core"; bad=1
+            elif ! git -C .core-at-pin diff --quiet "$sha" HEAD -- ".github/workflows/$name"; then
+              echo "$name at $sha differs from the core's at its pin: the sync PR moves this pin"; bad=1
+            fi
+          done <<< "$calls"
+          exit "$bad"

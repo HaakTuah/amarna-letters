@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Print this plan's weekly usage, as the status line last saw it (scripts/statusline.sh), and exit 0.
-# If no status line runs in this session, say so: then usage cannot be read from inside the session, and the
-# builder checks no more and says nothing about it ("Usage by provider" in AGENTS.md).
+# Print this plan's weekly usage, as the status line last saw it (statusline.sh, beside this file), and exit 0.
+# If none was saved, no status line runs here: it says so ("Usage" in the core's modules/claude.md).
 f="${TMPDIR:-/tmp}/claude-usage.json"
 [ -s "$f" ] || f="/tmp/claude-usage.json"
 if [ -s "$f" ] && command -v jq >/dev/null 2>&1; then

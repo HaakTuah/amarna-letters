@@ -1,35 +1,11 @@
-# Review guidelines
+# Review guidelines: this game's own
 
-What every reviewer judges a change by: Codex's code review, the fallback reviewer, the design checker and the blind
-re-review. A reviewer reads this file whole with its brief ("Reviews", point 7, in `docs/claude-and-codex.md`) and
-`SECURITY.md`, and another rule file only where a line here names it. It changes only on the owner's word (archive item
+What every reviewer judges a change by here, read whole with `core/modules/review-guidelines.md`, its brief
+(`core/modules/reviews.md`, point 7), `SECURITY.md` and the floor. It changes only on the owner's word (archive item
 206).
 
-## How a review passes
-
-- **Codex** reports findings by priority, P0 to P3. Every finding counts: the PR passes only with none open.
-- **Every other reviewer** scores from 1 to 10. The reviewer lists everything that keeps the work from 10, each point
-  concrete (a file and line, or a design section) and marked **blocking** (against the design, the item's text, its
-  tests or the standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing
-  open:** the work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing
-  behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a demanding expert would hand it over as it stands. A
-  10 with a point open, or less than 10 with none, is no review: ask again.
-- **A later round** checks that the earlier points were fixed, and reviews what changed since. Something new about work
-  it already saw is raised only if it blocks (P0 or P1): a bug, a broken rule, a security hole, a departure from the
-  design. Taste does not grow between rounds, so the rounds come to an end.
-
-## What blocks
-
-**For every reviewer,** report as blocking (P1 in Codex's priorities) a departure from the design or from the PR's
-description and the sections it names; a broken rule of `AGENTS.md`, of the builder rules or of `SECURITY.md`; a test
-weakened or skipped, or changed beyond what the task forces (a forced change shows in the PR that every check is kept
-and none loosened); and a protected file (`SECURITY.md`, rule 3) changed by a Codex lane. Report anything the change
-leaves behind (code, files or settings it made unused, commented-out code, and any description it made untrue: "No
-description left untrue" in `AGENTS.md`) as a finding. The pillars of "How to work" in `AGENTS.md` block too: a fact,
-rule or piece of logic written a second time instead of pointed to (a copy, or a selection of another file's lines), and
-an entry added to the copies check's baseline. Content put where its readers must read past it, such as a file holding
-what its readers do not need, is a finding, and so is a fact left where a clearly better home exists, or a pointer where
-no reader needs it.
+**The design checker's brief** adds, when the item adds or changes real-world content, the dossier passages it cites;
+it checks the diff against "The game in one page" first, and a fact without a source, or against its source, blocks.
 
 **History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event) the
 change adds or alters that has no source in `docs/history/`, or contradicts the source it cites. Each real fact in the
@@ -52,12 +28,3 @@ clichés, and modern idiom in an ancient voice
 same formula in every season's report; lines too long for the seat view. A 10 means nothing reads machine-made, every
 voice is its own and no formula repeats; where a PR shows lines before and after, the owner's read of them is the
 final word.
-
-**A protected file changed** (`SECURITY.md`, rule 3), for every reviewer: report as P1 a rule that departs from the
-owner's archived words it cites (`docs/archive/instructions.md`), so a rule never drifts from what he said.
-
-**One idea, for every reviewer** of a change to the game (not docs, design copies or Dependabot's updates): end the
-review with one thing outside this change that would make the game better, or "none", the usual answer when nothing is
-worth the owner's time. It never blocks (a P3 at most). The builder searches the open ideas first: a new one is filed as
-an `enhancement` issue and linked in the PR, a repeat becomes a comment on the existing issue, so the ones that keep
-coming up show. Nothing is built from it until the owner queues it.
