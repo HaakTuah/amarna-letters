@@ -97,10 +97,10 @@ passing out, like spies and such."
 
 ## Script players and the measure
 
-A first look on seeds 1-8 (`--verify-replay`, all eight replayed exactly): 70 kings held while their courts knew it, in
-every game; held 13.7 seasons on average, the median 8, the longest 67; at the age's end 49 free again, 16 dead, 5 still
-held. Letters from captivity: 117 sent through the captor, 3 smuggled out by a spy, 4 kept by the captor; 40 kings got
-away, 5 of them helped by a spy of theirs. Before the script captives asked for a spy and wrote to their sworn friends,
+A first look on seeds 1-8 at bb9dffc (`--verify-replay`, all eight replayed exactly): 67 kings held while their courts
+knew it, in every game; held 12.7 seasons on average, the median 6, the longest 62; at the age's end 44 free again, 18
+dead, 5 still held. Letters from captivity: 141 sent through the captor, 1 smuggled out by a spy, none kept; 34 kings
+got away, 3 of them helped by a spy of theirs; 15 of 848 seasons held under the captor's watchmen; none gave in. Before the script captives asked for a spy and wrote to their sworn friends,
 no letter was smuggled or kept and no spy helped (the patch, as "Every weakness found is patched" asks).
 
 **Use against ignore** (`--king-play-half`, seeds 1-50, at bb9dffc): kings that play captivity (ransom their own by their
