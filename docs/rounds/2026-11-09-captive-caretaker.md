@@ -108,10 +108,12 @@ word or, short of the ransom, give in with land; send for a spy; write to their 
 let a king go whose realm ceded them land; guard a king once a plot is found) grow 0.83 against 0.82 and win 19 games to
 22. 395 kings were held while their courts knew it, 6.3 seasons on average (median 2, longest 59); at the age's end 274
 free again, 99 dead, 22 still held. Letters: 225 sent through the captor, 2 smuggled, 6 kept; 132 kings got away, 6
-helped by a spy; 86 of 2,485 seasons held under the captor's watchmen; 8 words home gave in. It pays a little in growth
-and not in wins, a gap within what 50 games can tell apart: what the captive's play needs most, a captor who weighs
-holding him against his realm's weakness, is item 18's lever ("what holding him costs"), so the feature does not win
-yet rather than being played badly. The weakness found and patched on the way: when script captors guarded every king
+helped by a spy; 86 of 2,485 seasons held under the captor's watchmen; 8 words home gave in. It does not matter
+measurably yet in this split, rather than being played badly: the baseline lets every captive king go at once and
+never ransoms its own, so a king who plays captivity is held almost only by another who plays it, and his ransom, the
+land he gives in, his spy and his letters move wealth within the playing half; what the split mainly measures is
+holding baseline kings for a ransom never paid, which shows no gain beyond what 50 games can tell apart. Whether holding
+a king pays is item 18's measure (part F2), with its levers the escape odds and what holding him costs. The weakness found and patched on the way: when script captors guarded every king
 they held (at 577b62d), 1,197 of 2,707 seasons under watchmen cost the kings who played captivity their lead (0.79
 against 0.80, 18 wins to 20), since against a ransom alone a season's watch costs more than the escape it prevents is
 worth; they now guard only once a plot is found or a spy caught. Before this round (at 1c541ec, without giving in, the
