@@ -149,7 +149,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     the fix.
 - **The owner's answers of 7 and 9 November** (archive items 234 to 237), for item 18; each is written in the design
   document, which is the spec: a captive king's realm under a caretaker (#806; Victory, "One scoreboard for every
-  person"); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
+  person"; built in #850, report `docs/rounds/2026-11-09-captive-caretaker.md`); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
   "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
   the people fight back (#832; War, "The people defend their land").
 
