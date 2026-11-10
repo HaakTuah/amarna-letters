@@ -1,13 +1,12 @@
-# CodeQL on every PR into develop and main, every push to them, and weekly.
-# GitHub's default setup checked only PRs into main; this replaces it (the owner, 2 November 2026).
-# Findings on a PR show on it as notes, which builders can read and fix in the same PR.
+# CodeQL on every PR into main, every push to it, and weekly (core/modules/updates.md): the core's, with this game's
+# languages.
 name: CodeQL
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   schedule:
     - cron: '23 4 * * 1'
 
@@ -16,22 +15,10 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [actions, javascript-typescript, python]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: none
-      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
-        with:
-          category: /language:${{ matrix.language }}
+    uses: HaakTuah/agent-core/.github/workflows/codeql.yml@2d13e39d7d6062a5524852a9b2107e86b33c5353
+    with:
+      languages: '["actions", "javascript-typescript", "python"]'

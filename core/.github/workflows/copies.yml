@@ -1,0 +1,38 @@
+# The copies check ("One fact, one place" in the core's modules/how-to-work.md), for every project that takes the core:
+# a new copy of code, or of the rule files' prose, fails; the old ones its baseline lists are removed over time, and
+# against the branch a PR merges into the baseline may only shrink. A project calls it (workflow_call) on every pull
+# request and push to main, docs-only changes included, since the rule files are what it guards most, pinned to a full
+# commit SHA ("How a project takes the core" in README.md, point 5). It runs the project's own core/scripts/copies.mjs
+# with the config the project names.
+# Node's own modules only: nothing is installed. Read-only, with no secret.
+name: copies
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: The copies check's config, a JSON file in the calling repository (core/scripts/copies.mjs).
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  copies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # nothing after the checkout needs the token
+      - name: The base branch's latest commit, for its baseline (not the whole history)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/$BASE:refs/remotes/origin/$BASE"
+      - name: No new copies
+        env:
+          COPIES_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+          CONFIG: ${{ inputs.config }}
+        run: node core/scripts/copies.mjs "$CONFIG"

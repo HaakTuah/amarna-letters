@@ -1,0 +1,15 @@
+# The copy of the core (core-manifest.md; the core's README.md, "How a project takes the core", points 1 and 5): fails a
+# change whose core/ is not the core at its pin, or whose calls to the core's workflows are pinned where they differ.
+name: core
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    uses: HaakTuah/agent-core/.github/workflows/core.yml@2d13e39d7d6062a5524852a9b2107e86b33c5353
