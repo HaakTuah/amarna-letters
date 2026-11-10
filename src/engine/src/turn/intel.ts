@@ -47,8 +47,11 @@ declare module "./core.ts" {
     spyReportArrives(j: Journey): void;
     capture(c: Character, host: Power, rng: Rng): void;
     captive(host: Power, co: CaptiveOrder): void;
-    /** `where`: the province it is let go in, when not at its captor's court (a convoy stopped on the road). */
-    releaseCaptive(host: Power, c: Character, where?: string): void;
+    /**
+     * `where`: the province it is let go in, when not at its captor's court (a convoy stopped on the road); `memory`: how
+     * it went free, when its captor did not let it go.
+     */
+    releaseCaptive(host: Power, c: Character, where?: string, memory?: string): void;
     payRansom(payer: Power, pr: PayRansomOrder): void;
     ransomArrives(j: Journey): void;
     rumor(to: Power, from: Power, text: string, about?: string | null, news?: NewsKind | null, demand?: string | null): void;
@@ -649,7 +652,7 @@ P.captive = function (host, co) {
  * is home; one that has heard of the capture sees it on the road home at once, so that no ransom is paid for a captive
  * already free.
  */
-P.releaseCaptive = function (host, c, where) {
+P.releaseCaptive = function (host, c, where, memory) {
   // A captive on the road under guard (item 10+b) is let go where it is: its convoy is over.
   let at = where ?? (c.at !== null ? this.courtAt(c.at) : this.courtAt(host));
   if (c.duty === "UnderGuard") {
@@ -661,7 +664,7 @@ P.releaseCaptive = function (host, c, where) {
   c.status = c.employer === null ? "Free" : "Employed";
   c.heldBy = null;
   c.intercepted = false;
-  remember(c, this.s.turn, `${land(host)} set me free.`);
+  remember(c, this.s.turn, memory ?? `${land(host)} set me free.`);
   // Item 17b: a king set free walks home to his court, and reigns again when he is there.
   const realm = realmOfKing(this.s, c.id);
   if (realm !== null) this.kingGoesHome(c, realm, at);

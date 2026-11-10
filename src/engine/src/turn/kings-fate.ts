@@ -218,7 +218,7 @@ P.courtFlees = function (p, by, road) {
   if (road && taker !== null) this.takeArchive(taker, where, p);
   if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");
   // #806: its captives, kings among them, go free with the court taken: nobody is left to guard them ("march to free him").
-  for (const x of S.characters.filter((x) => x.heldBy === p && x.status === "Captured" && x.duty !== "UnderGuard")) this.releaseCaptive(p, x);
+  for (const x of S.characters.filter((x) => x.heldBy === p && x.status === "Captured" && x.duty !== "UnderGuard")) this.releaseCaptive(p, x, undefined, `The court of ${land(p)} that held me was taken, and nobody was left to guard me.`);
   // Its people flee to the nearest city the realm still holds, a real journey; a realm that holds nothing has fallen.
   const held = ownedBy(S, p);
   if (held.length === 0) {

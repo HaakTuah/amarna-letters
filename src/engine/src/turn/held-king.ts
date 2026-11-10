@@ -169,7 +169,7 @@ P.captiveWrites = function (p, king, orders) {
       p,
       "Rejected",
       "Held at a foreign court",
-      `You are held at the court of ${powerName(host)}, and your realm is kept in your name: your standing orders stand, your troops defend your land and your debts, fees and tribute are kept, but nothing new is begun. From here you may only write letters (order write_from_captivity), and in a letter home agree to your ransom, to giving in (land ceded, troops given, an envoy sent with a tablet), or to a spy hired or posted at this court to free you. Not carried out: ${refused.join("; ")}.`,
+      `You are held at the court of ${powerName(host)}, and your realm is kept in your name: your standing orders stand, your troops defend your land and your debts, fees and tribute are kept, but nothing new is begun. From here you may only write letters (order write_from_captivity), and in a letter home agree to your ransom, to giving in (land ceded, troops given, an envoy sent with a tablet), or to a man hired, kept on or posted as a spy at this court to free you. Not carried out: ${refused.join("; ")}.`,
       king.id,
     );
   if (king.duty === "UnderGuard") {

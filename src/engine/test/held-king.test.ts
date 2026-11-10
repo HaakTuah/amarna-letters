@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type Character, type GameState, OrderValidator, Views, inboxOf, type Power, captive, cede, giftUnit, heldKing, hire, hold, move, newSleepState, newTurnSubmission, notify, ownedBy, payRansom, placeSpy, writeLetter } from "@amarna/engine";
+import { type Character, Dict, type GameState, OrderValidator, Views, inboxOf, type Power, captive, cede, giftUnit, heldKing, hire, hold, move, newSleepState, newTurnSubmission, notify, ownedBy, payRansom, placeSpy, writeLetter } from "@amarna/engine";
 import { inMandate } from "../src/turn/held-king.ts";
 import { lettersKept, spyWith } from "../src/rules/court.ts";
 import { newJobErrand } from "../src/model/people.ts";
@@ -136,6 +136,13 @@ describe("HeldKingTests", () => {
     man.at = "Mitanni";
     const v = new OrderValidator(s).validate("Mitanni", newTurnSubmission({ orders: [{ ...hire(man.id, 60, 6, 30, { what: "spy", where: "Hatti" }), frees: k.id }] }));
     Assert.contains("free your king", Assert.single(v.rejected).reason);
+    // Played through a season: hired, he sets out for the captor's court with the job to free his king.
+    man.at = "Egypt";
+    s.treasuries.get("Egypt").gold = 1000;
+    s.wordHome.push(newWordHome({ power: "Egypt", order: hire(man.id, 400, 6, 200, { what: "spy", where: "Hatti" }) }));
+    e.beginTurn();
+    e.resolve(new Dict([["Egypt", newTurnSubmission({ caretaker: newTurnSubmission() })]]));
+    Assert.equal(["Employed", "SpyOutbound", "Hatti", k.id], [man.status, man.duty, man.missionTarget, man.contract?.errand?.frees]);
   });
 
   test("His word home may give in: land ceded goes home with his letter", () => {

@@ -576,7 +576,7 @@ P.fall = function (p, conqueror, ceded = false) {
   this.debtsDie(p);
   // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
   for (const c of S.characters.filter((c) => c.heldBy === p)) {
-    if (c.status === "Captured") this.releaseCaptive(p, c);
+    if (c.status === "Captured") this.releaseCaptive(p, c, undefined, `${upper(land(p))} that held me fell, and nobody was left to guard me.`);
     else if (c.duty === "Detained") this.letEnvoyGo(p, c, null);
   }
   // Item 13+: a governor or commander far off serves on until word of the fall reaches him (fallsSpread).
