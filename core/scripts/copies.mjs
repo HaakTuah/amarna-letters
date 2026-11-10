@@ -11,7 +11,7 @@
 //
 // The config, a JSON file the project keeps (its *copies check* slot names it), says what is checked: "baseline", the
 // baseline's path; "code" and "prose", lists of git pathspecs (":!" leaves a path out); and "proseFromSecurity": true
-// to add the files the project's SECURITY.md names in rule 3, after "the rule files:" (rule-files.mjs, beside this file).
+// to add the project's rule files: those floor rule 3 names and those its SECURITY.md adds (rule-files.mjs, beside it).
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";

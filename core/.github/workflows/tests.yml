@@ -1,0 +1,25 @@
+# The core's scripts' own tests, on every pull request here and every push to main. This repository only; no project
+# calls it. Reads only, with no secret, on the core's one exact Node; nothing is installed.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      - name: The versions check
+        run: node scripts/versions-test.mjs

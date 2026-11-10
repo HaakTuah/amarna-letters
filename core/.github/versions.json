@@ -1,0 +1,13 @@
+{
+  "about": "The versions the core pins that Dependabot cannot see, read by scripts/versions.mjs from where each is written (the version is never copied here); the core's own monthly run of .github/workflows/versions.yml opens an enhancement issue here for each one behind.",
+  "entries": [
+    {
+      "name": "node",
+      "file": ".node-version",
+      "pattern": "(\\d+\\.\\d+\\.\\d+)",
+      "days": 7,
+      "sameMajor": true,
+      "how": "Put the version in `.node-version` and the SHA-256 of `bin/node` from its `node-linux-x64` and `node-linux-arm64` packages (fetched with `npm pack --ignore-scripts`) in `scripts/node.sh`, with floor rule 7's checks; every project takes it by its sync. A new even-numbered long-term-support Node is the move \"Node\" in `modules/updates.md` describes, not this."
+    }
+  ]
+}

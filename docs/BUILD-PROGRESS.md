@@ -91,13 +91,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **A pointer check and a reading-size check on every PR** (archive item 217), beside the copies check and protected
-  like it (`SECURITY.md`, rule 3): (1) every pointer in the rule files to a file, a section or a numbered point must
-  lead to one that exists, or the PR fails, saying which; forms it cannot read are listed, never guessed; (2) the files
-  every session reads, each against a mark of about 20 KB (one already past it, as this file is, starts at its size
-  today, a baseline that may only shrink), their total against today's, and every file past about 50 KB the PR
-  changes (Step 0); a PR that crosses a mark moves the mark in the same PR and says why. The workshop check's points 2
-  and 3 are then measured on every PR; its wording in the builder rules goes to the design session.
+- ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
+  Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
+  own (#721) gave way to them.
 - **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
   locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
