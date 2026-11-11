@@ -181,8 +181,8 @@ From a fresh branch off `main` once this is merged, on the play as F2 leaves it:
    feature redesigned. The caretaker's realm keeping par while its king is held long (above) says the script kings'
    own campaigning adds little over holding; check it against the war of choice's numbers (17++a) there.
 2. **Bold and careful:** the careful reach the top five 1.40 times as often a head (above); tune the bold road until
-   both pay. **Arzawa** stood first in no game of seeds 1-100 at any weight up to 10, where about 4 were due: look for
-   why with the win rates of seeds 101-200.
+   both pay. **Arzawa** stood first in 2 of the 200 games at the weight of 2, where about 6.6 a Great King
+   were due (none of seeds 1-100 at any weight up to 10): look for why.
 3. **The people 17+ added** judged by what they did (the list to the owner); **starting positions, banditry and far
    provinces** against the sources; **commanders' worth** by the distance of the front and the realm's size.
 4. Then **stop for review**: the review questions to the owner as `question` issues, and on to item 18a.

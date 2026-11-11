@@ -87,8 +87,9 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   in a third of the games at any weight of size that kept the Great Kings level (#825's test: "a character wins now
   and then"); see [57](57-every-person.md).
 - **The weight of size is 2 percent** (`GameConfig.sizeWeight`, 5 before), set by testing against #825's test on seeds
-  1-200: at 2 the Great Kings stand first about equally and each about twice as often as another state, and a character
-  in about one game in nine; at 5 the Great Kings drift apart and stand first three times as often as another state.
+  1-200: at 2 the Great Kings stand first about equally (Arzawa apart, looked into in F3) and each about twice as often
+  as another state, and a character in about one game in nine; at 5 the Great Kings drift apart and stand first three
+  times as often as another state.
 - **Holding a king forever** is measured by the "Held long" line ([59](59-a-captive-kings-realm.md)); the escape odds
   and the guard (`KingData`) stay as they are, since holding a king long gains his captor nothing measurable.
 - **The bold and careful lines** count only those who never reigned.
