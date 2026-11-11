@@ -103,3 +103,5 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   what the seeds alone give each side. On seeds 1-100 the powers of one parity win more often on the seeds of the other.
 - Every feature now has its half switch: `--sea-play-half` ([12](12-the-map-and-the-seas.md)) and
   `--inventory-play-half` ([14](14-structured-press.md)) are new.
+- **The top five by way to a fortune** (money report): each way's characters and how many stood in the top five, bold
+  and careful apart, so a gap between the roads can be told from a gap between the ways.
