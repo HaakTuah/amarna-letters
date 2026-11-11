@@ -76,6 +76,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **A letters-only game** (the owner, 11 November 2026, agreeing with the design session's answer to an outside review:
+  "Agreed with all your takes, expertly!"; #927): after item 18, a preset with the letters, envoys and treaties and
+  the other systems off, played by the script kings on the same seeds as the full game, measuring how often kings keep
+  and break their word and come to trust or shun each other in each, so the game shows whether its trust comes from the
+  letters or from the economy around them.
+
 - **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
   that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
   the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
