@@ -3,7 +3,7 @@
  * characters ranked together at the end of a game, each by what he holds, blended with how he did against par for his own
  * start (`GameConfig.sizeWeight` percent for size). A king holds his realm and is measured from his accession, against
  * what he inherited (`GameState.startStrength`); a character holds his purse and hoard and is measured by what he gained since he came into play,
- * against what characters gained in the script games ({@link CharacterPar}). The dead rank below every living person, by
+ * against what the best characters of each script game gained ({@link CharacterPar}). The dead rank below every living person, by
  * what they held when they died. The realms' scores are their reigning kings' rows, and the winner is the first person on
  * the board, king or character.
  */

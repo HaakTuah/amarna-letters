@@ -6,6 +6,7 @@ import {
   standingOf,
   type Clause,
   AllPowers,
+  CharacterParBest,
   GameStateSchema,
   TurnEngine,
   Wealth,
@@ -93,7 +94,7 @@ export interface GameSummary {
   topWealth: number;
   /** Whether a king or a character stood first on the scoreboard; older summaries have none. */
   firstIsKing?: boolean;
-  /** Each character's result against par (`characterResult`), kings apart, for `CharacterPar`; older summaries have none. */
+  /** The best {@link CharacterParBest} results against par (`characterResult`) of the characters who never reigned, for `CharacterPar`; older summaries have every character's. */
   characterResults?: number[];
   /** Item 18, part D: where the gold sat, the fees agreed and the two roads ({@link MoneyWatch}). */
   money?: MoneyMeasure;
@@ -366,7 +367,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     board: board.map(boardLine),
     topWealth: Math.max(0, ...characters.filter((x) => !x.dead).map((x) => x.holding)),
     firstIsKing: board.length > 0 && board[0].power !== null,
-    characterResults: characters.map((x) => characterResult(x.character)),
+    characterResults: characters.filter((x) => !reigned.has(x.character.id)).map((x) => characterResult(x.character)).sort((a, b) => b - a).slice(0, CharacterParBest),
     money: watch.end(characters.filter((x) => !reigned.has(x.character.id))),
     spending: spent.end(),
     held: captives.end(s, (p) => standingOf(p, engine.growth(p))),
@@ -679,18 +680,13 @@ export function parResultsSource(games: readonly GameSummary[], seeds: string): 
     "};",
     "",
     "/**",
-    ` * Par for a character (item 17b, part D, "One scoreboard for every person"): what characters gained in the same games, measured`,
-    " * from what each brought into play (`characterResult`; 0 for the dead), pooled and cut at every hundredth.",
+    ` * Par for a character (item 17b, part D, "One scoreboard for every person"; item 18, part F2): what the best ${CharacterParBest} characters`,
+    " * who never reigned gained in each of the same games, measured from what each brought into play (`characterResult`), pooled and",
+    " * sorted.",
     " */",
-    `export const CharacterPar: readonly number[] = [${hundredths(games.flatMap((g) => g.characterResults ?? [])).map((x) => roundTo(x, 2)).join(", ")}];`,
+    `export const CharacterPar: readonly number[] = [${games.flatMap((g) => g.characterResults ?? []).sort((a, b) => a - b).map((x) => roundTo(x, 2)).join(", ")}];`,
     "",
   ].join("\n");
-}
-
-/** A pool of results cut at every hundredth, lowest first (101 values; none for an empty pool). */
-function hundredths(results: readonly number[]): number[] {
-  const sorted = [...results].sort((a, b) => a - b);
-  return sorted.length === 0 ? [] : Array.from({ length: 101 }, (_, i) => sorted[Math.round((i * (sorted.length - 1)) / 100)]);
 }
 
 export function batchReport(games: readonly GameSummary[]): string {

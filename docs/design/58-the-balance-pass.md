@@ -78,3 +78,17 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **Fees that fall when many wait** (part F, #837): one seeking service unhired past its patience asks less, a master
   sees his servant's price for a new job, and script kings renew at it: [money and work](21-money-and-work.md), "Fees
   clear the market". Save version 92.
+
+## Part F2: the audit on the tuned play (`rules/par-results.ts`, `CharacterParBest`; `game/src/captives-report.ts`)
+
+- **Par refreshed** once more, from 100 games (seeds 101-200), with parts A to F1, #850 and #878 in play.
+- **A character's par** is what the best five characters who never reigned gained in each of those games
+  (`CharacterParBest`), not every character's: ranked against everyone's results, the characters together stood first
+  in a third of the games at any weight of size that kept the Great Kings level (#825's test: "a character wins now
+  and then"); see [57](57-every-person.md).
+- **The weight of size stays 5 percent** (`GameConfig.sizeWeight`), set by testing against #825's test: the Great
+  Kings stand first about equally at 5 and below, and the largest realms pull ahead from about 10.
+- **Holding a king forever** is measured by the "Held long" line ([59](59-a-captive-kings-realm.md)); the escape odds
+  and the guard (`KingData`) stay as they are, since holding a king long gains his captor nothing measurable.
+- **The bold and careful lines** count only those who never reigned.
+- Save version 94.
