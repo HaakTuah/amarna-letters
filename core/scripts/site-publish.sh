@@ -5,10 +5,11 @@
 #   core/scripts/site-publish.sh pr-<n> <site-dir>    a PR's preview: replaces pr-<n>/ only
 #   core/scripts/site-publish.sh pr-<n> --remove      removes pr-<n>/ only
 # Run only from workflows that run main's own copy (never a PR's code): the game's publish of main, and the core's
-# preview workflow. The root is published only from main's newest commit: run for any other (GITHUB_SHA, such as an
-# older run re-run), it is skipped, so the live game never goes back. Each publish is one fresh commit with no parent,
-# so the branch does not grow with every build; it is pushed with a lease on the commit it was built from, and redone
-# from the new tip if another run moved the branch first.
+# preview workflow. The root is published only from a commit of main (GITHUB_SHA) that comes after the one live, which
+# .root-commit names: a re-run of an older build is skipped, so the live game never goes back, and a passing build goes
+# live even when main has moved past it (a run by hand, without GITHUB_SHA, clears the record). Each publish is one
+# fresh commit with no parent, so the branch does not grow with every build; it is pushed with a lease on the commit it
+# was built from, and redone from the new tip if another run moved the branch first.
 set -euo pipefail
 target=$1 src=$2
 [[ $target =~ ^(root|pr-[0-9]+)$ ]] || { echo "bad target: $target" >&2; exit 2; }
@@ -18,6 +19,12 @@ if [ "$src" != --remove ]; then
   find "$src" -type l -delete   # a link in a built site could point anywhere on the runner
 fi
 branch=gh-pages
+ancestor() {   # 0: commit $1 is $2 or comes before it; 1: it does not; anything else (an unknown commit) stops the run
+  local rc=0; git merge-base --is-ancestor "$1" "$2" || rc=$?
+  local b=${2#refs/remotes/origin/}
+  [ "$rc" -le 1 ] || { echo "gh-pages: could not compare ${1:0:7} with ${b:0:7}" >&2; exit 1; }
+  return "$rc"
+}
 gitdir=$(git rev-parse --absolute-git-dir)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
@@ -30,11 +37,18 @@ for attempt in 1 2 3 4 5; do
   else
     old=""   # the branch does not exist yet: the lease requires that it still does not
   fi
-  # (main fetched after gh-pages, so a root published from a newer main before this lease is seen here too)
+  # (main's history, commits only, fetched after gh-pages, so the commit live under this lease is in it)
   if [ "$target" = root ] && [ -n "${GITHUB_SHA:-}" ]; then
-    git fetch -q origin "+refs/heads/main:refs/remotes/origin/main"
-    main=$(git rev-parse refs/remotes/origin/main)
-    [ "$main" = "$GITHUB_SHA" ] || { echo "gh-pages: main is now at ${main:0:7}, not this run's ${GITHUB_SHA:0:7}; root skipped"; exit 0; }
+    deepen=$([ "$(git rev-parse --is-shallow-repository)" = true ] && echo --unshallow || true)
+    git fetch -q --filter=tree:0 $deepen origin "+refs/heads/main:refs/remotes/origin/main"
+    git config --unset remote.origin.partialclonefilter || true   # (later fetches, gh-pages's, whole again)
+    ancestor "$GITHUB_SHA" refs/remotes/origin/main ||
+      { echo "gh-pages: ${GITHUB_SHA:0:7} is not on main; root skipped"; exit 0; }
+    live=$(head -c 40 "$work/tree/.root-commit" 2>/dev/null || true)
+    if [[ $live =~ ^[0-9a-f]{40}$ ]] && git merge-base --is-ancestor "$live" refs/remotes/origin/main 2>/dev/null &&
+      ! ancestor "$live" "$GITHUB_SHA"; then
+      echo "gh-pages: the live root is from ${live:0:7}, after this run's ${GITHUB_SHA:0:7}; root skipped"; exit 0
+    fi
   fi
 
   # A preview never creates the branch, nor writes beside a root that is not there: deployed, such a branch would
@@ -45,6 +59,8 @@ for attempt in 1 2 3 4 5; do
   if [ "$target" = root ]; then
     find "$work/tree" -mindepth 1 -maxdepth 1 ! -regex '.*/pr-[0-9]+' -exec rm -rf {} +
     cp -R "$src"/. "$work/tree"/
+    rm -f "$work/tree/.root-commit"   # (the commit live at the root, for the next publish to compare with)
+    [ -z "${GITHUB_SHA:-}" ] || echo "$GITHUB_SHA" > "$work/tree/.root-commit"
   else
     rm -rf "${work:?}/tree/$target"
     [ "$src" = --remove ] || { mkdir "$work/tree/$target" && cp -R "$src"/. "$work/tree/$target"/; }
