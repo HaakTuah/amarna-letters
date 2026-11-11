@@ -7,6 +7,7 @@
     "docs/BUILD-PROGRESS.md": 23894,
     "core-manifest.md": 20480,
     "docs/intent/overview/the-game-in-one-page.md": 20480,
+    "docs/intent/overview/design-pillars.md": 20480,
     "core/floor/security.md": 20480,
     "core/modules/how-to-work.md": 20480,
     "core/modules/inbox.md": 20480,
@@ -14,7 +15,7 @@
     "core/modules/git.md": 20480,
     "core/modules/claude.md": 20480
   },
-  "total": 63488,
+  "total": 71680,
   "split": 51200,
   "skip": [
     "docs/archive/",
