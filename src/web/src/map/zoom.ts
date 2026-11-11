@@ -103,6 +103,7 @@ export function zoomBy(view, factor) {
 export function reset(view) {
   const st = states.get(view);
   if (!st) return;
+  remeasure(st);
   animate(st, () => {
     // As far out as the view may go, centred on the board (where that is past the whole board, clamp alone would pin
     // the board's corner).
@@ -127,6 +128,7 @@ export function getView(view) {
 export function setView(view, mx, my, zoom, animated) {
   const st = states.get(view);
   if (!st) return;
+  remeasure(st);
   const change = () => {
     const g = geometry(st);
     st.s = Math.min(MAX_ZOOM, Math.max(lowest(st), zoom));
@@ -156,6 +158,7 @@ export function panBy(view, dx, dy) {
 export function focus(view, mx, my, minZoom, centre) {
   const st = states.get(view);
   if (!st) return;
+  remeasure(st);
   const r = view.getBoundingClientRect();
   const g = geometry(st);
   animate(st, () => {
@@ -177,6 +180,12 @@ function lowest(st) {
   const g = geometry(st);
   if (!g.w || !g.h) return 1;
   return Math.max(1, g.w / (g.b * WORLD_W), g.h / (g.b * WORLD_H));
+}
+
+/// The view's size read afresh where the player or an opening sets the view, which is rare: a layout changed in the same
+/// task (a column shown, say) is not yet in what the resize observer kept.
+function remeasure(st) {
+  st.size = null;
 }
 
 function geometry(st) {

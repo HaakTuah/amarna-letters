@@ -191,7 +191,8 @@ export class Session {
       this.held = [];
       this.endPlayout();
     } else if (this.held.length > 0 || (this.playout?.live === true && m.frames.length > 0)) {
-      // The season computed ahead waits for the one playing (item 17+++); a pause, an error or a notice shows at once.
+      // The season computed ahead waits for the one playing (item 17+++); a pause, an error or a notice shows at the page's
+      // next redraw, a task later.
       this.held.push(m);
       this.live = { ...this.live, auto: m.live.auto, error: m.live.error, notice: m.live.notice };
       this.notifySoon();
@@ -242,11 +243,6 @@ export class Session {
     if (m.live.states.length > 0) {
       for (const d of m.live.states) this.history.apply(d);
       this.recent.clear();
-      // The newest season is read in a task of its own, after the frames have shown (item 17a: one task under the 50 ms
-      // bar holds the message and the map, the next the state); only what changed is read, and a season looked back at
-      // is read when looked at (displayed). Until then the panels show the season before. Simulate reads nothing until it
-      // stops (notify).
-      if (!(this.delayMs === 0 && m.live.auto)) this.readSoon();
     }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
@@ -268,6 +264,11 @@ export class Session {
     if (m.frames.length === 1 && !m.reset && !newGame && this.frames.length > 1 && !this.simulating) this.startPlayout();
     else if (m.frames.length > 0) this.tellPlayed(this.frames.length - 1);
     this.notifySoon();
+    // The newest season is read in tasks of its own, after the page's redraw has shown the frames (item 17a: one task under
+    // the 50 ms bar holds the message and the map, the next the state; #666: the redraw is asked first, so it comes first);
+    // only what changed is read, and a season looked back at is read when looked at (displayed). Until then the panels show
+    // the season before. Simulate reads nothing until it stops (notify).
+    if (m.live.states.length > 0 && !(this.delayMs === 0 && m.live.auto)) this.readSoon();
   }
 
   // ---------------------------------------------------------------- the season plays out (item 17+++)

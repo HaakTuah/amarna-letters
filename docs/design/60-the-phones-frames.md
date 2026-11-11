@@ -9,11 +9,12 @@ the phone profile was made of, and what changed:
   is now an `<svg>` of its own, in the same order and with the same classes (`mount`), so a change records only its
   own layer.
 - **The page read the layout it had just dirtied.** The camera's size (`zoom.ts`, `geometry`) is kept from the view's
-  resize observer, and the map's opening view (`GameMap`'s `opening`, which reads the window's width) is asked only when
+  resize observer, and read afresh only where the player or an opening sets the view (`remeasure`), and the map's opening view (`GameMap`'s `opening`, which reads the window's width) is asked only when
   a view first opens; both read inside React's redraw forced a style and layout of what it had just written.
 - **One task held the worker's message, the state's first read and the page's redraw.** The reader's first step runs
   in a task of its own, and the page redraws after a worker's update, a season played or a read in a task of its own
-  (`notifySoon`); React renders a change of the store in the microtasks of the task that tells it.
+  (`notifySoon`), asked before the read so it comes first; React renders a change of the store in the microtasks of the
+  task that tells it.
 - **The works at the cities and the bands were parsed whole.** A city's works are its marks and their tooltips apart
   (`WorksPart`): a granary's tooltip, which changes every season, is written in place, and a city whose marks changed is
   patched where it stands (`patchParts`); the bands are a part a province, so a season parses only the bands that
