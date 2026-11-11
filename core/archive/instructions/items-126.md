@@ -194,3 +194,13 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      > Code's should probably note where it has made an assumption, like it does now with questions, so we can check it
      > afterwards.
+
+145. **31 October 2026** (Amarna Letters, its archive item 73, for both games, in the design chat, 11:31 to 11:39 UTC),
+     behind the polish lane, which each game then wrote for itself and which moved here on 11 November 2026, when the
+     audit he asked for ("Is everything perfect now, expert? Be thorough!") found the two copies drifting apart:
+
+     > Should we add a polish point to each that it can spend the last credits on also?
+
+     And, to the design session's shape of the polish lane:
+
+     > Yes, and make things as refined as possible!
