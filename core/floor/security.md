@@ -39,8 +39,8 @@ the core's `main`, as the core's `scripts/pure-sync.mjs`, run from the core's `m
 head it checked), whose code both reviews passed in the core's own PR (core archive 139 and 140). **Nothing is reviewed
 twice** (core archive 139): a later commit is reviewed only for what it changes. **Nothing runs on the owner's computer
 unless he starts it:** no poller, scheduled task or service of an agent's making (core archive 52); a session there
-works in a folder of its own and holds no key beyond its own sign-in. **Test data is never real:** fake keys built from
-pieces when the test runs, sample names and addresses invented (core archive 29).
+works in a folder of its own, with the sign-ins he gave it and no other key. **Test data is never real:** fake keys
+built from pieces when the test runs, sample names and addresses invented (core archive 29).
 
 **11. Nothing personal, ever** (core archive 30 and 43). No file, commit, PR, issue, comment, log or picture holds
 personal information about the owner or anyone in his life: no names (he is "the owner"), profession, employer or

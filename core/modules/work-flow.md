@@ -15,11 +15,10 @@ Waiting is lost time and, past an hour, a lost cache (core archive 10).
 3. **Lanes beside the main lane** (core archive 11): independent work in different files from every open lane, with no
    shared measurement and no waiting on another's result; never what the project runs *one at a time*. Claim a lane with
    a draft PR from a fresh branch off `main`, after checking the open PRs; bring it up to date before review.
-4. **The polish lane** (core archive 145), in a game: what makes it feel finished without changing how it plays
-   (glitches, layout, tap targets, contrast, reduced motion, wording, console errors, slow spots), beside the main lane
-   and never ahead of it. Finds come from every screen of the live build on a phone and on desktop, and whole games
-   watched at top speed; each is its own small PR, with a before-and-after picture and play proven unchanged ("Same
-   seed, same game").
+4. **The polish lane** (core archive 145), where people use the project through a screen: what makes it feel finished
+   without changing what it does (glitches, layout, tap targets, contrast, reduced motion, wording, console errors, slow
+   spots), beside the main lane and never ahead of it. Finds come from every screen of the newest build, at each size it
+   is used at; each is its own small PR, with a before-and-after picture and its behaviour proven unchanged.
 
 **Sessions:** started task by task, stop when your task is merged, saying in your last message what merged and what is
 next; otherwise carry on with the next task. A long task may end a session at a passed gate, with a commit and a note

@@ -1,0 +1,16 @@
+{
+  "paths": ["floor", "modules"],
+  "exempt": ["modules/game-design.md"],
+  "words": [
+    { "pattern": "\\bgames?\\b", "say": "the project; what holds only for games goes in modules/game-design.md" },
+    { "pattern": "\\bplayers?\\b", "say": "its users" },
+    { "pattern": "\\bplay(s|ed|ing)?\\b", "say": "what it does, or its behaviour" },
+    { "pattern": "live (site|build)", "say": "what its users get, or its newest build: a project may release by tag" },
+    { "pattern": "HaakTuah", "say": "the *owner's account*, or the repository's own address" },
+    { "pattern": "everything is public", "say": "everything counts as public: a repository may be private today" },
+    { "pattern": "\\bthe page\\b", "say": "where it is shown, or a page: a project may be no web page" },
+    { "pattern": "(?<!Security )\\btabs?\\b", "say": "a session: a program may have no tab" },
+    { "pattern": "npm[ ]provenance|\\(`npm[ ]ci`\\)|verified \\(`npm", "say": "the registry's own, with npm's as the example: a project may use another registry" },
+    { "pattern": "beyond its own sign-in", "say": "the sign-ins the owner gave it: he may have signed a second tool in" }
+  ]
+}
