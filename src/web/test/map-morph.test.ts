@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
-import { patchChildren, patchParts, type Parts } from "../src/map/morph.ts";
+import { patchChildren, patchParts, type Parts, type Writes } from "../src/map/morph.ts";
 
 // Item 17+++, part G: a map layer is patched, not written whole, so a season restyles only what changed. A stand-in for the
 // few DOM calls the patch makes (the suite runs without a browser), counting the writes.
@@ -107,7 +107,15 @@ function build(spec: Spec): FakeNode {
 }
 const show = (n: FakeNode): string =>
   n.nodeType === 3 ? n.nodeValue ?? "" : `<${n.nodeName}${[...n.attrs].map(([k, v]) => ` ${k}="${v}"`).join("")}>${n.kids.map(show).join("")}</${n.nodeName}>`;
-const patched = (live: FakeNode, next: FakeNode): void => patchChildren(live as unknown as Node, next as unknown as Node);
+/** Finds the patch, which leaves the layer as it stood, then makes its writes. */
+const patched = (live: FakeNode, next: FakeNode): void => {
+  const later: Writes = [];
+  const stood = show(live);
+  patchChildren(live as unknown as Node, next as unknown as Node, later);
+  Assert.equal(stood, show(live));
+  Assert.equal(0, writes.length);
+  for (const w of later) w();
+};
 
 describe("A layer patched", () => {
   test("only what differs is written, and the layer ends as the new markup", () => {
@@ -140,7 +148,13 @@ describe("A layer patched", () => {
   test("a layer in parts parses only the parts that changed, each in its place", () => {
     const live = new FakeNode(1, "g");
     const was: Parts = { markup: [], nodes: [] };
-    const write = (parts: string[]): boolean => patchParts(live as unknown as Element, was, parts);
+    const later: Writes = [];
+    const find = (parts: string[]): boolean => patchParts(live as unknown as Element, was, parts, later);
+    const write = (parts: string[]): boolean => {
+      const wrote = find(parts);
+      for (const w of later.splice(0)) w();
+      return wrote;
+    };
     Assert.true(write(["a", "", "c"]), "first written");
     Assert.equal("a,c", live.kids.map((k) => k.nodeName).join(","));
     writes = [];
@@ -149,7 +163,7 @@ describe("A layer patched", () => {
     // A part appears between two standing ones, and another changes: only those two are parsed.
     Assert.true(write(["a", "b", "c2"]), "written");
     Assert.equal("a,b,c2", live.kids.map((k) => k.nodeName).join(","));
-    Assert.equal("parse c2, remove c, insert c2, parse b, insert b", writes.join(", "));
+    Assert.equal("parse c2, parse b, remove c, insert c2, insert b", writes.join(", "));
     // A part emptied; then a different number of parts writes the layer anew.
     write(["a", "", "c2"]);
     Assert.equal("a,c2", live.kids.map((k) => k.nodeName).join(","));
@@ -157,5 +171,13 @@ describe("A layer patched", () => {
     Assert.equal("x", live.kids.map((k) => k.nodeName).join(","));
     write([]);
     Assert.equal(0, live.kids.length);
+    // Found twice before anything is written (a season arriving before the last was written): the layer stands untouched
+    // until the writes are made, and ends as the last markup.
+    write(["a", "b", ""]);
+    Assert.true(find(["a", "b2", "c"]), "found");
+    Assert.true(find(["a2", "", "c"]), "found again");
+    Assert.equal("a,b", live.kids.map((k) => k.nodeName).join(","));
+    for (const w of later.splice(0)) w();
+    Assert.equal("a2,c", live.kids.map((k) => k.nodeName).join(","));
   });
 });

@@ -10,7 +10,7 @@ import { dash, glyphId } from "./glyphs.ts";
 import { RuinMarks } from "./life.ts";
 import { ringOf, TentHalf, TentRing } from "./markup.ts";
 import { holdingLayer, tintClass, type MapMode } from "./holding.ts";
-import { patch } from "./morph.ts";
+import { patch, type Writes } from "./morph.ts";
 import { type MapScene } from "./scene.ts";
 import { esc, title } from "./text.ts";
 
@@ -61,29 +61,30 @@ export function tints(s: MapScene, mode: MapMode): string {
 
 /**
  * The tints written in place (part G): each province's colour and tooltip set where they changed, and the governors' blocs
- * and moods patched; the shapes are not parsed again. Gives whether anything was written. The layer stands as `tints` draws it.
+ * and moods patched; the shapes are not parsed again. The writes are listed on `later` (morph.ts); gives whether there are
+ * any. Once they are made the layer stands as `tints` draws it.
  */
-export function retint(g: Element, s: MapScene, mode: MapMode): boolean {
+export function retint(g: Element, s: MapScene, mode: MapMode, later: Writes): boolean {
   let wrote = false;
   for (const el of g.querySelectorAll<SVGPathElement>(":scope > .politics > path.tint")) {
     const p = Map_.get(el.dataset.province ?? "");
     const owner = s.owner.get(p.id) ?? null;
     const cls = tintClass(s, p.id, owner);
     if (el.getAttribute("class") !== cls) {
-      el.setAttribute("class", cls);
+      later.push(() => el.setAttribute("class", cls));
       wrote = true;
     }
     const tip = el.firstElementChild;
     const text = provinceTitle(p, owner);
     if (tip !== null && tip.textContent !== text) {
-      tip.textContent = text;
+      later.push(() => (tip.textContent = text));
       wrote = true;
     }
   }
   const holding = g.querySelector(":scope > .holding");
   const markup = holdingLayer(s, mode);
   if (holding !== null && HoldingWritten.get(holding) !== markup) {
-    patch(holding, markup);
+    patch(holding, markup, later);
     HoldingWritten.set(holding, markup);
     wrote = true;
   }

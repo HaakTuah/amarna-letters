@@ -8,6 +8,7 @@
  * unchanged memories. The state read is exactly the state written (`history.test.ts`).
  */
 import { Dict, GameStateSchema, HSet, read, type GameState, type Schema } from "@amarna/engine";
+import { whenIdle } from "./idle.ts";
 
 /** A piece of a snapshot that is an item by itself: its index in the season's list of numbers. */
 type Leaf = number;
@@ -94,30 +95,31 @@ export class IncrementalReader {
   }
 
   /**
-   * The same, spread over tasks (item 17a: no frame over about 50 ms): each task reads fields for about `budgetMs`, then
-   * yields; the state is given once every field is read. A read begun while one is under way replaces it.
+   * The same, spread over the page's spare time (item 17a: no frame over about 50 ms; `whenIdle`): each slice reads fields
+   * for the time to spare, at most about `budgetMs`, then yields; the state is given once every field is read. A read begun
+   * while one is under way replaces it.
    */
   read(refs: Uint32Array, texts: readonly string[], budgetMs = 10): Promise<GameState> {
     this.cancel();
     const job = this.begin(refs, texts);
     this.job = job;
     return new Promise((resolve, reject) => {
-      const go = (): void => {
+      const go = (spareMs: number): void => {
         if (this.job !== job) {
           reject(new ReadReplaced());
           return;
         }
         try {
-          if (this.step(job, budgetMs)) {
+          if (this.step(job, spareMs)) {
             this.job = null;
             resolve(this.finish(job));
-          } else setTimeout(go, 0);
+          } else whenIdle(go, budgetMs);
         } catch (e) {
           this.job = null;
           reject(e as Error);
         }
       };
-      go();
+      whenIdle(go, budgetMs);
     });
   }
 

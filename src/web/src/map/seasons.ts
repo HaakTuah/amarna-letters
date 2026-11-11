@@ -21,7 +21,7 @@ import { WinterSeason, WorldMap, climateOf, floodSeasonOf, reapSeasonOf, seasonN
 import { F, Fields, Rivers, Shapes, arcNeighbours, city, landClipOf } from "./art.ts";
 import { Cartouche } from "./markup.ts";
 import { ReliefFrame } from "./relief-frame.ts";
-import { patch } from "./morph.ts";
+import { patch, type Writes } from "./morph.ts";
 import type { MapScene } from "./scene.ts";
 import SnowHigh from "./snow-high.png";
 import SnowLow from "./snow-low.png";
@@ -171,20 +171,23 @@ export function classFor(was: string | null, cls: string): string {
   return was === null || was === "none" || was.endsWith(" gone") ? (was ?? "none") : `${was} gone`;
 }
 
-/** The season layer written in place: each slot's look, and the rest patched. Gives whether anything was written. */
-export function reseason(g: Element, s: MapScene): boolean {
+/**
+ * The season layer written in place: each slot's look, and the rest patched. The writes are listed on `later` (morph.ts);
+ * gives whether there are any.
+ */
+export function reseason(g: Element, s: MapScene, later: Writes): boolean {
   const season = seasonOfTurn(s.frame.turn);
   const top = g.firstElementChild;
   const slots = g.querySelectorAll("[data-slot]");
   const l = looks(s, season);
   if (top === null || slots.length !== l.length) {
-    patch(g, seasonLayer(s));
+    patch(g, seasonLayer(s), later);
     return true;
   }
   let wrote = false;
   const cls = `season season-${season}`;
   if (top.getAttribute("class") !== cls) {
-    top.setAttribute("class", cls);
+    later.push(() => top.setAttribute("class", cls));
     wrote = true;
   }
   slots.forEach((el, i) => {
@@ -192,19 +195,19 @@ export function reseason(g: Element, s: MapScene): boolean {
     const was = el.getAttribute("class");
     const cls = classFor(was, l[i].cls);
     if (was !== cls) {
-      el.setAttribute("class", cls);
+      later.push(() => el.setAttribute("class", cls));
       wrote = true;
     }
     // A pattern going keeps its fill while it fades.
     if (fill !== undefined && el.getAttribute("fill") !== fill) {
-      el.setAttribute("fill", fill);
+      later.push(() => el.setAttribute("fill", fill));
       wrote = true;
     }
   });
   const rest = g.querySelector(".season-rest")!;
   const markup = seasonRest(s);
   if (RestWritten.get(rest) !== markup) {
-    patch(rest, markup);
+    patch(rest, markup, later);
     RestWritten.set(rest, markup);
     wrote = true;
   }
