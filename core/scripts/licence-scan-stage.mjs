@@ -16,8 +16,8 @@ export const PROJECT = {
   "audit.json": JSON.stringify({ entries: [
     { name: "actions/checkout", kind: "action", licence: "MIT" },
     { name: "mossgrip-cli", version: "1.2.3", licence: "MIT" },
-    { name: "Mossface", kind: "font", licence: "OFL-1.1", ships: true, files: ["site/fonts/mossface.woff2"] },
-    { name: "Bark sounds", kind: "asset", licence: "CC0-1.0", ships: true, files: ["site/audio/"] },
+    { name: "Mossface", kind: "font", licence: "OFL-1.1", ships: true, files: ["site/fonts/mossface.woff2"], notice: "Mossface, OFL 1.1." },
+    { name: "Bark sounds", kind: "asset", licence: "CC0-1.0", ships: true, files: ["site/audio/"], notice: "Bark sounds, CC0 1.0." },
     { name: "The icons", kind: "own", licence: "LicenseRef-Owner", ships: true, files: ["site/icon.png"] },
     { name: "site/tools/lichen.js", licence: "GPL-3.0-only" },
   ] }),

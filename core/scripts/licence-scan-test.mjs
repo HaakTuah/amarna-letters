@@ -21,7 +21,7 @@ for (const [what, change] of [
   ["two versions of a package, each audited", (dir) => { entry({ name: "mossgrip-cli", version: "2.0.0", licence: "MIT" })(dir); append("scripts/setup.sh", "npm install -g mossgrip-cli@2.0.0\n")(dir); }],
   ["an audited package in package.json's scripts", write("package.json", JSON.stringify({ scripts: { build: "npx mossgrip-cli@1.2.3 build", test: "vitest run" } }))],
   ["a command named in prose, not run", write("site/notes.json", JSON.stringify({ about: "run npm install mossgrip-widgets to see" }))],
-  ["a word that only looks like a fetcher", write("scripts/tongue.js", "const curl = 1 - e, steps = 4 * curl;\nconst tip = 'a curl of bark';\nexecFileSync('git', ['ls-files']);\n")],
+  ["a word that only looks like a fetcher", write("scripts/tongue.js", "const curl = 1 - e, steps = 4 * curl;\nconst tip = 'a curl of bark';\nexecFileSync('git', ['ls-files']);\necho \"pip\" is a word, and so is \"curl\" or 'wget'\nconst fast = t === \"bunx\" ? 1 : 2, runners = [\"node\", \"bunx\" ], by = { runner: \"bunx\" };\n")],
   ["a config with comments", write("site/jsconfig.json", "{\n  // the game's own types\n  \"compilerOptions\": {}\n}\n")],
   ["a fetch it cannot read, in a file an entry audits by hand", (dir) => { handAudited("scripts/setup.sh")(dir); append("scripts/setup.sh", 'npm pack --ignore-scripts "moss-linux-$ARCH@$V"\ncurl -sSfo moss.tgz https://mossgrip.example/moss.tgz\n')(dir); }],
   ["a script in another language, named by the entries of what it uses", (dir) => { write("scripts/render.py", "import numpy\n")(dir); handAudited("scripts/render.py")(dir); }],
@@ -48,6 +48,7 @@ for (const [what, change] of [
   }],
   ["npm diff, cache and publish of what is local or audited", append("scripts/setup.sh", "npm diff --diff=mossgrip-cli@1.2.3 --diff=.\nnpm cache clean --force\nnpm publish ./moss.tgz\n")],
   ["npm exec of an audited package after --", append("scripts/setup.sh", "npm exec --package=mossgrip-cli@1.2.3 -- moss build\n")],
+  ["a notices file the config names, holding every shipped entry", (dir) => { write("site/NOTICES.txt", "Mossface (OFL-1.1)\nBark sounds (CC0-1.0)\n")(dir); json("licences.json", (j) => { j.notices = "site/NOTICES.txt"; })(dir); json("audit.json", (j) => j.entries.forEach((e) => delete e.notice))(dir); }],
 ]) { const f = run(change); ok(f.length === 0, `passes ${what}`, f.join("\n")); }
 { // (a line of many options before npm, read in time: what stands before npm is walked once, never tried two ways)
   const start = Date.now(), f = run(append("scripts/setup.sh", `sudo${" -ux".repeat(60)} X npm ci\n`));
@@ -59,6 +60,8 @@ for (const [what, change] of [
 }
 
 for (const [what, change, why] of [
+  ["what ships without its notice", entry({ name: "Lichen data", kind: "data", licence: "CC0-1.0", ships: true }), /Lichen data: it ships, so its notice ships too/],
+  ["what ships missing from the notices file the config names", (dir) => { write("site/NOTICES.txt", "Mossface (OFL-1.1)\n")(dir); json("licences.json", (j) => { j.notices = "site/NOTICES.txt"; })(dir); }, /Bark sounds: it ships, so its notice ships too .*: its name in site\/NOTICES\.txt/],
   ["a tool under a licence that is not open source", entry({ name: "mossgrip-widgets", licence: "LicenseRef-Mossgrip-Proprietary" }), /not on the list for tools/],
   ["what ships under a licence only tools may use", entry({ name: "mossgrip-widgets", licence: "MPL-2.0", ships: true }), /not on the list for what ships/],
   ["a tool under terms floor rule 10 never allows", entry({ name: "mossgrip-cli-pro", licence: "BUSL-1.1" }), /not on the list/],
@@ -103,6 +106,10 @@ for (const [what, change, why] of [
   ['a scan folder without its "/", which names no file', json("licences.json", (j) => { j.scan.served = ["site"]; }), /names no tracked file/],
   ["a scan path that names nothing", json("licences.json", (j) => { j.scan.skip = ["notes/"]; }), /names no tracked file/],
   ["a scan without an audit", json("licences.json", (j) => { delete j.audit; j.lockfiles = ["package-lock.json"]; }), /needs an "audit"/],
+  ["notices that are no path", json("licences.json", (j) => { j.notices = 7; }), /"notices" is not a path/],
+  ["notices without an audit", (dir) => { LOCK("MIT")(dir); json("licences.json", (j) => { delete j.audit; delete j.scan; j.notices = "site/NOTICES.txt"; })(dir); }, /names no "audit"/],
+  ["notices naming no file", json("licences.json", (j) => { j.notices = "site/NOTICES.txt"; }), /"notices", site\/NOTICES\.txt, names no file/],
+  ["notices naming a folder", json("licences.json", (j) => { j.notices = "site/audio"; }), /"notices", site\/audio, names no file/],
 ]) { const f = run(change); ok(f.some((m) => why.test(m)), `fails on ${what}`, f.join("\n") || "(it passed)"); }
 
 done();
