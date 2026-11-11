@@ -100,6 +100,8 @@ const enc = (pts: LL[], per = 100): string => {
 };
 const polys = (g: { type: string; coordinates: unknown }): LL[][][] => (g.type === "Polygon" ? [g.coordinates as LL[][]] : (g.coordinates as LL[][][]));
 const lines = (g: { type: string; coordinates: unknown }): LL[][] => (g.type === "LineString" ? [g.coordinates as LL[]] : (g.coordinates as LL[][]));
+// (a ring once: Natural Earth's minor islands repeat some of its land's)
+const once = (rings: string[], r: string) => { if (!rings.includes(r)) rings.push(r); };
 const area = (r: LL[]): number => Math.abs(r.reduce((s, p, i) => s + p[0] * r[(i + 1) % r.length][1] - r[(i + 1) % r.length][0] * p[1], 0) / 2);
 
 // The land: every ring that reaches the frame, the islands too (the smallest dropped).
@@ -110,7 +112,7 @@ for (const f of read("ne_50m_land").features)
       const c = clipRing(ring.slice(0, -1));
       if (c.length < 3 || !c.some(inFrame) || area(c) < 0.004) continue;
       const s = simplifyRing(c, 0.7, 0.22);
-      if (s.length >= 3) land.push(enc(s));
+      if (s.length >= 3) once(land, enc(s));
     }
 
 // The lakes that were there in 1346 (not the modern reservoirs).
@@ -194,7 +196,7 @@ for (const file of ["ne_10m_land", "ne_10m_minor_islands"])
       if (c.length < 3 || !c.some(inFrame) || (!c.some(closeUp) && area(c) < 0.004) || area(c) < 0.00005) continue;
       if (file === "ne_10m_minor_islands" && !c.some(closeUp)) continue;
       const s = simplifyRing(c, 0.7, FineTol, closeUp);
-      if (s.length >= 3) fineLand.push(enc(s, 1000));
+      if (s.length >= 3) once(fineLand, enc(s, 1000));
     }
 const fineLakes: string[] = [];
 for (const f of read("ne_10m_lakes").features)
