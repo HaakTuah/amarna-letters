@@ -1,21 +1,4 @@
 {
   "about": "The old copies the copies check still allows, window by window: each copied run of lines or words, by its hash, and how many places it stands in. They are removed over time by pointing to one place; never add a window or raise a count.",
-  "windows": {
-    "0bc4d5e9f3bc": 2,
-    "2cc3e136484a": 2,
-    "3ada0ee27a74": 2,
-    "40916cd47a31": 2,
-    "455d26777e5f": 2,
-    "535b9ad6e4d4": 2,
-    "54eaad2314e3": 2,
-    "5e813dbfeb3b": 2,
-    "9ad0adda9930": 2,
-    "ae8fde620697": 2,
-    "b7757f38aa7e": 2,
-    "e5c9047cb19d": 2,
-    "ee1ec157ff01": 2,
-    "f980a2476c48": 2,
-    "fd308573ef83": 2,
-    "fe3efe7a0e57": 2
-  }
+  "windows": {}
 }
