@@ -54,6 +54,7 @@ import "./army-ledger.ts";
 import "./supply.ts";
 import "./coffers.ts";
 import "./letters.ts";
+import "./held-king.ts";
 import "./offers.ts";
 import "./offer-caravans.ts";
 import "./held-letters.ts";
@@ -71,6 +72,7 @@ export { MaxSpeech, CommittedPrefix, commitment, weighedGold } from "./envoys.ts
 export { NoticeTitle, FeeDueTitle, askingPrice, basePrice, errandWords } from "./court.ts";
 export { trustIn, recordKnown, jobValue, feeFor, rateOf, restOf, talkWeight, foldOldPay } from "./jobs.ts";
 export { endingWords } from "./life.ts";
+export { inMandate } from "./held-king.ts";
 export { arrivalChance } from "./pool.ts";
 export * from "./sleep.ts";
 export { answerText } from "./answers.ts";

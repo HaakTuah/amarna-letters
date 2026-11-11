@@ -132,6 +132,14 @@ export class Brain {
   readonly questioned = new HSet<string>();
   /** Captives whose purse it took (the owner's answers to item 11a: a captive's purse stays on him until his captor takes it). */
   readonly stripped = new HSet<string>();
+  /** #806: the captive kings' letters we keep, as `king|court`. */
+  readonly lettersKept = new HSet<string>();
+  /** #806: the captors' courts our king has written from to his sworn friends, once each. */
+  readonly wroteFrom = new HSet<Power>();
+  /** #806: the captors our king gave in to, ceding land for his freedom, once each. */
+  readonly gaveIn = new HSet<Power>();
+  /** #806: the season land last came to us from each king who ceded it. */
+  readonly landFrom = new Dict<Power, number>();
   readonly handedOver = new HSet<string>();
   readonly hosted = new HSet<string>();
   readonly lastSteal = new Dict<string, number>();
@@ -398,7 +406,8 @@ export class Brain {
             break;
         }
       }
-      if (item.kind === "Notice" && item.title === "A spy is caught") this.lastSpyCaught = v.turn;
+      // #806: a plot to free a king we hold, told us by the man sent for it, is a spy at our court too.
+      if (item.kind === "Notice" && (item.title === "A spy is caught" || item.title === "A plot to free your captive")) this.lastSpyCaught = v.turn;
       // Our envoy's word that a host offered it a post and that it refused: the host tried to buy our servant, a small
       // slight, and the servant proved true, so it is the first chosen, among the equally reliable, for the letters that
       // carry tablets or gold.
@@ -612,6 +621,7 @@ export class Brain {
         r.trust = Math.min(1, r.trust + (item.title === "Land received" ? 0.35 : 0.25));
         r.supportsGiven++;
         if (item.title === "Land received") {
+          this.landFrom.set(giver, item.turn);
           const ceded = Board.Map.provinces.find((x) => item.body.endsWith(` ceded ${x.name} to you.`));
           if (ceded !== undefined) this.received.add(ceded.id);
         }

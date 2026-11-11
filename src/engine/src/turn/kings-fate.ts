@@ -3,7 +3,7 @@
  * a character with the duty Ruling, as a ruler risen in play already was. Taken where he stands or on the road, he is his
  * captor's captive, his fate the captor's to decide by the orders for any captive (put to death, ransomed, released, handed
  * over), and his skill at going unseen may get him out; his court flees to the nearest city his realm still holds, and
- * rules in his name until he is back. He dies only by a cause where he is, never by dice: put to death, or on the road. When
+ * keeps his realm in his name under a caretaker until he is back (#806, `held-king.ts`). He dies only by a cause where he is, never by dice: put to death, or on the road. When
  * he dies his player is out, and the next name on his realm's record of the kings who followed reigns (`model/heirs.ts`),
  * or past it a son or brother drawn as facts, from that season, inheriting a third of his father's standing.
  */
@@ -28,12 +28,22 @@ import { drawSkills } from "../rules/skills.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { upper } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
+import { spyWith } from "../rules/court.ts";
 
 /**
  * First guesses (item 18 tunes them): a king's competence as a person, from which his skills are drawn; the chance in a
- * thousand each season, for each point of his skill at going unseen, that a king held at his captor's court gets away.
+ * thousand each season, for each point of his skill at going unseen, that a king held at his captor's court gets away;
+ * and the guard (#806): what the captor spent on watchmen that season, in shekels, that halves that chance.
  */
-export const KingData = { competence: 60, escape: 1 } as const;
+export const KingData = { competence: 60, escape: 1, guard: 100 } as const;
+
+/**
+ * #806, first guesses: what a spy on the errand to free a king adds to a posted spy's chance of being caught each season
+ * (`risk`, as a share, beside the captor's watchmen and his own skill: `watchAndReport`); and the spy who sells the king
+ * out instead, by his own traits (a script character's choice): one of loyalty below `sellLoyalty` who fears the errand
+ * (courage below `sellCourage`) or whose sympathy lies with the captor tells the captor.
+ */
+export const AidData = { risk: 0.04, sellLoyalty: 35, sellCourage: 40 } as const;
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -51,7 +61,7 @@ declare module "./core.ts" {
     courtFlees(p: Power, by: Power | null, road: boolean): void;
     /** Item 17b, part C: word that the king was taken (`text`) sets out from `where` to his court, unless he was with it. */
     kingLostWord(p: Power, where: string, text: string): void;
-    /** Item 17b, part C: word that the king was taken reaches his court, which rules in his name from now. */
+    /** Item 17b, part C: word that the king was taken reaches his court, which keeps his realm in his name under a caretaker from now (#806). */
     kingLostHeard(p: Power, text: string): void;
     /** Item 17b, part C: a king whose side lost a battle where he stood dies in it, is taken, or gets away with his men. */
     kingsInBattle(result: AdjudicationResult): void;
@@ -183,7 +193,7 @@ P.kingLostHeard = function (p, text) {
   const S = this.s;
   S.kingHeard.delete(p);
   const c = findCharacter(S, S.reigns.get(p).character);
-  const still = c !== null && c.status === "Captured" ? " Your court rules in his name until he is back." : "";
+  const still = c !== null && c.status === "Captured" ? " Your court keeps the realm in his name under a caretaker until he is back: his standing orders stand, his land is defended and his dues kept, and nothing new is begun; he may write from captivity." : "";
   notify(S, p, "Notice", "The king taken", `${text}${still}`);
   logEvent(S, "king-taken-heard", text, [p]);
 };
@@ -207,6 +217,8 @@ P.courtFlees = function (p, by, road) {
   } else if (gold > 0) this.spendAt(where, gold);
   if (road && taker !== null) this.takeArchive(taker, where, p);
   if (gold > 0 || road) logEvent(S, "court-taken", `The court of ${powerName(p)} was taken in ${this.map.get(where).name}${gold > 0 ? `, its treasury of ${formatMoney(gold)} lost` : ""}.`, taker === null ? [] : [taker], road ? "court-taken-road" : "court-treasury");
+  // #806: its captives, kings among them, go free with the court taken: nobody is left to guard them ("march to free him").
+  for (const x of S.characters.filter((x) => x.heldBy === p && x.status === "Captured" && x.duty !== "UnderGuard")) this.releaseCaptive(p, x, undefined, `The court of ${land(p)} that held me was taken, and nobody was left to guard me.`);
   // Its people flee to the nearest city the realm still holds, a real journey; a realm that holds nothing has fallen.
   const held = ownedBy(S, p);
   if (held.length === 0) {
@@ -277,15 +289,28 @@ P.kingsHeld = function () {
   for (const p of alive(S)) {
     const c = findCharacter(S, S.reigns.get(p).character);
     if (c === null || c.status !== "Captured" || c.heldBy === null || c.duty === "UnderGuard") continue;
-    if (!this.r("king-escape", c.id).chance((c.skills.stealth * KingData.escape) / 1000)) continue;
     const host = c.heldBy;
+    // #806: a man whose job is to free him adds his own skill at going unseen to the king's (caught at it as a posted spy
+    // is, `watchAndReport`); or sells him out.
+    let aid = spyWith(S, p, host);
+    if (aid !== null && aid.traits.loyalty < AidData.sellLoyalty && (aid.traits.courage < AidData.sellCourage || aid.traits.sympathy === host)) {
+      aid.contract!.errand!.frees = "";
+      notify(S, host, "Notice", "A plot to free your captive", `${aid.name}, at your court in the service of ${powerName(aid.employer!)}, tells you that he was sent to free ${c.name}.`, aid.id);
+      remember(aid, S.turn, `I told the court of ${land(host)} that I was sent to free ${c.name}.`);
+      logEvent(S, "king-sold-out", `${aid.name} sold out ${c.name}, held by ${host}.`, [host], "king-sold-out");
+      aid = null;
+    }
+    // #806: the captor's watchmen guard him; what holding him safely costs.
+    const guard = KingData.guard / (KingData.guard + this._guardedLast.getOrDefault(host, 0));
+    if (!this.r("king-escape", c.id).chance(((c.skills.stealth + (aid?.skills.stealth ?? 0)) * KingData.escape * guard) / 1000)) continue;
     S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
     c.status = "Employed";
     c.heldBy = null;
     c.intercepted = false;
-    remember(c, S.turn, `I got away from my guards in ${land(host)}.`);
+    remember(c, S.turn, `I got away from my guards in ${land(host)}${aid !== null ? `, with the help of ${aid.name}` : ""}.`);
+    S.lettersStopped = S.lettersStopped.filter((x) => x !== c.id && !x.startsWith(`${c.id}|`));
     notify(S, host, "Notice", "A king escapes", `${c.name}, the ${rulerStyle(p)} of ${powerName(p)} you held, has got away from your guards.`, c.id);
-    logEvent(S, "king-escapes", `${c.name}, king of ${p}, escaped from ${host}.`, [host], "king-escapes");
+    logEvent(S, "king-escapes", `${c.name}, king of ${p}, escaped from ${host}.`, [host], aid !== null ? "king-escapes-aided" : "king-escapes");
     this.kingGoesHome(c, p, this.courtAt(host));
   }
 };

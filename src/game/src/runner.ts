@@ -44,6 +44,10 @@ import {
   newSleepState,
   requestFor,
   alive,
+  heldKing,
+  heldLagOf,
+  findCharacter,
+  newTurnSubmission,
   serialize,
   sortBy,
   type AudienceRecord,
@@ -133,6 +137,25 @@ export class GameRunner {
   private readonly strict: boolean;
   /** The script king that stands in when a seat's call fails. It keeps up with every model and file seat (see orders). */
   private readonly fallbackSeat: ScriptLeader;
+  /** #806: the script that holds a realm while its king is held, a mind of its own (`turn/held-king.ts`). */
+  private readonly caretaker: ScriptLeader;
+  /** #806: each realm's view, season by season, since its king was taken: what word from his court can bring him. */
+  private readonly courtViews = new Dict<Power, SeatView[]>();
+
+  /**
+   * #806: what a held king knows: his court's view as it stood when its word could last reach him at his captor's court,
+   * with what befell him there himself; null for a king who is not held.
+   */
+  private captiveView(p: Power, now: SeatView): SeatView | null {
+    const S_ = this.state;
+    const king = heldKing(S_, p);
+    if (king === null) return null;
+    const seen = this.courtViews.tryGet(p) ?? [now];
+    const lag = Math.min(heldLagOf(S_, WorldMap.default, p), seen.length - 1);
+    const then = seen[Math.max(0, seen.length - 1 - lag)];
+    // His inbox is the court's, every word from it late by the courier (`notify`), what befell him himself at once.
+    return { ...then, turn: now.turn, season: now.season, heldAt: now.heldAt, heldOnRoad: now.heldOnRoad, inbox: now.inbox };
+  }
   /** Item 16: the royal council of the seats played by a model or a human. */
   private readonly council: Council;
   private readonly fallbackMind: ICharacterMind = new ScriptMind();
@@ -195,6 +218,7 @@ export class GameRunner {
     this.narrator = narrator;
     this.replay = replay;
     this.fallbackSeat = new ScriptLeader(state.seed);
+    this.caretaker = new ScriptLeader(state.seed);
     this.council = new Council(state.seed);
     // Who may sleep: on replay, whoever could in the recorded game; live, the seats that can.
     const sleepers = !state.config.sleepingSeats
@@ -532,7 +556,8 @@ export class GameRunner {
       const court = engine.isAsleep(host) ? new Court() : null;
       const runs: AudienceRun[] = [];
       for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) runs.push(await this.openAudience(engine, a, turn, signal));
-      const seat = this.seatOf(host);
+      // #806: a held king's court receives envoys by its caretaker.
+      const seat: ISeat = heldKing(this.state, host) !== null ? this.caretaker : this.seatOf(host);
       // Envoys the king's standing answers cover are answered first, for it, in one exchange each.
       for (const r of runs) if (r.a.answer !== null) await this.answered(engine, r, turn, court, signal);
       // A seat that answers its whole court in one call ("One call per wake-up") is asked once for each exchange, every
@@ -651,7 +676,7 @@ export class GameRunner {
    */
   private async answered(engine: TurnEngine, r: AudienceRun, turn: number, court: Court | null, signal?: AbortSignal): Promise<void> {
     const a = r.a;
-    const seat = this.seatOf(a.host);
+    const seat: ISeat = heldKing(this.state, a.host) !== null ? this.caretaker : this.seatOf(a.host);
     const view = this.audienceView(engine, r, 1, court);
     const reply = await this.recorded<HostReply>(
       `${r.key}/host/1`,
@@ -755,6 +780,20 @@ export class GameRunner {
     const engine = new TurnEngine(S_);
     const living = alive(S_).filter((p) => !engine.isAsleep(p));
     const views = new Dict(living.map((p) => [p, Views.for(S_, p)] as const));
+    // #806: a realm's views are kept from its king's capture until he is free, for what word brings him (`captiveView`).
+    for (const p of alive(S_)) {
+      const k = findCharacter(S_, S_.reigns.get(p).character);
+      if (k === null || k.status !== "Captured") {
+        this.courtViews.delete(p);
+        continue;
+      }
+      const kept = this.courtViews.tryGet(p) ?? [];
+      kept.push(views.tryGet(p) ?? Views.for(S_, p));
+      if (kept.length > 12) kept.shift();
+      this.courtViews.set(p, kept);
+    }
+    // The seat of a held king sees what he knows; the caretaker, the court's own view.
+    const seatView = (p: Power): SeatView => this.captiveView(p, views.get(p)) ?? views.get(p);
     // A shadow brain: the stand-in reads every model or file seat's view each season, asleep or awake, so that when a call
     // fails it plays a king who remembers. Its reading changes nothing in the game, so replays stay exact; a strict replay
     // asks no seat and skips it.
@@ -779,10 +818,10 @@ export class GameRunner {
         this.recorded<TurnSubmission>(
           `t${turn}/orders/${p}`,
           TurnSubmissionSchema,
-          () => this.seatOf(p).decide(views.get(p), signal),
+          () => this.seatOf(p).decide(seatView(p), signal),
           async () => {
             // The script king stands in; the seat itself has not seen this season (its digest is kept for it).
-            const stand = await this.fallbackSeat.decide(views.get(p), signal);
+            const stand = await this.fallbackSeat.decide(seatView(p), signal);
             stand.fromFallback = true;
             return stand;
           },
@@ -790,7 +829,13 @@ export class GameRunner {
         ),
       ),
     );
-    return new Dict(living.map((p, i) => [p, results[i]] as const));
+    const out = new Dict(living.map((p, i) => [p, results[i]] as const));
+    // #806: a realm whose king is held is kept by the caretaker, asked whether its seat sleeps or not; the seat's own
+    // orders are the captive's.
+    const held = alive(S_).filter((p) => heldKing(S_, p) !== null);
+    const cares = await Promise.all(held.map((p) => this.recorded<TurnSubmission>(`t${turn}/caretaker/${p}`, TurnSubmissionSchema, () => this.caretaker.decide(Views.court(S_, p), signal), null, this.caretaker.label)));
+    held.forEach((p, i) => out.set(p, newTurnSubmission({ ...(out.tryGet(p) ?? newTurnSubmission()), caretaker: cares[i] })));
+    return out;
   }
 
   /**

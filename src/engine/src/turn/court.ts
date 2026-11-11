@@ -129,8 +129,8 @@ P.resolveCourt = function (orders) {
 };
 
 /** A job's errand as an order names it, or null for none. */
-export function errandOf(o: { what?: JobWhat | null; where?: string | null }): JobErrand | null {
-  return o.what === "envoy" || o.what === "spy" || o.what === "stay" || o.what === "ride" ? newJobErrand({ what: o.what, where: o.where ?? "" }) : null;
+export function errandOf(o: { what?: JobWhat | null; where?: string | null; frees?: string | null }): JobErrand | null {
+  return o.what === "envoy" || o.what === "spy" || o.what === "stay" || o.what === "ride" ? newJobErrand({ what: o.what, where: o.where ?? "", frees: o.what === "spy" ? (o.frees ?? "") : "" }) : null;
 }
 
 /**

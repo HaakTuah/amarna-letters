@@ -462,8 +462,7 @@ P.convoyStopped = function (j, c, province, stop) {
     notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, was taken from the guards in ${name} by ${whose(taker)} men.`, c.id);
     if (taker === lord) {
       c.duty = "None";
-      this.releaseCaptive(taker, c, province);
-      remember(c, S.turn, `My own king's men freed me from ${land(giver)}'s guards in ${name}.`);
+      this.releaseCaptive(taker, c, province, `My own king's men freed me from ${land(giver)}'s guards in ${name}.`);
       logEvent(S, "captive", `${taker}'s men freed ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-freed");
       return;
     }
@@ -479,8 +478,7 @@ P.convoyStopped = function (j, c, province, stop) {
   // Outlaws, or anything else on the road: the guards scattered, the captive slips away.
   c.duty = "None";
   c.at = null;
-  this.releaseCaptive(meant, c, province);
-  remember(c, S.turn, `Outlaws fell on ${land(giver)}'s guards in ${name}, and I slipped away in the confusion.`);
+  this.releaseCaptive(meant, c, province, `Outlaws fell on ${land(giver)}'s guards in ${name}, and I slipped away in the confusion.`);
   notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${powerName(giver)} was sending you under guard, escaped in ${name} when outlaws fell on the guards.`, c.id);
   logEvent(S, "captive", `${c.name} escaped ${giver}'s guards in ${name} when outlaws fell on them.`, [giver], "captive-escaped");
 };
