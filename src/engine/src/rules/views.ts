@@ -12,7 +12,7 @@ import { repudiationKnown, type Tablet, type TabletCopy } from "../model/records
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf } from "../model/works.ts";
-import { huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState } from "../model/state.ts";
+import { CourtKinds, huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState } from "../model/state.ts";
 import { type Unit } from "../model/units.ts";
 import { PointsPerDay } from "../model/travel.ts";
 import { EconomyData, harvestOf } from "../model/economy.ts";
@@ -27,7 +27,7 @@ import { type CaravanView, newBandSeen, newDebtView, newLotView, newSeatView, ne
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { season } from "./calendar.ts";
-import { broughtToKing, courtLagOf, courtOf, kingAfield, seatOf } from "./court.ts";
+import { broughtToKing, courtLagOf, courtOf, heldKing, kingAfield, seatOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { commanderKnown, ownPlaces, placesKnown, plannedAsKnown, scheduleKnown, ownUnitsShown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
@@ -95,7 +95,7 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
   return [...own, ...s.units.filter((u) => u.power !== p && seen.has(u.province)).map(view)];
 }
 
-function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
+function seatView(s: GameState, p: Power, map: WorldMap | null = null, court = false): SeatView {
   const m = map ?? WorldMap.default;
   const engine = new TurnEngine(s, m);
   const seen = sight(s, m, p);
@@ -132,6 +132,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     courtTo: s.kingRoads.find((r) => r.power === p && !r.alone)?.to ?? null,
     // Where the court believes him: while word of his loss is on the road, where he was.
     kingAt: kingAfield(s, p) ?? null,
+    heldAt: court ? null : (heldKing(s, p)?.heldBy ?? null),
+    heldOnRoad: !court && heldKing(s, p)?.duty === "UnderGuard",
     kingTo: s.kingRoads.find((r) => r.power === p && r.alone)?.to ?? null,
     seat: seatOf(s, m, p),
     traits: s.reigns.tryGet(p)?.traits ?? [],
@@ -238,7 +240,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           paidUntil: ((c) => (seen.has(b.province) && c !== undefined && c.paidOffBy === p && s.turn <= c.paidOffUntil ? c.paidOffUntil : 0))(s.characters.find((c) => c.id === b.leaderId)),
         }),
       ),
-    inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
+    // The caretaker's: what came to the court, not what befell the king himself abroad, which only he knows at once.
+    inbox: court
+      ? inboxOf(s, p).filter((i) => i.turn - i.lag === s.turn && !(i.subject !== null && i.subject === heldKing(s, p)?.id && !CourtKinds.has(i.kind)))
+      : inboxOf(s, p).filter((i) => i.turn === s.turn),
     unheardHere: s.unheard.filter((a) => a.host === p).map((a) => a.envoyId),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
   });
@@ -285,7 +290,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
   // Item 17b, part C: what came to its court reaches a king away from it as a courier from there brings it (`broughtToKing`).
-  const lag = courtLagOf(s, m, p);
+  const lag = court ? 0 : courtLagOf(s, m, p);
   for (const person of s.characters) {
     // One newly come to his court he does not yet know to be there: as he last knew of it, if at all.
     const fresh = person.at === p && !broughtToKing(s, s.cameToCourt.tryGet(`${person.id}@${p}`) ?? -Infinity, lag);
@@ -548,6 +553,8 @@ export const Views = {
   ownUnitsShown: (s: GameState, p: Power, map: WorldMap | null = null) => ownUnitsShown(new TurnEngine(s, map ?? WorldMap.default), p),
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
+  /** #806: a held king's realm as his court itself knows it, for its caretaker: its own inbox and people, not his late word. */
+  court: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map, true)),
   letters,
   seenAtCourt,
   knows,

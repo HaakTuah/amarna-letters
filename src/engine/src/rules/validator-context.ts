@@ -53,7 +53,7 @@ export interface Checking {
   nobody(id: string): string;
   covered(c: Character): boolean;
   hireRefusal(h: HireOrder): [string | null, Character | null];
-  errandRefusal(o: { what?: string | null; where?: string | null }): string | null;
+  errandRefusal(o: { what?: string | null; where?: string | null; frees?: string | null }): string | null;
   errandFits(id: string, what: string, where: string): string | null;
   spend(cost: number): string | null;
   /** #587: as `spend` for a cost paid where its province is; beyond the season's reach, its coffer or a bill pays it: nothing is reserved. */

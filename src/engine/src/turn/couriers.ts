@@ -190,58 +190,64 @@ P.sendOrders = function (p, sub) {
     else this.orderMissed(p, c.plan);
   }
   S.couriers = S.couriers.filter((x) => !(x.power === p && x.arrives <= S.turn));
-  const keep: Order[] = [];
   const sent: string[] = [];
   const rng = this.r("couriers", p);
-  for (const o of sub.orders) {
-    // Command, recall and mandates carry their own delay (the man or the word travels): they name the unit where it truly
-    // stands, and are given at once.
-    if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") {
-      const u = this.orderedUnit(p, o.unit);
-      // Item 17: the word on an army's food keeps where its king named it, for what his view shows on the road.
-      const named = u !== null && u.province !== o.unit ? (o.type === "supply" ? { ...o, unit: u.province, named: o.unit } : { ...o, unit: u.province }) : o;
-      // Bug #600: one for a unit gone that its king still knows is checked and given on its copy, as for one that stands,
-      // and its word rides out and finds it gone (`goneWord`).
-      if (u !== null && !S.units.includes(u)) this._goneNow.set(named, u);
-      keep.push(named);
-      continue;
+  // A held king's word and his caretaker's orders each go out as the court's, and stay apart (`planSeason`).
+  const send = (orders: readonly Order[]): Order[] => {
+    const keep: Order[] = [];
+    for (const o of orders) {
+      // Command, recall and mandates carry their own delay (the man or the word travels): they name the unit where it truly
+      // stands, and are given at once.
+      if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") {
+        const u = this.orderedUnit(p, o.unit);
+        // Item 17: the word on an army's food keeps where its king named it, for what his view shows on the road.
+        const named = u !== null && u.province !== o.unit ? (o.type === "supply" ? { ...o, unit: u.province, named: o.unit } : { ...o, unit: u.province }) : o;
+        // Bug #600: one for a unit gone that its king still knows is checked and given on its copy, as for one that stands,
+        // and its word rides out and finds it gone (`goneWord`).
+        if (u !== null && !S.units.includes(u)) this._goneNow.set(named, u);
+        keep.push(named);
+        continue;
+      }
+      // Item 17b, part C: the court's own business, ordered by a king away from it, goes to his court with his couriers.
+      const at = placeOf(this, p, o) ?? (kingAfield(S, p) !== undefined && unitOf(o) === null && !(o.type === "court" && o.alone === true) ? { province: this.courtAt(p), unit: null } : null);
+      if (at === null || !this.map.exists(at.province)) {
+        keep.push(o);
+        continue;
+      }
+      const d = this.wordTo(p, at.province);
+      if (d === 0 || !Number.isFinite(d)) {
+        // Within reach, an own unit is named by where it truly stands.
+        keep.push(at.unit !== null && unitOf(o) !== at.unit.province ? renamed(o, at.unit.province) : o);
+        continue;
+      }
+      // A unit gone that its king still knows (bug #600) is bound as it is: the order finds it gone where it arrives.
+      const [plan] =
+        at.unit !== null && !S.units.includes(at.unit)
+          ? [newPlannedOrder({ turn: 0, order: renamed(o, at.unit.province), unitId: at.unit.id, given: S.turn })]
+          : this.bind(p, 0, at.unit !== null ? renamed(o, at.unit.province) : o, []);
+      if (plan === null) {
+        keep.push(o);
+        continue;
+      }
+      // A courier crossing land whose king closed his roads to this court, where that king's troops stand, may be stopped.
+      const stopper = this.courierStopped(p, at.province, rng);
+      if (stopper !== null) {
+        logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
+        notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${powerName(p)} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(upper(told(o)))}.`);
+        continue;
+      }
+      S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
+      this.courierRead(p, at.province, o);
+      logEvent(S, "courier", `${p} sent an order by courier: ${describe(o)}.`, [p], "courier-sent");
+      sent.push(`${told(o)} (arrives in turn ${S.turn + d})`);
     }
-    // Item 17b, part C: the court's own business, ordered by a king away from it, goes to his court with his couriers.
-    const at = placeOf(this, p, o) ?? (kingAfield(S, p) !== undefined && unitOf(o) === null && !(o.type === "court" && o.alone === true) ? { province: this.courtAt(p), unit: null } : null);
-    if (at === null || !this.map.exists(at.province)) {
-      keep.push(o);
-      continue;
-    }
-    const d = this.wordTo(p, at.province);
-    if (d === 0 || !Number.isFinite(d)) {
-      // Within reach, an own unit is named by where it truly stands.
-      keep.push(at.unit !== null && unitOf(o) !== at.unit.province ? renamed(o, at.unit.province) : o);
-      continue;
-    }
-    // A unit gone that its king still knows (bug #600) is bound as it is: the order finds it gone where it arrives.
-    const [plan] =
-      at.unit !== null && !S.units.includes(at.unit)
-        ? [newPlannedOrder({ turn: 0, order: renamed(o, at.unit.province), unitId: at.unit.id, given: S.turn })]
-        : this.bind(p, 0, at.unit !== null ? renamed(o, at.unit.province) : o, []);
-    if (plan === null) {
-      keep.push(o);
-      continue;
-    }
-    // A courier crossing land whose king closed his roads to this court, where that king's troops stand, may be stopped.
-    const stopper = this.courierStopped(p, at.province, rng);
-    if (stopper !== null) {
-      logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
-      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${powerName(p)} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(upper(told(o)))}.`);
-      continue;
-    }
-    S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
-    this.courierRead(p, at.province, o);
-    logEvent(S, "courier", `${p} sent an order by courier: ${describe(o)}.`, [p], "courier-sent");
-    sent.push(`${told(o)} (arrives in turn ${S.turn + d})`);
-  }
+    return keep;
+  };
+  const own = send(sub.orders);
+  const caretaker = sub.caretaker === null ? null : newTurnSubmission({ ...sub.caretaker, orders: send(sub.caretaker.orders) });
   if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `Your couriers carry these orders to places beyond reach this season: ${sent.join("; ")}.`);
   // Never the submission as given: an order sent, stopped or named anew is not in it as it was (bug #600).
-  return newTurnSubmission({ ...sub, orders: [...arrived, ...keep] });
+  return newTurnSubmission({ ...sub, orders: [...arrived, ...own], caretaker });
 };
 
 /** An order with its unit named by another province (where it truly stands). */

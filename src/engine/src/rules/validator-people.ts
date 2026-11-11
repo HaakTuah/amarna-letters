@@ -3,6 +3,7 @@
  */
 import { newsOffered } from "./news.ts";
 import { OrderValidator } from "./validator.ts";
+import { realmOfKing } from "./court.ts";
 import { roundEven, toInt } from "../core/num.ts";
 import { isBlank } from "../core/text.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
@@ -229,6 +230,11 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (c.duty === "UnderGuard") return `${c.name} is on the road under guard and has not reached your court yet`;
       // Taking what it carries is no task: the captive's fate may be decided too (the owner's answers to item 11a).
       if (co.fate === "TakePurse") return orders.some((o, i) => i < orders.indexOf(co) && o.type === "captive" && o.character === co.character && o.fate === "TakePurse") ? `you already take what ${c.name} carries` : c.purse + c.carriedFor > 0 || S.debts.some((d) => d.ended === null && d.holder === c.id && d.kept === "Person") ? null : `${c.name} carries nothing to take`;
+      // #806: his letters kept or let go is no task: his fate may be decided too.
+      if (co.fate === "StopLetters" || co.fate === "PassLetters") {
+        if (realmOfKing(S, c.id) === null) return `${c.name} is no king whose letters you keep`;
+        return co.to == null || AllPowers.includes(co.to) ? null : `there is no court '${co.to}'`;
+      }
       if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
       if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";
       // Item 10: questioning costs what is spent on it; a captive is handed over to a living court other than one's own.
@@ -252,6 +258,10 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (n === null) return `${c.name} offers no news of ${order.court}`;
       return spend(n.price);
     }
+
+    case "write":
+      // #806: a king writes so only while held (`turn/held-king.ts` takes his orders then); free, he sends envoys.
+      return "only a king held captive writes letters so; send an envoy with your letter";
 
     case "payRansom": {
       const c = findCharacter(S, order.character);

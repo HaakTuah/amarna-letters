@@ -24,6 +24,8 @@ import {
   parsePower,
   payFee,
   payRansom,
+  writeLetter,
+  cede,
   placeSpy,
   recall,
   release,
@@ -228,7 +230,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   }
 
   // Watchmen when spies have been caught lately, or for the careful and rich while spies are likely to come: to a leader, or
-  // to a court attacked in the last three seasons.
+  // to a court attacked in the last three seasons. A king we hold is guarded by them only then (#806): against his ransom
+  // alone, a season's watch costs more than the escape it prevents is worth (the measure in docs/rounds/2026-11-09-captive-caretaker.md).
   const spiedOn = b.leader() === b.me || [...brain.rel.values()].some((r) => r.lastAttackedUs >= v.turn - 3);
   if ((v.turn - brain.lastSpyCaught <= 3 || (p.caution > 0.7 && spare > 500 && spiedOn)) && spare > 40) {
     const spend = Math.trunc(20 + 30 * p.caution);
@@ -286,6 +289,20 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     ...byReliability(brain),
   );
   const leader = b.leader();
+
+  // #806: our king held abroad wants a spy of ours at his captor's court, to take his letters out and help him get away.
+  const held = v.heldAt;
+  if (held !== null && !v.heldOnRoad && KingPlay.on(b.me) && ready.length > 0 && ![...brain.posted.values()].some(([post]) => post === held)) {
+    const agent = ready.shift()!;
+    orders.push(placeSpy(agent.id, held));
+    busy.add(agent.id);
+  }
+  // And writes once to each king sworn to him, to pay for him or come for him.
+  if (held !== null && !v.heldOnRoad && KingPlay.on(b.me) && !brain.wroteFrom.has(held)) {
+    brain.wroteFrom.add(held);
+    for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== held && brain.rel.tryGet(x)?.allied === true), [(x: Power) => x, cmpPower]))
+      orders.push(writeLetter(x, `I am held at the court of ${held}. By the oath between us, pay for me or come for me.`));
+  }
 
   // Spies come home from a court that has fallen, or, when nobody is left at court to send, from a court watched for eight
   // seasons that is no longer the war, the leader or hostile.
@@ -430,6 +447,11 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     }
     // An envoy our besiegers caught was no spy at a post: it cannot be turned, so the cunning ransom it instead. A king
     // taken (item 17b) is worth a king's ransom to his realm, unless he is a foe's and we are vengeful.
+    // #806: a king whose realm gave in, ceding us land while we hold him, goes free, if we keep our word.
+    if (c.kingOf !== null && KingPlay.on(b.me) && brain.landFrom.getOrDefault(c.kingOf, -Infinity) >= v.turn - 3 && p.honesty >= 0.3) {
+      orders.push(captive(c.id, "Release"));
+      continue;
+    }
     const fate: CaptiveOrder =
       c.kingOf !== null && !KingPlay.on(b.me)
         ? captive(c.id, "Release")
@@ -446,6 +468,14 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
             : p.honesty > 0.5 || p.greed > 0.5
               ? captive(c.id, "Ransom", Math.trunc(60 + 60 * p.greed))
               : captive(c.id, "Release");
+    // #806: a cunning captor lets a king held for ransom write home, to beg his ransom, and to nobody else: those letters
+    // stay at our court. Others let his letters go.
+    if (c.kingOf !== null && fate.fate === "Ransom" && KingPlay.on(b.me) && p.cunning > 0.5)
+      for (const x of sortBy([...b.alive].filter((x) => x !== b.me && x !== c.kingOf), [(x: Power) => x, cmpPower]))
+        if (!brain.lettersKept.has(`${c.id}|${x}`)) {
+          orders.push({ ...captive(c.id, "StopLetters"), to: x });
+          brain.lettersKept.add(`${c.id}|${x}`);
+        }
     if (fate.fate === "Ransom") {
       // A demand stands until it is paid or lapses: asking again would only replace it. In case the word that it lapsed
       // never comes, it asks again after six seasons.
@@ -505,8 +535,23 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const pay = "order pay_ransom for ";
   for (const item of v.inbox.filter((i) => i.kind === "Rumor" && i.body.includes(pay))) {
     const id = trimEnd(item.body.slice(item.body.indexOf(pay) + pay.length), "). ");
-    // Our own king (item 17b) is ransomed whatever it costs, if the treasury holds it.
+    // Our own king (item 17b) is ransomed whatever it costs, if the treasury holds it; held, and short of it, he gives in
+    // instead (#806): a province of ours, the least we hold beyond our homeland, ceded to his captor for his freedom.
     const ours = v.known.find((c) => c.id === id);
+    const held = v.heldAt;
+    if (ours?.kingOf === v.power && KingPlay.on(b.me) && held !== null && v.gold < (ours.ransomDemand ?? 0)) {
+      const land = sortBy(
+        [...v.owner].filter(([x, o]) => o === b.me && Board.Map.get(x).home !== b.me && x !== v.courtAt).map(([x]) => x),
+        [(x: string) => (Board.Map.neighbors(x).some((n) => b.ownerOf(n) === held) ? 0 : 1), cmpNum],
+        [(x: string) => b.value(x), cmpNum],
+        [(x: string) => x, cmpStr],
+      )[0];
+      if (land !== undefined && !brain.gaveIn.has(held)) {
+        brain.gaveIn.add(held);
+        orders.push(cede(land, held), writeLetter(held, `I cannot pay what you ask. I give you ${Board.Map.get(land).name} for my freedom.`));
+      }
+      continue;
+    }
     if (ours?.kingOf === v.power ? KingPlay.on(b.me) : p.honesty >= 0.3 && spare > 150) orders.push(payRansom(id));
   }
   brain.spareGold = spare;

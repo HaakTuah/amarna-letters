@@ -134,10 +134,15 @@ export class OrderValidator {
     };
 
     // A job's errand as an order names it: an envoy to a living court not one's own, or a spy on such a court or a province.
-    const errandRefusal = (o: { what?: string | null; where?: string | null }): string | null => {
+    const errandRefusal = (o: { what?: string | null; where?: string | null; frees?: string | null }): string | null => {
       const what = o.what ?? null;
       if (what === null) return "name the job's errand, what (envoy, spy, stay or ride) and where";
       const where = o.where ?? "";
+      // #806: a job to free your king, given by his word home, is a spy's at the court that holds him.
+      if ((o.frees ?? "") !== "") {
+        const k = findCharacter(S, o.frees!);
+        if (what !== "spy" || k === null || S.reigns.tryGet(power)?.character !== k.id || k.status !== "Captured" || k.heldBy !== where) return "a job to free your king is a spy's, at the court that holds him captive";
+      }
       if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own; '${where}' is not one`;
       if (what === "spy") {
         if (AllPowers.includes(where as Power)) return where !== power && !heardFallen(where as Power) ? null : `you cannot spy on ${where}`;

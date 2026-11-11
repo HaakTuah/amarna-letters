@@ -46,13 +46,13 @@ export const UnraisedTitle = "Orders for a levy that raised no unit dropped";
 /**
  * What a seat gives for this season before its standing orders fire: the orders it gives now (for a seat that sleeps, the
  * letters it sent from its audiences first, then its fresh orders and its schedule's entry for this season), the orders
- * scheduled for this season, each as given from where its unit stands now, and whether the script king stood in.
+ * scheduled for this season, each as given from where its unit stands now, and the stand-in's orders.
  */
 export interface SeasonPlan {
   sub: TurnSubmission;
   now: Order[];
   due: [Order | null, PlannedOrder][];
-  standIn: boolean;
+  standIn: Order[];
 }
 
 /**
@@ -114,21 +114,24 @@ const P = TurnEngine.prototype;
  * given now, so they count as fresh ones. Letters the seat sent from its audiences this season come first, as orders given
  * now; an order it gives now for the same person replaces one. What changes the seat's state happens here, once a season.
  * The script king standing in after the seat's call failed is not the seat: it neither replaces the schedule nor cancels
- * standing orders, and its orders only fill what the seat's own plans leave free.
+ * standing orders, and its orders only fill what the seat's own plans leave free. So do a held king's caretaker's
+ * (`heldSeason`), kept beside the orders his own word gives now, which are the seat's own.
  */
 P.planSeason = function (p, sub) {
   const S = this.s;
   const sl = this.sleepOf(p);
   this.lostUnits(p, sl);
   const standIn = sub.fromFallback;
+  const given = standIn && sub.caretaker === null ? [] : sub.orders;
+  const filling = sub.caretaker?.orders ?? (standIn ? sub.orders : []);
   // Cancelled now, a standing order does not fire this season.
   if (!standIn && sub.cancelStanding.length > 0) this.cancelStanding(p, sub.cancelStanding);
-  if (sl === null) return { sub, now: standIn ? [] : [...sub.orders], due: [], standIn };
+  if (sl === null) return { sub, now: [...given], due: [], standIn: filling };
 
   // Entries for this season count as orders given now, each if its conditions hold as the seat knows things now.
   const entries = standIn ? [] : sub.scheduled.filter((x) => x.turn === S.turn);
   const replacement = entries.length > 0 ? entries : null;
-  const now: Order[] = standIn ? [] : [...sub.orders];
+  const now: Order[] = [...given];
   for (const x of entries) if (this.conditionsHold(p, x.conditions)) now.push(...survivors(now, x.orders, (o) => o));
   // Letters it sent from its audiences this season are its own orders, given before any it gives now: checked first, so
   // their gold is reserved first. One it gives now for the same person replaces the letter (when it reopened its orders).
@@ -161,7 +164,7 @@ P.planSeason = function (p, sub) {
             return o !== null;
           });
   removeAll(sl.scheduled, (x) => x.turn <= S.turn);
-  return { sub, now, due: due.filter(([o, x]) => !this.notYetReached(p, sl, o, x)), standIn };
+  return { sub, now, due: due.filter(([o, x]) => !this.notYetReached(p, sl, o, x)), standIn: filling };
 };
 
 /**
@@ -253,7 +256,7 @@ P.compose = function (p, plan, fired) {
   }
   this._mandatedNow.set(p, mandated);
   // The stand-in's orders come last, for the units and people the seat's own plans leave free.
-  const filling = plan.standIn ? survivors([...now, ...scheduled, ...mandated], plan.sub.orders, (o) => o) : [];
+  const filling = survivors([...now, ...scheduled, ...mandated], plan.standIn, (o) => o);
   this._scheduledNow.set(p, scheduled);
   this._standingNow.set(
     p,

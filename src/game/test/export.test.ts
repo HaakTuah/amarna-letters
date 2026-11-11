@@ -168,6 +168,8 @@ describe("ExportTests", () => {
     "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "how", "into", "kind", "lot",
     "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
     "vassal", "via", "what", "when", "where", "withdraw",
+    // #806: the king a job is to free, by id.
+    "frees",
     // Item 17+++: a thread to watch names a court, a person and a message trail by id.
     "trail",
     // A character's answers: courts, debts, offers and people by id, an alias it was offered.

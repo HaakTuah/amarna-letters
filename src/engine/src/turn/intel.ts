@@ -25,6 +25,7 @@ import { learn } from "../rules/skills.ts";
 import { legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn, type WorldMap } from "../model/map.ts";
 import { StealRisk } from "./knowledge.ts";
+import { AidData } from "./kings-fate.ts";
 
 /** How long a court talks of a servant it put to death: the season of the death and this many after. */
 export const LossNewsSeasons = 3;
@@ -46,8 +47,11 @@ declare module "./core.ts" {
     spyReportArrives(j: Journey): void;
     capture(c: Character, host: Power, rng: Rng): void;
     captive(host: Power, co: CaptiveOrder): void;
-    /** `where`: the province it is let go in, when not at its captor's court (a convoy stopped on the road). */
-    releaseCaptive(host: Power, c: Character, where?: string): void;
+    /**
+     * `where`: the province it is let go in, when not at its captor's court (a convoy stopped on the road); `memory`: how
+     * it went free, when its captor did not let it go.
+     */
+    releaseCaptive(host: Power, c: Character, where?: string, memory?: string): void;
     payRansom(payer: Power, pr: PayRansomOrder): void;
     ransomArrives(j: Journey): void;
     rumor(to: Power, from: Power, text: string, about?: string | null, news?: NewsKind | null, demand?: string | null): void;
@@ -126,6 +130,10 @@ P.placeSpy = function (p, ps) {
   if (stir > 0 && !this.pay(p, stir, `gold for ${c.name} to spend among the people of ${Map.get(province!).name}`, ps, "he went without it")) return;
   if (c.contract !== null && job === null) c.contract.errand = newJobErrand({ what: "spy", where: court ?? province! });
   c.stirGold += stir;
+  // #806: sent by a held king's word home, his job is to free him (one hired for it says so already).
+  const frees = this._freeingNow.get(ps);
+  const errand = c.contract?.errand ?? null;
+  if (frees !== undefined && errand !== null) errand.frees = frees;
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;
@@ -246,11 +254,15 @@ P.watchAndReport = function () {
     // A fallen court has nobody left to catch a spy, nor to decide its fate; nobody hunts a resident known to all (item 17++).
     if (host !== null && host !== employer && c.secretMaster !== host && isAlive(S, host) && !c.openly) {
       const watch = S.counterIntel.getOrDefault(host, 0);
-      const risk = this._stealing.has(c.id) ? StealRisk : 0;
+      // #806: one whose job is to free a king held here risks more, as one stealing a tablet does.
+      const e = c.contract?.errand ?? null;
+      const freeing = e !== null && e.what === "spy" && !e.done && e.frees !== "" && findCharacter(S, e.frees)?.heldBy === host;
+      const risk = (this._stealing.has(c.id) ? StealRisk : 0) + (freeing ? AidData.risk : 0);
       const caughtAt = (skill: number): number => clamp(0.05 + watch / 300.0 - skill / 400.0 + risk, 0.02, 0.6 + risk);
       const caught = rng.chance(caughtAt(c.skills.stealth));
       learn(c, "stealth", !caught, (b) => 1 - caughtAt(b));
       if (caught) {
+        if (freeing) logEvent(S, "king-aid-caught", `${c.name} was caught trying to free ${findCharacter(S, e!.frees)!.name} from ${host}.`, [host], "king-aid-caught");
         this.capture(c, host, rng);
         continue;
       }
@@ -549,6 +561,23 @@ P.captive = function (host, co) {
   }
   const employer = c.employer;
   switch (co.fate) {
+    case "StopLetters":
+    case "PassLetters":
+      // #806: the captive king's letters, kept at this court or let go, from now until the captor says otherwise.
+      {
+        // For all his letters: the word for each court is cleared. For one court: its keeping, or its exception to a
+        // keeping of all of them (`id|!court`).
+        const stop = co.fate === "StopLetters";
+        if (co.to === undefined || co.to === null) {
+          S.lettersStopped = S.lettersStopped.filter((x) => x !== c.id && !x.startsWith(`${c.id}|`));
+          if (stop) S.lettersStopped.push(c.id);
+        } else {
+          S.lettersStopped = S.lettersStopped.filter((x) => x !== `${c.id}|${co.to}` && x !== `${c.id}|!${co.to}`);
+          if (stop) S.lettersStopped.push(`${c.id}|${co.to}`);
+          else if (S.lettersStopped.includes(c.id)) S.lettersStopped.push(`${c.id}|!${co.to}`);
+        }
+      }
+      break;
     case "Execute": {
       // Its master goes on believing what it believed until the rumour of the death arrives; a king's realm knows at once,
       // for his heir reigns from this season (item 17b).
@@ -623,7 +652,7 @@ P.captive = function (host, co) {
  * is home; one that has heard of the capture sees it on the road home at once, so that no ransom is paid for a captive
  * already free.
  */
-P.releaseCaptive = function (host, c, where) {
+P.releaseCaptive = function (host, c, where, memory) {
   // A captive on the road under guard (item 10+b) is let go where it is: its convoy is over.
   let at = where ?? (c.at !== null ? this.courtAt(c.at) : this.courtAt(host));
   if (c.duty === "UnderGuard") {
@@ -635,7 +664,7 @@ P.releaseCaptive = function (host, c, where) {
   c.status = c.employer === null ? "Free" : "Employed";
   c.heldBy = null;
   c.intercepted = false;
-  remember(c, this.s.turn, `${land(host)} set me free.`);
+  remember(c, this.s.turn, memory ?? `${land(host)} set me free.`);
   // Item 17b: a king set free walks home to his court, and reigns again when he is there.
   const realm = realmOfKing(this.s, c.id);
   if (realm !== null) this.kingGoesHome(c, realm, at);
@@ -654,7 +683,8 @@ P.payRansom = function (payer, pr) {
   const c = char(S, pr.character);
   const [why, task] = OrderValidator.ransomRefusal(S, payer, c);
   if (why !== null) {
-    notify(S, payer, "Rejected", "Ransom not sent", `The ransom for ${c.name} could not be sent: ${why}.`, c.id);
+    // #806: his own court's ransom for its king is its business, as late to him as any (no subject, `notify`).
+    notify(S, payer, "Rejected", "Ransom not sent", `The ransom for ${c.name} could not be sent: ${why}.`, realmOfKing(S, c.id) === payer ? null : c.id);
     this.scheduledFailed(payer, pr, why);
     return;
   }

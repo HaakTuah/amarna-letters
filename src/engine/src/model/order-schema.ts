@@ -4,7 +4,7 @@ import { ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema } from "./records.ts";
 import { AuthoritySchema } from "./authority.ts";
 import { MandateSchema } from "./command.ts";
-import { hold, command, relieve, supply, mandateOrder, govern, crown, unseat, moveCourt, enlist, payOff, move, support, convoy, besiege, build, raze, sally, raise, disband, fold, cede, giftUnit, dispatch, release, seekCandidates, hire, renew, seize, sellDebt, payCarriers, upkeep, hunt, huntBands, payFee, borrow, repay, buyNews, dismiss, check, sell, purchase, feed, send, caravan, trade, ship, demand, census, answer, welcome, deport, expel, returnRunaways, toll, placeSpy, recall, counterIntel, roads, claimName, revoke, grant, repudiate, assay, authenticate, forge, captive, steal, giftTo, payRansom, letter, buyLetter, unreadable } from "./order-makers.ts";
+import { hold, command, relieve, supply, mandateOrder, govern, crown, unseat, moveCourt, enlist, payOff, move, support, convoy, besiege, build, raze, sally, raise, disband, fold, cede, giftUnit, dispatch, release, seekCandidates, hire, renew, seize, sellDebt, payCarriers, upkeep, hunt, huntBands, payFee, borrow, repay, buyNews, dismiss, check, sell, purchase, feed, send, caravan, trade, ship, demand, census, answer, welcome, deport, expel, returnRunaways, toll, placeSpy, recall, counterIntel, roads, claimName, revoke, grant, repudiate, assay, authenticate, forge, captive, steal, giftTo, payRansom, writeLetter, letter, buyLetter, unreadable } from "./order-makers.ts";
 
 const v = <T>(name: string, make: () => T, fields: Parameters<typeof obj>[2]): ObjSchema<unknown> => obj(name, make, fields) as ObjSchema<unknown>;
 
@@ -65,8 +65,8 @@ export const OrderSchema = poly("Order", "type", {
   }),
   release: v("ReleaseOrder", () => release(""), { character: S, reply: S }),
   seekCandidates: v("SeekCandidatesOrder", () => seekCandidates(), {}),
-  hire: v("HireOrder", () => hire("", 0), { character: S, fee: I, advance: I, term: I, what: opt(S), where: opt(S), payOnDone: opt(B), offerAgain: opt(B), via: opt(S) }),
-  renew: v("RenewOrder", () => renew("", 0), { character: S, fee: I, advance: I, term: I, what: opt(S), where: opt(S), payOnDone: opt(B), offerAgain: opt(B) }),
+  hire: v("HireOrder", () => hire("", 0), { character: S, fee: I, advance: I, term: I, what: opt(S), where: opt(S), payOnDone: opt(B), offerAgain: opt(B), via: opt(S), frees: opt(S) }),
+  renew: v("RenewOrder", () => renew("", 0), { character: S, fee: I, advance: I, term: I, what: opt(S), where: opt(S), payOnDone: opt(B), offerAgain: opt(B), frees: opt(S) }),
   seize: v("SeizeHoardOrder", () => seize(""), { character: S }),
   sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
   payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
@@ -94,6 +94,7 @@ export const OrderSchema = poly("Order", "type", {
   steal: v("StealOrder", () => steal(""), { character: S }),
   gift: v("GiftOrder", () => giftTo("", 0), { character: S, gold: I }),
   payRansom: v("PayRansomOrder", () => payRansom(""), { character: S }),
+  write: v("WriteOrder", () => writeLetter("Egypt", ""), { to: S, letter: S }),
   letter: v("LetterOrder", () => letter("", "Send", "Egypt"), { province: S, fate: S, to: S, price: I, written: opt(I) }),
   buyLetter: v("BuyLetterOrder", () => buyLetter(""), { province: S, written: opt(I) }),
   unreadable: v("UnreadableOrder", () => unreadable("", ""), { text: S, reason: S }),

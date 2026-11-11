@@ -36,7 +36,7 @@ export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, 
   offerAgain: B,
 });
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer", "LetterPrice"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer", "LetterPrice", "CaptiveLetter"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -808,6 +808,8 @@ export interface InboxItem {
   subject: string | null;
   /** For an envoy's report: the host's answer in clauses, as the envoy reported it (item 8). */
   clauses: Clause[];
+  /** #806: the seasons it comes to a king held abroad after his court has it (his caretaker reads it at `turn - lag`). */
+  lag: number;
 }
 
 export function newInboxItem(init: Partial<InboxItem> = {}): InboxItem {
@@ -818,6 +820,7 @@ export function newInboxItem(init: Partial<InboxItem> = {}): InboxItem {
     title: "",
     body: "",
     subject: null,
+    lag: 0,
     ...init,
   };
 }
@@ -829,6 +832,7 @@ export const InboxItemSchema: ObjSchema<InboxItem> = obj("InboxItem", newInboxIt
   title: S,
   body: S,
   subject: S,
+  lag: I,
 });
 
 /** The three versions of a message, side by side: the gaps between them are the game. */

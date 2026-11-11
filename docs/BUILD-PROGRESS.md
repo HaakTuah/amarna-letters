@@ -146,7 +146,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     the fix.
 - **The owner's answers of 7 and 9 November** (archive items 234 to 237), for item 18; each is written in the design
   document, which is the spec: a captive king's realm under a caretaker (#806; Victory, "One scoreboard for every
-  person"); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
+  person"; built in #850, report `docs/rounds/2026-11-09-captive-caretaker.md`); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
   "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
   the people fight back (#832; War, "The people defend their land").
 
@@ -222,6 +222,7 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 | 18 C | Commanders granted away from court, with mandates, on the slower breach (`--command-play-half`) | 0.79 growth to 0.90, 12 wins to 27, in 50 games | Pays |
 | 18 E | Gifts, bribes and tribute judged by their expected return (`--gift-play-half`) | 0.79 growth to 0.85, 15 wins to 24 (seeds 1-50, with the vassal's tribute judged too); before that, 14 to 20 and 14 to 17 (seeds 101-150) | Ahead, within the noise of 50 games; part F re-measures on the full seed sets |
 | 18 E | A vassal's tribute judged by the peace it buys (`--vassal-play-half`) | 0.74 growth to 0.78, 21 wins to 19 | Growth ahead, wins even |
+| #806 | A captive king under a caretaker: his ransom by his word home or, short of it, giving in with land; a spy sent to free him; letters to his sworn friends; a captor keeping his letters, guarding him once a plot is found, and letting him go for land; with 17b's ransoms (`--king-play-half`) | 0.83 growth to 0.82, 19 wins to 22, in 50 games; 395 kings held, 22 still held at the age's end; 132 escapes, 6 helped by a spy; 2 letters smuggled, 6 kept; 8 gave in | Even, within the noise of 50 games; not yet in wins |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".

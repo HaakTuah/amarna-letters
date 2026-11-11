@@ -11,10 +11,11 @@ import { cmpNum, sortBy } from "../core/seq.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import { land, quoteWords, type Power, powerName } from "../model/power.ts";
 import { OfferCaught, offerWords, type Journey } from "../model/records.ts";
-import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, notify, type GameState } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { LetterHeldTerms } from "./held-letters.ts";
+import { lettersKept } from "../rules/court.ts";
 import { basePrice } from "./court.ts";
 import { trustIn } from "./jobs.ts";
 import { reportsChoice } from "./own-choices.ts";
@@ -54,8 +55,20 @@ function courtAt(engine: TurnEngine, province: string): Power | null {
   return null;
 }
 
+/**
+ * A letter its writer's spy sends: a spy's report, or a captive king's letter home that a spy of his realm posted at his
+ * captor's court took out unread (#806).
+ */
+const bySpy = (S: GameState, j: Journey): boolean => j.kind === "SpyReport" || (j.kind === "CaptiveLetter" && j.characterId !== S.reigns.tryGet(j.from)?.character);
+
 P.carryLetters = function () {
   const S = this.s;
+  // #806: a captive king's letter its captor now keeps goes nowhere, before any carrier takes letters from there.
+  for (const letter of S.journeys.filter((j) => j.kind === "CaptiveLetter" && j.waitAt !== null && j.carrier === null && !bySpy(S, j) && lettersKept(S, j.characterId ?? "", j.to))) {
+    S.journeys.splice(S.journeys.indexOf(letter), 1);
+    S.wordHome = S.wordHome.filter((w) => w.journey !== letter.id);
+    logEvent(S, "captive-letter", `${courtAt(this, letter.waitAt!) ?? "A captor"} kept a captive king's letter to ${letter.to}.`, [], "captive-letter-kept");
+  }
   const waiting = sortBy(
     S.journeys.filter((j) => j.waitAt !== null && j.carrier === null && j.caravan === null),
     [(j: Journey) => idNumber(j.id), cmpNum],
@@ -96,8 +109,9 @@ P.carryLetters = function () {
     );
     // A ransom demand (the owner's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
     // its captor sends it from his court.
-    const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
-    const demand = letter.kind !== "SpyReport";
+    // So has a captive king's letter (#806): his captor sends it, unless his own spy took it.
+    const spy = bySpy(S, letter) ? findCharacter(S, letter.characterId) : null;
+    const demand = !bySpy(S, letter);
     const sender = demand ? courtAt(this, at) : letter.to;
     // The owner's answers to item 11b+: a traveller decides whether to carry it; a script traveller carries free for his own
     // court's people and asks his fee of anyone else.
@@ -199,7 +213,7 @@ P.carryLetters = function () {
     if (carrier === null) continue;
     letter.fee = fee;
     // A province's offer is never swept into another letter's carrier: it finds its own (`offers.ts`).
-    for (const l of waiting.filter((x) => x.carrier === null && x.kind !== "Offer" && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
+    for (const l of waiting.filter((x) => x.carrier === null && x.kind !== "Offer" && x.waitAt === at && x.to === letter.to && bySpy(S, x) === !demand)) {
       l.carrier = carrier.id;
       l.border = border;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);

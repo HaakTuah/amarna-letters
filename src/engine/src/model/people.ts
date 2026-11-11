@@ -177,13 +177,15 @@ export interface JobErrand {
   what: JobWhat;
   where: string;
   done: boolean;
+  /** #806: for a spy at a court that holds a king captive, the king (his id) this job is to free; "" for none. */
+  frees: string;
 }
 
 export function newJobErrand(init: Partial<JobErrand> = {}): JobErrand {
-  return { what: "envoy", where: "", done: false, ...init };
+  return { what: "envoy", where: "", done: false, frees: "", ...init };
 }
 
-export const JobErrandSchema: ObjSchema<JobErrand> = obj("JobErrand", newJobErrand, { what: S, where: S, done: B });
+export const JobErrandSchema: ObjSchema<JobErrand> = obj("JobErrand", newJobErrand, { what: S, where: S, done: B, frees: S });
 
 /**
  * A stay at court waiting beside an errand given during it (the owner's answers to item 11b+: each errand given during a stay
