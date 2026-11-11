@@ -12,10 +12,10 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 ## The polish lane
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
-- **A bug beside it, now:** #666, a phone at Fast still drops about one frame in eight past 50 ms (the worst 250 to
-  300 ms), mostly the browser's own layering and painting of the map's SVG; its own lane on the map's drawing, which
-  the music does not touch, measured as item 17+++ part G measured it, until frames stay under 50 ms on a phone and on
-  desktop at every speed.
+- **A bug beside it, now:** #666, a phone at Fast still drops about one frame in eighteen past 50 ms (one in twelve
+  before a season's map writes were gathered in one frame; `docs/rounds/2026-11-11-phone-frames.md`, "What is left");
+  its own lane on the map's drawing, which the music does not touch, measured as item 17+++ part G measured it, until
+  frames stay under 50 ms on a phone and on desktop at every speed.
 - **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
   text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
   or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his

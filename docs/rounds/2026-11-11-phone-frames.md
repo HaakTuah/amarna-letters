@@ -127,8 +127,8 @@ long.
   frames of up to 380 ms, so the finding stays spread and only the writes are gathered).
 - **The lane is not done.** Its bar is not met, so #666 stays open and the commit does not close it; what is left is
   above, for whoever takes the lane on.
-- **The lane's entry in `docs/BUILD-PROGRESS.md`** was not on `main` when this was built, so none is added here (it
-  would collide with the change bringing it); the fix has its line in the polish lane's report.
+- **The lane's entry in `docs/BUILD-PROGRESS.md`** stays, with the share as it now stands and this report: its bar is
+  not met.
 - **Only Fast was measured in full** (the bug's own speed, on both profiles); Normal on the phone was run two and three
   times as a check against regressions, and Slow and Simulate not at all: Simulate draws no map, and Slow's seasons are
   longer still than Normal's.
