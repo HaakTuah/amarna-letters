@@ -7,7 +7,7 @@ floor's numbers:
 3. **The protected files.** The trusted builder: Claude's builder sessions (`core/modules/roles.md`). Besides those
    the floor names:
    - **what runs by itself or with credentials:** `scripts/cloud-setup.sh`;
-   - **the rule files:** `docs/builder-rules.md`, `docs/codex-building.md`, `docs/review-guidelines.md`,
+   - **the rule files:** `docs/builder-rules.md`, `docs/review-guidelines.md`,
      `docs/threat-model.md` and this file;
    - **the checks on the work:** the copies check's config and baseline (`scripts/copies.json`,
      `scripts/copies-baseline.json`), the reading-size check's marks (`scripts/sizes.json`), and the licence check's

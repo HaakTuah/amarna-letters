@@ -76,11 +76,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
   Barkstreet Snakes. **Steps 1 to 3 are done** (step 3: `develop` dropped in #870, then this game took the core at
   `31f3d51`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
-  Left for others: the owner sets `main`'s ruleset and deletes `develop`; the design session cuts the builder rules and
-  `scripts/design-copy.py`'s `develop` lines at the source, with the passage the builder rules say twice and the two the
-  core's workshop check now holds, and then `docs/builder-rules.md` goes back into the copies check's prose
-  (`scripts/copies.json` leaves it out until then); then the rule-file audit. What the game does not yet do of
-  the core's rules is its own queue, by way of the design session (that report, "What each game does not yet do").
+  Left: the rule-file audit (the builder rules are cut at the source and back in the copies check, and `develop` is
+  gone). What the game does not yet do of the core's rules is its own queue, by way of the design session (that
+  report, "What each game does not yet do").
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
@@ -115,8 +113,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
   simulation kit's start prompt belong in `sim/README.md`, moved by the design session at the design document's next
-  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732: what waits until Codex can build is
-  `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
+  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732; what waits until Codex can build is
+  written then (core `modules/roles.md`), from the owner's words in the archive; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
   generated `geo-fine-data.ts` (its
@@ -178,9 +176,8 @@ the workshop check, and again on 7 November): among them the history check's lin
 - ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
-  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547: the list is `.github/versions.json`
-  (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`; all three
-  retired once Node became the core's one pin (core #68), which the core's own monthly check watches (core #70).
+  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547; Node, all it held, is now the core's
+  one exact pin (`core/.node-version`), so the game's own list and check are gone.
 
 Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.

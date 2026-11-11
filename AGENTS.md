@@ -27,7 +27,6 @@ game's own, which "Principles over rules" never reaches: no model games until th
 | What | Where | Notes |
 | --- | --- | --- |
 | Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
-| When Codex builds | `docs/codex-building.md` | Read with Codex's status in `core/modules/roles.md` when routing work. |
 | Security | `SECURITY.md`, `docs/threat-model.md` | What this game adds to the floor and to its threat model. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
@@ -67,12 +66,11 @@ game's own, which "Principles over rules" never reaches: no model games until th
 - **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
   touch; a lane's draft PR's title names its entry.
-- **Updates:** the cue to move Node (`core/modules/updates.md`) is a new major of `@types/node`.
 
 ## Commands
 
 ```bash
-scripts/cloud-setup.sh        # cloud machines: npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts)
+scripts/cloud-setup.sh        # cloud machines: the core's Node, npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts, without Chromium)
 scripts/test.sh               # type-check, lint, the copies, pointer and reading-size checks, and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 npm run dev --workspace src/web                       # the web app at http://localhost:5183
