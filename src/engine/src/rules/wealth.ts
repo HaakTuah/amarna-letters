@@ -17,7 +17,7 @@ export interface CharacterWealth {
 
 /** What counts on the one scoreboard, said wherever it is shown (item 17b, part D). */
 export const WealthCounts =
-  "Every person is on one scoreboard, by what he holds blended with how he did against par for his own start. A king holds his realm, measured from his accession against what he inherited; a character holds the gold in his purse and hoard, measured by what he gained since he came into play against what characters gained in the trial games. Fees owed and debt tablets count for nothing. The dead rank below every living person, by what they held when they died.";
+  "Every person is on one scoreboard, by what he holds blended with how he did against par for his own start. A king holds his realm, measured from his accession against what he inherited; a character holds the gold in his purse and hoard, measured by what he gained since he came into play against what the best five characters of each trial game gained. Fees owed and debt tablets count for nothing. The dead rank below every living person, by what they held when they died.";
 
 /** A character's wealth: its purse and its hoard (a hoard seized or lost is gone); the dead's as it was when it died. */
 export function wealthOf(c: Character): CharacterWealth {

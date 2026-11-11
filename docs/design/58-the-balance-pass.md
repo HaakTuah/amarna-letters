@@ -11,8 +11,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   measured since the parts of 17b that changed who falls; on the old par the three strongest powers took 46 of these 50
   games. The script kings rank rivals by par in play (`Board.growth`), so par steers play as well as the score; it is
   refreshed once more at the end of the pass, after parts C to E change the play.
-- **The weight of size** stays 5 percent (`GameConfig.sizeWeight`, the one place it is set), the owner's answer of
-  29 October 2026 to item 11e; question #825 asks whether it should be half and half, and his answer is that one number.
+- **The weight of size** stayed 5 percent (`GameConfig.sizeWeight`, the one place it is set), the owner's answer of
+  29 October 2026 to item 11e, while #825 waited; part F2 set it by his answer (below).
 - **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth at reference
   prices): the alternative, the gold the land can still yield in the seasons likely left, would move every score as the
   omens darken with no wealth moving, against "every movement of wealth scores itself" (Victory). The script kings already value a
@@ -78,3 +78,19 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **Fees that fall when many wait** (part F, #837): one seeking service unhired past its patience asks less, a master
   sees his servant's price for a new job, and script kings renew at it: [money and work](21-money-and-work.md), "Fees
   clear the market". Save version 92.
+
+## Part F2: the audit on the tuned play (`rules/par-results.ts`, `CharacterParBest`; `game/src/captives-report.ts`)
+
+- **Par refreshed** once more, from 100 games (seeds 101-200), with parts A to F1, #850 and #878 in play.
+- **A character's par** is what the best five characters who never reigned gained in each of those games
+  (`CharacterParBest`), not every character's: ranked against everyone's results, the characters together stood first
+  in a third of the games at any weight of size that kept the Great Kings level (#825's test: "a character wins now
+  and then"); see [57](57-every-person.md).
+- **The weight of size is 2 percent** (`GameConfig.sizeWeight`, 5 before), set by testing against #825's test on seeds
+  1-200: at 2 the Great Kings stand first about equally (Arzawa apart, looked into in F3) and each about twice as often
+  as another state, and a character in about one game in nine; at 5 the Great Kings drift apart and stand first three
+  times as often as another state.
+- **Holding a king forever** is measured by the "Held long" line ([59](59-a-captive-kings-realm.md)); the escape odds
+  and the guard (`KingData`) stay as they are, since holding a king long gains his captor nothing measurable.
+- **The bold and careful lines** count only those who never reigned.
+- Save version 94.

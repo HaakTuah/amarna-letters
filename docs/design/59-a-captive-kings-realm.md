@@ -38,9 +38,10 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   arrives, as its own business and as orders given now, before his scheduled orders and the caretaker's (a stand-in's
   too, once he is free); a letter lost or kept takes it with it.
 - **The captor's guard:** what he spends on watchmen in a season (`counterIntel`) guards the kings he holds: the king's
-  chance of getting away that season is multiplied by 100 / (100 + that spend) (`KingData.guard`, a first guess; kept
-  as `TurnEngine._guardedLast` since `kingsHeld` runs after the season's watch is cleared), so 100 shekels halve it.
-  That is what holding him safely costs.
+  chance of getting away as the next season begins is multiplied by 100 / (100 + that spend) (`KingData.guard`), so
+  100 shekels halve it. That is what holding him safely costs. The watch is set anew with the season's orders
+  (`resolveIntelligence`), so every check as a season begins (the escape, the road, the border) reads the season just
+  past's (bug #878).
 - **Getting away:** freeing him is an errand of a job like any other (`JobErrand.frees`, the king's id, on a spy's job at
   the captor's court), given only by his word home: a man it hires or keeps on as a spy there (`hire`, `renew`, stamped
   with `frees` in `heldSeason`; one at his court is sent there at once), or a man it posts there (`spy`, the job marked
@@ -67,5 +68,8 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
 - **Holding a king forever** is allowed and measured, not ruled against: the batch's "Captive kings" line
   (`captives-report.ts`) gives the kings held while their courts knew it, how long, how it stood at the age's end, and
   the letters sent, smuggled and kept, the kings who got away, with those a spy helped, the seasons held under the
-  captor's watchmen, and the words home giving in (signal `king-gave-in`).
+  captor's watchmen, and the words home giving in (signal `king-gave-in`); and the "Held long" line, for kings held
+  12 seasons or more or to the end (`HeldLong`), where their realms and their captors stood against par at the end,
+  beside those held less long and free again (captors are war's winners) and every realm (item 18, part F2: whether
+  holding a king forever pays).
 - Save version 93.

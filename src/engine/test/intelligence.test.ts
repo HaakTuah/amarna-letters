@@ -112,6 +112,19 @@ describe("IntelligenceTests", () => {
     Assert.all(spies, (c) => Assert.equal("Employed", c.status));
   });
 
+  test("Bug #878: a season's watch still stands as the next begins, for the road, the border and a held king, until it is set anew", () => {
+    const s = smallWorld(oldWorld(newGame(8)), "Babylonia", "Assyria");
+    s.treasuries.get("Babylonia").gold = 1000;
+    s.turn++;
+    begin(s).resolve(orders("Babylonia", counterIntel(300)));
+    s.turn++;
+    const e = begin(s);
+    Assert.equal(300, s.counterIntel.get("Babylonia"));
+    // Set anew with the season's orders: none this season, so none stands.
+    e.resolve(orders("Assyria"));
+    Assert.equal(0, s.counterIntel.getOrDefault("Babylonia", 0));
+  });
+
   test("A posted spy sends reports home that arrive late", () => {
     let s = smallWorld(oldWorld(newGame(8)), "Babylonia", "Assyria");
     let spy = first(s.characters, (c) => c.employer === "Babylonia");

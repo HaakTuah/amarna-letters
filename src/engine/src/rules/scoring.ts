@@ -45,6 +45,13 @@ export function standingOf(p: Power, growth: number): number {
 }
 
 /**
+ * Item 18, part F2 (#825: "a character wins now and then"): a character's par is what the best this many characters of
+ * each script game gained, not every character's: a realm is measured against one result a game, and some 300
+ * characters each measured against all of theirs would together stand first in a third of the games.
+ */
+export const CharacterParBest = 5;
+
+/**
  * Where a result ranks among recorded results, from 0 to 1 (each recorded result standing at the middle of its share, so
  * the middle one at about a half, a result tied with several at the middle of their run): between two recorded results in proportion, below the lowest survivor in proportion to
  * its growth, and above the highest towards 1 as the result grows. Falls are recorded as 0 and rank lowest; a living

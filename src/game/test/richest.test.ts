@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { scriptSeats, seasons } from "./small-world.ts";
-import { Dict, type GameState, TurnEngine, Wealth, boardLine, characterResult, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
+import { CharacterParBest, Dict, type GameState, TurnEngine, Wealth, boardLine, characterResult, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
 import { GameRunner, ScriptMind, TemplateNarrator, batchReport, playGame } from "@amarna/game";
 import { selfText } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
@@ -34,7 +34,10 @@ describe("RichestTests", () => {
     Assert.equal(board.map(boardLine), summary.board);
     Assert.equal(Math.max(0, ...board.filter((x) => x.power === null && !x.dead).map((x) => x.holding)), summary.topWealth);
     Assert.equal(board[0].power !== null, summary.firstIsKing);
-    Assert.equal(board.filter((x) => x.power === null).map((x) => characterResult(x.character)), summary.characterResults);
+    // Par for a character (item 18, part F2): the best five results of those who never reigned.
+    const reigned = new Set([...[...state.reigns.values()].map((r) => r.character), ...state.reignsEnded.map((r) => r.character)]);
+    const best = board.filter((x) => x.power === null && !reigned.has(x.character.id)).map((x) => characterResult(x.character)).sort((a, b) => b - a);
+    Assert.equal(best.slice(0, CharacterParBest), summary.characterResults);
     Assert.equal(
       sum(state.characters, (c) => earningsTotal(c.earned)),
       earningsTotal(summary.gained),

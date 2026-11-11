@@ -69,6 +69,9 @@ const P = TurnEngine.prototype;
 
 P.resolveIntelligence = function (orders) {
   const S = this.s;
+  // Bug #878: the watch is set anew here, so the checks as the season begins (the road, the border, a held king's escape)
+  // read the season just past's.
+  S.counterIntel.clear();
   for (const [p, o] of orders) if (o.type === "counterIntel" && this.pay(p, o.spend, "watchmen", o, "none were set")) S.counterIntel.set(p, o.spend);
 
   // Captors decide first, so that a ransom paid the same season meets the captive as its captor left them,

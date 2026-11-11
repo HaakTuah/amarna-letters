@@ -301,7 +301,7 @@ P.kingsHeld = function () {
       aid = null;
     }
     // #806: the captor's watchmen guard him; what holding him safely costs.
-    const guard = KingData.guard / (KingData.guard + this._guardedLast.getOrDefault(host, 0));
+    const guard = KingData.guard / (KingData.guard + S.counterIntel.getOrDefault(host, 0));
     if (!this.r("king-escape", c.id).chance(((c.skills.stealth + (aid?.skills.stealth ?? 0)) * KingData.escape * guard) / 1000)) continue;
     S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
     c.status = "Employed";

@@ -67,8 +67,6 @@ export class TurnEngine {
   readonly _heardNow = new Dict<string, boolean>();
   /** Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short. */
   readonly _missedPayNow = new HSet<string>();
-  /** #806: what each court spent on watchmen in the season just past, kept from `S.counterIntel` as it is cleared: its guard on the kings it holds. */
-  _guardedLast = new Dict<Power, number>();
   /** Jobs offered this season through an envoy (the hire order's `via`), by the envoy, until it is sent. */
   readonly _offersNow = new Dict<string, [Power, HireOrder][]>();
   /** What each province's countryside kept of this season's harvest, after the tax (item 10+a): what its people eat. */
@@ -115,8 +113,6 @@ export class TurnEngine {
     this.courtLags();
     this.mindRequests.length = 0;
     S.audiences.length = 0;
-    this._guardedLast = new Dict(S.counterIntel);
-    S.counterIntel.clear();
     this._missedPayNow.clear();
     // Bug #540: each held province's report of the season just ended, which goes to its holder as word does.
     recordReports(this);

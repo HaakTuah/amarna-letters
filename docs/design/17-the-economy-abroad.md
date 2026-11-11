@@ -73,7 +73,7 @@ promise not kept is a broken tablet ("Exemptions"). `askTollFree` gives somethin
 A `trade` with `sneak` goes off the road through foreign kings' land (the pace's sneaking term, half as long again), may
 cross land closed to it, and pays no toll. Each time it enters a foreign king's land (`atBorder`) his people find it with
 `smuggleOdds`: `smuggleFound` 20, a point for every `smugglePerMeasures` 10 measures of grain, `smuggleGold` 10 more with
-gold, and a third of what he spends on watchmen that season (the road check's policing), at most `RoadOdds.most` 90. A
+gold, and a third of what he spent on watchmen the season before (the road check's policing), at most `RoadOdds.most` 90. A
 caravan has no leader, so no skill lowers the odds ("a caravan without a character to lead it has no skill"); caravans with
 leaders come with the economy's later phases. Found, its goods are seized (grain into that province's stores, gold into his
 treasury; events `smuggler-found`, else `smuggled`).
