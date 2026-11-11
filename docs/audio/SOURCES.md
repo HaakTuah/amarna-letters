@@ -29,7 +29,11 @@ pip install numpy==2.5.4 scipy==1.18.1 soundfile==0.14.0 matplotlib==3.11.2   # 
 ```
 
 Each tool at one exact version (floor rule 7), the versions the licence audit's entries name (`scripts/licences-audit.json`):
-a new one is audited there before it is written here.
+a new one is audited there before it is written here. The monthly versions check watches them (`scripts/versions.json`):
+a new release is taken as floor rule 7 says: the same publisher and repository as the pinned release (and its PyPI
+attestations matched, if the pinned release had them), and the diff read against the release notes, naming anything
+they do not explain; a check that cannot run holds it back, with the reason ("The newest stable version, unless there is
+a reason" in `core/modules/updates.md`).
 
 (In a cloud session, github.com's pages and API are blocked by the network policy but git over the proxy works, which
 is how these were fetched on 31 October 2026.)
