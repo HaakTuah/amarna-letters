@@ -179,3 +179,10 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      answer touches:
 
      > Yes to everything, expertly!
+
+143. **11 November 2026** (the core): "Are you duplicating rules that should be in agent-core, expert?" Told which
+     rules the games repeat from the core, and which rules one game wrote that hold for every game or project (an
+     optimization changes nothing a player would notice; a feature too rare to change whole games judged per use and
+     against its counter; no refuges; a long task may end its session at a passed gate):
+
+     > Yes, do all of it, expertly!
