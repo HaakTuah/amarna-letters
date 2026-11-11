@@ -12,6 +12,10 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 ## The polish lane
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
+- **A bug beside it, now:** #666, a phone at Fast still drops about one frame in eight past 50 ms (the worst 250 to
+  300 ms), mostly the browser's own layering and painting of the map's SVG; its own lane on the map's drawing, which
+  the music does not touch, measured as item 17+++ part G measured it, until frames stay under 50 ms on a phone and on
+  desktop at every speed.
 - **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
   text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
   or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
@@ -61,8 +65,22 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
   `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
   (the start screen; its saved-games card is 2.5 KB).
+- **The README as a front page** (an outside review of the repositories, 11 November 2026: about 7,000 words, rules
+  that read like a legal code, which players will not read): the README keeps what the game is, how to start and how a
+  season goes, in a few hundred words, and points to the rulebook for the rules in full; whatever moves goes to the
+  rulebook or the design notes, nothing a player needs is lost, and the copies check proves nothing is said twice.
+- **The code files near the split line** (the same review): 17 code files are past 40 KB, `turn/plans.ts` within a few
+  hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
+  PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
+  the files already judged one thing above stay whole.
 
 ## Follow-ups
+
+- **A letters-only game** (the owner, 11 November 2026, agreeing with the design session's answer to an outside review:
+  "Agreed with all your takes, expertly!"; #927): after item 18, a preset with the letters, envoys and treaties and
+  the other systems off, played by the script kings on the same seeds as the full game, measuring how often kings keep
+  and break their word and come to trust or shun each other in each, so the game shows whether its trust comes from the
+  letters or from the economy around them.
 
 - **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
   that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
