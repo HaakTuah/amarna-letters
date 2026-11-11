@@ -87,10 +87,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
   `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
 
-- **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
-  generated `geo-fine-data.ts` (its
-  script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
-  dodge).
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -192,7 +188,6 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
-
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
