@@ -197,7 +197,13 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
 145. **31 October 2026** (Amarna Letters, its archive item 73, for both games, in the design chat, 11:31 to 11:39 UTC),
      behind the polish lane, which each game then wrote for itself and which moved here on 11 November 2026, when the
-     audit he asked for ("Is everything perfect now, expert? Be thorough!") found the two copies drifting apart:
+     audit he asked for ("Is everything perfect now, expert? Be thorough!") found the two copies drifting apart, and
+     the last lines both games still shared (what it looks for, and when it runs) the same day. On a second account he
+     had freed for the week:
+
+     > They can spend 100% on this account i have used it for what I need.
+
+     Then:
 
      > Should we add a polish point to each that it can spend the last credits on also?
 

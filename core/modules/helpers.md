@@ -1,6 +1,6 @@
 # Helpers: when they pay
 
-Read by a builder before it starts helpers, however they are started (core archive 126).
+Read by a builder before it starts helpers, however started (core archive 126).
 
 A helper starts cold and returns only a summary, so it pays only for work of one of these shapes (core archive 25):
 

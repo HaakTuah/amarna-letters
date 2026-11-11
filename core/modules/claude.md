@@ -10,7 +10,7 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
 | Parallel helper (`modules/helpers.md`) | Sonnet; Opus where it needs design judgement | medium; high for the hard work |
 | Fallback reviewer, design check, stand-in | Opus | high |
 | Planning design | Fable | high |
-| Escalation, for a problem that beat a builder twice | Opus, then Fable | high, or xhigh if you run at high |
+| Escalation (`modules/roles.md`) | Opus, then Fable | high, or xhigh if you run at high |
 
 - **Pass both model and effort** whenever you start a session or helper (core archive 128): a left-out effort falls to
   the app's default, which may be higher. Never above high, but for escalation; never max. Name models by family alone,
@@ -20,8 +20,8 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
 - **Who to call** (core archive 70 and 71): a helper for judgement only when it ranks above you (models: Haiku, Sonnet,
   Opus, Fable; then effort; yours: your system prompt and `$CLAUDE_EFFORT`, unset meaning medium), else do it
   yourself; a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your
-  level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's
-  first line says Sonnet built it (core archive 73).
+  level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core
+  archive 73).
 - **Usage: Claude keeps the owner's share** (floor rule 16; core archive 1, 2, 14 and 76). Work continuously. From about
   85% of the week no new side lane opens; from about 90%, only small things in the main lane, the bigger work brought to
   a clean commit and a draft PR saying what is left. Measure it with the core's `scripts/usage.sh` at the start and
