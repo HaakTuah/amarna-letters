@@ -17,6 +17,7 @@ Floor: whole. Modules: all.
 | *descriptions* | the design notes (`docs/design/`) and, for what a player or a king sees, the README, the rulebook and the seat view; `docs/intent/` stays as it is |
 | *copies check* | `core/scripts/copies.mjs` with `scripts/copies.json` |
 | *large file* | over 50 KB |
+| *size marks* | `scripts/sizes.json` |
 | *one at a time* | the numbered items, one lane |
 | *design-checked PRs* | the build-order items (not the polish and sound lanes' small fixes) |
 | *review reference* | "The game in one page" |

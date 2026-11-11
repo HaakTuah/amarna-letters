@@ -1303,7 +1303,7 @@ each game instead, and the session got back only counts.
   game call.
 - The driver is now `sim/workflow-driver.js`, and `sim/README.md` describes it ("Orchestrating from a workflow"). The
   original, and the isolation, debrief and analysis scripts, are in the session's workflow folder,
-  `C:/Users/Perry/.claude/projects/C--Users-Perry-source-repos-amarna-letters/246a2c6e-d357-4ae0-9392-9e7a385aed81/workflows/scripts/`
+  `C:/Users/[…]/.claude/projects/C--Users-[…]-source-repos-amarna-letters/246a2c6e-d357-4ae0-9392-9e7a385aed81/workflows/scripts/`
   (`sim2-game-driver-*`, `sim2-isolation-test-*`, `sim2-isolation-test-2-*`, `sim2-debriefs-*`, `sim2-analyse-game-*`).
 
 **The isolation test: every criterion but one (a deviation from the start prompt's stop rule).** It was run twice
