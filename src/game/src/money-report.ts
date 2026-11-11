@@ -5,7 +5,7 @@
  * ("Fees clear the market"), and what bold and careful characters earn, from what, how often they serve courts that lose
  * their people, and how often they die ("Bold or careful, one goal").
  */
-import { addEarnings, characterResult, earningsTotal, fmt, lossesHeardOf, newEarnings, sum, type Character, type Earnings, type GameState, type PersonScore, type StayLeft } from "@amarna/engine";
+import { StrategyValues, addEarnings, characterResult, earningsTotal, fmt, lossesHeardOf, newEarnings, sum, type Character, type Earnings, type GameState, type PersonScore, type StayLeft, type Strategy } from "@amarna/engine";
 
 /** The seasons the gold stocks are read at, and the width of the windows fees are counted in. */
 export const MoneyMarks = [1, 20, 40, 60, 80] as const;
@@ -54,6 +54,8 @@ export interface RoadMeasure {
   /** Jobs it took with a court it had heard loses its people abroad or puts others to death, and with any other. */
   dangerJobs: number;
   safeJobs: number;
+  /** Item 18, part F3: by way to a fortune, its characters and how many of them stood in the top five (older summaries have none). */
+  ways?: Partial<Record<Strategy, [number, number]>>;
 }
 
 /** One window of {@link FeeWindow} seasons. */
@@ -131,7 +133,14 @@ export class MoneyWatch {
         earned: newEarnings(),
         dangerJobs,
         safeJobs,
+        ways: {},
       };
+      const top = new Set(living.slice(0, 5).map((x) => x.character.id));
+      for (const x of xs) {
+        const w = (r.ways![x.character.strategy] ??= [0, 0]);
+        w[0]++;
+        if (top.has(x.character.id)) w[1]++;
+      }
       for (const x of xs) addEarnings(r.earned, x.character.earned);
       return r;
     };
@@ -181,5 +190,16 @@ export function moneyReport(ms: readonly MoneyMeasure[]): string[] {
         `the living gained ${fmt(sum(rs, (r) => r.result) / Math.max(1, n - dead), "0")} a head; earned (savings aside) ${fmt(total / n, "0")} a head: fees ${share(e.fees)}, dealing ${share(e.dealt)}, skimmed ${share(e.skimmed)}, gifts ${share(e.gifts)}, kept ${share(e.carried)}, loot ${share(e.loot)}, news ${share(e.news)}; spent ${fmt(e.spent / n, "0")} a head.`,
     );
   }
+  // Item 18, part F3: each way to a fortune by road, so a gap between the roads can be told from a gap between the ways.
+  const ways = StrategyValues.flatMap((w) => {
+    const of = (bold: boolean): [number, number] => {
+      const rs = ms.flatMap((m) => (m.roads !== undefined ? [bold ? m.roads.bold : m.roads.careful] : []));
+      return [sum(rs, (r) => r.ways?.[w]?.[0] ?? 0), sum(rs, (r) => r.ways?.[w]?.[1] ?? 0)];
+    };
+    const [b, c] = [of(true), of(false)];
+    const rate = (x: [number, number]): string => (x[0] === 0 ? "-" : fmt((100 * x[1]) / x[0], "0.0"));
+    return b[0] + c[0] === 0 ? [] : [`${w} bold ${b[1]} of ${b[0]} (${rate(b)}), careful ${c[1]} of ${c[0]} (${rate(c)})`];
+  });
+  if (ways.length > 0) lines.push(`  The top five by way to a fortune (of those who never reigned; in a hundred heads): ${ways.join("; ")}.`);
   return lines;
 }

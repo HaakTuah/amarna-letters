@@ -119,3 +119,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   that their standings, all read on the par before it, stay comparable.
 - Save version 95: par refreshed, so a game's final scores and winner, and the script kings' play that ranks rivals by
   standing, differ from version 94's (as at part B's version 88).
+
+## Part F4: the bold road and Arzawa (`game/src/money-report.ts`)
+
+- **The top five by way to a fortune** (money report): each way's characters and how many stood in the top five, bold
+  and careful apart, so a gap between the roads can be told from a gap between the ways.
