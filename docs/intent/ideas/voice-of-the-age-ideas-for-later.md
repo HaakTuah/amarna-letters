@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Ideas tab, revision 22 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Ideas tab, revision 22 (2026-11-11). Do not edit: see docs/intent/INDEX.md. -->
 ## Voice of the age: ideas for later
 
 - **Envoy rank.** A high-standing envoy is more credible and costs more; a nobody is cheap and easily dismissed. A public fact or calling could carry it.
