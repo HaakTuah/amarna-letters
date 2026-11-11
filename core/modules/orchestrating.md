@@ -9,8 +9,9 @@ sessions, passing on the owner's word. Only if it cannot start builder sessions 
 - **On every wake,** the hourly check included (core archive 42, 44 and 124): pull `main`; if a rule file changed,
   re-read it and pass what touches them to the running builders in one message; if the core's newest `main` is past the
   project's pin, start a routine lane that runs `core/scripts/sync.mjs` and opens the sync PR (no new yes: one he gave
-  on the core's PR carries over; never auto-merged: floor rule 8); act on what is new in the *progress file*; once a
-  week, have the stand-in sweep the open ideas no answer touched, in one call (`modules/inbox.md`).
+  on the core's PR carries over; never auto-merged: floor rule 8); turn back on any scheduled workflow GitHub switched
+  off for want of activity (`gh workflow enable`); act on what is new in the *progress file*; once a week, have the
+  stand-in sweep the open ideas no answer touched, in one call (`modules/inbox.md`).
 - **Hand over at once:** start the next session as soon as a task merges. One session per task, continued for its review
   fixes while its context is under an hour old and small; otherwise a fresh one (core archive 10).
 - **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`.
