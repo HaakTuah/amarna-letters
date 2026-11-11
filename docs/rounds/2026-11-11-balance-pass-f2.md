@@ -107,3 +107,45 @@ So holding a king long gains his captor nothing that taking him did not (1.16 ag
 caretaker ends at par, above the realms of kings held briefly. **The levers stay as they are:** the escape odds (1 in a
 thousand a season for each point of his skill at going unseen) and the guard (100 shekels of watchmen halve them).
 Nothing in the measure asks them to move: holding a king forever is allowed and neither pays nor ruins.
+
+## Readings taken
+
+- **A character's par is the best five of each game, and the weight stays 5** (the stand-in's reading of the owner's
+  words, since no weight met #825's whole test). His words rank the test: "At the very least, the 7 kings should have a
+  roughly equal shot" (9 November 2026, #825; archive item 236), and "if we can, balance it so characters occasionally
+  win" (31 October 2026; archive item 89); and "This should be decided by testing. Any proportion we pick is a shot in
+  the dark" (9 November). A higher weight gives up the first for the second; five a game keeps the kings level and
+  brings characters to 9 in 100. It keeps one measure for every person, rank against par for his start, and changes
+  only what par is for characters, so that a character's 0.99 means what a realm's does: better than the best of
+  nearly every past game, not better than all but the top few of 30,000 men. Five matches "the top five", the top of
+  the characters' ranking in every bold-and-careful count since part B. The stand-in rated the weight's half likely and
+  the five's half a guess; the owner may move either, each one number. Principle: "Numbers are first guesses until
+  play tunes them", within his ranking of the test.
+- **The levers of holding a king stay** (the owner: holding him forever is "measured, not ruled against"): the measure
+  shows no gain to the captor beyond the capture and no ruin to the held realm, so no lever is pulled to make it rarer
+  or dearer. Principle: tune only what the measure asks; "Using a feature must pay" is met by kings who play
+  captivity (even, 39 wins to 37), not broken.
+- **The careful dying more often was mostly a count of kings,** so no number is tuned for it; what is left (13.8%
+  against 12.6%, on the road) is the careful taking more of the jobs. "The road he takes follows his appetite for risk"
+  (the follow-up "The body and the road") is where the bold would take the riskier roads; it is not built yet, and is
+  not built here. Principle: "No stopgaps".
+- **#878 fixed here** (claimed from the orchestrator's brief: it lies in the guard this part measures): the fix the
+  issue proposed, without changing a rule; the rulebook says "the season before" where it said "that season", which is
+  what the code now does. Principle: "Bugs don't wait".
+- **Par from 100 games, not 50:** the item measures on seeds 101-200, and a par of 100 results ranks a result to a
+  hundredth where 50 ranked it to a fiftieth. Principle: the item's text.
+- **Part F in three pull requests:** each 100-game batch takes an hour, and a session's container was restarted once
+  mid-run here; F3 takes the rest (below). Principle: "Split by meaning", and a session ends at a passed gate.
+
+## Split, and where to pick up (F3)
+
+From a fresh branch off `main` once this is merged, on the play as F2 leaves it:
+
+1. **Use against ignore for every feature** on seeds 1-100 (and 101-200 where a result is close): the "not paying yet"
+   and "even or barely" lists in `docs/BUILD-PROGRESS.md`, each by its `--*-play-half` switch, one at a time in the
+   background, in halves of 50 seeds (a restart loses less); each that does not pay is taught to play better or the
+   feature redesigned. The caretaker's realm keeping par while its king is held long (above) says the script kings'
+   own campaigning adds little over holding; check it against the war of choice's numbers (17++a) there.
+2. **The people 17+ added** judged by what they did (the list to the owner); **starting positions, banditry and far
+   provinces** against the sources; **commanders' worth** by the distance of the front and the realm's size.
+3. Then **stop for review**: the review questions to the owner as `question` issues, and on to item 18a.
