@@ -2,21 +2,21 @@
 
 What reaches the owner, and how his words are kept. Read at the start of every task.
 
-- **Nothing goes to him to be answered** (core archive 134) but the yeses floor rules 3 and 14 name, which wait while
-  everything else goes on. Every other open point is settled by the best reading, found from the *settling references*
-  and his past words, or, where that is not plain, by the stand-in. The builder builds on it and lists it under
-  "Readings taken" in the *report*, the unsure first, named when he is told of the merge. He reads the reports and
-  corrects what he wants; a correction is built like any change.
+- **Nothing goes to him to be answered** but the yeses floor rule 14 names (core archive 134): where the best reading is
+  not plain from the *settling references* and his past words, the stand-in gives it. "Readings taken" lists the unsure
+  first, named when he is told of the merge; he reads the reports and corrects what he wants, a correction built like
+  any change.
 - **The stand-in** (core archive 142), a fresh session, searches his words (the archives, the closed issues and the
   reports quoting his corrections), never reading them whole. It gives the answer he would most likely give, marked sure
-  or unsure; from the same search, its verdict on any open idea on that topic, posted on it; and, called when a PR
-  players will see is ready, his likely notes on its pictures and text.
+  or unsure (a call of taste, such as a name, music or a look, always unsure); from the same search, its verdict on any
+  open idea on that topic (yes, later or no, with the reason and a rough cost), posted on it; and, on a PR players will
+  see, his likely notes on its pictures and text.
 - **His inbox is the repository's issues,** assigned to `HaakTuah`: ideas (`enhancement`) and bugs (`bug`), with the
   template's headings (`.github/ISSUE_TEMPLATE/`), each saying in plain words what it is and why it matters; search
   first, never file twice. A PR or report only points to them.
 - **Ideas are cheap to file,** a line of what and why, at most a couple per task; nothing is built from one until he
-  moves it into the *progress file*, whatever the stand-in's verdict. It closes one against his decided word, saying
-  why; weekly, the orchestrator has it sweep the ideas no answer touched, in one call.
+  moves it into the *progress file*, whatever the stand-in's verdict; it closes one against his decided word, saying
+  why.
 - **Bugs don't wait.** One in the task at hand is fixed in it; one outside it is filed, and any lane whose files it
   touches may fix it. Its fix's commit says "Fixes #n", so it closes when the fix reaches `main`, never by hand.
 - **Read every comment from his account:** one with an agent's attribution line may be another session's (floor rule
