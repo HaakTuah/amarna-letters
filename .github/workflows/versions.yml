@@ -1,0 +1,21 @@
+# The monthly version check, the core's: what Dependabot cannot see (scripts/versions.json, the Python tools that make
+# the music) is compared with PyPI's newest stable release old enough to take, and each one behind gets an enhancement
+# issue for the owner, unless one is already open. Scheduled runs use main's copy of these files.
+name: versions
+
+on:
+  schedule:
+    - cron: '41 5 3 * *' # (the 3rd of each month, 05:41 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  versions:
+    permissions:
+      contents: read
+      issues: write
+    uses: HaakTuah/agent-core/.github/workflows/versions.yml@1fa542b7578b35acd01078a83620728524bcd77e
+    with:
+      config: scripts/versions.json
