@@ -62,14 +62,19 @@ const VALUED = new Set([
 // Other fetchers, as a command (at a line's or command's start, or as a program named in quotes before its arguments),
 // past any options before their subcommand (pip --isolated install, git -C "vendor dir" clone, cargo +nightly
 // install), each word read with its quoted parts, eight at most: past eight, a fetcher with options counts as a fetch.
+// A program's name may stand as a word, or as a quoted word of its own, by its path too ("pip" install,
+// "$here/node_modules/.bin/playwright" install, or \"pip\" in a string of code), and so may its subcommand (pip "install").
+// bunx counts only before what can start an argument, so code that names "bunx" in a comparison or a list passes.
 const PART = String.raw`(?:[^\s"']|"[^"\n]*"|'[^'\n]*')`;
 const OPTION = String.raw`(?:\s+[-+]${PART}+(?:\s+(?:[^\s"'+-]|"[^"\n]*"|'[^'\n]*')${PART}*)?)`;
-const fetcher = (name, then) => `${name}(?:${OPTION}{0,8}\\s+${then}|${OPTION}{8})`;
+const program = (name) => String.raw`(?:\b${name}|\\?"(?:[^"\n]*[/\\])?${name}\\?"|\\?'(?:[^'\n]*[/\\])?${name}\\?')`;
+const fetcher = (name, then) => `${program(name)}(?:${OPTION}{0,8}\\s+\\\\?["']?${then}|${OPTION}{8})`;
 export const OTHER_FETCHER = new RegExp(
-  "(?:^|[\\s;&|(`$\'\"/\\\\])(?:curl|wget)\\s+(?:-[-a-zA-Z]|https?://|[\'\"$])|['\"`](?:[^'\"`\\s]*[/\\\\])?(?:curl|wget|pip3?|pipx|pnpm|yarn|bunx|bun|gem|cargo|deno)['\"`]\\s*,\\s*\\[|" +
+  "(?:(?:^|[\\s;&|(`$\'\"/\\\\])(?:curl|wget)|\\\\?\"(?:[^\"\\n]*[/\\\\])?(?:curl|wget)\\\\?\"|\\\\?\'(?:[^\'\\n]*[/\\\\])?(?:curl|wget)\\\\?\')" +
+    "\\s+(?:-[-a-zA-Z]|https?://|[\'\"$])|['\"`](?:[^'\"`\\s]*[/\\\\])?(?:curl|wget|pip3?|pipx|pnpm|yarn|bunx|bun|gem|cargo|deno)['\"`]\\s*,\\s*\\[|" +
     "['\"`](?:[^'\"`\\s]*[/\\\\])?git['\"`]\\s*,\\s*\\[\\s*['\"`]clone|" +
-    `\\b(?:${fetcher("pipx?3?", "install")}|${fetcher("pnpm", "(?:dlx|add|install|i)\\s")}|${fetcher("yarn", "(?:dlx|add)\\s")}|bunx\\s|` +
-    `${fetcher("bun", "(?:add|x|install)\\s")}|${fetcher("playwright", "install")}|${fetcher("git", "clone")}|${fetcher("gem", "install")}|` +
+    `(?:${fetcher("pipx?3?", "install")}|${fetcher("pnpm", "(?:dlx|add|install|i)[\"']?\\s")}|${fetcher("yarn", "(?:dlx|add)[\"']?\\s")}|${program("bunx")}\\s+[\\w@./"'$~\`\\\\-]|` +
+    `${fetcher("bun", "(?:add|x|install)[\"']?\\s")}|${fetcher("playwright", "install")}|${fetcher("git", "clone")}|${fetcher("gem", "install")}|` +
     `${fetcher("cargo", "install")}|${fetcher("go", "install")}|${fetcher("apt(?:-get)?", "install")}|${fetcher("brew", "install")}|` +
     `${fetcher("deno", "(?:install|run)")})`,
   "mu",

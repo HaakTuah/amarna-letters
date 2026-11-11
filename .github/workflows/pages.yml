@@ -19,9 +19,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Tests run only where they can be affected (the owner, 28 October 2026:
-  # "tests should only run where they impact something"): notes alone
-  # (docs/, .claude/, any .md) skip them; the build still runs for the preview.
+  # Tests run only where a change can affect them ("The smallest setup that tests the rule" in
+  # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md) skip them; the build still runs for the preview.
   changes:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest

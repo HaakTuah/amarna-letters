@@ -19,18 +19,11 @@ function licenceText(dir) {
 
 /**
  * The notices of what the game ships that no package brings (sounds, map data, pictures): every licence audit entry
- * (scripts/licences-audit.json, named by scripts/licences.json) that ships, but the owner's own (`kind: "own"`); throws on
- * one without its `notice`, so nothing of anyone else's ships uncredited (floor rule 10).
+ * (scripts/licences-audit.json, named by scripts/licences.json) that ships, but the owner's own (`kind: "own"`), each by
+ * its `notice`, which the core's licence check holds it to (floor rule 10).
  */
-export function assetNotices(entries) {
-  const shipped = entries.filter((e) => e.ships && e.kind !== "own");
-  const bare = shipped.filter((e) => !e.notice);
-  if (bare.length) throw new Error(`Shipped without a notice (floor rule 10): ${bare.map((e) => e.name).join(", ")}`);
-  return shipped.map((e) => e.notice);
-}
-
 const config = loadConfig(join(root, "scripts/licences.json"));
-const AUDIT = JSON.parse(readFileSync(join(root, config.audit), "utf8")).entries;
+const ASSETS = JSON.parse(readFileSync(join(root, config.audit), "utf8")).entries.filter((e) => e.ships && e.kind !== "own").map((e) => e.notice);
 
 /**
  * The folder of the package a bundled module (`id`, an absolute path) comes from, or undefined for the owner's own code:
@@ -77,7 +70,7 @@ export function notices(ids) {
     "Assets",
     rule,
     "",
-    ...assetNotices(AUDIT).flatMap((a) => [a, ""]),
+    ...ASSETS.flatMap((a) => [a, ""]),
     ...packages.flatMap((p) => [rule, `${p.name} ${p.version} (${p.license})`, rule, "", licenceText(p.dir) ?? `Licensed under ${p.license}; the package ships no licence text.`, ""]),
   ].join("\n");
 }
