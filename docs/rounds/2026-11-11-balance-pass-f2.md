@@ -56,7 +56,7 @@ Egypt 1.01, Hatti 1.02, Babylonia 0.80, Mitanni 1.09, Assyria 1.15, Arzawa 0.88,
 to Egypt 5, Hatti 6, Babylonia 6, Mitanni 3, Assyria 3, Arzawa 0, Alashiya 3 (19 before, 13 of them Assyria's).
 Mitanni stands above par now, not below. On seeds 101-200, played on the new par (the par's own seeds, so a check of
 the play it makes rather than an out-of-sample test): Egypt 1.01, Hatti 0.94, Babylonia 1.01, Mitanni 1.00, Assyria
-1.01, Arzawa 1.00, Alashiya 0.98; a king first in 90 games, a character in 10.
+1.01, Arzawa 1.00, Alashiya 0.98; at the weight of 5, a king first in 90 games, a character in 10.
 
 **The weight of size, by #825's test** ("the seven Great Kings have roughly an equal shot at the least, and ideally
 every state ...; and a character wins now and then"). No script reads the weight, so each board of the same 100 games
