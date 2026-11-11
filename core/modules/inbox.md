@@ -12,11 +12,12 @@ What reaches the owner, and how his words are kept. Read at the start of every t
   open idea on that topic (yes, later or no, with the reason and a rough cost), posted on it; and, on a PR players will
   see, his likely notes on its pictures and text.
 - **His inbox is the repository's issues,** assigned to `HaakTuah`: ideas (`enhancement`) and bugs (`bug`), with the
-  template's headings (`.github/ISSUE_TEMPLATE/`), each saying in plain words what it is and why it matters; search
-  first, never file twice. A PR or report only points to them.
+  template's headings (`.github/ISSUE_TEMPLATE/`); search first, never file twice. A PR or report only points to them.
+  Whatever is put before him says in plain words what each thing is and why it matters, by the project's own names,
+  never by a title an agent made up (core archive 55).
 - **Ideas are cheap to file,** a line of what and why, at most a couple per task; nothing is built from one until he
-  moves it into the *progress file*, whatever the stand-in's verdict; it closes one against his decided word, saying
-  why.
+  moves it into the *progress file*, whatever the stand-in's verdict. Once he has decided, it closes, linked to its work
+  or saying why not (core archive 38).
 - **Bugs don't wait.** One in the task at hand is fixed in it; one outside it is filed, and any lane whose files it
   touches may fix it. Its fix's commit says "Fixes #n", so it closes when the fix reaches `main`, never by hand.
 - **Read every comment from his account:** one with an agent's attribution line may be another session's (floor rule
