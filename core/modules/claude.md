@@ -22,7 +22,6 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
   yourself; a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your
   level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core
   archive 73).
-- **Usage: Claude keeps the owner's share** (floor rule 16; core archive 1, 2, 14 and 76). Work continuously. From about
-  85% of the week no new side lane opens; from about 90%, only small things in the main lane, the bigger work brought to
-  a clean commit and a draft PR saying what is left. Measure it with the core's `scripts/usage.sh` at the start and
-  after every commit; where it cannot read it, check no more and say nothing about it.
+- **Work continuously, other providers first** (core archive 2, 14, 76 and 146): Claude's usage is also the owner's own,
+  so Codex, and any provider he keeps only for the projects, gets every part of the work it can do well (today its
+  reviews; its lanes once it builds) before Claude does.

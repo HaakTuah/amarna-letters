@@ -13,8 +13,7 @@ sessions, passing on the owner's word. Only if it cannot start builder sessions 
   week, have the stand-in sweep the open ideas no answer touched, in one call (`modules/inbox.md`).
 - **Hand over at once:** start the next session as soon as a task merges. One session per task, continued for its review
   fixes while its context is under an hour old and small; otherwise a fresh one (core archive 10).
-- **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`; the brake in `modules/claude.md`
-  closes lanes first.
+- **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`.
 - **A lane whose session is gone** (core archive 133): one whose session it cannot reach (started elsewhere, such as on
   another account, or ended), with no push to its branch for a few hours, goes to a fresh builder from its branch,
   without asking.
