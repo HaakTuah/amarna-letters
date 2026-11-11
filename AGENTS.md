@@ -59,8 +59,6 @@ game's own, which "Principles over rules" never reaches: no model games until th
   default does not grow with it; code-PR checks stay near 10 minutes.
 - **A standing rule of the owner's** for this game moves into the builder rules at the next refresh of the design
   document's copy, and leaves this file in the same PR.
-- **Sessions:** a long item may end a session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md`
-  saying where to pick up.
 - **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
 - **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
