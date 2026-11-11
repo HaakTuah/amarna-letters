@@ -1,9 +1,8 @@
 # Amarna Letters
 
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
-through envoys and sealed tablets on a deterministic engine. The owner designs it with Claude in a design
-document; builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker).
-Every feature
+through envoys and sealed tablets on a deterministic engine. The owner designs it with Claude in a design document;
+builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker). Every feature
 answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`: read them once per session.
 
 ## The core
@@ -20,7 +19,8 @@ these whole at the start of every task (Claude Code imports them; Codex: read ea
 
 Codex: read `core/modules/codex.md` at the start of every task. The other files of the core, `core/floor/topics.md`
 and `core/modules/game-design.md` among them, are read when a task needs them; each says when. A safety rule of this
-game's own, which "Principles over rules" never reaches: no model games until the build order is done.
+game's own, which "Principles over rules" (`core/modules/how-to-work.md`) never reaches: no model games until the
+build order is done.
 
 ## Where things are
 

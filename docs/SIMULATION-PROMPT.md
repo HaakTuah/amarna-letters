@@ -132,9 +132,11 @@ and ask (on a kit made before 20 October 2026 it fails and says why: the kit mus
   about the seat view; a character's adds `"choices": [{"request": "<file name>", "why": "<a sentence or two>"}]`,
   saying, for each time it carried gold, was offered a gift or a post, or reported home, why it chose as it did and
   what it told or left out. Kings and characters alike answer "What did you find most and least interesting about
-  playing this role?" in `interesting` (the builder rules ask it of every debrief: a role an agent finds dull probably
-  has too few real choices). Start each listed agent with the prompt "Your request file is debrief.request.md in your
-  folder. Read it, and write your reply where it says."
+  playing this role?" in `interesting` (every debrief asks it: a role an agent finds dull probably has too few real
+  choices, so the answers are design data). Start each listed agent with the prompt "Your request file is
+  debrief.request.md in your folder. Read it, and write your reply where it says."
+- In the report, count the agents' mistakes of each kind that the core's "No rule untaught"
+  (`core/modules/game-design.md`) sorts (archive item 205).
 - Move every file in the kings' folders into `sim/runs/seed-7/kings/<power>/`. You do this; the kings never touch it.
   The characters of seed 7 keep their folders: game 2 is played by the other 18 character agents.
 

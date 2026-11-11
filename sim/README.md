@@ -95,11 +95,11 @@ steps. Since the fix pass (20 October 2026):
   `node sim/setup.js --force` (with `--seeds` for a simulation) before the next live test, and start a new session so
   the agent types load. The real kit was remade so on 20 October 2026 (`--seeds 7,15 --force`; the old one is in
   `sim/runs/setup-2026-10-20T03-05-31-356Z/`), and `--dry` holds on it.
-- **Safety checks are never overridden.** The start prompts (`docs/SIMULATION-PROMPT.md`, `docs/PLAY-PROMPT.md`) repeat
-  the builder rule in the same words: if a check that guards against something unsafe or irreversible fails (the
-  isolation of agents before any agent is started, anything touching `main`, keys or spending), the orchestrator stops
-  that step and asks, and goes on with other work meanwhile. Their stop rules follow it: a failed dry check, isolation
-  test or audit starts no further agent; the key and the usage limits stop the starting of agents.
+- **Safety checks are never overridden.** The start prompts (`docs/SIMULATION-PROMPT.md`, `docs/PLAY-PROMPT.md`) point
+  to floor rule 14 (`core/floor/security.md`): if a check that guards against something unsafe or irreversible fails
+  (the isolation of agents before any agent is started, anything touching `main`, keys or spending), the orchestrator
+  stops that step and asks, and goes on with other work meanwhile. Their stop rules follow it: a failed dry check,
+  isolation test or audit starts no further agent; the key and the usage limits stop the starting of agents.
 
 ## Orchestrating from a workflow
 
@@ -251,7 +251,7 @@ the simulation-fixes round, `docs/archive/rounds/2026-10-19-simulation-fixes.md`
   violations. Run 2's debrief request said reply files are closed, and nobody tried. *Done* for game requests by the
   same footer. A debrief request is written by the orchestrator, so it must end with the same footer. *Done* since the
   fix pass (20 October 2026): `write-debriefs.js` writes every debrief with it (a test checks it is the game requests'
-  footer, word for word), and with the builder rules' question for every debrief, "What did you find most and least
+  footer, word for word), and with the question every debrief asks (`QUESTION` there), "What did you find most and least
   interesting about playing this role?".
 - **The orchestrator-leak weakness.** The walls keep agents out of each other's files, but not out of the
   orchestrator's context. In the run nothing was passed on, but that was the rule above being followed. *Not built*;

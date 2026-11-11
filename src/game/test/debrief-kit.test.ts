@@ -5,8 +5,8 @@ import { Footer } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 
 // The simulation kit's debrief writer (sim/write-debriefs.js), read as text: no agent is started and no model called. Every
-// debrief ends with the footer every game request carries, and asks kings and characters alike the builder rules' question
-// (20 October 2026, "No model games until the build order is done"), so it is ready when model games return.
+// debrief ends with the footer every game request carries, and asks kings and characters alike the kit's question
+// (20 October 2026), so it is ready when model games return.
 describe("DebriefKitTests", () => {
   function kit(file: string): string {
     // The repository's root, from this test's own folder (src/game/test).

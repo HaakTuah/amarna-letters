@@ -16,17 +16,17 @@ with the copy and say so in the report, and before opening the pull request read
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 571 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 375 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 579 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 377 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 85 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
-| Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
+| Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 28 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 31 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 35 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 112 |
-| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 24 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 46 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 114 |
+| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 28 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 48 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 18 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 22 |
 
@@ -39,11 +39,11 @@ session loads.
 | `docs/intent/overview/front.md` | Title, status, how the document relates to the code | 2.1 |
 | `docs/intent/overview/vision-and-core-hypothesis.md` | Vision and core hypothesis | 1.4 |
 | `docs/intent/overview/the-game-in-one-page.md` | The game in one page | 4.8 |
-| `docs/intent/overview/design-pillars.md` | Design pillars | 7.4 |
+| `docs/intent/overview/design-pillars.md` | Design pillars | 6.3 |
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 3.0 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `docs/builder-rules.md` | Rules for the builder | 5.4 |
+| `docs/builder-rules.md` | Rules for the builder | 4.8 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.8 |
@@ -66,7 +66,7 @@ session loads.
 | `docs/intent/build-order/item-19.md` | 19. The living map | 18.6 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.4 |
+| `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 8.3 |
 | `docs/intent/world-and-history/the-map.md` | The map | 10.7 |
 | `docs/intent/world-and-history/the-sources.md` | The sources | 6.6 |
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 24.5 |
@@ -78,7 +78,7 @@ session loads.
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |
 | `docs/intent/diplomacy-and-intelligence/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md` | Envoys: mediated, delayed, agentic communication | 2.3 |
-| `docs/intent/diplomacy-and-intelligence/messengers-and-offers.md` | Messengers and offers | 5.8 |
+| `docs/intent/diplomacy-and-intelligence/messengers-and-offers.md` | Messengers and offers | 6.3 |
 | `docs/intent/diplomacy-and-intelligence/envoy-authority-and-resident-envoys.md` | Envoy authority and resident envoys | 2.2 |
 | `docs/intent/diplomacy-and-intelligence/written-agreements-seals-and-forgery.md` | Written agreements, seals and forgery | 10.6 |
 | `docs/intent/diplomacy-and-intelligence/lies-tablets-and-scribes.md` | Lies, tablets and scribes | 4.8 |
@@ -104,8 +104,8 @@ session loads.
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military-part1.md` | Territory and military (part 1) | 24.5 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 9.2 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military-part1.md` | Territory and military (part 1) | 22.4 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 12.3 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 9.0 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.7 |
@@ -113,9 +113,9 @@ session loads.
 | `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 11.6 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 21.5 |
-| `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 4.1 |
+| `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 5.6 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 25.1 |
+| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 25.4 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 6.6 |

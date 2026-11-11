@@ -25,11 +25,12 @@ with `node sim/wait.js --play` and start the agent it names: a king (`king-<powe
 and so are the characters when the bridge keeps none.
 
 **Your rules.**
-- Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask, and go on with other work meanwhile.
-  (The builder rules say this in the same words.) Here the safety checks are the key and the usage stop points (step
-  0), the agent types and the dry isolation check (step 1), the live isolation test (step 2), and the audit (step 5);
-  each step says what stops. "Ask" means ask the owner. In local play the only other work is waiting for his word: start
-  no agent meanwhile.
+- Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the
+  isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask,
+  and go on with other work meanwhile. (Floor rule 14, `core/floor/security.md`, says this.) Here the safety checks are
+  the key and the usage stop points (step 0), the agent types and the dry isolation check (step 1), the live isolation
+  test (step 2), and the audit (step 5); each step says what stops. "Ask" means ask the owner. In local play the only
+  other work is waiting for his word: start no agent meanwhile.
 - Never read a king's request or reply files, and never carry anything from one king to another or to the owner. A king
   gets only the name of its request file.
 - Check only that an agent's reply file exists (`wait.js` no longer lists its request). Every agent's final message
