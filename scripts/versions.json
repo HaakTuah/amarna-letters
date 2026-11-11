@@ -1,5 +1,5 @@
 {
-  "about": "What Dependabot cannot see: the Python tools that make the music, pinned in docs/audio/SOURCES.md and read from there by their patterns (never written here). The core's core/scripts/versions.mjs compares each with PyPI's newest stable release a week old; .github/workflows/versions.yml runs it monthly, by the core's versions workflow, and opens an enhancement issue for each one behind; scripts/test.sh checks on every PR that each pattern still finds exactly one version.",
+  "about": "What Dependabot cannot see: the Python tools that make the music, pinned in docs/audio/SOURCES.md and read from there by their patterns (never written here). The core's core/scripts/versions.mjs compares each with PyPI's newest stable release a week old; .github/workflows/versions.yml runs it monthly, by the core's versions workflow, and opens an enhancement issue for each one behind; each run of scripts/test.sh checks that each pattern still finds exactly one version.",
   "entries": [
     {
       "name": "numpy",
