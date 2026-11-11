@@ -218,6 +218,9 @@ export class Brain {
   /** The overlords we still choose to serve, and when we last weighed each bond. */
   readonly serving = new HSet<Power>();
   readonly weighed = new Dict<Power, number>();
+  /** The vassals we still choose to keep from war while they pay, and when we last weighed each (item 18, part F3). */
+  readonly keeping = new HSet<Power>();
+  readonly keptWeighed = new Dict<Power, number>();
   /** This season's tribute owed: to whom, and how much; null when none is due or we no longer pay. */
   tributeDue: [Power, number] | null = null;
   /** When we last sent tribute to each overlord, and when each vassal's last reached us. */
