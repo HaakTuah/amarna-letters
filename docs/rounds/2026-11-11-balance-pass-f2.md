@@ -103,6 +103,11 @@ their realms and their last captors stood against par at the end, beside kings h
   realms at 1.02 and their captors at 1.16; held less long and free again, 385 kings: their realms at 0.88 and their
   captors at 1.15; every realm at 1.00.
 
+- **After, use against ignore** (this branch, `--king-play-half`, seeds 1-100 in two halves): growth 0.83 against 0.79
+  and 21 wins to 25 on seeds 1-50, 0.81 against 0.80 and 23 to 25 on seeds 51-100: 0.82 against 0.80 and 44 to 50 over
+  the hundred, even within what 100 games tell apart. Held long, 139 kings: captors at 1.08 and 1.26 in the two
+  halves, against 1.17 and 1.15 for kings held less long; realms at 0.99 and 0.98, every realm at 1.02 and 0.98.
+
 So holding a king long gains his captor nothing that taking him did not (1.16 against 1.15), and his realm under its
 caretaker ends at par, above the realms of kings held briefly. **The levers stay as they are:** the escape odds (1 in a
 thousand a season for each point of his skill at going unseen) and the guard (100 shekels of watchmen halve them).
