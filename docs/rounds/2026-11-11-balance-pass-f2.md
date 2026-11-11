@@ -33,8 +33,8 @@ say "the season before". Save version 94.
 ## Bold and careful: the kings out of the count
 
 The batch's bold and careful lines took every person on the scoreboard without a realm as a character, dead kings
-among them, so the kings who died in battle and in falling cities were counted as careful characters' deaths (most
-kings of 1346 are careful by their traits). Counted again on the baseline's 100 games without anyone who reigned: the
+among them, so the kings who died in battle and in falling cities were counted as careful characters' deaths (1,870
+of the 2,720 who reigned in these games were careful by their traits). Counted again on the baseline's 100 games without anyone who reigned: the
 bold 12.6% dead (the road 7.2%, plague 3.8%, hunger 1.4%), the careful 13.8% (the road 7.8%, plague 4.0%, hunger 1.7%),
 against 14% and 18% as the line read. Most of "the careful dying more often" (parts D and F1) was the kings; what is
 left is the road, where the careful, who take more of the jobs, travel more. The lines now count only those who never
