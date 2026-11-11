@@ -4,13 +4,12 @@ name: Licences
 
 on:
   pull_request:
-    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   licences:
-    uses: HaakTuah/agent-core/.github/workflows/licences.yml@81039140a22761cb7d37c87e2e8cac8e1bfadcad
+    uses: HaakTuah/agent-core/.github/workflows/licences.yml@43d8250524275e10f1b8d8947d47e96bf2c318c2
     with:
       config: scripts/licences.json

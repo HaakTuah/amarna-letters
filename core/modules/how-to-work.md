@@ -29,7 +29,7 @@ and 57).
 - **Principles over rules** (core archive 25): where a rule's letter would defeat its purpose, follow the purpose, say
   so under "Readings taken", and flag the rule to be fixed. Never for the floor, nor for a rule the project's
   `AGENTS.md` marks as a safety rule.
-- **The smallest setup that tests the rule** (core archive 12): each test sets up only what it needs; long measurements
-  run outside the suite and CI.
+- **The smallest setup that tests the rule** (core archive 12): each test sets up only what it needs, and runs only where
+  a change can affect it (core archive 9); long measurements run outside the suite and CI.
 - **Rule files state rules,** briefly, with at most a pointer to the archive (core archive 74); a new rule replaces text
   rather than adding to it (the cap: `README.md`).

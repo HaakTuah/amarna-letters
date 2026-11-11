@@ -1,0 +1,55 @@
+# The versions check ("The newest stable version, unless there is a reason" in modules/updates.md): each version a
+# config names is compared with the npm registry's newest stable release old enough to take (scripts/versions.mjs), and
+# each one behind gets an enhancement issue for the owner, unless one is already open. A project calls it
+# (workflow_call) from a monthly schedule of its own, with its config, pinned to a full commit SHA, from a job that
+# grants `contents: read` and `issues: write`; the core runs it on its own schedule for the pins it holds
+# (.github/versions.json). Nothing is checked out but the repository it runs for, and no untrusted text is written into
+# the script: the titles and bodies pass through a file and jq. It may open issues, and nothing else.
+name: versions
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: The versions check's config, a JSON file of the caller's (core/scripts/versions.mjs).
+        required: true
+        type: string
+  schedule:
+    - cron: "17 6 3 * *" # (the 3rd of each month, 06:17 UTC: the core's own pins)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ${{ inputs.config && 'core/.node-version' || '.node-version' }} # the one exact Node
+      - name: The versions behind (no token)
+        env:
+          CONFIG: ${{ inputs.config || '.github/versions.json' }}
+          SCRIPT: ${{ inputs.config && 'core/scripts/versions.mjs' || 'scripts/versions.mjs' }}
+        run: node "$SCRIPT" "$CONFIG" --issues > "$RUNNER_TEMP/behind.json"
+      - name: An issue for each, unless one is open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          behind="$RUNNER_TEMP/behind.json"
+          open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" --jq '.[].title')
+          for i in $(seq 0 $(( $(jq length "$behind") - 1 ))); do
+            title=$(jq -r ".[$i].title" "$behind")
+            if grep -qF -- "$(jq -r ".[$i].key" "$behind")" <<<"$open"; then echo "already open: $title"; continue; fi
+            jq -r ".[$i].body" "$behind" > "$RUNNER_TEMP/body.md"
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/body.md" --label enhancement --assignee HaakTuah
+          done

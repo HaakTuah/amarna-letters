@@ -71,7 +71,7 @@ game's own, which "Principles over rules" never reaches: no model games until th
 
 ```bash
 scripts/cloud-setup.sh        # cloud machines: the core's Node, npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts, without Chromium)
-scripts/test.sh               # type-check, lint, the copies check and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
+scripts/test.sh               # type-check, lint, the copies, pointer and reading-size checks, and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 npm run dev --workspace src/web                       # the web app at http://localhost:5183
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app

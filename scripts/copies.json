@@ -4,12 +4,13 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.mjs",
-    "scripts/*.mjs"
+    "scripts/*.mjs",
+    "scripts/*.ts",
+    "scripts/*.sh",
+    "scripts/*.py",
+    "sim/*.js"
   ],
   "prose": [
-    "AGENTS.md",
-    "CLAUDE.md",
-    "core-manifest.md",
     "core/floor/*.md",
     "core/modules/*.md"
   ],

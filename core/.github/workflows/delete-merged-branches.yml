@@ -23,6 +23,10 @@ jobs:
   delete:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # (one run at a time for each project, so two never delete at once; a project's caller needs none of its own)
+    concurrency:
+      group: delete-merged-branches-${{ github.repository }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:

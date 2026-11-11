@@ -18,8 +18,9 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 
 ```bash
 scripts/cloud-setup.sh   # on a fresh cloud machine: the core's Node, the npm packages and Playwright's Chromium, if missing
-scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest), printing only the
-                         # summary and the failures (the full log goes to $TMPDIR/amarna-test-<pid>.log, one per run)
+scripts/test.sh          # type-check, lint (the engine's determinism among it), the core's copies, pointer and
+                         # reading-size checks, and every test (Vitest), printing only the summary and the failures
+                         # (the full log goes to $TMPDIR/amarna-test-<pid>.log, one per run)
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
 

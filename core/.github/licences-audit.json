@@ -1,0 +1,14 @@
+{
+  "about": "The core's licence audit (floor rule 10): what its own workflows and scripts use, held to the tools' list by scripts/licences.mjs with .github/licences.json, which the core's tests workflow runs. Nothing of the core ships. A project's scan leaves its copy of the core out, since this audit holds it; its own uses of the same actions are in its own audit. The scan's own script and test are left out of the scan, since they name the forms it looks for.",
+  "entries": [
+    { "name": "actions/checkout", "kind": "action", "licence": "MIT", "used": "every workflow" },
+    { "name": "actions/setup-node", "kind": "action", "licence": "MIT", "used": "the workflows that run a script, on the core's one Node" },
+    { "name": "actions/dependency-review-action", "kind": "action", "licence": "MIT", "used": "licences.yml, the licence gate on new and updated packages" },
+    { "name": "github/codeql-action", "kind": "action", "licence": "MIT", "used": "codeql.yml, code scanning" },
+    { "name": "CodeQL CLI", "kind": "github-service", "licence": "LicenseRef-GitHub-Terms", "used": "code scanning, run by github/codeql-action: a GitHub service, free while a repository is public" },
+    { "name": "GitHub CLI", "kind": "tool", "licence": "MIT", "used": "gh in versions.yml and delete-merged-branches.yml, the runner's own" },
+    { "name": "jq", "kind": "tool", "licence": "MIT", "used": "versions.yml, the runner's own: it reads the issues the versions check would open; statusline.sh and usage.sh, where the machine has it" },
+    { "name": "Node.js", "kind": "tool", "licence": "MIT", "files": ["scripts/node.sh"], "used": "every script: the core's one exact Node, .node-version, which scripts/node.sh fetches as the node-linux-x64 or node-linux-arm64 package (npm pack) and checks by its sum" },
+    { "name": "npm", "kind": "tool", "licence": "Artistic-2.0", "used": "bundled with Node: npm view in versions.mjs, npm pack in node.sh" }
+  ]
+}

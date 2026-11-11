@@ -1,6 +1,6 @@
 # Core manifest
 
-Core: HaakTuah/agent-core at 81039140a22761cb7d37c87e2e8cac8e1bfadcad, copied whole under core/ (never edited here).
+Core: HaakTuah/agent-core at 50a5a85fd26ac4ccebe56a787e334c74077e85f0, copied whole under core/ (never edited here).
 Paths: in the core's files, one into floor/, modules/, scripts/, setup/, archive/ or reports/ is under core/; any other is ours.
 Floor: whole. Modules: all.
 
@@ -13,10 +13,11 @@ Floor: whole. Modules: all.
 | --- | --- |
 | *progress file* | `docs/BUILD-PROGRESS.md` |
 | *report* | `docs/rounds/<date>-<item>.md` (the PR names it) |
-| *settling references* | "The game in one page" ("Starting a task" in `AGENTS.md`) and the item's sections |
+| *settling references* | "The game in one page", which "Starting a task" in `AGENTS.md`, point 3, names, and the item's sections |
 | *descriptions* | the design notes (`docs/design/`) and, for what a player or a king sees, the README, the rulebook and the seat view; `docs/intent/` stays as it is |
 | *copies check* | `core/scripts/copies.mjs` with `scripts/copies.json` |
 | *large file* | over 50 KB |
+| *size marks* | `scripts/sizes.json` |
 | *one at a time* | the numbered items, one lane |
 | *design-checked PRs* | the build-order items (not the polish and sound lanes' small fixes) |
 | *review reference* | "The game in one page" |

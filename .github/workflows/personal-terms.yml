@@ -11,10 +11,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: personal-terms-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   check:
     uses: HaakTuah/agent-core/.github/workflows/personal-terms.yml@2d13e39d7d6062a5524852a9b2107e86b33c5353
