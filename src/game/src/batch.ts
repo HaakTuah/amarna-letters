@@ -800,7 +800,7 @@ export function soloReport(seeds: number, baseGrowth: Record<string, number[]>, 
   const sumSolo = sum(AllPowers, (p) => soloWins[p]);
   const sumBase = sum(AllPowers, (p) => baseWins[p]);
   lines.push(
-    `  All kings   ${align(fmt(allSolo, "0.00"), 5)} / ${align(fmt(allBase, "0.00"), 4)}                  ${align(fmt((100 * sumSolo) / (seeds * 7), "0"), 3)}% / ${align(fmt((100 * sumBase) / (seeds * 7), "0"), 3)}%`,
+    `  All kings   ${align(fmt(allSolo, "0.00"), 5)} / ${align(fmt(allBase, "0.00"), 4)}                  ${align(fmt((100 * sumSolo) / (seeds * AllPowers.length), "0"), 3)}% / ${align(fmt((100 * sumBase) / (seeds * AllPowers.length), "0"), 3)}%`,
   );
   return lines.join("\n");
 }

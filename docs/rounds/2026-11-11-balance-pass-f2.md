@@ -10,8 +10,6 @@ testing here, against one test (the seven Great Kings with roughly an equal shot
 and a character now and then; #825), and whether holding a king forever pays is measured here, its levers the escape
 odds and what holding him costs (#806).
 
-In progress: the last measurements run in the background; this report fills as they come.
-
 ## The baseline (`main` at 1bddefe, seeds 1-100)
 
 `scripts/sim.sh --games 100 --seed 1` (60 minutes): 85.2 seasons on average; a king first in 62 games, a character in
@@ -135,6 +133,17 @@ So holding a king long gains his captor nothing that taking him did not (1.16 ag
 caretaker ends at par, above the realms of kings held briefly. **The levers stay as they are:** the escape odds (1 in a
 thousand a season for each point of his skill at going unseen) and the guard (100 shekels of watchmen halve them).
 Nothing in the measure asks them to move: holding a king forever is allowed and neither pays nor ruins.
+
+## Benchmarks
+
+`--versus solo`, seeds 1-4, before (`main` with the measure) and after (this branch): a regression check, not a balance
+measurement. Growth alone / as baseline is unchanged for every king but Hatti (1.32 to 1.34 alone, the watch now
+counting on the road and at the border): all kings 2.24 / 1.06 both; Egypt 1.44 / 0.89, Babylonia 1.50 / 0.63, Mitanni
+3.06 / 0.82, Assyria 2.55 / 0.88, Arzawa 1.10 / 0.78, Alashiya 1.16 / 0.76 both. Wins alone move with the scoreboard,
+not with play (the weight of size and a character's par): Egypt and Babylonia 0% to 50%; of all the kings' 188 solo games, 26 won
+alone and 2 all-baseline before (14% / 1%), 42 and 3 after (22% / 2%). The table's "All kings" share divided every
+king's wins by seven, as if only the Great Kings played, so it read 93% / 7% and 150% / 11%; it now divides by every
+king (`soloReport`), a bug fixed here.
 
 ## Readings taken
 
