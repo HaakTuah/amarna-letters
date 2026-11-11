@@ -4,8 +4,7 @@ Read by the orchestrator, the session that starts builder sessions, when it star
 
 **It builds nothing itself** (core archive 27): every lane goes to a builder session of its own, with its own brief, at
 the builder's model and effort (`modules/claude.md`). Its own context stays small: claims, starting and handing over
-sessions, passing on the owner's word, merging Codex's work. Only if it cannot start builder sessions does it say so and
-stop.
+sessions, passing on the owner's word. Only if it cannot start builder sessions does it say so and stop.
 
 - **On every wake,** the hourly check included (core archive 42, 44 and 124): pull `main`; if a rule file changed,
   re-read it and pass what touches them to the running builders in one message; if the core's newest `main` is past the

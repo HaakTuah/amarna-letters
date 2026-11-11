@@ -1,8 +1,8 @@
 # The versions check ("The newest stable version, unless there is a reason" in modules/updates.md): each version a
 # config names is compared with its registry's (npm's or PyPI's) newest stable release old enough to take
-# (scripts/versions.mjs), and each one behind gets an enhancement issue for the owner, unless one is already open. A
-# project calls it (workflow_call) from a monthly schedule of its own, with its config, pinned to a full commit SHA,
-# from a job that grants `contents: read` and `issues: write`; the core runs it on its own schedule for the pins it
+# (scripts/versions.mjs), and each one behind gets an enhancement issue for the owner, unless one it opened is still
+# open. A project calls it (workflow_call) from a monthly schedule of its own, with its config, pinned to a full commit
+# SHA, from a job that grants `contents: read` and `issues: write`; the core runs it on its own schedule for the pins it
 # holds (.github/versions.json). Nothing is checked out but the repository it runs for, and no untrusted text is written
 # into the script: the titles and bodies pass through a file and jq. It may open issues, and nothing else.
 name: versions
@@ -46,7 +46,9 @@ jobs:
         run: |
           set -euo pipefail
           behind="$RUNNER_TEMP/behind.json"
-          open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" --jq '.[].title')
+          # only the issues this workflow opened count: an outsider's idea with the same title must not silence one
+          open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" \
+            --jq '.[] | select(.user.login == "github-actions[bot]") | .title')
           for i in $(seq 0 $(( $(jq length "$behind") - 1 ))); do
             title=$(jq -r ".[$i].title" "$behind")
             if grep -qF -- "$(jq -r ".[$i].key" "$behind")" <<<"$open"; then echo "already open: $title"; continue; fi
