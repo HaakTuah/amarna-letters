@@ -11,8 +11,8 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   measured since the parts of 17b that changed who falls; on the old par the three strongest powers took 46 of these 50
   games. The script kings rank rivals by par in play (`Board.growth`), so par steers play as well as the score; it is
   refreshed once more at the end of the pass, after parts C to E change the play.
-- **The weight of size** stays 5 percent (`GameConfig.sizeWeight`, the one place it is set), the owner's answer of
-  29 October 2026 to item 11e; question #825 asks whether it should be half and half, and his answer is that one number.
+- **The weight of size** stayed 5 percent (`GameConfig.sizeWeight`, the one place it is set), the owner's answer of
+  29 October 2026 to item 11e, while #825 waited; part F2 set it by his answer (below).
 - **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth at reference
   prices): the alternative, the gold the land can still yield in the seasons likely left, would move every score as the
   omens darken with no wealth moving, against "every movement of wealth scores itself" (Victory). The script kings already value a
@@ -86,8 +86,9 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   (`CharacterParBest`), not every character's: ranked against everyone's results, the characters together stood first
   in a third of the games at any weight of size that kept the Great Kings level (#825's test: "a character wins now
   and then"); see [57](57-every-person.md).
-- **The weight of size stays 5 percent** (`GameConfig.sizeWeight`), set by testing against #825's test: the Great
-  Kings stand first about equally at 5 and below, and the largest realms pull ahead from about 10.
+- **The weight of size is 2 percent** (`GameConfig.sizeWeight`, 5 before), set by testing against #825's test on seeds
+  1-200: at 2 the Great Kings stand first about equally and each about twice as often as another state, and a character
+  in about one game in nine; at 5 the Great Kings drift apart and stand first three times as often as another state.
 - **Holding a king forever** is measured by the "Held long" line ([59](59-a-captive-kings-realm.md)); the escape odds
   and the guard (`KingData`) stay as they are, since holding a king long gains his captor nothing measurable.
 - **The bold and careful lines** count only those who never reigned.

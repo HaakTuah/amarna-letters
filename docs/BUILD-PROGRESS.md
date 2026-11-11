@@ -227,7 +227,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | in progress, in parts (the report lists them): A to F1 merged (#828, #830, #833, #835, #839, #843, #845; save versions 87 to 92), F2 merged (#895; par from 100 games, a character's par the best five of each game, the weight of size kept at 5 by #825's test, holding a king forever measured and its levers kept, #878; save version 94; report `docs/rounds/2026-11-11-balance-pass-f2.md`); next F3, on a fresh branch `item/balance-f3` (**pick up at the F2 report's "Split, and where to pick up (F3)"**: every feature's use against ignore, the people 17+ added, starting positions, banditry and far provinces, commanders' worth), then stop for review | `item/balance-f3` | `docs/rounds/2026-11-07-balance-pass.md` |
+| 18 | The balance pass | in progress, in parts (the report lists them): A to F1 merged (#828, #830, #833, #835, #839, #843, #845; save versions 87 to 92), F2 merged (#895; par from 100 games, a character's par the best five of each game, the weight of size set at 2 by #825's test, holding a king forever measured and its levers kept, #878; save version 94; report `docs/rounds/2026-11-11-balance-pass-f2.md`); next F3, on a fresh branch `item/balance-f3` (**pick up at the F2 report's "Split, and where to pick up (F3)"**: every feature's use against ignore, the people 17+ added, starting positions, banditry and far provinces, commanders' worth), then stop for review | `item/balance-f3` | `docs/rounds/2026-11-07-balance-pass.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |

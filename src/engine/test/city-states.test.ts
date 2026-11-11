@@ -149,7 +149,7 @@ describe("City-states as powers (item 11+)", () => {
   });
 
   test("The final score blends size and performance, and the highest wins", () => {
-    // Item 11e: size against the largest realm, performance as the rank; size weighs 5 percent since item 11f (the owner's answer).
+    // Item 11e: size against the largest realm, performance as the rank; size weighs 2 percent since item 18, part F2 (#825's test; 5 from item 11f).
     Assert.equal(0.5, finalScore(50, 1, 0));
     Assert.equal(0.75, finalScore(50, 0.5, 1));
     Assert.equal(0.25, finalScore(0, 1, 0.25));
@@ -158,7 +158,7 @@ describe("City-states as powers (item 11+)", () => {
     Assert.equal(AllPowers.length, scores.length);
     Assert.equal(1, max(scores, (x) => x.size));
     for (let i = 1; i < scores.length; i++) Assert.true(scores[i - 1].score >= scores[i].score);
-    Assert.equal(5, newGameConfig().sizeWeight);
-    for (const x of scores) Assert.equal(finalScore(5, x.size, x.performance), x.score);
+    Assert.equal(2, newGameConfig().sizeWeight);
+    for (const x of scores) Assert.equal(finalScore(2, x.size, x.performance), x.score);
   });
 });

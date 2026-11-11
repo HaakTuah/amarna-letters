@@ -80,7 +80,7 @@ characters of each par game gained (the same 100 games, the weight 5): the best 
 best 3, in 4; **the best 5, in 9** (the Great Kings 5, 7, 6, 3, 4, 0, 3; the other states 63); the best 10, in 18.
 
 Built: a character's par is what the best five characters who never reigned gained in each par game
-(`CharacterParBest`, written by `--par-out`), and **the weight stays 5**. Scored so, at each weight:
+(`CharacterParBest`, written by `--par-out`). Scored so, at each weight:
 
 | Weight | Characters first | Great Kings | Other states |
 |---|---|---|---|
@@ -90,10 +90,24 @@ Built: a character's par is what the best five characters who never reigned gain
 | 8 | 6 | 10, 7, 8, 3, 6, 1, 3 | 56 |
 | 10 | 6 | 10, 8, 9, 3, 7, 1, 3 | 53 |
 
-At 5 the Great Kings stand first in 28 games, about 4 each (Arzawa none, within what 100 games can tell apart), the
-other states in 63 (about 1.6 each), and a character in 9. **Why a Great King stood first more often than a city-state
-at a weight of 0** (part B) holds no longer: at 0 the Great Kings stand first 13 times, about 1.9 each, the other
-states 73, about 1.8 each. Only the end's scoreboard reads a character's par, so no seed's play moves by it.
+Only the end's scoreboard reads a character's par, so no seed's play moves by it. **Why a Great King stood first more
+often than a city-state at a weight of 0** (part B) holds no longer: at 0 the Great Kings stand first 13 times, about
+1.9 each, the other states 73, about 1.8 each.
+
+**The weight, on a second seed set** (seeds 101-200, played on the new par; the design check asked for 2 to be weighed
+against 5 by the whole test): characters first in 14, 12, 11, 10, 10 and 10 games at the weights 0 to 5, the Great
+Kings 20, 28, 30, 33, 34 and 38, the other states 66, 60, 59, 57, 56 and 52. Over both sets, 200 games:
+
+| Weight | Characters first | Great Kings (Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya) | Wins a head, Great King / other state | The Great Kings level (chance alone)? |
+|---|---|---|---|---|
+| 0 | 28 | 5, 7, 2, 7, 3, 2, 7 | 4.7 / 3.5 | yes (p about 0.3) |
+| 1 | 25 | 7, 10, 6, 7, 5, 2, 6 | 6.1 / 3.3 | yes (p about 0.5) |
+| 2 | 22 | 7, 13, 6, 7, 5, 2, 6 | 6.6 / 3.3 | yes (p about 0.12) |
+| 5 | 19 | 11, 17, 12, 10, 9, 2, 5 | 9.4 / 2.9 | no (p about 0.02) |
+
+**Set at 2** (`GameConfig.sizeWeight`, 5 before): the Great Kings stand first about equally, each about twice as often
+as another state (three times at 5), and a character in about one game in nine. No script reads the weight, so play
+does not move by it; who stands first does.
 
 ## Holding a king forever (#806)
 
@@ -122,16 +136,18 @@ Nothing in the measure asks them to move: holding a king forever is allowed and 
 
 ## Readings taken
 
-- **A character's par is the best five of each game, and the weight stays 5** (the stand-in's reading of the owner's
-  words, since no weight met #825's whole test). His words rank the test: "At the very least, the 7 kings should have a
+- **A character's par is the best five of each game, and the weight is 2** (the stand-in's reading of the owner's
+  words for the five, since no weight met #825's whole test with everyone's par; the design check's for the weight). His words rank the test: "At the very least, the 7 kings should have a
   roughly equal shot" (9 November 2026, #825; archive item 236), and "if we can, balance it so characters occasionally
   win" (31 October 2026; archive item 89); and "This should be decided by testing. Any proportion we pick is a shot in
   the dark" (9 November). A higher weight gives up the first for the second; five a game keeps the kings level and
-  brings characters to 9 in 100. It keeps one measure for every person, rank against par for his start, and changes
+  brings characters to about one game in nine. Among the weights that keep the kings level, 2 comes nearest "all states
+  should roughly have an equal shot" while keeping size in the score ("You weigh 2 things", 31 October); 0 would drop
+  it, and 1 is within the noise of 2. It keeps one measure for every person, rank against par for his start, and changes
   only what par is for characters, so that a character's 0.99 means what a realm's does: better than the best of
   nearly every past game, not better than all but the top few of 30,000 men. Five matches "the top five", the top of
-  the characters' ranking in every bold-and-careful count since part B. The stand-in rated the weight's half likely and
-  the five's half a guess; the owner may move either, each one number. Principle: "Numbers are first guesses until
+  the characters' ranking in every bold-and-careful count since part B. The stand-in rated the five a guess; the owner
+  may move it or the weight, each one number. Principle: "Numbers are first guesses until
   play tunes them", within his ranking of the test.
 - **The levers of holding a king stay** (the owner: holding him forever is "measured, not ruled against"): the measure
   shows no gain to the captor beyond the capture and no ruin to the held realm, so no lever is pulled to make it rarer

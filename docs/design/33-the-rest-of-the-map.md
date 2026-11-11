@@ -78,8 +78,8 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
 
 ## The owner's answers to items 11e and 12 (PR #174, built here)
 
-- **Size weighs 5 in a hundred** in the final score (`GameConfig.sizeWeight`, 50 before), near the fair point item 11e
-  measured; item 18 sets it.
+- **Size weighed 5 in a hundred** in the final score (`GameConfig.sizeWeight`, 50 before), near the fair point item 11e
+  measured; item 18 set it at 2 ([58](58-the-balance-pass.md)).
 - **Anyone in a court's service standing at it bridges an audience** (`servantsAt` in `turn/languages.ts`): a scribe, a
   resident envoy, anyone it pays to stay, whatever his errand there (before, only a servant with no errand).
 - **An Akkadian scribe at every court that reads Akkadian** (`scribes` in `rules/factory.ts`; 23 courts): a starting
