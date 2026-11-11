@@ -1,12 +1,13 @@
 # The pull-request previews, for every game that takes the core (core archive 147): a pull request's playable preview at
 # pr-<number>/ on the game's gh-pages branch, one comment on the PR linking it, and the preview removed when the PR
-# closes. The game's own build workflow, on pull_request with a read-only token, uploads the artifact "preview": the
-# file pr-number and, unless the PR closed, the built site in site/. A workflow of the game's own, on workflow_run of
-# that build, calls this one pinned to a full commit SHA ("How a project takes the core" in README.md, point 5), with
-# the job's permissions contents: write, actions: read and pull-requests: write. workflow_run always runs main's copy
-# of the caller, and this job checks out main, so no PR can change what it does. It never runs the PR's code: it takes
-# the uploaded site as files, and the PR's number only after checking it against the PR itself (same repository, same
-# head commit as the run). It writes only pr-<number>/, never the root, with the game's core/scripts/site-publish.sh.
+# closes (or, if that removal did not run, on the next run of any PR). The game's own build workflow, on pull_request
+# with a read-only token, uploads the artifact "preview": the file pr-number and, unless the PR closed, the built site
+# in site/. A workflow of the game's own, on workflow_run of that build, calls this one pinned to a full commit SHA
+# ("How a project takes the core" in README.md, point 5), with the job's permissions contents: write, actions: read and
+# pull-requests: write. workflow_run always runs main's copy of the caller, and this job checks out main, so no PR can
+# change what it does. It never runs the PR's code: it takes the uploaded site as files, and the PR's number only after
+# checking it against the PR itself (same repository, same head commit as the run). It writes only pr-<number>/, never
+# the root, with the game's core/scripts/site-publish.sh.
 name: preview
 
 on:
@@ -73,3 +74,17 @@ jobs:
           else
             echo "PR #$n is open but its run uploaded no site"; exit 1
           fi
+
+      # A preview whose pull request closed without its removal running (that run failed, was skipped or had only a
+      # read-only token) is taken down here, on the next run of any pull request.
+      - name: Take down closed pull requests' previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch -q origin gh-pages || exit 0
+          for d in $(git ls-tree --name-only FETCH_HEAD | grep -E '^pr-[1-9][0-9]{0,9}$' || true); do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/${d#pr-}" --jq .state 2>/dev/null) || continue
+            if [ "$state" = closed ]; then
+              core/scripts/site-publish.sh "$d" --remove || echo "::warning::could not take down $d"
+            fi
+          done
