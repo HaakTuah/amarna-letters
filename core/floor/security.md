@@ -49,8 +49,8 @@ does any prompt or brief given to an agent. His archived words leave such detail
 GitHub account in the repository's own address. The check `personal-terms.yml` fails a PR holding a term from the
 Actions secret `PERSONAL_TERMS`.
 
-**12. `main` is the owner's** and what the live site runs: never pushed to, never force-pushed. It changes only by a
-merged pull request, brought up to date with `main` and its checks passed (core archive 113).
+**12. `main` is the owner's** and what its users get is built from it: never pushed to, never force-pushed. It changes
+only by a merged pull request, brought up to date with `main` and its checks passed (core archive 113).
 
 **13. Each project's files stay in its own repository,** never written into another's (core archive 4).
 
@@ -60,10 +60,9 @@ on. Everything else is done on the best reading, said in the PR, and stays corre
 against harm (agents' isolation, `main`, keys, spending) stops its step, and the owner is told; a failing test is fixed,
 or its task marked blocked, and the work goes on.
 
-**18. Where agents hold sign-ins** (core archive 118 to 120, 122 and 127): a machine of the owner's where agents run
-side by side. Only he logs in and sets it up; it holds only the projects and what their agents need; nothing runs there
-but what he starts and the sessions those start. No agent prints, logs, copies or sends a sign-in; an account of his
-(such as a ChatGPT login) sits under a system account of its own, which the other agents cannot read. Project code runs
-only in a throwaway box no sign-in can be read from, given a copy of the clone, with network only where the run needs
-it. Every sign-in has a spending limit he sets, the GitHub access there cannot change workflows, and one that leaks is
-revoked at once. Its name and address are never written in a repository; how it is set up: `setup/server.md`.
+**18. Where agents hold sign-ins** (core archive 118 to 120, 122, 127 and 149): how a machine is set up for agents is
+the owner's to decide, and no rule refuses work over it. What holds on every one: nothing runs there but what he starts
+and the sessions those start; no agent prints, logs, copies or sends a sign-in, nor reads another tool's; where he set
+up a box for project code, that code runs only in it; a sign-in that leaks is told to him at once, to revoke. A
+machine's name and address are never written in a repository. What he chose for the machine where agents run side by
+side: `setup/server.md`.
