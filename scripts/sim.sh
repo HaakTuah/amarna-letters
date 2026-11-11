@@ -4,7 +4,7 @@
 # for example: scripts/sim.sh --games 50 --seed 1 --verify-replay
 # Script games only: model games need ANTHROPIC_API_KEY, which is never set here, and the builder rules forbid them.
 cd "$(dirname "$0")/.." || exit 2
-command -v node >/dev/null 2>&1 || { echo "node is missing (Node 26 or later)"; exit 2; }
+command -v node >/dev/null 2>&1 || { echo "node is missing (the version in core/.node-version)"; exit 2; }
 [ -d node_modules ] || npm ci --silent >/dev/null 2>&1 || { echo "npm ci failed"; exit 2; }
 # The process id keeps two runs started in the same second apart: one shared log mixes both runs' lines (#552).
 LOG="${TMPDIR:-/tmp}/amarna-sim-$(date +%Y%m%d-%H%M%S)-$$.log"

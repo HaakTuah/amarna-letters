@@ -32,7 +32,7 @@ describe("Keys for everything", () => {
     Assert.equal("panUp", actionOf(press("KeyW", "w")));
     Assert.equal("panUp", actionOf(press("ArrowUp", "ArrowUp")));
     Assert.equal("endSeason", actionOf(press("Enter", "Enter")));
-    // "+" where a Norwegian keyboard has it (the key US keyboards call Minus) speeds up.
+    // "+" where a Nordic keyboard has it (the key US keyboards call Minus) speeds up.
     Assert.equal("faster", actionOf(press("Minus", "+")));
   });
 

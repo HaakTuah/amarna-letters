@@ -4,7 +4,7 @@
     "AGENTS.md": 20480,
     "CLAUDE.md": 20480,
     "docs/builder-rules.md": 20480,
-    "docs/BUILD-PROGRESS.md": 23981,
+    "docs/BUILD-PROGRESS.md": 20480,
     "core-manifest.md": 20480,
     "docs/intent/overview/the-game-in-one-page.md": 20480,
     "docs/intent/overview/design-pillars.md": 20480,
@@ -13,7 +13,8 @@
     "core/modules/inbox.md": 20480,
     "core/modules/work-flow.md": 20480,
     "core/modules/git.md": 20480,
-    "core/modules/claude.md": 20480
+    "core/modules/claude.md": 20480,
+    "core/modules/codex.md": 20480
   },
   "total": 71680,
   "split": 51200,

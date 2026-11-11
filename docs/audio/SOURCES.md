@@ -19,11 +19,19 @@ Partial clones fetch only the folders the instruments use (a few hundred MB). Th
 
 ```bash
 mkdir -p /tmp/dl && cd /tmp/dl
-git clone --filter=blob:none --no-checkout --depth 1 https://github.com/sgossner/VSCO-2-CE.git vsco
-git clone --filter=blob:none --no-checkout --depth 1 https://github.com/sgossner/VCSL.git vcsl
-# then in each: git sparse-checkout init --no-cone; git sparse-checkout set <the folders below, each as "/<folder>/">; git checkout HEAD
-pip install numpy scipy soundfile matplotlib   # matplotlib only for scripts/music/inspect_audio.py
+git clone --filter=blob:none --no-checkout https://github.com/sgossner/VSCO-2-CE.git vsco
+git clone --filter=blob:none --no-checkout https://github.com/sgossner/VCSL.git vcsl
+# then in each: git sparse-checkout init --no-cone; git sparse-checkout set <the folders below, each as "/<folder>/">;
+# and check out the commit the samples were taken from:
+git -C vsco checkout 440300901dfe9275fd84e0b7763af1f8443ae62e
+git -C vcsl checkout c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e
+pip install numpy==2.5.4 scipy==1.18.1 soundfile==0.14.0 matplotlib==3.11.2   # matplotlib only for scripts/music/inspect_audio.py
 ```
+
+Each tool at one exact version (floor rule 7), the versions the licence audit's entries name (`scripts/licences-audit.json`):
+a new one is audited there before it is written here. The monthly versions check watches them (`scripts/versions.json`),
+and a new release is taken as floor rule 7 says, PyPI's attestations, where the pinned release had them, standing for
+npm's provenance and signature; one held back says why (`core/modules/updates.md`).
 
 (In a cloud session, github.com's pages and API are blocked by the network policy but git over the proxy works, which
 is how these were fetched on 31 October 2026.)

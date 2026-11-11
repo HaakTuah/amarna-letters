@@ -1,6 +1,6 @@
 # Core manifest
 
-Core: HaakTuah/agent-core at 83aad2e2177abcd10f85113f8911395a8944fe71, copied whole under core/ (never edited here).
+Core: HaakTuah/agent-core at 6f9cbebf5d0228f16b930c7f5f932c4a7c693694, copied whole under core/ (never edited here).
 Paths: in the core's files, one into floor/, modules/, scripts/, setup/, archive/ or reports/ is under core/; any other is ours.
 Floor: whole. Modules: all.
 
@@ -16,8 +16,8 @@ Floor: whole. Modules: all.
 | *settling references* | "The game in one page", which "Starting a task" in `AGENTS.md`, point 3, names, and the item's sections |
 | *descriptions* | the design notes (`docs/design/`) and, for what a player or a king sees, the README, the rulebook and the seat view; `docs/intent/` stays as it is |
 | *copies check* | `core/scripts/copies.mjs` with `scripts/copies.json` |
-| *large file* | over 50 KB |
 | *size marks* | `scripts/sizes.json` |
+| *large file* | over 50 KB |
 | *one at a time* | the numbered items, one lane |
 | *design-checked PRs* | the build-order items (not the polish and sound lanes' small fixes) |
 | *review reference* | "The game in one page" |

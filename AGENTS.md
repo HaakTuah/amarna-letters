@@ -1,9 +1,8 @@
 # Amarna Letters
 
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
-through envoys and sealed tablets on a deterministic engine. The owner designs it with Claude in a design
-document; builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker).
-Every feature
+through envoys and sealed tablets on a deterministic engine. The owner designs it with Claude in a design document;
+builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker). Every feature
 answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`: read them once per session.
 
 ## The core
@@ -20,7 +19,8 @@ these whole at the start of every task (Claude Code imports them; Codex: read ea
 
 Codex: read `core/modules/codex.md` at the start of every task. The other files of the core, `core/floor/topics.md`
 and `core/modules/game-design.md` among them, are read when a task needs them; each says when. A safety rule of this
-game's own, which "Principles over rules" never reaches: no model games until the build order is done.
+game's own, which "Principles over rules" (`core/modules/how-to-work.md`) never reaches: no model games until the
+build order is done.
 
 ## Where things are
 
@@ -51,8 +51,7 @@ game's own, which "Principles over rules" never reaches: no model games until th
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, a specification (its "question N" plans): read it by the question
   you need.
 - **Print little:** tests with `scripts/test.sh` and script games with `scripts/sim.sh`. Model-game simulations
-  (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`); none run until the
-  build order is done.
+  (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`).
 - **Never edit `docs/intent/` or `docs/builder-rules.md`;** a design decision goes to the design session.
 - **The smallest game that tests the rule** (archive item 28): a few powers on part of the map, a handful of seasons
   and only the characters a test needs; full-size games only in the replays, the save round trip and a smoke game; long
@@ -60,8 +59,6 @@ game's own, which "Principles over rules" never reaches: no model games until th
   default does not grow with it; code-PR checks stay near 10 minutes.
 - **A standing rule of the owner's** for this game moves into the builder rules at the next refresh of the design
   document's copy, and leaves this file in the same PR.
-- **Sessions:** a long item may end a session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md`
-  saying where to pick up.
 - **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
 - **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
   dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
@@ -78,8 +75,8 @@ npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright s
 node core/scripts/licences.mjs scripts/licences.json # the licence check
 ```
 
-Benchmarks: `scripts/sim.sh --versus solo ...` ("Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`). No
-model games: no API key is set in cloud sessions.
+Benchmarks: `scripts/sim.sh --versus solo ...` ("Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`). No API
+key is set in cloud sessions.
 
 ## Review guidelines
 

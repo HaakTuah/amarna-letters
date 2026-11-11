@@ -20,10 +20,12 @@ concurrency:
 
 jobs:
   # Tests run only where a change can affect them ("The smallest setup that tests the rule" in
-  # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md) skip them; the build still runs for the preview.
+  # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md, but docs/history/, which a test reads) skip them;
+  # the build still runs for the preview.
   changes:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     outputs:
@@ -44,18 +46,19 @@ jobs:
           fi
           files=$(git diff --name-only "$BASE" HEAD)
           echo "$files"
-          code=$(echo "$files" | grep -v -E '^(docs/|\.claude/)|\.md$' | grep -c . || true)
+          code=$(echo "$files" | awk '/^docs\/history\// || !/^(docs\/|\.claude\/)|\.md$/' | { grep -c . || true; })
           echo "code=$([ "$code" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           # What the app bundles and draws: the app, the packages it bundles (the map and its names live in the engine),
           # and the root manifests and TypeScript settings; never their tests, notes or the batch runner.
           web=$(echo "$files" | grep -E '^(src/(web|engine|game|llm)/|(package(-lock)?|tsconfig(\.base)?)\.json$)' | grep -v -E '^src/[^/]+/test/|\.md$' | grep -c . || true)
           echo "web=$([ "$web" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
-  # Lint and types, beside the tests (the owner, 29 October 2026: optimizations to development, "do all expertly").
+  # Lint and types, beside the tests.
   lint:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -73,6 +76,7 @@ jobs:
     if: needs.changes.outputs.code == 'true'
     name: test (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     strategy:
@@ -95,6 +99,7 @@ jobs:
     needs: [changes, lint, test]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions: {}
     steps:
       - name: Lint, types and every test shard passed, or were skipped
@@ -113,6 +118,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -133,6 +139,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -201,6 +208,7 @@ jobs:
       needs.checks.result == 'success' &&
       contains(fromJSON('["success", "skipped"]'), needs.smoke.result)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:

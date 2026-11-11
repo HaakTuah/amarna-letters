@@ -170,3 +170,51 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      > yes to the text bar
 
+142. **11 November 2026** (the core): "Why dont my stand-in answer on ideas? is there more it could do, expert?" Told
+     that it answers open points in work he has chosen, while nothing is built from an idea until he moves it into
+     the progress file, and offered its verdicts on ideas, its sureness and a check of what players see: "And I like
+     the idea of my stand-in, doing more. Is there even more it could do, expert?" Then, on giving them in its answers
+     rather than in calls of their own: "Can't it do it, when it is already answering any questions? Then it has to
+     read my previous takes regardless? Seems more efficient?" To doing so, with one weekly sweep for the ideas no
+     answer touches:
+
+     > Yes to everything, expertly!
+
+143. **11 November 2026** (the core): "Are you duplicating rules that should be in agent-core, expert?" Told which
+     rules the games repeat from the core, and which rules one game wrote that hold for every game or project (an
+     optimization changes nothing a player would notice; a feature too rare to change whole games judged per use and
+     against its counter; no refuges; a long task may end its session at a passed gate):
+
+     > Yes, do all of it, expertly!
+
+144. **28 October 2026** (Amarna Letters, in the design chat, 07:33), the words behind a reading listed with what it
+     rests on, which that game's design document had written as part of its "Reason from the pillars"; moved here when
+     he asked on 11 November 2026, of the core and both games, "Is everything perfectly cohesive, shared, no
+     duplication, and perfect now, expert? Be thorough in your checks!":
+
+     > Code's should probably note where it has made an assumption, like it does now with questions, so we can check it
+     > afterwards.
+
+145. **31 October 2026** (Amarna Letters, its archive item 73, for both games, in the design chat, 11:31 to 11:39 UTC),
+     behind the polish lane, which each game then wrote for itself and which moved here on 11 November 2026, when the
+     audit he asked for ("Is everything perfect now, expert? Be thorough!") found the two copies drifting apart, and
+     the last lines both games still shared (what it looks for, and when it runs) the same day. On a second account he
+     had freed for the week:
+
+     > They can spend 100% on this account i have used it for what I need.
+
+     Then:
+
+     > Should we add a polish point to each that it can spend the last credits on also?
+
+     And, to the design session's shape of the polish lane:
+
+     > Yes, and make things as refined as possible!
+
+146. **11 November 2026** (both games, in the design chat, 16:41 UTC), after the final audit's report, behind
+     the usage brake's removal from the core and both games (floor rule 16 among it, his yes as he asked), and the
+     return of "other providers first", which core archive 76 gave and the cut-down of 10 November had dropped:
+
+     > Well, that took you a couple of hours. Just remove all reference to usage caps, you and the orchestrators all mess
+     > it up, and can't track it in the cloud regardless. Just keep the rules about spending other providers first e.g.
+     > codex. Does that sound sensible to you, expert?

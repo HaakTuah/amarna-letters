@@ -1,6 +1,6 @@
 /**
  * Item 17b, part C2: who a court sees as a fallen realm's claimant. Kept apart from `views.ts` (past the 50 KB mark,
- * "Step 0" in `AGENTS.md`), which reads it for `CharacterView.heirOf`.
+ * "Split by meaning" in `core/modules/how-to-work.md`), which reads it for `CharacterView.heirOf`.
  */
 import type { Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
