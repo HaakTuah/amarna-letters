@@ -53,7 +53,7 @@ jobs:
           echo "web=$([ "$web" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
   # Lint and types, beside the tests (the owner, 29 October 2026: optimizations to development, "do all expertly").
-  checks:
+  lint:
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
@@ -88,6 +88,25 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx --no-install vitest run --shard=${{ matrix.shard }}/4
+
+  # The check main's ruleset requires for the code: lint, types and every test shard passed, or were all skipped for
+  # notes alone. A job skipped by its own `if` counts as passed, and so would a required job whose needs failed, so this
+  # one always runs and reads their results.
+  checks:
+    needs: [changes, lint, test]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Lint, types and every test shard passed, or were skipped
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          set -- $RESULTS
+          [ $# -eq 3 ] || { echo "expected the results of changes, lint and test, got: $RESULTS"; exit 1; }
+          for r in "$@"; do
+            case $r in success|skipped) ;; *) echo "a job before this one ended $r"; exit 1 ;; esac
+          done
 
   # The Playwright smoke test of the built app (src/web/smoke.mjs), beside the tests, only when the app can be affected:
   # the map's overlapping names of item 11f+ (fixed in #196) went unseen while it ran only by hand.
@@ -175,13 +194,12 @@ jobs:
           retention-days: 3
 
   publish:
-    needs: [build, checks, test, smoke]
+    needs: [build, checks, smoke]
     if: >-
       !cancelled() &&
       github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
       needs.build.result == 'success' &&
-      contains(fromJSON('["success", "skipped"]'), needs.checks.result) &&
-      contains(fromJSON('["success", "skipped"]'), needs.test.result) &&
+      needs.checks.result == 'success' &&
       contains(fromJSON('["success", "skipped"]'), needs.smoke.result)
     runs-on: ubuntu-latest
     permissions:

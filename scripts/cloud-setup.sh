@@ -12,7 +12,8 @@ else
   echo "NOT INSTALLED: Node (no core/scripts/node.sh on refs/remotes/origin/main: fetch main)"
 fi
 if have npm; then
-  if npm ci --silent >/tmp/npm-ci.log 2>&1; then echo "npm packages: installed"; else echo "NOT INSTALLED: npm packages (see /tmp/npm-ci.log)"; fi
+  # (said here too, since this script runs main's copy and .npmrc is the branch's: SECURITY.md, rule 15)
+  if npm ci --ignore-scripts --silent >/tmp/npm-ci.log 2>&1; then echo "npm packages: installed"; else echo "NOT INSTALLED: npm packages (see /tmp/npm-ci.log)"; fi
 fi
 # Playwright is a devDependency (package.json, where Dependabot updates it), so npm ci brings it; its Chromium is
 # looked for where that version expects it, and installed by that version if missing, as CI's smoke job does.
