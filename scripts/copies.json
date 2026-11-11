@@ -4,11 +4,11 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.mjs",
-    "scripts/**/*.mjs",
-    "scripts/**/*.ts",
-    "scripts/**/*.sh",
-    "scripts/**/*.py",
-    "sim/**/*.js"
+    "scripts/*.mjs",
+    "scripts/*.ts",
+    "scripts/*.sh",
+    "scripts/*.py",
+    "sim/*.js"
   ],
   "prose": [
     "core/floor/*.md",

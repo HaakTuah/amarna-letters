@@ -102,7 +102,9 @@ jobs:
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          for r in $RESULTS; do
+          set -- $RESULTS
+          [ $# -eq 3 ] || { echo "expected the results of changes, lint and test, got: $RESULTS"; exit 1; }
+          for r in "$@"; do
             case $r in success|skipped) ;; *) echo "a job before this one ended $r"; exit 1 ;; esac
           done
 
