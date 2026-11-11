@@ -6,8 +6,9 @@
  * - A vassal pays its tribute once a year while its overlord's power over it is worth the price: the overlord strong and
  *   near enough to punish it, or its protection needed against a third king. It stops when it has grown strong enough or
  *   the overlord has failed it (attacked it, or fallen), and it raises no arms against the overlord it still pays.
- * - An overlord counts what its vassals send. A vassal that pays is a friend, worth more as a vassal than as a conquest;
- *   one in arrears hears a demand, and then becomes prey.
+ * - An overlord counts what its vassals send. A vassal that pays is weighed for war as any king is, with a sealed tablet's
+ *   price where one binds them (its tribute is a share of a season's yield a year, its land the whole yield every
+ *   season); one in arrears hears a demand, and then becomes prey the more for the wrong.
  * - A strong king offers a weak neighbour vassalage instead of war, and a weak power that a strong neighbour threatens
  *   offers itself, on the template's clauses; each side seals by the same sums.
  * - A third king weighs an overlord's troops before falling on its vassal.
@@ -104,9 +105,6 @@ export function vassalSeason(b: Board, brain: Brain): void {
       brain.bondFriends.add(over);
       // One tribute a season: a vassal of two pays the other the next.
       if (brain.tributeDue === null && bond.tribute > 0 && b.v.turn - brain.tributePaid.getOrDefault(over, -Year) >= Year) brain.tributeDue = [over, bond.tribute];
-    } else if (bond.overlord === me) {
-      // A vassal that pays is a friend; one in arrears is not.
-      if (!inArrears(b, brain, bond)) brain.bondFriends.add(bond.vassal);
     }
   }
 }
@@ -125,8 +123,10 @@ export function noteGold(brain: Brain, sender: Power, turn: number): void {
 
 /**
  * What a war on `x` is worth beside its prize, from the bonds (added to the war target's score): a vassal of ours that pays
- * is worth more paying than conquered, and one in arrears is fair game; the overlord we serve we do not attack; and another's
- * vassal brings its overlord's troops, if they are near, and his friendship lost.
+ * adds nothing, so it is weighed as any king is, with a sealed tablet's price where one binds us (item 18, part F3:
+ * overlords that held such vassals friends never to be attacked lost to those that did not, 0.76 to 0.78 growth in 100
+ * games); one in arrears is the more welcome a war; the overlord we serve we do not attack; and another's vassal brings
+ * its overlord's troops, if they are near, and his friendship lost.
  */
 export function bondWar(b: Board, brain: Brain, x: Power): number {
   if (!VassalPlay.on(b.me)) return 0;
@@ -135,8 +135,9 @@ export function bondWar(b: Board, brain: Brain, x: Power): number {
   let score = 0;
   for (const bond of brain.bonds) {
     if (bond.vassal !== x) continue;
-    if (bond.overlord === me) score += inArrears(b, brain, bond) ? 60 + 100 * brain.p.vengeance : -600;
-    else if (b.alive.has(bond.overlord)) {
+    if (bond.overlord === me) {
+      if (inArrears(b, brain, bond)) score += 60 + 100 * brain.p.vengeance;
+    } else if (b.alive.has(bond.overlord)) {
       const o = bond.overlord;
       const near = b.muster(o, Board.Map.capital(x).id) + (nearLand(b, o, x) ? 1 : 0);
       score -= near * 60 * (0.5 + brain.p.caution) + (brain.isFriend(o) ? 250 : 0);

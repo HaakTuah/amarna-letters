@@ -90,8 +90,9 @@ export function giftReturn(
 }
 
 /**
- * What a vassal's tribute to `over` buys over the seasons left ("tribute buys peace"): an overlord who is paid never makes
- * war on us (`bondWar`), one who is not may, as hostile as we reckon him without the bond; and his troops stand between us
+ * What a vassal's tribute to `over` buys over the seasons left ("tribute buys peace"): we reckon an overlord who is paid
+ * spares us (he weighs the war as any other, with his sealed tablet's price: `bondWar`), and one who is not may fall on
+ * us, as hostile as we reckon him without the bond; and his troops stand between us
  * and another king who threatens us, by his troops against that king's. Nothing, if he attacked us within `year` seasons
  * all the same. How much a vassal believes his sealed word is worth is his own: an honest one counts it from half again
  * (the most honest) down to half (the least).

@@ -115,7 +115,7 @@ export const WarPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me:
   },
 };
 
-/** Bonds a king keeps whatever a war would win: an ally who broke no oath to him, his overlord, a vassal who pays. */
+/** Bonds a king keeps whatever a war would win: an ally who broke no oath to him, and his overlord. */
 export function keptBond(brain: Brain, x: Power): boolean {
   const r = brain.rel.get(x);
   return (r.allied && r.oathsBroken === 0) || brain.bondFriends.has(x);

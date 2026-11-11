@@ -225,7 +225,7 @@ export class Brain {
   readonly tributeIn = new Dict<Power, number>();
   /** When we last offered or demanded a bond of each king. */
   readonly bondAsked = new Dict<Power, number>();
-  /** The overlord we serve and the vassals that pay us: friends by the bond, whatever else stands between us. */
+  /** The overlord we serve: a friend by the bond, whatever else stands between us. */
   readonly bondFriends = new HSet<Power>();
 
   /**

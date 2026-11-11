@@ -10,8 +10,8 @@
 
 **Keeping a war.** The current target is dropped when any of these holds:
 
-- he has fallen, or is a bond the king keeps: an ally who broke no oath to him, his overlord or a vassal who pays (a plain
-  peace is no bar, only a price, below: item 17++a);
+- he has fallen, or is a bond the king keeps: an ally who broke no oath to him, or his overlord (a plain peace is no bar,
+  only a price, below: item 17++a; nor, since item 18's part F3, is a vassal who pays);
 - the prize is 0;
 - more than eight seasons have passed since he was chosen;
 - he has more than one troop more than we do, has not attacked us in the last three seasons (this season or the two before), and is not a sworn foe;
