@@ -598,7 +598,7 @@ export function Play() {
             held: s.playoutHeld,
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
-          opening={openingView(viewer)}
+          opening={() => openingView(viewer)}
           onProvince={clicked}
           onCamera={() => setTracking(false)}
           onPerson={(id) => (carded ? closeCards() : follow(id))}

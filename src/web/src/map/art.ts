@@ -34,9 +34,20 @@ export const Width = BoardWidth;
 export const Height = BoardHeight;
 const Map_ = WorldMap.default;
 
-/** A number as the map's path data writes it ("0.#"). */
+/**
+ * A number as the map's path data writes it ("0.#"), each kept once written (#666: the map writes the same coordinates every
+ * season, and `fmt`, exact to .NET's rounding, cost the pieces and the works at the cities some 4 ms a season on a slow
+ * phone). Minus zero, which writes "-0", is not kept: a map's keys do not tell it from zero.
+ */
+const Written = new Map<number, string>();
 export function F(v: number): string {
-  return fmt(v, "0.#");
+  if (Object.is(v, -0)) return fmt(v, "0.#");
+  let s = Written.get(v);
+  if (s === undefined) {
+    if (Written.size >= 100_000) Written.clear();
+    Written.set(v, (s = fmt(v, "0.#")));
+  }
+  return s;
 }
 
 /** A Catmull-Rom curve through the points, as cubic Béziers. */

@@ -72,7 +72,9 @@ export function attach(view, onSettle) {
   view.addEventListener("click", onClick, true);
   view.addEventListener("wheel", onWheel, { passive: false });
   view.addEventListener("dblclick", onDbl);
-  st.ro = new ResizeObserver(() => { clamp(st); apply(st); settle(st, true); });
+  // The view's size, kept as it changes (#666: read at each ask, it forced a style and layout of whatever the page had just
+  // written, 20 to 40 ms on a slow phone, from the sounds' look at the camera after each redraw).
+  st.ro = new ResizeObserver(() => { st.size = { w: view.clientWidth, h: view.clientHeight }; clamp(st); apply(st); settle(st, true); });
   st.ro.observe(view);
   st.detach = () => {
     view.removeEventListener("pointerdown", onDown);
@@ -178,7 +180,8 @@ function lowest(st) {
 }
 
 function geometry(st) {
-  const w = st.view.clientWidth, h = st.view.clientHeight;
+  st.size ??= { w: st.view.clientWidth, h: st.view.clientHeight };
+  const { w, h } = st.size;
   const b = Math.min(w / MAP_W, h / MAP_H);
   return { w, h, b, ox: (w - MAP_W * b) / 2, oy: (h - MAP_H * b) / 2 };
 }

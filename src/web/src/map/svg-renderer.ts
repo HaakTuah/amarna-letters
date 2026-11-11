@@ -11,6 +11,7 @@ import { OmenSigns, lifeLayer, mediumOf, memoryLayer } from "./life.ts";
 import { momentMarkup } from "./moments.ts";
 import { patch, patchParts, type Parts } from "./morph.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
+import { Boxes, touch } from "./boxes.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { reseason, seasonLayer } from "./seasons.ts";
 import { type MapScene } from "./scene.ts";
@@ -99,14 +100,21 @@ export class SvgMapRenderer implements MapRenderer {
     zoom.className = "mapzoom";
     // Stacked drawings, each its own compositing layer: the land below (heavy to paint, and painted only when another season
     // is shown), the season's ground over it (part D: painted while its change moves, without the realms), who holds what,
-    // the relief, the marks, and the pieces above (light). The upper ones let taps through where they have nothing.
+    // the relief, then the marks and the pieces above (light), a drawing for each of their layers (#666: a change records
+    // again only the drawing it is in; the marks in one drawing and the pieces in another, the least change recorded some
+    // 2,300 elements again, 7 to 9 ms a frame on the phone profile). The upper ones let taps through where they have nothing.
+    const sheet = (kind: string, inner: string): string =>
+      `<svg class="map map-${kind}" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" ${kind === "lower" ? `role="img"` : `aria-hidden="true"`}>${inner}</svg>`;
+    const empty = (name: string): string => `<g data-layer="${name}"></g>`;
+    const marks = [empty("works"), empty("memory"), empty("fog"), empty("bands"), MarksMarkup, Labels, empty("cities")];
+    const upper = [empty("roads"), empty("moves"), empty("outlaws"), empty("worksat"), empty("life"), `<g class="units" data-layer="units"></g>`, `<g class="people">${empty("courts")}${empty("travellers")}</g>`, empty("scenes"), empty("selection")];
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}</svg>` +
-      `<svg class="map map-ground" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="season"></g></svg>` +
-      `<svg class="map map-realms" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g></svg>` +
-      `<svg class="map map-relief" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${Relief}</svg>` +
-      `<svg class="map map-marks" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="scenes"></g><g data-layer="selection"></g></svg>`;
+      sheet("lower", Defs + Base) +
+      sheet("ground", empty("season")) +
+      sheet("realms", empty("tints")) +
+      sheet("relief", Relief) +
+      marks.map((m) => sheet("marks", m)).join("") +
+      upper.map((u) => sheet("upper", u)).join("");
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
@@ -173,11 +181,11 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get("worksat") === key) return;
     this.drawn.set("worksat", key);
     const t = performance.now();
-    // In parts, a city each: only the cities whose works changed are written (part G).
+    // In parts, a city each: only the cities whose works changed are written (part G), and the tooltips in place (#666).
     if (patchParts(this.layers.get("worksat")!, this.worksParts, close ? worksAtCities(s) : [])) this.changed = true;
     performance.measure("map:worksat", { start: t });
   }
-  private readonly worksParts: Parts = { markup: [], nodes: [] };
+  private readonly worksParts: Parts = { markup: [], nodes: [], tips: [] };
 
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
   private drawUnits(s: MapScene): void {
@@ -718,10 +726,10 @@ export class SvgMapRenderer implements MapRenderer {
         });
       const geo = [...view.querySelectorAll<SVGTextElement>(".base text.geo")].map((t) => ({ t, own: null, r: still(t, at) }));
 
-      const placed: { r: DOMRect; own: string | null }[] = [];
-      const touch = (a: DOMRect, b: DOMRect): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-      const free = (rs: readonly DOMRect[]): boolean => rs.every((r) => !placed.some((o) => touch(r, o.r)));
-      const place = (rs: readonly DOMRect[], own: string | null): void => rs.forEach((r) => placed.push({ r, own }));
+      // What is placed, found by where it lies (map/boxes.ts), each box with the city it is the badge of.
+      const placed = new Boxes<string | null>();
+      const free = (rs: readonly DOMRect[]): boolean => rs.every((r) => !placed.touches(r));
+      const place = (rs: readonly DOMRect[], own: string | null): void => rs.forEach((r) => placed.add(r, own));
       const writes: (() => void)[] = [];
       const off = new Set<Element>();
       for (const f of followed) place(f.rs, null);
@@ -757,10 +765,10 @@ export class SvgMapRenderer implements MapRenderer {
       }
       // The names: each where it touches no name shown and no marker (its own city's badge it may sit beside); the names
       // of the land (rivers, ranges, deserts, the lands beyond) last.
-      const shown: DOMRect[] = [];
+      const shown = new Boxes();
       for (const { t, own, r } of [...names, ...geo]) {
-        const ok = !shown.some((o) => touch(r, o)) && !placed.some((o) => (own === null || o.own !== own) && touch(r, o.r));
-        if (ok) shown.push(r);
+        const ok = !shown.touches(r) && !placed.touches(r, (o) => own === null || o !== own);
+        if (ok) shown.add(r, null);
         else off.add(t);
       }
       // The season a province was last seen (the fog's dates) gives way to every name and marker, and each to the one before.
@@ -768,11 +776,11 @@ export class SvgMapRenderer implements MapRenderer {
         // Measured each time: the fog's text is patched in place between seasons, so a kept box could be another province's.
         const r = t.getBoundingClientRect();
         if (r.width === 0) continue; // hidden at this zoom
-        if (free([r]) && !shown.some((o) => touch(r, o))) shown.push(r);
+        if (free([r]) && !shown.touches(r)) shown.add(r, null);
         else off.add(t);
       }
       for (const { e, rs } of works) {
-        if (free(rs) && rs.every((r) => !shown.some((o) => touch(r, o)))) place(rs, null);
+        if (free(rs) && rs.every((r) => !shown.touches(r))) place(rs, null);
         else off.add(e);
       }
       for (const w of writes) w();
