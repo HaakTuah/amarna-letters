@@ -1,7 +1,7 @@
 # Claude's part
 
-Every process rule is in `AGENTS.md` and the builder rules, imported here, and the files they name; this file adds only
-Claude Code's own: its models, effort and helpers, in the core's file.
+Every rule for every role is in `AGENTS.md`, the builder rules and the core they name, imported here with Claude's own
+module, which gives its models, effort, helpers and usage.
 
 @AGENTS.md
 @docs/builder-rules.md

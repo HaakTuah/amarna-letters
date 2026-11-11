@@ -250,3 +250,12 @@ Moved word for word on 7 November 2026 (the workshop check: the progress file ha
   both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%". Done: the line
   `PeriodShares` (`src/llm/src/text.ts`) in the kings' and characters' voice guidance, the guards in `letter-shapes`
   and `envoy-words` tests.
+- **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
+  builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
+  simulation kit's start prompt belong in `sim/README.md`, moved by the design session at the design document's next
+  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732; what waits until Codex can build is
+  written then (core `modules/roles.md`), from the owner's words in the archive; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
+  the archive.
+  Done, (1) on 11 November 2026: the builder rules leave model games' running, debriefs and reports to the simulation
+  kit (`sim/README.md`; design document, Build order revision 377), whose start prompt counts the mistakes and points
+  to floor rule 14, and whose debrief writer holds the question.

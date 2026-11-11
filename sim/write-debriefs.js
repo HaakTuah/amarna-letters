@@ -2,10 +2,10 @@
 // king, and of every character of the seed that answered at least one game request. Each asks the agent to reread its own
 // earlier request files, listed by name, and to write debrief.reply.json in the shape the request gives: what was unclear,
 // what it misunderstood and what was missing (a character also says why it chose as it did), and, for kings and
-// characters alike, the question the builder rules ask of every debrief since 20 October 2026 ("No model games until the
-// build order is done"): "What did you find most and least interesting about playing this role?" A role an agent finds
-// dull probably has too few real choices, so the answers are design data. Every request ends with the footer every game
-// request carries (Footer in src/llm/src/exchange.ts; src/game/test/debrief-kit.test.ts checks the two stay the same).
+// characters alike, the question every debrief has asked since 20 October 2026: "What did you find most and least
+// interesting about playing this role?" A role an agent finds dull probably has too few real choices, so the answers
+// are design data. Every request ends with the footer every game request carries (Footer in src/llm/src/exchange.ts;
+// src/game/test/debrief-kit.test.ts checks the two stay the same).
 //
 //   node sim/write-debriefs.js --seed S [--kings-only] [--kit DIR]
 //
@@ -35,7 +35,7 @@ if (!kingsOnly && !/^\d+$/.test(seed ?? "")) {
 // The footer of every game request (Footer in src/llm/src/exchange.ts, word for word).
 const FOOTER = "When you have written your reply file, your final message must be the single word done. Say nothing about your decision. Earlier reply files cannot be read: your record of earlier seasons is in this request.";
 
-// The question of every debrief, kings' and characters' alike, word for word as the builder rules give it.
+// The question of every debrief, kings' and characters' alike: the one place it is written.
 const QUESTION = "What did you find most and least interesting about playing this role?";
 
 const fwd = p => p.replace(/\\/g, "/");
