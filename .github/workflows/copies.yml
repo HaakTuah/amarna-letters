@@ -1,5 +1,5 @@
-# The copies check ("One fact, one place" in core/modules/how-to-work.md), on every pull request and push to main,
-# docs-only changes included: the core's, run with this game's config.
+# The copies, pointer and reading-size checks ("One fact, one place" and "Read little" in core/modules/how-to-work.md),
+# on every pull request and push to main, docs-only changes included: the core's, with this game's config and marks.
 name: copies
 
 on:
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   copies:
-    uses: HaakTuah/agent-core/.github/workflows/copies.yml@81039140a22761cb7d37c87e2e8cac8e1bfadcad
+    uses: HaakTuah/agent-core/.github/workflows/copies.yml@d33bc087090ff6ff0b635321d26f6e6fd361a813
     with:
       config: scripts/copies.json
+      sizes: scripts/sizes.json

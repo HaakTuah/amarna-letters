@@ -21,9 +21,7 @@ season, past seasons, replays and the god view. The canary tests (`src/web/test/
 `src/web/test/twin-canary.test.ts`) guard the same from the other
 side, since a reviewer can miss it.
 
-**Text a player reads,** for every reviewer of a change that adds or rewrites it (archive item 178), the tells beyond
-the core's "Text users read": hedging; modern idiom in an ancient voice
+**Text a player reads,** for every reviewer of a change that adds or rewrites it (archive item 178), held to the
+core's "Text users read" with this game's own tells: modern idiom in an ancient voice
 (`docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md`); the same formula in every
-season's report; lines too long for the seat view. A 10 means nothing reads machine-made, every
-voice is its own and no formula repeats; where a PR shows lines before and after, the owner's read of them is the
-final word.
+season's report; lines too long for the seat view.

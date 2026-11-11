@@ -30,14 +30,18 @@ alike (core archive 68). The owner's words behind each rule: `archive/instructio
    of its own (Claude Code imports them through `CLAUDE.md`; Codex reads them because `AGENTS.md` says to), and keeps a
    "Review guidelines" section pointing to `core/modules/review-guidelines.md` and its own.
 4. **Its own security files:** its `SECURITY.md` says the floor holds whole and adds, under the same numbers, what only
-   it has, listing its rule files under rule 3 after `**the rule files:**`, each path in backticks, the list ended by
-   `;`, as `core/scripts/rule-files.mjs` reads them. Its threat model adds to the floor's.
+   it has, listing under rule 3 after `**the rule files:**` its rule files besides `AGENTS.md`, `CLAUDE.md`,
+   `SECURITY.md` and `core-manifest.md` (its threat model among them), each path in backticks, the list ended by `;`, as
+   `core/scripts/rule-files.mjs` reads them, and among the checks on the work the configs of its copies, licence and
+   reading-size checks. Its threat model adds to the floor's.
 5. **The shared scripts and workflows,** run from its `core/` copy: `work-saved.sh` as its work-saved hook,
    `statusline.sh` as its status line (read by `usage.sh`), `copies.mjs` and `licences.mjs` as its copies and licence
-   checks with configs of its own (the *copies check*). Its own `core.yml`, `personal-terms.yml`, `copies.yml`,
-   `licences.yml`, `codeql.yml` and `delete-merged-branches.yml` keep their triggers and call the core's of the same
-   name (`uses: HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>`). Only a sync PR moves those pins,
-   and only when the called workflow changed; `core.yml` fails a call pinned where it differs from the core's pin. Its
+   checks with configs of its own (the *copies check*), and with the copies check `pointers.mjs` and `reading-size.mjs`,
+   the pointer check and the reading-size check, the second with marks of its own (the *size marks*). Its own
+   `core.yml`, `personal-terms.yml`, `copies.yml`, `licences.yml`, `codeql.yml`, `delete-merged-branches.yml` and, if it
+   has versions Dependabot cannot see, `versions.yml` keep their triggers and call the core's of the same name (`uses:
+   HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>`). Only a sync PR moves those pins, and only when
+   the called workflow changed; `core.yml` fails a call pinned where it differs from the core's pin. Its
    `.github/dependabot.yml` ignores `HaakTuah/agent-core*`.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
@@ -54,6 +58,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 | *settling references* | what open points are settled against, with the owner's past words |
 | *descriptions* | every place that describes what a change changes, for each kind of reader |
 | *copies check* | the check that fails a new copy, and its config for `scripts/copies.mjs` |
+| *size marks* | the reading-size check's marks, its config for `scripts/reading-size.mjs` |
 | *large file* | how large a file is before it is never read whole |
 | *one at a time* | what never runs as parallel lanes |
 | *design-checked PRs* | which PRs get the design check |
