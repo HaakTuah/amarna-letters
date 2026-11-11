@@ -11,9 +11,7 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 
 ## The polish lane
 
-The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026), taken when the item lane's
-current item is merged or parked, and on the second account until its usage is spent; on the main account the usage
-brake (`core/modules/claude.md`) closes it first.
+The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
 - **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
   text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
   or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
@@ -29,13 +27,11 @@ brake (`core/modules/claude.md`) closes it first.
   help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
   follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; god view's music
   and the draw: 19+++c, above).
-- **What belongs, here:** graphical glitches and inconsistencies first, as item 19++ asks; layout at 390 px and desktop,
-  light and dark, reduced motion, tap targets and contrast; typos and wording in the interface and the rulebook; errors
-  or warnings in the console; slow spots made faster with behaviour unchanged. Never a rule, a number, the script kings'
-  or characters' play, a request to a model, the save version or the names item 17+ will change: those go to their
-  items.
-- **How, here:** through every screen and a whole game watched at top speed; play proven unchanged by the suites, the
-  seeds replaying exactly as before and the benchmarks unchanged.
+- **What belongs, here:** graphical glitches and inconsistencies first, as item 19++ asks; light and dark too; the
+  rulebook's wording as well as the interface's. Never a request to a model, the save version or the names item 17+ will
+  change: those go to their items.
+- **How, here:** play proven unchanged by the suites, the seeds replaying exactly as before and the benchmarks
+  unchanged.
 
 Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one line each" (moved there on 1 November 2026,
 "The workshop check"; new fixes add their line there), with the finds still open.
