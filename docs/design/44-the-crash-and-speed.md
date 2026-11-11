@@ -93,12 +93,9 @@ What a season cost the page before, in one or two tasks of 200 to 600 ms: the wo
 the frame), the state read whole (60 to 140 ms by mid-game), React's redraw, every map layer's rewrite, the names placed,
 then style, layout and paint. What changed, step by step, each measured:
 
-- **The state is read apart from the message**, after the frames have shown (`client.ts`: `readSoon`), and **spread over
-  the page's spare time in slices of at most about 10 ms** (`IncrementalReader.read`; `session/idle.ts`: `whenIdle`, the
-  browser's idle callback, so a slice runs in what is left of a frame once it is drawn; after 50 ms without spare time it
-  runs anyway, and where the browser has no idle callback each slice is a task of its own): the first builds the tree of
-  pieces, the next read the state's members a few at a time, and the state is published once all are read. A newer
-  season replaces a read under way.
+- **The state is read in a task of its own**, after the frames have shown (`client.ts`: `readSoon`), and **spread over tasks
+  with a budget of about 10 ms each** (`IncrementalReader.read`): the first builds the tree of pieces, the next read the
+  state's members a few at a time, and the state is published once all are read. A newer season replaces a read under way.
 - **The reader does less per season.** Items are keyed by their pieces' numbers, not their text: a container's key is a hash
   over its numbers, confirmed against the numbers on a hit; a scalar piece is parsed straight (cheaper than remembering
   it); a list that grew at its end keeps its earlier items by comparing the raw numbers with last season's (the record's

@@ -18,10 +18,8 @@ write and writing it are apart (`docs/rounds/2026-11-11-phone-frames.md` has the
 - **A layer drawn again before its writes are made** (a season arriving before the last was written) has them made first,
   since what differs is found against the page; the works at the cities need not, their parts being kept as they will
   stand (`Parts`). A new render keeps the writes found and makes them with its own.
-- **The state's read takes the page's spare time** (`44-the-crash-and-speed.md`, "Smoothness, measured"), so its slices
-  no longer stand between two frames that are due.
 
-On the phone profile at Fast the frames over 50 ms fell from about one in twelve to one in twenty, and on desktop at Fast
-from 1.5% to 0.6%; the longest frames are no longer than before. The bar is still not met on either (#666): what remains
-is the one writing frame a season (its style, layerization and paint, with the pieces drawn), the names' frame after it,
-and the task that takes the worker's message.
+On the phone profile at Fast the frames over 50 ms fell from about one in twelve to one in eighteen, and on desktop at
+Fast from 1.5% to 0.6%; the longest frames are no longer than before. The bar is still not met on either (#666): what
+remains is the one writing frame a season (its style, layerization and paint, with the pieces drawn), the names' frame
+after it, the state's read in timer tasks between the frames, and the task that takes the worker's message.
