@@ -20,7 +20,8 @@ concurrency:
 
 jobs:
   # Tests run only where a change can affect them ("The smallest setup that tests the rule" in
-  # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md) skip them; the build still runs for the preview.
+  # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md, but docs/history/, which a test reads) skip them;
+  # the build still runs for the preview.
   changes:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
@@ -45,8 +46,7 @@ jobs:
           fi
           files=$(git diff --name-only "$BASE" HEAD)
           echo "$files"
-          # (notes count for nothing, but the history dossiers, which a test reads: history-anchors.test.ts)
-          code=$(echo "$files" | awk '/^docs\/history\// || !/^(docs\/|\.claude\/)|\.md$/' | grep -c . || true)
+          code=$(echo "$files" | awk '/^docs\/history\// || !/^(docs\/|\.claude\/)|\.md$/' | { grep -c . || true; })
           echo "code=$([ "$code" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           # What the app bundles and draws: the app, the packages it bundles (the map and its names live in the engine),
           # and the root manifests and TypeScript settings; never their tests, notes or the batch runner.
