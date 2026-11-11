@@ -28,7 +28,6 @@ the *descriptions*: `README.md`; the *large file*: past about 50 KB.
 - **A rule moves here only when it holds in every project,** with the owner's words behind it in the archive. The core
   names no project outside its archive and reports.
 - **Never create a repository named `agent-rules`,** the core's old name: links to it redirect here (core archive 121).
-- **Usage:** no status line runs here, so a session neither measures usage nor mentions it.
 
 ## Review guidelines
 

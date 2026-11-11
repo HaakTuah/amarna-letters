@@ -210,3 +210,11 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      And, to the design session's shape of the polish lane:
 
      > Yes, and make things as refined as possible!
+
+146. **11 November 2026** (both games, in the design chat, 16:41 UTC), after the final audit's report, behind
+     the usage brake's removal from the core and both games (floor rule 16 among it, his yes as he asked), and the
+     return of "other providers first", which core archive 76 gave and the cut-down of 10 November had dropped:
+
+     > Well, that took you a couple of hours. Just remove all reference to usage caps, you and the orchestrators all mess
+     > it up, and can't track it in the cloud regardless. Just keep the rules about spending other providers first e.g.
+     > codex. Does that sound sensible to you, expert?
