@@ -189,5 +189,10 @@ describe("A layer patched", () => {
     writes = [];
     Assert.true(write([{ markup: "a|2", tips: ["a well", "granaries holding 52"] }, { markup: "b2|1", tips: ["a mine"] }]));
     Assert.equal("parse b2|1, remove b, insert b2, tip a mine", writes.join(", "));
+    // A part changed into the same kind of element is patched where it stands, its tooltips written again.
+    const city = live.kids[0];
+    Assert.true(write([{ markup: "a|3", tips: ["a well", "granaries holding 52", "famine"] }, { markup: "b2|1", tips: ["a mine"] }]));
+    Assert.true(live.kids[0] === city, "the city's marks are the same element");
+    Assert.equal(["a well", "granaries holding 52", "famine", "a mine"], live.querySelectorAll("title").map((t) => t.textContent));
   });
 });

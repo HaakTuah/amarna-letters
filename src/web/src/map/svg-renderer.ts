@@ -187,6 +187,24 @@ export class SvgMapRenderer implements MapRenderer {
   }
   private readonly worksParts: Parts = { markup: [], nodes: [], tips: [] };
 
+  /** The realms' bands, in parts, a land province each (#666): only the bands that changed are parsed. */
+  private drawBands(s: MapScene): void {
+    if (this.drawn.get("bands") === s) return;
+    this.drawn.set("bands", s);
+    const t = performance.now();
+    const layer = this.layers.get("bands")!;
+    const groups = bands(s);
+    if (layer.children.length !== groups.length) {
+      layer.innerHTML = groups.map((b) => `<g class="bands" clip-path="${b.clip}"></g>`).join("");
+      this.bandParts = groups.map(() => ({ markup: [], nodes: [], tips: [] }));
+    }
+    groups.forEach((b, i) => {
+      if (patchParts(layer.children[i], this.bandParts[i], b.parts.map((markup) => ({ markup, tips: [] })))) this.changed = true;
+    });
+    performance.measure("map:bands", { start: t });
+  }
+  private bandParts: Parts[] = [];
+
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
   private drawUnits(s: MapScene): void {
     const items = unitItems(s.units, s.viewer, this.scale, s.walls);
@@ -255,7 +273,7 @@ export class SvgMapRenderer implements MapRenderer {
       },
       () => this.layer("fog", s, () => fog(s)),
       // Keyed by the scene, not the frame: who holds what and the armies seen are the viewer's own.
-      () => this.layer("bands", s, () => bands(s)),
+      () => this.drawBands(s),
       () => {
         if (this.drawn.get("cities") !== s) {
           this.layer("cities", s, () => cities(s));

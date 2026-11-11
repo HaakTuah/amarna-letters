@@ -69,10 +69,10 @@ export interface Part {
 const sameTips = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((x, i) => x === b[i]);
 
 /**
- * Writes a layer whose children are parts (each one element, or nothing): only the parts whose markup changed are parsed
- * and put in place (part G: the works at the cities, a few of which change in a season), and the tooltips are written
- * into the elements standing, never parsed (#666: a granary's tooltip changes every season). Gives whether a part was
- * written anew; a tooltip moves nothing on the map.
+ * Writes a layer whose children are parts (each one element, or nothing): only the parts whose markup changed are parsed,
+ * and each is patched onto the element standing (put in place where none stands) (part G: the works at the cities, a few
+ * of which change in a season); the tooltips are written into the elements standing, never parsed (#666: a granary's
+ * tooltip changes every season). Gives whether a part was written anew; a tooltip moves nothing on the map.
  */
 export function patchParts(live: Element, was: Parts, parts: readonly Part[]): boolean {
   if (was.markup.length !== parts.length) {
@@ -88,10 +88,15 @@ export function patchParts(live: Element, was: Parts, parts: readonly Part[]): b
     if (was.markup[i] !== markup) {
       wrote = true;
       scratch.innerHTML = markup;
-      const made = scratch.firstElementChild;
+      let made = scratch.firstElementChild;
       const old = was.nodes[i];
-      if (old !== null) old.remove();
-      if (made !== null) {
+      if (old !== null && made !== null && old.nodeName === made.nodeName) {
+        // Patched where it stands (#666: put in anew, a city's marks were restyled and laid out whole when one changed).
+        attributes(old, made);
+        patchChildren(old, made);
+        made = old;
+      } else if (old !== null) old.remove();
+      if (made !== null && made !== old) {
         // Before the next part standing: the parts are walked from the last, so every later one is in place.
         let before: Element | null = null;
         for (let j = i + 1; j < was.nodes.length && before === null; j++) before = was.nodes[j];
