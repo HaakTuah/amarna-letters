@@ -4,9 +4,9 @@ Which PR gets which review, how they are asked for, and when a PR passes. Read w
 judge by: `modules/review-guidelines.md`.
 
 **Which:** every PR gets Codex's security review when it is marked ready; every PR that changes the project, its tests,
-tools, config or a rule file also gets Codex's code review; the *design-checked PRs* also get the design check. Docs
-alone get no code review, and a pure sync PR none at all (floor rule 8). Codex's usage can run out without a word (core
-archive 20), so nothing waits on it long.
+tools, config or a rule file also gets Codex's code review; the *design-checked PRs* also get the design check, and a PR
+players will see the stand-in's notes (`modules/inbox.md`). Docs alone get no code review, and a pure sync PR none at
+all (floor rule 8). Codex's usage can run out without a word (core archive 20), so nothing waits on it long.
 
 1. **Ask:** a comment `@codex review` alone. Codex answers every mention of itself, even in backticks, so other text
    says "the Codex mention".

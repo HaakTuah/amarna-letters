@@ -1,10 +1,10 @@
 # The versions check ("The newest stable version, unless there is a reason" in modules/updates.md): each version a
-# config names is compared with the npm registry's newest stable release old enough to take (scripts/versions.mjs), and
-# each one behind gets an enhancement issue for the owner, unless one is already open. A project calls it
-# (workflow_call) from a monthly schedule of its own, with its config, pinned to a full commit SHA, from a job that
-# grants `contents: read` and `issues: write`; the core runs it on its own schedule for the pins it holds
-# (.github/versions.json). Nothing is checked out but the repository it runs for, and no untrusted text is written into
-# the script: the titles and bodies pass through a file and jq. It may open issues, and nothing else.
+# config names is compared with its registry's (npm's or PyPI's) newest stable release old enough to take
+# (scripts/versions.mjs), and each one behind gets an enhancement issue for the owner, unless one is already open. A
+# project calls it (workflow_call) from a monthly schedule of its own, with its config, pinned to a full commit SHA,
+# from a job that grants `contents: read` and `issues: write`; the core runs it on its own schedule for the pins it
+# holds (.github/versions.json). Nothing is checked out but the repository it runs for, and no untrusted text is written
+# into the script: the titles and bodies pass through a file and jq. It may open issues, and nothing else.
 name: versions
 
 on:

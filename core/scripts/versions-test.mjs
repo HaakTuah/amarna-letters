@@ -7,7 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { current, newest, issue } from "./versions.mjs";
+import { current, newest, issue, pypiTimes } from "./versions.mjs";
 
 let failed = 0;
 const ok = (cond, what) => { console.log(`${cond ? "ok  " : "FAIL"} ${what}`); if (!cond) failed++; };
@@ -38,5 +38,20 @@ ok(newest({ "1.0.0": ago(2) }, { days: 7, version: "1.0.0" }, now) === null, "no
 const i = issue({ name: "mossgrip", file: "pin.txt", version: "1.5.4", days: 14, how: "Bump it." }, "2.0.0", "tools/versions.json");
 ok(i.title.startsWith(i.key) && /\*\*Describe the solution you'd like\*\*\nBump it\./.test(i.body), "an issue's title starts with its key (so one already open is found) and its body has the template's headings");
 
+const py = { name: "mossgrip", registry: "pypi", file: "pin.txt", pattern: "mossgrip==(\\d+\\.\\d+\\.\\d+)", days: 7, how: "Bump it." };
+fs.writeFileSync(path.join(root, "pin.txt"), "needs mossgrip==1.5.4\n");
+ok(current([py], root)[0].version === "1.5.4", "a PyPI entry finds its version too");
+ok(throws(() => current([{ ...py, registry: "cdn" }], root)) && throws(() => current([{ ...py, registry: "__proto__" }], root)) && throws(() => current([{ ...py, registry: ["pypi"] }], root))
+  && throws(() => current([{ ...py, name: "moss grip" }], root)), "an unknown registry, or a name it cannot hold, fails");
+const pypi = { releases: { "1.5.4": [{ upload_time_iso_8601: ago(300) }], "2.0.0": [{ upload_time_iso_8601: ago(20), yanked: true }],
+  "2.0.1": [{ upload_time_iso_8601: ago(9) }, { upload_time_iso_8601: ago(12) }], "2.1.0": [], "2.2.0": [{ upload_time_iso_8601: 0 }] } };
+const pt = pypiTimes(pypi);
+ok(!("2.0.0" in pt) && !("2.1.0" in pt) && !("2.2.0" in pt) && pt["2.0.1"] === ago(12), "PyPI's times: a withdrawn, empty or undated release left out, a release dated by its first upload");
+ok(throws(() => pypiTimes({})) && throws(() => pypiTimes({ releases: {} })) && throws(() => pypiTimes({ releases: { "1.0.0": [{ uploaded: ago(9) }] } })),
+  "an answer that lists or dates no release fails, never read as up to date");
+ok(newest({ "1.5.4": ago(300), "2.0": ago(30) }, { days: 7, version: "1.5.4" }, now) === "2.0", "a two-part release, as PyPI has, counts");
+ok(newest({ "1.5.4": ago(300), "1234567890.0.0": ago(30) }, { days: 7, version: "1.5.4" }, now) === "1.5.4", "a number too long to compare exactly is no release");
+ok(newest(pt, { days: 10, version: "1.5.4" }, now) === "2.0.1", "and the newest old enough taken from them as from npm's");
+ok(/pypi\.org\/project\/mossgrip\/2\.0\.1\//.test(issue({ ...py, version: "1.5.4" }, "2.0.1", "x.json").body), "a PyPI release's issue links its PyPI page");
 for (const d of [root, outside]) fs.rmSync(d, { recursive: true, force: true });
 if (failed) process.exit(1);
