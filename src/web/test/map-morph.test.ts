@@ -138,6 +138,11 @@ describe("A layer patched", () => {
     patched(live, next);
     Assert.equal(show(build(["g", {}, ["path", { class: "veil-1" }], ["g", { class: "fogdates" }, "x"], ["text", {}, "as of"], ["path", { class: "veil-3" }]])), show(live));
     Assert.equal("remove fill, replace path by g, append path", writes.join(", "));
+    // As many attributes as before, under other names: the old one goes.
+    const one = build(["g", {}, ["path", { fill: "red" }]]);
+    writes = [];
+    patched(one, build(["g", {}, ["path", { stroke: "blue" }]]));
+    Assert.equal(show(build(["g", {}, ["path", { stroke: "blue" }]])), show(one));
     // Emptied.
     writes = [];
     patched(live, build(["g", {}]));

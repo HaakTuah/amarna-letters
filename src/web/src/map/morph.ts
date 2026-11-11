@@ -23,12 +23,15 @@ export function patch(live: Element, html: string, later: Writes): void {
 /** Lists what makes `live`'s attributes those of `next`. */
 function attributes(live: Element, next: Element, later: Writes): void {
   const want = next.attributes;
+  let kept = 0;
   for (let i = 0; i < want.length; i++) {
     const { name, value } = want[i];
+    if (live.hasAttribute(name)) kept++;
     if (live.getAttribute(name) !== value) later.push(() => live.setAttribute(name, value));
   }
+  // Every attribute standing is wanted: none to drop.
   const have = live.attributes;
-  if (have.length === want.length) return;
+  if (have.length === kept) return;
   for (let i = have.length - 1; i >= 0; i--) {
     const { name } = have[i];
     if (!next.hasAttribute(name)) later.push(() => live.removeAttribute(name));
