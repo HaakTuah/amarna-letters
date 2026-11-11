@@ -79,6 +79,7 @@ P.resolveSeason = function (submissions) {
   const validator = new OrderValidator(S, this.map, (o) => this._goneNow.get(o) ?? null);
   const valid = new Dict<Power, ValidationResult>();
   this._stealing.clear();
+  this._freeingNow.clear();
   this._scheduledNow.clear();
   this._standingNow.clear();
   this._firedNow.clear();
@@ -93,7 +94,7 @@ P.resolveSeason = function (submissions) {
   this.seeLand();
   // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
   // Item 13: orders for places beyond the season's reach set out with couriers; those arriving now join the season's.
-  const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, this.sendOrders(p, submissions.tryGet(p) ?? newTurnSubmission()))] as const));
+  const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, this.sendOrders(p, this.heldSeason(p, submissions.tryGet(p) ?? newTurnSubmission())))] as const));
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);
@@ -575,7 +576,7 @@ P.fall = function (p, conqueror, ceded = false) {
   this.debtsDie(p);
   // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
   for (const c of S.characters.filter((c) => c.heldBy === p)) {
-    if (c.status === "Captured") this.releaseCaptive(p, c);
+    if (c.status === "Captured") this.releaseCaptive(p, c, undefined, `${upper(land(p))} that held me fell, and nobody was left to guard me.`);
     else if (c.duty === "Detained") this.letEnvoyGo(p, c, null);
   }
   // Item 13+: a governor or commander far off serves on until word of the fall reaches him (fallsSpread).

@@ -19,6 +19,7 @@ import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts"
 import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
 import { type HeldLetter, HeldLetterSchema } from "./held-letters.ts";
+import { type WordHome, WordHomeSchema } from "./held-king.ts";
 import { type SiegeEnded, SiegeEndedSchema } from "./sieges-ended.ts";
 import { type ProvinceReport, ProvinceReportSchema } from "./province-reports.ts";
 import { type Band, BandSchema } from "./bands.ts";
@@ -92,7 +93,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 92;
+export const CURRENT_VERSION = 93;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -344,6 +345,13 @@ export interface GameState {
   payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
+  /**
+   * #806: the captive kings whose captors keep their letters at court (`captive` with "StopLetters"): the king's id for all
+   * of them, `id|court` for those to one court, and `id|!court` for one court let through while all the rest are kept.
+   */
+  lettersStopped: string[];
+  /** #806: what captive kings agreed to in their letters home, on the road or arrived ({@link WordHome}). */
+  wordHome: WordHome[];
   /** Item 17+: each king's standing order to pay and feed his troops, where he changed it (absent: pay and feed them all). */
   upkeep: Dict<Power, TroopUpkeep>;
   /**
@@ -572,6 +580,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payFacts: [],
     payKnown: new Dict(),
     payCarriers: [],
+    lettersStopped: [],
+    wordHome: [],
     upkeep: new Dict(),
     councilOff: [],
     hunts: [],
@@ -714,6 +724,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payFacts: list(() => PayFactSchema),
   payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
+  lettersStopped: list(S),
+  wordHome: list(() => WordHomeSchema),
   upkeep: dict(() => TroopUpkeepSchema),
   councilOff: list(S),
   hunts: list(() => StandingHuntSchema),
@@ -1004,8 +1016,12 @@ export function notify(s: GameState, p: Power, kind: InboxKind, title: string, b
     title = title.replace(own, alias);
     body = body.replace(own, alias);
   }
-  const lag = atCourt && CourtKinds.has(kind) ? s.courtLag.getOrDefault(p, 0) : 0;
-  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset + lag, kind, title, body, subject }));
+  // #806: to a king held abroad every word from his court comes late, but what befalls him there himself.
+  const reign = s.reigns.tryGet(p);
+  const king = reign === undefined ? null : findCharacter(s, reign.character);
+  const held = king !== null && king.status === "Captured" && subject !== king.id;
+  const lag = atCourt && (CourtKinds.has(kind) || held) ? s.courtLag.getOrDefault(p, 0) : 0;
+  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset + lag, kind, title, body, subject, lag }));
 }
 
 export function logEvent(s: GameState, kind: string, text: string, visibleTo: Iterable<Power> | null = null, signal: string | null = null): GameEvent {

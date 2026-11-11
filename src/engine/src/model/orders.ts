@@ -316,6 +316,8 @@ export interface HireOrder {
   payOnDone?: boolean | null;
   offerAgain?: boolean | null;
   via?: string | null;
+  /** #806: with a spy's job at a court that holds a king captive, that king (his id), whom the job is to free. */
+  frees?: string | null;
 }
 /**
  * A new job offered to one of your own people at your court (a new errand, fee and term), the advance handed over now, if
@@ -331,6 +333,8 @@ export interface RenewOrder {
   where?: string | null;
   payOnDone?: boolean | null;
   offerAgain?: boolean | null;
+  /** #806: as for a hire, the king held at that court whom the job is to free. */
+  frees?: string | null;
 }
 /** The owner's answers to item 11a: seize the hoard a living person keeps in your capital, with the tablets kept in it. */
 export interface SeizeHoardOrder {
@@ -617,7 +621,11 @@ export interface ForgeOrder {
   clauses?: Clause[] | null;
 }
 
-export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver", "TakePurse"] as const;
+/**
+ * #806: "StopLetters" keeps a captive king's letters at the captor's court (read there, sent nowhere), those to the court
+ * `to` or, with none, all of them; "PassLetters" lets them go again, which they do until stopped.
+ */
+export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver", "TakePurse", "StopLetters", "PassLetters"] as const;
 export type CaptiveFate = (typeof CaptiveFateValues)[number];
 
 /** Decide the fate of a caught spy held at this court. */
@@ -634,6 +642,15 @@ export interface CaptiveOrder {
 export interface PayRansomOrder {
   type: "payRansom";
   character: string;
+}
+/**
+ * #806: a captive king's letter to a court (his own included): it leaves through his captor's court, which reads it and
+ * may stop it, unless a spy of his realm posted there carries it out unread (`turn/held-king.ts`).
+ */
+export interface WriteOrder {
+  type: "write";
+  to: Power;
+  letter: string;
 }
 /**
  * #592: what to do with a province's offer the court holds, caught on the road: send it to `to` (its claimant or the
@@ -729,6 +746,7 @@ export type Order =
   | ForgeOrder
   | CaptiveOrder
   | PayRansomOrder
+  | WriteOrder
   | LetterOrder
   | BuyLetterOrder
   | SeizeHoardOrder

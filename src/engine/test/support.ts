@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, alive, ownedBy, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
+import { AllPowers, Dict, alive, ownedBy, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, newGame, newGameConfig, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -347,6 +347,20 @@ export function oldWorld(s: GameState): GameState {
  * whole; the named powers stand on their part of it. On the world before item 11+ write `smallWorld(oldWorld(s), ...)`.
  * A season with two kings costs about a quarter of one in the whole world.
  */
+/** Egypt's king taken by Hatti and held at its court (as his convoy would bring him), in a world of three (item 17b, #806). */
+export function egyptHeld(): { s: GameState; e: TurnEngine } {
+  const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
+  const e = new TurnEngine(s);
+  s.owner.set("akhetaten", "Hatti");
+  e.kingTaken("Egypt", "Hatti", false);
+  e.courtFlees("Egypt", "Hatti", false);
+  const c = s.characters.find((x) => x.id === s.reigns.get("Egypt").character)!;
+  s.journeys = s.journeys.filter((j) => j.characterId !== c.id);
+  c.duty = "None";
+  c.at = "Hatti";
+  return { s, e };
+}
+
 export function smallWorld(s: GameState, ...powers: Power[]): GameState {
   for (const p of alive(s))
     if (!powers.includes(p)) {

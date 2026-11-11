@@ -9,6 +9,7 @@ import {
   counterIntel,
   dismiss,
   payRansom,
+  writeLetter,
   recall,
   release,
   renew,
@@ -57,6 +58,28 @@ export function CourtSection({ c }: { c: OrdersContext }) {
     <>
     <div className="section">
       <h3>Court</h3>
+      {/* #806: a king held abroad writes from captivity; his letters leave through his captor's court. */}
+      {v.heldAt !== null && (
+        <div className="item">
+          <strong>You are held at the court of {powerName(v.heldAt)}.</strong>{" "}
+          <small>
+            A caretaker keeps your realm. Your letters leave through your captor's court, which reads them and may keep them; in a letter home you may agree to your ransom, to giving in, or to a spy at this court to free you.
+          </small>
+          <div className="row">
+            <button className="small" disabled={f.writeText.trim() === ""} onClick={() => add(writeLetter(f.writeTo, f.writeText))}>
+              Write to
+            </button>
+            <select value={f.writeTo} onChange={(e) => set({ writeTo: e.target.value as Power })}>
+              {AllPowers.filter((p) => p !== v.heldAt).map((p) => (
+                <option key={p} value={p}>
+                  {p === me ? `${p} (your court)` : p}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input style={{ width: "100%", marginTop: ".3rem" }} value={f.writeText} onChange={(e) => set({ writeText: e.target.value })} placeholder="Your letter" />
+        </div>
+      )}
       <div className="row">
         <button className="small" disabled={draft.other.some((o) => o.type === "seekCandidates")} onClick={() => add(seekCandidates())}>
           Ask for candidates
@@ -507,6 +530,20 @@ export function CourtSection({ c }: { c: OrdersContext }) {
                 ))}
               </select>
             </div>
+            {c.kingOf !== null && (
+              <div className="row">
+                <small>His letters leave through your court, and you read them:</small>{" "}
+                <button className="small" onClick={() => add(captive(c.id, "StopLetters"))}>
+                  Keep them all
+                </button>
+                <button className="small" onClick={() => add({ ...captive(c.id, "StopLetters"), to: f.handTo })}>
+                  Keep those to {f.handTo}
+                </button>
+                <button className="small" onClick={() => add(captive(c.id, "PassLetters"))}>
+                  Let them all go
+                </button>
+              </div>
+            )}
             <input style={{ width: "100%", marginTop: ".3rem" }} value={f.poisonText} onChange={(e) => set({ poisonText: e.target.value })} placeholder="If turned: what they should report home" />
           </div>
         ))}

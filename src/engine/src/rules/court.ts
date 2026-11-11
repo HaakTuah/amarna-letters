@@ -9,6 +9,7 @@ import { CourtData, KingAloneData } from "../model/command.ts";
 import { seasonOfTurn, type WorldMap } from "../model/map.ts";
 import type { CourtOrder } from "../model/orders.ts";
 import type { Crowned, Power } from "../model/power.ts";
+import type { Character } from "../model/people.ts";
 import { findCharacter, type GameState } from "../model/state.ts";
 import { PointsPerDay, cheapestRoute, legPoints } from "../model/travel.ts";
 import type { Checking } from "./validator-context.ts";
@@ -39,7 +40,7 @@ export function seatOf(s: GameState, map: WorldMap, p: Power): string {
 
 /**
  * Where the king physically stands for the rules of the world (item 17b, part C): apart from his court, or with it; one
- * taken or dead away from it is no longer where he was, and his court rules in his name. A unit he stands with carries
+ * taken or dead away from it is no longer where he was, and his court keeps his realm in his name (under a caretaker once it hears, #806). A unit he stands with carries
  * out a standing order, his presence holds a city's gate, and a battle or a city lost there takes him.
  */
 export function standsAt(s: GameState, map: WorldMap, p: Power): string {
@@ -52,7 +53,8 @@ export function standsAt(s: GameState, map: WorldMap, p: Power): string {
  */
 export function courtLagOf(s: GameState, map: WorldMap, p: Power): number {
   const at = kingAfield(s, p);
-  if (at === undefined) return 0;
+  // #806: a king held abroad hears his court's word as a courier brings it to his captor's court.
+  if (at === undefined) return heldLagOf(s, map, p);
   const t = wordHomeAt(s, map, at, courtOf(s, map, p), s.turn);
   return Number.isFinite(t) && t > s.turn ? t - s.turn : 0;
 }
@@ -68,6 +70,48 @@ export function broughtToKing(s: GameState, turn: number, lag: number): boolean 
 /** Item 17b, part C: whether word that a power's king was taken or died away from his court is still on its way to it. */
 export function kingLossUnheard(s: GameState, p: Power): boolean {
   return s.journeys.some((j) => j.kind === "Word" && j.to === p && (j.news === "KingTaken" || j.news === "KingDead"));
+}
+
+/**
+ * A power's king, held where his court has heard of it (#806): his player plays the captive and a caretaker the realm.
+ * One taken whose word is still on the road is not yet: his court goes on as before until it hears.
+ */
+export function heldKing(s: GameState, p: Power): Character | null {
+  const r = s.reigns.tryGet(p);
+  const c = r === undefined ? null : findCharacter(s, r.character);
+  return c !== null && c.status === "Captured" && c.heldBy !== null && !kingLossUnheard(s, p) ? c : null;
+}
+
+/** Whether a captive king's captor keeps his letters to the court `to` (#806). */
+export function lettersKept(s: GameState, king: string, to: Power): boolean {
+  return s.lettersStopped.includes(`${king}|${to}`) || (s.lettersStopped.includes(king) && !s.lettersStopped.includes(`${king}|!${to}`));
+}
+
+/**
+ * A spy posted at the court of `host` whose job is to free `p`'s king held there (#806, `JobErrand.frees`), whoever hired
+ * him: he helps the king get away; one of `p`'s own (`own`) also takes the king's letters home unread, as his reports go.
+ */
+export function spyWith(s: GameState, p: Power, host: Power, own = false): Character | null {
+  const king = s.reigns.tryGet(p)?.character ?? "";
+  const frees = (c: Character): boolean => {
+    const e = c.contract?.errand ?? null;
+    return e !== null && e.what === "spy" && e.where === host && !e.done && king !== "" && e.frees === king;
+  };
+  return s.characters.find((c) => c.status === "Employed" && (!own || c.employer === p) && c.duty === "SpyPosted" && c.at === host && c.heldBy === null && c.secretMaster === null && frees(c)) ?? null;
+}
+
+/** #806: the most seasons word from his court is late to a held king (where no road leads, it comes by the long way). */
+export const HeldLagMost = 12;
+
+/**
+ * #806: the seasons word from a held king's court takes to reach him at his captor's court, beyond the next (0 while not
+ * held, or held at his own court's city), as `courtLagOf` reckons it for a king away from his court.
+ */
+export function heldLagOf(s: GameState, map: WorldMap, p: Power): number {
+  const k = heldKing(s, p);
+  if (k === null) return 0;
+  const t = wordHomeAt(s, map, courtOf(s, map, k.heldBy!), courtOf(s, map, p), s.turn);
+  return t === Infinity ? HeldLagMost : t > s.turn ? Math.min(HeldLagMost, t - s.turn) : 0;
 }
 
 /** Whether the court is on the road (`alone`: whether the king is, without it). */

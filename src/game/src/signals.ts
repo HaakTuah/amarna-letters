@@ -39,7 +39,7 @@ export const SignalKinds: readonly string[] = [
   // Item 17++++a: raiders from beyond the map come and go home, and bands paid off.
   "raiders-came", "raiders-home", "band-paid-off", "band-pay-refused",
   // Item 17b: kings taken, escaping and dying.
-  "king-taken", "king-escapes", "king-dies",
+  "king-taken", "king-escapes", "king-escapes-aided", "king-dies",
   // Item 17b, part C: a king setting out without his court, and one getting away from a battle lost where he stood.
   "king-alone", "king-away",
   // Item 17b, part C2: a court's treasury lost where it stood, a court taken on the road, an heir in exile, and one restored.

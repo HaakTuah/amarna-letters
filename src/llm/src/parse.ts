@@ -81,6 +81,7 @@ import {
   newTurnSubmission,
   parsePower,
   payRansom,
+  writeLetter,
   payCarriers,
   upkeep,
   hunt,
@@ -671,6 +672,15 @@ function other(x: Node): Order | null {
       return release(person, S(x, "text"));
     case "pay_ransom":
       return payRansom(person);
+    case "captive_stop_letters":
+    case "captive_pass_letters": {
+      const to = S(x, "power") === "" ? null : P(S(x, "power"));
+      return { ...captive(person, S(x, "action") === "captive_stop_letters" ? "StopLetters" : "PassLetters"), to };
+    }
+    case "write_from_captivity": {
+      const to = P(S(x, "power"));
+      return to === null ? unreadable("write from captivity", "name the court you write to") : writeLetter(to, S(x, "text"));
+    }
     default:
       return null;
   }
