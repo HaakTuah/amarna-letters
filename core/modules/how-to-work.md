@@ -23,10 +23,9 @@ and 57).
 - **Keep it lean** (core archive 24): every change removes what it replaces, in the same PR: no commented-out code, no
   "old" copies, nothing left unused. Look for an existing helper before writing one.
 - **Split by meaning, from the start** (core archive 25 and 26): each file holds one thing people look up on its own, as
-  small as that thing is and no smaller (spread over several files, it costs every reader more); a family that differs
-  only in part keeps its shared part once, each difference an override; new work goes into its own file. A file past
-  about 20 KB probably holds two things. A split goes in its own PR, behaviour proven unchanged and what it saves said;
-  a file past about 50 KB is split before it is changed (core archive 45).
+  small as that thing is; new work goes into its own file. A file past about 20 KB probably holds two things. A split
+  goes in its own PR, behaviour proven unchanged; a file past about 50 KB is split before it is changed (core archive
+  45).
 - **Principles over rules** (core archive 25): where a rule's letter would defeat its purpose, follow the purpose, say
   so under "Readings taken", and flag the rule to be fixed. Never for the floor, nor for a rule the project's
   `AGENTS.md` marks as a safety rule.

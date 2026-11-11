@@ -18,10 +18,10 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
 - **Fable's usage runs out first:** it gets only planning design, the last escalation step and work the owner gives it
   by name, and only what needs judgement. If it is unavailable, its call goes to Opus at high; nothing waits for it.
 - **Who to call** (core archive 70 and 71): a helper for judgement only when it ranks above you (models: Haiku, Sonnet,
-  Opus, Fable; then effort; yours: your system prompt and `$CLAUDE_EFFORT`, unset meaning medium), else do it yourself;
-  a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your level. A
-  Sonnet builder hands what needs judgement to Opus at high, and a lane that needs it throughout goes back for an Opus
-  builder; its PR's first line says Sonnet built it (core archive 73).
+  Opus, Fable; then effort; yours: your system prompt and `$CLAUDE_EFFORT`, unset meaning medium), else do it
+  yourself; a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your
+  level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core
+  archive 73).
 - **Work continuously, other providers first** (core archive 2, 14, 76 and 146): Claude's usage is also the owner's own,
   so Codex, and any provider he keeps only for the projects, gets every part of the work it can do well (today its
   reviews; its lanes once it builds) before Claude does.
