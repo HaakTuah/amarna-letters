@@ -170,3 +170,12 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      > yes to the text bar
 
+142. **11 November 2026** (the core): "Why dont my stand-in answer on ideas? is there more it could do, expert?" Told
+     that it answers open points in work he has chosen, while nothing is built from an idea until he moves it into
+     the progress file, and offered its verdicts on ideas, its sureness and a check of what players see: "And I like
+     the idea of my stand-in, doing more. Is there even more it could do, expert?" Then, on giving them in its answers
+     rather than in calls of their own: "Can't it do it, when it is already answering any questions? Then it has to
+     read my previous takes regardless? Seems more efficient?" To doing so, with one weekly sweep for the ideas no
+     answer touches:
+
+     > Yes to everything, expertly!
