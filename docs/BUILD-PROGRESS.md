@@ -179,7 +179,8 @@ the workshop check, and again on 7 November): among them the history check's lin
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
   workflow that opens an `enhancement` issue when one is behind.~~ Done in #547: the list is `.github/versions.json`
-  (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`.
+  (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`; all three
+  retired once Node became the core's one pin (core #68), which the core's own monthly check watches (core #70).
 
 Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.

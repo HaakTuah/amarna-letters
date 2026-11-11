@@ -23,8 +23,10 @@ time instead of pointed to. A finding, not blocking: anything the change leaves 
 commented-out code, a description made untrue); content put where its readers must read past it; a pointer no reader
 needs.
 
-**Text users read** (core archive 49): a finding for any line that reads machine-made (one sentence shape again and
-again, filler, clichés, two voices alike). The project's guidelines set its full bar.
+**Text users read** (core archive 49 and 141): a finding for any line that reads machine-made (one shape again and
+again, filler, hedging, clichés, voices alike, the same joke twice). Only a 10 passes: nothing machine-made, every voice
+its own, no formula repeated; where a PR shows lines before and after, the owner's read is final. The project's
+guidelines add its own tells.
 
 **A rule file changed:** P1 for a rule that departs from the owner's archived words it cites, so a rule never drifts
 from what he said; and a finding for a rule that adds text without replacing any, or makes anyone wait for the owner

@@ -162,3 +162,11 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      > But it already does a security review when the change was made in the agent-core repo? We are not cyberdyne
      > systems…
+
+141. **11 November 2026** (the core; first in both games, 2 November 2026). On the audit of what players read: "Not 1
+     to 10 review here?" To each kind of text scored 1 to 10, only a 10 passing, his read of the lines before and after
+     the final word: "Yes, expertly!" Told that both games had written that bar for themselves, and asked for his yes to
+     move it into the core's review guidelines, which change only on his word:
+
+     > yes to the text bar
+

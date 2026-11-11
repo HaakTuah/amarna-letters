@@ -1,6 +1,6 @@
 # Dependabot version updates (core/modules/updates.md; floor rule 17). The core's workflow pins move only by a sync PR.
 # A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first.
-# What it cannot see (Node, in CI and the cloud setup) is listed in .github/versions.json and checked monthly instead.
+# What it cannot see is Node, the core's pin (core/.node-version), which the core's own monthly versions check watches.
 version: 2
 updates:
   - package-ecosystem: "npm"
