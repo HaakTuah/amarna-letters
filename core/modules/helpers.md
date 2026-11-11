@@ -1,7 +1,6 @@
 # Helpers: when they pay
 
-When a builder starts helpers, however they are started (one at a time, or by a workflow; core archive 126). Read
-before starting one.
+Read by a builder before it starts helpers, however they are started (core archive 126).
 
 A helper starts cold and returns only a summary, so it pays only for work of one of these shapes (core archive 25):
 
