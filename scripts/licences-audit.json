@@ -72,12 +72,6 @@
       "used": "every workflow of the game's own"
     },
     {
-      "name": "actions/deploy-pages",
-      "kind": "action",
-      "licence": "MIT",
-      "used": "pages-deploy.yml"
-    },
-    {
       "name": "actions/download-artifact",
       "kind": "action",
       "licence": "MIT",
@@ -94,12 +88,6 @@
       "kind": "action",
       "licence": "MIT",
       "used": "pages.yml"
-    },
-    {
-      "name": "actions/upload-pages-artifact",
-      "kind": "action",
-      "licence": "MIT",
-      "used": "pages-deploy.yml"
     },
     {
       "name": "Chromium",
@@ -127,7 +115,7 @@
       "name": "GitHub CLI",
       "kind": "tool",
       "licence": "MIT",
-      "used": "gh in preview.yml and pages-deploy.yml, the runner's own"
+      "used": "gh in preview.yml, the runner's own"
     },
     {
       "name": "Python",
