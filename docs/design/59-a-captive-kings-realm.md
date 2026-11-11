@@ -38,9 +38,10 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   arrives, as its own business and as orders given now, before his scheduled orders and the caretaker's (a stand-in's
   too, once he is free); a letter lost or kept takes it with it.
 - **The captor's guard:** what he spends on watchmen in a season (`counterIntel`) guards the kings he holds: the king's
-  chance of getting away that season is multiplied by 100 / (100 + that spend) (`KingData.guard`, a first guess; kept
-  as `TurnEngine._guardedLast` since `kingsHeld` runs after the season's watch is cleared), so 100 shekels halve it.
-  That is what holding him safely costs.
+  chance of getting away as the next season begins is multiplied by 100 / (100 + that spend) (`KingData.guard`), so
+  100 shekels halve it. That is what holding him safely costs. The watch is set anew with the season's orders
+  (`resolveIntelligence`), so every check as a season begins (the escape, the road, the border) reads the season just
+  past's (bug #878).
 - **Getting away:** freeing him is an errand of a job like any other (`JobErrand.frees`, the king's id, on a spy's job at
   the captor's court), given only by his word home: a man it hires or keeps on as a spy there (`hire`, `renew`, stamped
   with `frees` in `heldSeason`; one at his court is sent there at once), or a man it posts there (`spy`, the job marked
