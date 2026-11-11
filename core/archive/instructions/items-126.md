@@ -260,3 +260,15 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      > Yes, agreed with everything expertly! Nuget and that should be allowed. Should we have a verified by trustable
      > source, like nugget itself, criteria or ideal, or something like that, expert?
+
+152. **11 November 2026** (the core, in the design chat, 23:34 UTC), told that a check of the core's own for actions
+     not pinned had drawn a new way past it in each of five review rounds, since it read YAML by lines, and that
+     GitHub's own setting "Require actions to be pinned to a full-length commit SHA" reads a workflow as GitHub runs
+     it, but asks the same of GitHub's own actions, which floor rule 2 lets stand at a tag; the advice given: pin
+     those too, then turn the setting on, the core and one project first, and keep of the check only its search for
+     `pull_request_target`:
+
+     > Is the no install rule sensible then, expert? Test the setting instead, if you advice so in your expert
+     > opinion.
+
+     > Yes, do everything you recommend on this, expertly, expert!

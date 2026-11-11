@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
       - name: The core pin
@@ -36,7 +36,7 @@ jobs:
             echo "core-manifest.md has no one \"| *owner's account* | \`<GitHub login>\` |\" row"; exit 1
           fi
           echo "sha=$pin" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: HaakTuah/agent-core
           ref: ${{ steps.pin.outputs.sha }}
