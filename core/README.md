@@ -1,7 +1,8 @@
 # Agent Core
 
 The rules shared by the owner's agent-built projects, written once so a change is made once and every project takes it
-alike (core archive 68). The owner's words behind each rule: `archive/instructions.md`.
+alike (core archive 68). The owner's words behind each rule: `archive/instructions.md`. A project of another owner takes
+the core the same way, its *owner's account* filled in, and in its copy "the owner" is its own (core archive 148).
 
 ## Two layers
 
@@ -57,6 +58,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 
 | Slot | What the project fills in |
 | --- | --- |
+| *owner's account* | the owner's GitHub login, in backticks (`core.yml` fails a manifest without it): his word (floor rule 4) and his inbox (`modules/inbox.md`) |
 | *progress file* | the file that holds the queue and what is done |
 | *report* | where a task's report, with its "Readings taken", goes |
 | *settling references* | what open points are settled against, with the owner's past words |
