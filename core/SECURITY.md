@@ -6,11 +6,11 @@ This repository takes the floor whole, `floor/security.md` and `floor/topics.md`
 - **Rule 3, the protected files:** every file here. The trusted builder: Claude's sessions the owner starts in this
   repository.
 - **Rules 5, 6, 7, 10 and 15:** the repository holds documents, the scripts projects run from their `core/` copy
-  (`scripts/`, Node's and the shell's own tools only) and the workflows projects call; it ships nothing. What it takes
-  are tools that only run: the actions its workflows use (`actions/*`, `github/codeql-action`), under MIT, and Node
-  (`node-linux-<arch>` at the exact version in `.node-version`, under MIT), which `scripts/node.sh` fetches for
-  projects' cloud machines with `npm pack --ignore-scripts`, never installing it, and checks against its SHA-256 before
-  it runs.
+  (`scripts/`, Node's and the shell's own tools, and jq where the machine has it) and the workflows projects call; it
+  ships nothing. What it takes are tools that only run, each with its licence in its audit
+  (`.github/licences-audit.json`). Among them is Node (`node-linux-<arch>` at the exact version in `.node-version`),
+  which `scripts/node.sh` fetches for projects' cloud machines with `npm pack --ignore-scripts`, never installing it,
+  and checks against its SHA-256 before it runs.
   **Rule 17:** Dependabot updates only the workflows' GitHub actions (`.github/dependabot.yml`); this repository names
   no manifest or lock file, so no other PR of Dependabot's meets it.
 - **The threat model's part:** the core has no users of its own; what an attacker would want of it is a rule loosened
