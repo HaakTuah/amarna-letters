@@ -367,7 +367,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     characterResults: characters.map((x) => characterResult(x.character)),
     money: watch.end(characters),
     spending: spent.end(),
-    held: captives.end(s),
+    held: captives.end(s, (p) => standingOf(p, engine.growth(p))),
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
