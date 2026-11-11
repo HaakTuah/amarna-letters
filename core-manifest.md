@@ -1,6 +1,6 @@
 # Core manifest
 
-Core: HaakTuah/agent-core at c21d324bbca913d820c2147d12bc1e5eb1e2ae39, copied whole under core/ (never edited here).
+Core: HaakTuah/agent-core at 6f9cbebf5d0228f16b930c7f5f932c4a7c693694, copied whole under core/ (never edited here).
 Paths: in the core's files, one into floor/, modules/, scripts/, setup/, archive/ or reports/ is under core/; any other is ours.
 Floor: whole. Modules: all.
 
