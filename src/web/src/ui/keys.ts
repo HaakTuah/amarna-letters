@@ -18,7 +18,7 @@ export type KeyAction =
 /**
  * A key as the table holds it. `codes` are physical keys (`KeyboardEvent.code`: the digit row and the number pad, the same
  * on every layout); `chars` are what a key types (`KeyboardEvent.key`), for keys that move between layouts: "+" sits where
- * US keyboards have "-" on Norwegian ones. `label` is how a tooltip and the Keys page name it.
+ * US keyboards have "-" on Nordic ones. `label` is how a tooltip and the Keys page name it.
  */
 export interface Binding {
   codes: readonly string[];
