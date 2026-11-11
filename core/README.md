@@ -24,7 +24,8 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
    `scripts/pure-sync.mjs` proves) gets no review of its own, since the core's PR reviewed what it carries (floor rule
    8); one that also fixes the project's pointers into core files the sync moved or removed is reviewed like any PR. The
    core's `core.yml`, which the project calls on every PR as a required check, fails one whose `core/` differs from the
-   core at its pin.
+   core at its pin. The first copy is the sync script's too, run from a clone of this repository once the manifest is
+   written (the script's header says how); the copy's own `.gitattributes` keeps every line ending as it is.
 2. **A manifest,** `core-manifest.md` at its root (format below): the pin, the modules it takes, its names for the
    core's words, and what fills each slot. Every session reads it at the start.
 3. **Pointer lines:** its `AGENTS.md` names the manifest and every file read at the start of every task, each on a line
@@ -48,6 +49,13 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
    publishes main with `site-publish.sh root`, and its pull requests' previews through a `preview.yml` of its own, on
    `workflow_run` of its build, that calls the core's (the build uploads the artifact `preview`: `pr-number`, and the
    site in `site/`).
+   **A private repository** has GitHub's dependency review and CodeQL only with its paid code security, so without it
+   it calls neither `licences.yml` nor `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs` for what no
+   package list holds, and its own check holds its packages to floor rule 10's list. Its Actions settings must allow
+   this repository's workflows, and each check there spends paid minutes, so each runs only where a change can affect
+   it. The core's scripts read npm's lockfiles alone: what another installer holds, the project's own checks do.
+   **The copy's own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this repository's, not the
+   project's: its issue templates and settings are its own, written for its *owner's account*.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
 
@@ -99,9 +107,9 @@ Floor: whole. Modules: <all, or the list of those taken>.
   review on, for team PRs, on PR open, reporting Medium and above, reading the project's threat model and `SECURITY.md`
   with the floor (core archive 51).
 - Each project's ruleset on its default branch: deletions restricted, force pushes blocked; a pull request required, no
-  approvals; status checks required (the project's CI and `core / core`), branches up to date; code scanning results
-  required from CodeQL, blocking on security alerts High or higher and alerts Errors; code quality results required at
-  Errors; Copilot's review requested automatically, advisory (core archive 130).
+  approvals; status checks required (the project's CI and `core / core`), branches up to date; where the repository has
+  them, code scanning results required from CodeQL, blocking on security alerts High or higher and alerts Errors, code
+  quality results required at Errors, and Copilot's review requested automatically, advisory (core archive 130).
 - The machine where agents run side by side (floor rule 18): `setup/server.md`, read only when setting it up.
 
 ## This repository

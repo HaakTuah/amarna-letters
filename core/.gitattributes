@@ -1,0 +1,3 @@
+# The core is copied byte for byte under each project's core/ (core.yml compares the two), so no line ending is ever
+# converted, here or there: this file travels with the copy.
+* -text

@@ -245,3 +245,18 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      that assume a game or a live site, one of them in floor rule 12, are made to fit any project):
 
      > Yes, expertly to all, expertly!
+
+150. **11 November 2026** (the core, in the design chat, 21:56 UTC), once a project of another owner, not a game, could
+     take the core; behind "Rules are written for any project" and the words check:
+
+     > Yes, and we have to make sure rule changes made to agent-core from now on, is general enough, and accounts for
+     > this? How do we ensure it expert? I want my rules to be general, but implementers are so easily biased in
+     > phrasing by the only 2 projects in front of them.
+
+151. **11 November 2026** (the core, in the design chat, 22:14 UTC), asked for his yes to five places where the floor
+     assumed a public web project on npm (everything public; npm's signature check alone, with "a check that cannot
+     run holds the release back"; `npm ci`; text reaching "the page"; a session on his computer holding "no key beyond
+     its own sign-in"), after a sample project that was none of those took the core from nothing:
+
+     > Yes, agreed with everything expertly! Nuget and that should be allowed. Should we have a verified by trustable
+     > source, like nugget itself, criteria or ideal, or something like that, expert?
