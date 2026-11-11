@@ -58,8 +58,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `web/src/map/life.ts`, then turn on `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`, so
   `scripts/test.sh` fails a leftover. (2) Exports and files nothing imports: one clean-up PR, then a finder in
   `scripts/test.sh`; a small script on the compiler's own API first, a pinned dev tool (floor rules 7 and 10) only if
-  that falls short; what is reached indirectly is listed with its reason. The replays prove play unchanged. A routine
-  lane.
+  that falls short; what is reached indirectly is listed with its reason. (3) A lint rule fails a test skipped or
+  narrowed to one (`.skip`, `.only`, `.todo`; the owner, the same day: "Yes, expertly to all!"). The replays prove play
+  unchanged. A routine lane.
 - ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
   Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
   own (#721) gave way to them.
