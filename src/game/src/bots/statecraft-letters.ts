@@ -548,14 +548,20 @@ export function greet(brain: Brain, to: Power, humble = false, b: Board | null =
  * gold goes with an inventory, so that a host who finds it light can tell us so.
  */
 function bare(brain: Brain, to: Power, envoy: string, b: Board): boolean {
-  if (!InventoryPlay.on || !clausePlays(b.me)) return false;
+  if (!InventoryPlay.for(b.me) || !clausePlays(b.me)) return false;
   const c = b.v.court.find((x) => x.id === envoy);
   if (c === undefined || reliability(c) < 0) return false;
   return brain.provenLoyal.has(envoy) || (brain.goldTrips.getOrDefault(envoy, 0) >= 2 && !brain.thieves.has(envoy) && to !== brain.warTarget);
 }
 
-/** Script kings sending gold without an inventory where they trust the envoy (item 8); off for the comparison with kings that never do. */
-export const InventoryPlay = { on: true };
+/** Script kings sending gold without an inventory where they trust the envoy (item 8); off for the comparison with kings that never do, all of them or those outside `only`. */
+export const InventoryPlay: { on: boolean; only: ReadonlySet<string> | null; for: (me: string) => boolean } = {
+  on: true,
+  only: null,
+  for(me: string): boolean {
+    return this.on || (this.only !== null && !this.only.has(me));
+  },
+};
 
 /** News for a partner (item 8): the troops of the king we stand against seen nearest his land. */
 function news(b: Board, foe: Power, to: Power): Clause[] {

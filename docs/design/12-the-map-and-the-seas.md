@@ -75,3 +75,6 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
   say what the ground, the waters, the blockade and the winter do; the siege rule notes the supply. The web map draws Arwad
   and Dilmun as islands, a larger Gulf, the Nile through Nubia, and each coast's waters small; its legend, province card and
   about page say what the waters do.
+- **Measuring the script kings' sea play** (`SeaPlay` in `bots/seas.ts`): `--no-sea-play` turns off their blockades,
+  guarded waters, convoys and landings beyond one zone for every king, and `--sea-play-half` for half of them, alternating
+  by seed (item 18, part F3).

@@ -416,7 +416,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // more than the fleets taking that coast themselves: the army goes in, and the fleets stay at sea to carry or strike again.
   const freeFleetAt = (z: string): boolean => free.has(z) && b.unitAt.get(z).kind === "Fleet" && !stay.has(z);
   for (const army of [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal))
-    for (const [zone, chain] of seaChains(army, freeFleetAt))
+    for (const [zone, chain] of seaChains(me, army, freeFleetAt))
       for (const target of landingsFrom(zone).filter((t) => t !== army && !Board.Sail.canMove("Army", army, t))) {
         const owner = b.ownerOf(target);
         if (b.unitAt.has(target) || owner === me || (owner !== null && !isWilling(owner))) continue;
@@ -448,7 +448,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const waters = Board.Map.get(at).waters;
     const ours = (z: string): boolean => b.unitAt.tryGet(z)?.power === me && b.unitAt.get(z).kind === "Fleet";
     const blockader =
-      waters === null || b.v.prices.getOrDefault("seaSupply", 1) <= 0 || !SeaPlay.on
+      waters === null || b.v.prices.getOrDefault("seaSupply", 1) <= 0 || !SeaPlay.for(me)
         ? null
         : ours(waters)
           ? waters
@@ -458,7 +458,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
                 [...free].filter((f) => b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && Board.Sail.canMove("Fleet", f, waters)),
                 [(f: string) => f, cmpStr],
               )[0] ?? null);
-    const supplied = waters !== null && blockader === null && b.v.prices.getOrDefault("seaSupply", 1) > 0 && SeaPlay.on;
+    const supplied = waters !== null && blockader === null && b.v.prices.getOrDefault("seaSupply", 1) > 0 && SeaPlay.for(me);
     ops.push(op("siege", supplied && helper === null ? worth / 4 : supplied ? worth / 2 : worth, at, at, helper === null ? [] : [helper]));
     if (waters !== null && blockader !== null && free.has(blockader)) ops.push(op("blockade", worth / 2 + 20, waters, blockader, []));
     else if (supplied && !b.unitAt.has(waters!)) {
@@ -482,13 +482,13 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // ---- Guard the waters of our capital and walled coasts against a landing: an army lands only from the waters of the
   // coast it lands on, so a fleet of ours standing there stops it, when a foreign fleet not of a friend is near.
   for (const p of sortBy(
-    Board.Map.landProvinces.filter((x) => SeaPlay.on && x.waters !== null && b.isMine(x.id) && (x.capital || b.wallLevel(x.id) >= 2)),
+    Board.Map.landProvinces.filter((x) => SeaPlay.for(me) && x.waters !== null && b.isMine(x.id) && (x.capital || b.wallLevel(x.id) >= 2)),
     [(x: { id: string }) => x.id, cmpStr],
   )) {
     const w = p.waters!;
     // Foreign waters are not ours to guard; ours already held by a fleet given other orders need no second one.
     if (b.unitAt.has(w) && (b.unitAt.get(w).power !== me || !free.has(w))) continue;
-    const near = seaChains(p.id, () => true, 3);
+    const near = seaChains(me, p.id, () => true, 3);
     const menaced = b.others.some(
       (u) => u.kind === "Fleet" && !brain.isFriend(u.power) && (near.has(u.province) || (Board.Map.get(u.province).waters !== null && near.has(Board.Map.get(u.province).waters!))),
     );
@@ -541,7 +541,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // of its chain and hold there, the army comes to its coast and waits, and a fleet more is raised if we lack one; when the
   // chain is whole the army is carried over. Given up once landed, when the target is no longer worth it, or after
   // LandingPatience seasons. Only the king's own plan keeps it (a trial plan with another temper reads it as it stands).
-  if (SeaPlay.on) {
+  if (SeaPlay.for(me)) {
     const landingWorth = (t: string): number => {
       const o = b.ownerOf(t);
       if (o === me || (o !== null && !isWilling(o))) return 0;
@@ -738,9 +738,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       if (!SeasonPlay.on(me) || threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army" || !Board.Map.get(u).isCoastal) continue;
       const army = b.unitAt.get(u);
       let best: [string, string[], number] | null = null;
-      for (const [zone, chain] of seaChains(u, freeFleet, 3, Board.Map)) {
+      for (const [zone, chain] of seaChains(me, u, freeFleet, 3, Board.Map)) {
         // Only where the open sea is crossed: a chain safe in winter is an ordinary convoy.
-        if (seaChains(u, freeFleet, 3).has(zone)) continue;
+        if (seaChains(me, u, freeFleet, 3).has(zone)) continue;
         for (const t of landingsFrom(zone)) {
           if (t === u || plan.destinations.has(t) || b.unitAt.has(t) || b.resistance(t) > 0) continue;
           const owner = b.ownerOf(t);
