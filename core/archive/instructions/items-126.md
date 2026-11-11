@@ -186,3 +186,11 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      against its counter; no refuges; a long task may end its session at a passed gate):
 
      > Yes, do all of it, expertly!
+
+144. **28 October 2026** (Amarna Letters, in the design chat, 07:33), the words behind a reading listed with what it
+     rests on, which that game's design document had written as part of its "Reason from the pillars"; moved here when
+     he asked on 11 November 2026, of the core and both games, "Is everything perfectly cohesive, shared, no
+     duplication, and perfect now, expert? Be thorough in your checks!":
+
+     > Code's should probably note where it has made an assumption, like it does now with questions, so we can check it
+     > afterwards.
