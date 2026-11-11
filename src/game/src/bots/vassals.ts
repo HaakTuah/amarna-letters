@@ -6,9 +6,8 @@
  * - A vassal pays its tribute once a year while its overlord's power over it is worth the price: the overlord strong and
  *   near enough to punish it, or its protection needed against a third king. It stops when it has grown strong enough or
  *   the overlord has failed it (attacked it, or fallen), and it raises no arms against the overlord it still pays.
- * - An overlord counts what its vassals send. A vassal that pays is a friend while its tribute over the seasons left, as
- *   much as the overlord's word is worth to him, comes to more than its land taken by his odds; one in arrears hears a
- *   demand, and then becomes prey.
+ * - An overlord counts what its vassals send. A vassal that pays is a friend, worth more as a vassal than as a conquest;
+ *   one in arrears hears a demand, and then becomes prey.
  * - A strong king offers a weak neighbour vassalage instead of war, and a weak power that a strong neighbour threatens
  *   offers itself, on the template's clauses; each side seals by the same sums.
  * - A third king weighs an overlord's troops before falling on its vassal.
@@ -17,7 +16,7 @@
  */
 import { HSet, StartVassals, clause, cmpPower, sortBy, vassalTerms, type Clause, type Power, type TabletProposal, type VassalTerms } from "@amarna/engine";
 import { Board } from "./board.ts";
-import { warOdds, type Brain } from "./brain.ts";
+import type { Brain } from "./brain.ts";
 import { tributeReturn } from "./investment.ts";
 
 /** Script players play vassalage (`--no-vassal-play`), or half of them leave it alone (`--vassal-play-half`). */
@@ -106,31 +105,10 @@ export function vassalSeason(b: Board, brain: Brain): void {
       // One tribute a season: a vassal of two pays the other the next.
       if (brain.tributeDue === null && bond.tribute > 0 && b.v.turn - brain.tributePaid.getOrDefault(over, -Year) >= Year) brain.tributeDue = [over, bond.tribute];
     } else if (bond.overlord === me) {
-      // Item 18, part F3: a vassal that pays is a friend while we choose to keep it, weighed once a year as the vassal weighs
-      // us; one in arrears is not.
-      const last = brain.keptWeighed.getOrDefault(bond.vassal, -99);
-      if (b.v.turn - last >= Year) {
-        brain.keptWeighed.set(bond.vassal, b.v.turn);
-        if (keepsVassal(b, brain, bond)) brain.keeping.add(bond.vassal);
-        else brain.keeping.delete(bond.vassal);
-      }
-      if (!inArrears(b, brain, bond) && brain.keeping.has(bond.vassal)) brain.bondFriends.add(bond.vassal);
+      // A vassal that pays is a friend; one in arrears is not.
+      if (!inArrears(b, brain, bond)) brain.bondFriends.add(bond.vassal);
     }
   }
-}
-
-/**
- * Whether an overlord keeps a paying vassal from war (item 18, part F3; use against ignore found overlords that never made
- * war on a paying vassal growing less than those that took them): while its tribute over the seasons left, as much as his
- * word is worth to him (x0.5 to x1.5, as the vassal weighs its own), comes to at least its land taken, by the odds of his
- * troops against its own. A bond with no tribute is kept.
- */
-function keepsVassal(b: Board, brain: Brain, bond: VassalTerms): boolean {
-  if (bond.tribute <= 0) return true;
-  const stream = ((bond.tribute * Math.max(1, b.horizon)) / Year) * (0.5 + brain.p.honesty);
-  let land = 0;
-  for (const [k, o] of b.v.owner.entries()) if (o === bond.vassal) land += b.value(k);
-  return stream >= land * Math.min(1, warOdds(b.mine.length, brain.force(bond.vassal, b)));
 }
 
 /** Whether a vassal of ours has sent no tribute for a year and the grace of the road. */
@@ -157,8 +135,7 @@ export function bondWar(b: Board, brain: Brain, x: Power): number {
   let score = 0;
   for (const bond of brain.bonds) {
     if (bond.vassal !== x) continue;
-    // A vassal of ours we no longer keep costs its tribute over the seasons left, as much as our word is worth to us.
-    if (bond.overlord === me) score += inArrears(b, brain, bond) ? 60 + 100 * brain.p.vengeance : -((bond.tribute * Math.max(1, b.horizon)) / Year) * (0.5 + brain.p.honesty);
+    if (bond.overlord === me) score += inArrears(b, brain, bond) ? 60 + 100 * brain.p.vengeance : -600;
     else if (b.alive.has(bond.overlord)) {
       const o = bond.overlord;
       const near = b.muster(o, Board.Map.capital(x).id) + (nearLand(b, o, x) ? 1 : 0);
