@@ -1,7 +1,12 @@
 /* The season plays out (item 17+++, part B; design/52-the-season-plays-out.md). */
 
-/* While a season plays, the pieces slide in its marching: the renderer sets --march-at and --march-ms on their layers. */
-.map .unit, .map .traveller { transition: transform var(--march-ms, .6s) cubic-bezier(.3, .7, .25, 1) var(--march-at, 0s); }
+/* While a season plays, the pieces slide in its marching: the renderer sets --march-at and --march-ms on their layers.
+   The pieces take them from their layer, and nothing inside a piece does (#666: inherited, each change restyled every
+   element of every piece, 13 ms on the units' layer and 6 more on the people's, twice a season on the phone profile).
+   Where @property is unknown they are inherited as any custom property, to the same look. */
+@property --march-at { syntax: "<time>"; inherits: false; initial-value: 0s; }
+@property --march-ms { syntax: "<time>"; inherits: false; initial-value: .6s; }
+.map .unit, .map .traveller { --march-at: inherit; --march-ms: inherit; transition: transform var(--march-ms, .6s) cubic-bezier(.3, .7, .25, 1) var(--march-at, 0s); }
 
 /* A great moment's medallion (moments.ts) plays in its turn, with its beat's delay and length; a disaster's is dark. */
 .map .scene.disaster .scene-bg { fill: var(--bitumen); }

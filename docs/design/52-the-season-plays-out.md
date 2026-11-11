@@ -60,7 +60,8 @@ then by rank (a fall, a battle, a disaster, an arrival); the rest land with the 
 nowhere: "a disaster far away is news, not a scene".
 
 On the map (`svg-renderer.ts`: `playSeason`): the pieces slide together in the marching (`--march-at`, `--march-ms` on the
-units' and the people's layers, read by `.unit` and `.traveller` in `playback.css`, which also holds the closing line's style); each great moment's medallion shows in its
+units' and the travellers' layers, read by `.unit` and `.traveller` in `playback.css`, which take them from their layer and
+pass them no further, and which also holds the closing line's style); each great moment's medallion shows in its
 turn (`momentMarkup`, the stylesheet's `scene` animation with the beat's delay and length); a unit gone stays where it
 stood until the results land (`reconcile`'s `leaveAfter`); the results (who holds what, the fog, the walls, the cities,
 the season's arrows) land when the cities fall (`landAt`: the land layers are written then, `holdLand`); and the

@@ -247,11 +247,13 @@ export class SvgMapRenderer implements MapRenderer {
    * The season's layers are drawn in steps over as many frames as they need, a budget of time a frame (item 17a: no frame over
    * about 50 ms; a whole season's layers in one frame took up to 60 ms on desktop and far longer on a phone). A new render
    * drops the steps still waiting: it writes every layer whose key changed, those the dropped steps would have written among
-   * them. The names are placed after the last step.
+   * them. The names are placed after the last step. The budget is small (#666): a frame that writes the map pays some 30 ms
+   * of the browser's own work after the steps on the phone profile (style, layout, layerization, paint), so a step past
+   * a few milliseconds ends its frame (at 8 ms, 4.8 to 5% of frames ran over 50 ms on the phone at Fast; at 4 ms, 4.1%).
    */
   private steps: (() => void)[] = [];
   private stepping = 0;
-  private static readonly BudgetMs = 8;
+  private static readonly BudgetMs = 4;
 
   private renderNow(input: MapInput): void {
     const s = input.scene;
@@ -517,10 +519,11 @@ export class SvgMapRenderer implements MapRenderer {
     else g.style.setProperty("--move", `${Math.round(ms)}ms`);
   }
 
-  /** The marching's time for the pieces' slide (app.css: `--march-at`, `--march-ms`), or the ordinary slide. */
+  /** The marching's time for the pieces' slide (playback.css: `--march-at`, `--march-ms`), or the ordinary slide. */
   private march(m: { at: number; ms: number } | null): void {
-    for (const el of [this.layers.get("units"), this.layers.get("travellers")?.closest<SVGGElement>(".people")]) {
-      if (el === null || el === undefined) continue;
+    // On the layers the pieces stand in, which they take the time from (playback.css).
+    for (const el of [this.layers.get("units"), this.layers.get("travellers")]) {
+      if (el === undefined) continue;
       if (m === null) {
         el.style.removeProperty("--march-at");
         el.style.removeProperty("--march-ms");
