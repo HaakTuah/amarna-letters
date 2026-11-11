@@ -6,6 +6,7 @@ export interface LicenceConfig {
   fonts?: string[];
   audit?: string;
   ignoreScriptsIn?: string[];
+  scan?: { served?: string[]; tools?: string[]; skip?: string[] };
 }
 export function floorList(file?: string | URL): { any: string[]; data: string[]; fonts: string[]; publicDomain: boolean };
 export function policy(config?: Partial<LicenceConfig>): {

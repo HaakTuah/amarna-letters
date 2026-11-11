@@ -1,0 +1,8 @@
+{
+  "ships": [],
+  "audit": ".github/licences-audit.json",
+  "scan": {
+    "served": [],
+    "skip": ["scripts/licence-scan.mjs", "scripts/licence-commands.mjs", "scripts/licence-scan-stage.mjs", "scripts/licence-scan-test.mjs", "scripts/licence-fetch-test.mjs"]
+  }
+}

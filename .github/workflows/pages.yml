@@ -87,7 +87,7 @@ jobs:
           node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
           cache: npm
       - run: npm ci
-      - run: npx vitest run --shard=${{ matrix.shard }}/4
+      - run: npx --no-install vitest run --shard=${{ matrix.shard }}/4
 
   # The Playwright smoke test of the built app (src/web/smoke.mjs), beside the tests, only when the app can be affected:
   # the map's overlapping names of item 11f+ (fixed in #196) went unseen while it ran only by hand.

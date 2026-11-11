@@ -28,8 +28,10 @@ floor's numbers:
    - **What ships** (floor rule 7) includes the build: Vite, its plugins and what they pull in, such as Rollup and
      esbuild.
 10. **What ships, or is built into it:** what the web build bundles, which its notices file lists. The audit of every
-    licence is the core's check (`core/scripts/licences.mjs`) with `scripts/licences.json`; `scripts/notices.mjs` writes
-    the notices the web build ships.
+    licence is the core's check (`core/scripts/licences.mjs`) with `scripts/licences.json`, which holds every lockfile
+    package to its list and, by its scan (`core/scripts/licence-scan.mjs`), everything else the game uses (actions,
+    fetched packages, sounds, map data, pictures, copied-in code) to the audit, `scripts/licences-audit.json`;
+    `scripts/notices.mjs` writes the notices the web build ships, the audit's shipping entries among them.
 15. **No install scripts:** `ignore-scripts` in `.npmrc`, for every install here.
 17. **The package manifests and lock files:** the `package.json` files and `package-lock.json`.
 

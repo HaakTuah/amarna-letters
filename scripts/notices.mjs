@@ -17,14 +17,20 @@ function licenceText(dir) {
   return file ? readFileSync(join(dir, file), "utf8").split(/^#+ Licenses of bundled dependencies/mu)[0].trim() : undefined;
 }
 
-/** What the game ships that no package brings, and where each comes from: credited here though none requires it. */
-const ASSETS = [
-  "Music and sounds (audio/): rendered from VS Chamber Orchestra: Community Edition (Versilian Studios, Sam Gossner, Simon\n" +
-    "Dalzell, Elan Hickler) and the Versilian Community Sample Library (Versilian Studios and contributors), both CC0 1.0\n" +
-    "(https://github.com/sgossner/VSCO-2-CE, https://github.com/sgossner/VCSL).",
-  "The map's land, lakes, rivers and deserts: Natural Earth (naturalearthdata.com), public domain.",
-  "The map's relief and snow: the Terrain Tiles of the AWS Open Data registry (from SRTM, GMTED2010 and ETOPO1), public domain.",
-];
+/**
+ * The notices of what the game ships that no package brings (sounds, map data, pictures): every licence audit entry
+ * (scripts/licences-audit.json, named by scripts/licences.json) that ships, but the owner's own (`kind: "own"`); throws on
+ * one without its `notice`, so nothing of anyone else's ships uncredited (floor rule 10).
+ */
+export function assetNotices(entries) {
+  const shipped = entries.filter((e) => e.ships && e.kind !== "own");
+  const bare = shipped.filter((e) => !e.notice);
+  if (bare.length) throw new Error(`Shipped without a notice (floor rule 10): ${bare.map((e) => e.name).join(", ")}`);
+  return shipped.map((e) => e.notice);
+}
+
+const config = loadConfig(join(root, "scripts/licences.json"));
+const AUDIT = JSON.parse(readFileSync(join(root, config.audit), "utf8")).entries;
 
 /**
  * The folder of the package a bundled module (`id`, an absolute path) comes from, or undefined for the owner's own code:
@@ -51,7 +57,7 @@ export function packageDir(id, packages, workspaces, base = root) {
  * ships; throws on one whose licence is off the list for what ships, so a build never ships one.
  */
 export function notices(ids) {
-  const { allowedFor } = policy(loadConfig(join(root, "scripts/licences.json")));
+  const { allowedFor } = policy(config);
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8")).packages;
   const workspaces = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).workspaces;
   const fetchedAs = (dir) => registryName(lock[relative(root, dir).split(sep).join("/")]?.resolved) ?? "";
@@ -71,7 +77,7 @@ export function notices(ids) {
     "Assets",
     rule,
     "",
-    ...ASSETS.flatMap((a) => [a, ""]),
+    ...assetNotices(AUDIT).flatMap((a) => [a, ""]),
     ...packages.flatMap((p) => [rule, `${p.name} ${p.version} (${p.license})`, rule, "", licenceText(p.dir) ?? `Licensed under ${p.license}; the package ships no licence text.`, ""]),
   ].join("\n");
 }

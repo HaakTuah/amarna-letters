@@ -1,6 +1,23 @@
 {
-  "lockfiles": ["package-lock.json"],
-  "ships": ["package.json"],
-  "data": ["caniuse-lite"],
-  "ignoreScriptsIn": [".npmrc"]
+  "lockfiles": [
+    "package-lock.json"
+  ],
+  "ships": [
+    "package.json"
+  ],
+  "data": [
+    "caniuse-lite"
+  ],
+  "ignoreScriptsIn": [
+    ".npmrc"
+  ],
+  "audit": "scripts/licences-audit.json",
+  "scan": {
+    "served": [
+      "src/"
+    ],
+    "skip": [
+      "docs/"
+    ]
+  }
 }
