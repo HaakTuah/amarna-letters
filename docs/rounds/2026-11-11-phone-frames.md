@@ -68,6 +68,9 @@ All in `src/web` (the engine, the game, the worker's messages, the requests, the
   the cities 22.8 and 22.6, then 10.8 and 10.4; the bands 18.9 and 20.0, then 8.6 and 7.3; the worker's message 5.6 and
   5.9, then 2.1 and 2.2; the tints 17.5 and 15.9, then 17.9 and 16.9 (unchanged).
 - The seasons reached in two minutes: phone 72 and 71 on `main`, 74 and 74 on the branch; desktop 73 and 74, 76 and 78.
+- After the review's fixes (the redraw asked before the read, the camera's size read afresh where a view is set) and
+  `main` merged in, one more phone run on the head: 204 of 5,773 (3.53%), the worst in play 150 ms (`main` since changed
+  the engine, so this one may play a slightly different game).
 
 Along the way, on the phone (single runs, so within about half a point of noise): the first stage (the drawings split,
 the size kept, the works' tooltips, the reads and redraws in tasks of their own) about 6.3% (a run with other work
