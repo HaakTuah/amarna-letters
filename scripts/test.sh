@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.." || exit 2
 command -v node >/dev/null 2>&1 || { echo "node is missing (Node 26 or later)"; exit 2; }
 [ -d node_modules ] || npm ci --silent >/dev/null 2>&1 || { echo "npm ci failed"; exit 2; }
 LOG="${TMPDIR:-/tmp}/amarna-test-$$.log"
-{ npm run --silent typecheck && npm run --silent lint && node core/scripts/copies.mjs scripts/copies.json && node core/scripts/pointers.mjs && node core/scripts/reading-size.mjs scripts/sizes.json && npx vitest run --reporter=default "$@"; } >"$LOG" 2>&1
+{ npm run --silent typecheck && npm run --silent lint && node core/scripts/copies.mjs scripts/copies.json && node core/scripts/pointers.mjs && node core/scripts/reading-size.mjs scripts/sizes.json && npx --no-install vitest run --reporter=default "$@"; } >"$LOG" 2>&1
 rc=$?
 # type and lint errors, new copies, then the test summary
 grep -E "error TS[0-9]+|^\s+[0-9]+:[0-9]+\s+error|problems? \(|^FAIL: " "$LOG" | head -30

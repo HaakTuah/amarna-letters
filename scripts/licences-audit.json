@@ -1,0 +1,188 @@
+{
+  "about": "The licence audit (SECURITY.md, rule 10): what the game and its tools use that no lockfile holds, each with its licence (SPDX) and where it comes in. The core's check (core/scripts/licences.mjs, with scripts/licences.json) holds each entry to its list: 'ships' (it reaches a player, so scripts/notices.mjs writes its 'notice' into the notices the web build ships) to floor rule 10's list for what ships, the rest, tools that only run, to the tools' list; its scan (core/scripts/licence-scan.mjs) fails a PR that uses an action, a fetched package, an asset or copied-in code no entry names. 'files': the files or folders an entry covers.",
+  "entries": [
+    {
+      "name": "VS Chamber Orchestra: Community Edition",
+      "kind": "asset",
+      "licence": "CC0-1.0",
+      "ships": true,
+      "files": [
+        "src/web/public/audio/"
+      ],
+      "used": "the recorded samples the music and sounds are rendered from (docs/audio/SOURCES.md)",
+      "notice": "Music and sounds (audio/): rendered in part from VS Chamber Orchestra: Community Edition (Versilian Studios, Sam Gossner,\nSimon Dalzell, Elan Hickler), CC0 1.0 (https://github.com/sgossner/VSCO-2-CE)."
+    },
+    {
+      "name": "Versilian Community Sample Library",
+      "kind": "asset",
+      "licence": "CC0-1.0",
+      "ships": true,
+      "files": [
+        "src/web/public/audio/"
+      ],
+      "used": "the recorded samples the music and sounds are rendered from (docs/audio/SOURCES.md)",
+      "notice": "Music and sounds (audio/): rendered in part from the Versilian Community Sample Library (Versilian Studios and\ncontributors), CC0 1.0 (https://github.com/sgossner/VCSL)."
+    },
+    {
+      "name": "Natural Earth",
+      "kind": "data",
+      "licence": "Public Domain",
+      "ships": true,
+      "used": "the map's land, lakes, rivers and deserts, written into src/web/src/map/ by scripts/map-geography.ts",
+      "notice": "The map's land, lakes, rivers and deserts: Natural Earth (naturalearthdata.com), public domain."
+    },
+    {
+      "name": "Terrain Tiles",
+      "kind": "data",
+      "licence": "Public Domain",
+      "ships": true,
+      "files": [
+        "src/web/src/map/relief.jpg",
+        "src/web/src/map/snow-high.png",
+        "src/web/src/map/snow-low.png",
+        "src/web/src/map/snow-mid.png",
+        "scripts/map-dem.mjs"
+      ],
+      "used": "the map's relief and snow, drawn by scripts/map-relief.mjs from the AWS Open Data registry's tiles (from SRTM, GMTED2010 and ETOPO1), which scripts/map-dem.mjs fetches with curl",
+      "notice": "The map's relief and snow: the Terrain Tiles of the AWS Open Data registry (from SRTM, GMTED2010 and ETOPO1), public domain."
+    },
+    {
+      "name": "The game's icons",
+      "kind": "own",
+      "licence": "LicenseRef-Owner",
+      "ships": true,
+      "files": [
+        "src/web/public/icon-192.png",
+        "src/web/public/icon-512.png",
+        "src/web/public/icon-maskable-512.png",
+        "src/web/public/icon.svg"
+      ],
+      "used": "the app's icons, the owner's own"
+    },
+    {
+      "name": "actions/cache",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "pages.yml"
+    },
+    {
+      "name": "actions/checkout",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "every workflow of the game's own"
+    },
+    {
+      "name": "actions/deploy-pages",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "pages-deploy.yml"
+    },
+    {
+      "name": "actions/download-artifact",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "pages.yml and preview.yml"
+    },
+    {
+      "name": "actions/setup-node",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "pages.yml and links.yml, on the core's one Node"
+    },
+    {
+      "name": "actions/upload-artifact",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "pages.yml"
+    },
+    {
+      "name": "actions/upload-pages-artifact",
+      "kind": "action",
+      "licence": "MIT",
+      "used": "pages-deploy.yml"
+    },
+    {
+      "name": "Chromium",
+      "kind": "tool",
+      "licence": "BSD-3-Clause",
+      "used": "the browser tests and the smoke test, headless: Playwright's, which package.json pins, installed by playwright install in pages.yml and scripts/cloud-setup.sh",
+      "files": [
+        ".github/workflows/pages.yml",
+        "scripts/cloud-setup.sh"
+      ]
+    },
+    {
+      "name": "Node.js",
+      "kind": "tool",
+      "licence": "MIT",
+      "used": "every script, test and build: the core's one exact Node, core/.node-version"
+    },
+    {
+      "name": "npm",
+      "kind": "tool",
+      "licence": "Artistic-2.0",
+      "used": "bundled with Node: npm ci installs package-lock.json's packages"
+    },
+    {
+      "name": "GitHub CLI",
+      "kind": "tool",
+      "licence": "MIT",
+      "used": "gh in preview.yml and pages-deploy.yml, the runner's own"
+    },
+    {
+      "name": "Python",
+      "kind": "tool",
+      "licence": "Python-2.0",
+      "used": "scripts/music/, run by hand to render the music and sounds, and scripts/design-copy.py, which cuts the design document's copy (its own modules only)",
+      "files": [
+        "scripts/music/",
+        "scripts/design-copy.py"
+      ]
+    },
+    {
+      "name": "numpy",
+      "kind": "tool",
+      "licence": "BSD-3-Clause",
+      "used": "scripts/music/, by hand (pip, as docs/audio/SOURCES.md says)",
+      "files": [
+        "scripts/music/"
+      ]
+    },
+    {
+      "name": "scipy",
+      "kind": "tool",
+      "licence": "BSD-3-Clause",
+      "used": "scripts/music/, by hand",
+      "files": [
+        "scripts/music/"
+      ]
+    },
+    {
+      "name": "soundfile",
+      "kind": "tool",
+      "licence": "BSD-3-Clause",
+      "used": "scripts/music/, by hand",
+      "files": [
+        "scripts/music/"
+      ]
+    },
+    {
+      "name": "matplotlib",
+      "kind": "tool",
+      "licence": "PSF-2.0",
+      "used": "scripts/music/inspect_audio.py, by hand, to look at what was rendered",
+      "files": [
+        "scripts/music/"
+      ]
+    },
+    {
+      "name": "FFmpeg",
+      "kind": "tool",
+      "licence": "GPL-2.0-or-later",
+      "used": "scripts/music/, by hand: it measures loudness and encodes what is rendered (as distributions build it; LGPL-2.1-or-later without its GPL parts)",
+      "files": [
+        "scripts/music/"
+      ]
+    }
+  ]
+}

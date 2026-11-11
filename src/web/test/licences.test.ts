@@ -1,69 +1,13 @@
-// The licence policy (SECURITY.md, rule 10; the core's licence check with scripts/licences.json): SPDX expressions read
-// with their brackets, and the data, asset and font licences allowed only for the packages named as such in the config.
+// This game's own side of the licence check (SECURITY.md, rule 10): the package a bundled module comes from, for the
+// notices the build ships (scripts/notices.mjs), and what ships worked out from the workspaces. The core's lists and
+// readers are tested in the core (core/scripts/licences-test.mjs).
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { licenceOk, loadConfig, policy, registryName, registryOverrides, scriptsOff, shippedPaths } from "../../../core/scripts/licences.mjs";
+import { shippedPaths } from "../../../core/scripts/licences.mjs";
 import { packageDir } from "../../../scripts/notices.mjs";
 
 const root = new URL("../../../", import.meta.url);
-const game = policy(loadConfig(new URL("scripts/licences.json", root).pathname));
-const code = game.allowedFor("some-library");
-const data = game.allowedFor("caniuse-lite");
-
 describe("licences", () => {
-  it("reads AND and OR with their brackets", () => {
-    expect(licenceOk("(MIT OR GPL-3.0-only) AND (GPL-3.0-only)", code)).toBe(false);
-    expect(licenceOk("MIT AND (BSD-2-Clause OR Apache-2.0)", code)).toBe(true);
-    expect(licenceOk("(MIT OR CC0-1.0)", code)).toBe(true);
-    expect(licenceOk("MIT OR GPL-3.0-only", code)).toBe(true);
-    expect(licenceOk("GPL-3.0-only", code)).toBe(false);
-  });
-
-  it("refuses no licence, exceptions and broken expressions", () => {
-    for (const bad of [undefined, "", "MIT AND", "(MIT", "MIT OR (", "Apache-2.0 WITH LLVM-exception"]) expect(licenceOk(bad, code)).toBe(false);
-  });
-
-  it("allows CC-BY only for named data packages, OFL only for named fonts, and the public domain for any", () => {
-    expect(licenceOk("CC-BY-4.0", code)).toBe(false);
-    expect(licenceOk("OFL-1.1", code)).toBe(false);
-    expect(licenceOk("CC-BY-4.0", data)).toBe(true);
-    expect(licenceOk("PDDL-1.0", data)).toBe(true);
-    expect(licenceOk("OFL-1.1", data)).toBe(false);
-    expect(licenceOk("Public Domain", code)).toBe(true);
-  });
-
-  it("names a package by its registry address, never by a name the lockfile could be given", () => {
-    expect(registryName("https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001819.tgz")).toBe("caniuse-lite");
-    expect(registryName("https://registry.npmjs.org/@scope/pkg/-/pkg-1.0.0.tgz")).toBe("@scope/pkg");
-    for (const local of [undefined, "file:vendor/caniuse-lite.tgz", "vendor/caniuse-lite", "git+https://example.com/caniuse-lite.git", "https://example.com/caniuse-lite/-/caniuse-lite-1.0.0.tgz"])
-      expect(registryName(local)).toBeUndefined();
-  });
-
-  it("refuses every npm setting but a few harmless ones, however its key is spelt", () => {
-    const npmrc = ["registry=https://example.com/", "replace-registry-host=always", "@x:registry = https://example.com/", '"registry"=https://example.com/', '"replace-registry-host"=always', "${KEY}=https://example.com/"];
-    expect(registryOverrides(npmrc.join("\n"))).toEqual(npmrc);
-    expect(registryOverrides("fund=false\naudit=false\n# registry=https://example.com/\n; registry=x\n")).toEqual([]);
-    expect(registryOverrides("ignore-scripts=true\nregistry=https://example.com/\n")).toEqual(["registry=https://example.com/"]);
-    expect(registryOverrides("ignore-scripts=false\nIGNORE-SCRIPTS=true\nignore-scripts=\n")).toEqual(["ignore-scripts=false", "IGNORE-SCRIPTS=true", "ignore-scripts="]);
-    expect(scriptsOff("# packages' own scripts never run\nignore-scripts=true\n")).toBe(true);
-    expect(scriptsOff("ignore-scripts=false\n")).toBe(false);
-  });
-
-  it("holds what ships to the strict list and lets tools that only run use any open-source licence", () => {
-    const tool = game.allowedFor("some-tool", false);
-    for (const copyleft of ["GPL-3.0-only", "LGPL-2.1-or-later", "MPL-2.0"]) {
-      expect(licenceOk(copyleft, tool)).toBe(true);
-      expect(licenceOk(copyleft, code)).toBe(false);
-    }
-    for (const never of ["BUSL-1.1", "SSPL-1.0", "Elastic-2.0", "CC-BY-NC-4.0", "CC-BY-ND-4.0", undefined]) expect(licenceOk(never, tool)).toBe(false);
-  });
-
-  it("lets tools use every licence the Open Source Initiative approves, never one of its copyleft ones in what ships", () => {
-    const tool = game.allowedFor("some-tool", false);
-    for (const osi of ["EUPL-1.2", "OSL-3.0", "CECILL-2.1", "MS-RL", "BSL-1.0", "Artistic-1.0-Perl"]) expect(licenceOk(osi, tool)).toBe(true);
-    for (const copyleft of ["EUPL-1.2", "OSL-3.0", "CECILL-2.1", "MS-RL"]) expect(licenceOk(copyleft, code)).toBe(false);
-  });
-
   it("finds the package a bundled module comes from, a local file: package by its real path, never a workspace", () => {
     const lock = {
       "": { workspaces: ["src/web"] },
