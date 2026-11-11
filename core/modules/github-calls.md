@@ -1,9 +1,8 @@
 # GitHub's REST calls from a cloud session
 
 Read when a cloud session must open, mark ready, merge or inspect a PR. Claude's cloud sessions can't use GitHub's
-GraphQL API, so `gh pr create`, `gh pr list`, `gh pr view` and `gh pr ready` fail there; they use these REST calls.
-Where GraphQL works, `gh pr ready <n>` marks a draft ready; the `ccr/ready_for_review` route is Claude's cloud proxy's,
-not GitHub's REST API.
+GraphQL API, so `gh pr create`, `gh pr list`, `gh pr view` and `gh pr ready` fail there; they use these REST calls
+(the `ccr/` routes are Claude's cloud proxy's, not GitHub's).
 
 ```bash
 gh api repos/HaakTuah/<repo>/pulls -f title=... -f head=<branch> -f base=main -f body=...  # add -F draft=true: a draft
