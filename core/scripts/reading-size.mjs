@@ -7,11 +7,11 @@
 //   - when the PR changes a file past "split" (about 50 KB: Step 0, split it by meaning first), unless "past" lists it
 //     with a mark at least its size. The copy of the core (core/, changed only by a sync PR), the paths under "skip"
 //     (such as the archive: dated records, added to by every merge) and binary files are not counted.
-// A PR that crosses a mark moves the mark in the config and says why in its description. The PR's changes are those
-// against SIZES_BASE (set by the copies workflow, .github/workflows/copies.yml, which runs this), else where HEAD left
-// origin/main; in CI that is the base's tip against the PR's merge commit, so a run after the base moves on counts its
-// new changes too. Node's own modules only. It checks the project it lies in (core/scripts/ there), whatever the
-// directory it is started from; the config's own path is read from that directory.
+// A PR that crosses a mark moves the mark in the config; what else it owes is in modules/review-guidelines.md. The PR's
+// changes are those against SIZES_BASE (set by the copies workflow, .github/workflows/copies.yml, which runs this),
+// else where HEAD left origin/main; in CI that is the base's tip against the PR's merge commit, so a run after the base
+// moves on counts its new changes too. Node's own modules only. It checks the project it lies in (core/scripts/ there),
+// whatever the directory it is started from; the config's own path is read from that directory.
 //
 //   node core/scripts/reading-size.mjs <config>
 import { execFileSync } from "node:child_process";
