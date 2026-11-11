@@ -1,10 +1,10 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
-how work flows and is reviewed: `core/modules/work-flow.md` and `core/modules/reviews.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
-document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
-longer finds was history and is in `docs/archive/design-history.md`.
+`docs/builder-rules.md`; how work flows and is reviewed: `core/modules/work-flow.md` and `core/modules/reviews.md`). The
+order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design document keeps
+its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no longer finds was
+history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
 the owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
@@ -14,7 +14,7 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 A side lane of small refinements, beside the item lane and never ahead of it (the owner, 31 October 2026: "Should we add a
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
-account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
+account until its usage is spent; on the main account the usage brake (`core/modules/claude.md`) closes it first.
 - **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
   text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
   or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
@@ -49,36 +49,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
-- **Trim what every session reads** (archive item 239; a routine docs lane, for Sonnet): this file back under about
-  20 KB, finished items and done follow-ups moved to the archive with a pointer.
-- **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
-  common to every project move to one public repository, `HaakTuah/agent-core` (renamed from `agent-rules`),
-  and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
-  by hand, as this repository treats `docs/intent/`. It comes in two layers (archive item 240): a safety floor every project takes whole and can never edit
-  or leave out, and practice modules each project picks in a small manifest of its own; this game takes them all. What moves: the security baseline, the four pillars, the one inbox,
-  keeping the owner's words, the roles and reviews, helpers, models and effort, the Git flow, usage, updates and "No
-  description left untrue". What stays here: what the game is, its build order and builder rules, its commands and
-  whatever only it has, each rule file cut to that, with pointers into `core/`. The steps: (1) the owner creates the
-  repository and adds it to Claude's and Codex's GitHub access, which only he can do; (2) a fresh session the owner
-  starts in the core repository at high effort writes the core from both games' rule files (it reads them, as they are
-  public, and writes only to the core), from this brief: (a) read both games' rule files whole on `main`, as they stood
-  before step 3; (b) a rule goes into the core
-  if it holds in both games and would hold in any project, and one that differs only in names, paths or examples goes in
-  once, with the difference left as a slot each project fills; a rule only one game has stays in that game; (c) every
-  rule keeps its reason, and the owner's words behind the common rules move word for word into the core's own archive,
-  never rewritten; (d) the four pillars hold for the core itself, so it comes out shorter than the two games' copies
-  together; (e) nothing personal, as both games' `SECURITY.md` say; (f) done when a table lists every rule of both games
-  and where it went (the core, one game, or dropped with its reason), and a fresh reviewer given only the two games'
-  files and the core finds nothing lost. The design session then checks the result against both games before any game
-  takes a copy; (3) each project, in a PR of its own, adds the copy, cuts its rule files to what is its own, and adds a
-  check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
-  on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
-  one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
-  Barkstreet Snakes. **Steps 1 to 3 are done** (step 3: `develop` dropped in #870, then this game took the core at
-  `31f3d51`, as the core's `reports/2026-11-10-step-3-now.md` lists; report `docs/rounds/2026-11-10-shared-core-step-3.md`).
-  Left: the rule-file audit (the builder rules are cut at the source and back in the copies check, and `develop` is
-  gone). What the game does not yet do of the core's rules is its own queue, by way of the design session (that
-  report, "What each game does not yet do").
 - **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
@@ -110,12 +80,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
   `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
 
-- **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
-  builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
-  simulation kit's start prompt belong in `sim/README.md`, moved by the design session at the design document's next
-  refresh (the workshop check is gone: the core cut it, core archive 134). (2) to (4) done in #732; what waits until Codex can build is
-  written then (core `modules/roles.md`), from the owner's words in the archive; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
-  the archive.
 - **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
   generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
@@ -188,15 +152,13 @@ fixed.
 
 ## For the owner
 
-Readings taken are in each item's report and PR, for the owner to read when he likes; nothing waits for him but what
-floor rules 3 and 14 name. Issues hold [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement)
-(`enhancement`) and [bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
-`core/modules/inbox.md`. Answered review points from before 2 November 2026:
-`docs/archive/progress-done.md`.
+Open [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement) (`enhancement`) and
+[bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by `core/modules/inbox.md`.
+Answered review points from before 2 November 2026: `docs/archive/progress-done.md`.
 
 ## Use against ignore
 
-Every item adds its numbers here: on the same seeds, scripts that use the item's features against scripts that ignore them ("Using a feature must pay" in the builder rules, 28 October 2026). While the game is incomplete a feature may not win yet; once it is feature complete (item 18) none may be left whose users do not come out ahead. Earlier items' numbers are in their reports; item 10+a's audit of every feature built so far adds them here.
+Every item adds its numbers here ("Every item tests them" in the builder rules; how they are measured: the *use-against-ignore measurement* in `core-manifest.md`). Earlier items' numbers are in their reports; item 10+a's audit of every feature built so far adds them here.
 
 The rows of done items (6c to 17++) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
 17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check");
