@@ -18,6 +18,8 @@ export interface HeldMeasure {
    * the mean standing of every realm.
    */
   long?: [number, number][];
+  /** The same for kings held less long and free again at the end, to set beside them (captors are war's winners). */
+  brief?: [number, number][];
   standing?: number;
   /** Letters from captivity: sent through the captor, smuggled out, kept by the captor. */
   letters: [number, number, number];
@@ -48,15 +50,17 @@ export class HeldWatch {
   /** The game's measure, with each realm's standing against par at the end. */
   end(s: GameState, standing: (p: Power) => number): HeldMeasure {
     const long: [number, number][] = [];
+    const brief: [number, number][] = [];
     const kings: [number, string][] = [...this.seasons.entries()].map(([id, n]) => {
       const c = s.characters.find((x) => x.id === id);
       const end = c === undefined || c.status === "Dead" ? "dead" : c.status === "Captured" ? "held" : "home";
       const r = this.realms.get(id);
       if (r !== undefined && (n >= HeldLong || end === "held")) long.push([standing(r[0]), standing(r[1])]);
+      else if (r !== undefined && end === "home") brief.push([standing(r[0]), standing(r[1])]);
       return [n, end];
     });
     const count = (signal: string): number => s.events.filter((e) => e.signal === signal).length;
-    return { kings, long, standing: sum(AllPowers, standing) / AllPowers.length, letters: [count("captive-letter-sent"), count("captive-letter-smuggled"), count("captive-letter-kept")], escapes: [count("king-escapes") + count("king-escapes-aided"), count("king-escapes-aided")], guarded: this.guarded, gaveIn: count("king-gave-in") };
+    return { kings, long, brief, standing: sum(AllPowers, standing) / AllPowers.length, letters: [count("captive-letter-sent"), count("captive-letter-smuggled"), count("captive-letter-kept")], escapes: [count("king-escapes") + count("king-escapes-aided"), count("king-escapes-aided")], guarded: this.guarded, gaveIn: count("king-gave-in") };
   }
 }
 
@@ -80,10 +84,13 @@ export function heldReport(games: readonly HeldMeasure[]): string[] {
 /** Whether holding a king long pays: where the held realms and their captors stood against par at the end. */
 function heldLongLine(games: readonly HeldMeasure[]): string[] {
   const long = games.flatMap((g) => g.long ?? []);
+  const brief = games.flatMap((g) => g.brief ?? []);
   const measured = games.filter((g) => g.standing !== undefined);
   if (long.length === 0 || measured.length === 0) return [];
+  const kings = (n: number): string => `${n} king${n === 1 ? "" : "s"}`;
+  const at = (xs: [number, number][], i: number): string => fmt(sum(xs, (x) => x[i]) / Math.max(1, xs.length), "0.00");
   return [
-    `Held long (${HeldLong} seasons or more, or to the end): ${long.length} kings; at the end their realms stood at ${fmt(sum(long, (x) => x[0]) / long.length, "0.00")} against par ` +
-      `and their captors at ${fmt(sum(long, (x) => x[1]) / long.length, "0.00")}, every realm at ${fmt(sum(measured, (g) => g.standing!) / measured.length, "0.00")} (1 is par).`,
+    `Held long (${HeldLong} seasons or more, or to the end): ${kings(long.length)}; at the end their realms stood at ${at(long, 0)} against par and their captors at ${at(long, 1)}; ` +
+      `held less long and free again: ${kings(brief.length)}, their realms at ${at(brief, 0)} and their captors at ${at(brief, 1)}; every realm at ${fmt(sum(measured, (g) => g.standing!) / measured.length, "0.00")} (1 is par).`,
   ];
 }

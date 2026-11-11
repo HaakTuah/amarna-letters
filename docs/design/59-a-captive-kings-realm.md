@@ -70,5 +70,6 @@ lookups in `rules/court.ts` (`heldKing`, `lettersKept`, `spyWith`).
   the letters sent, smuggled and kept, the kings who got away, with those a spy helped, the seasons held under the
   captor's watchmen, and the words home giving in (signal `king-gave-in`); and the "Held long" line, for kings held
   12 seasons or more or to the end (`HeldLong`), where their realms and their captors stood against par at the end,
-  beside every realm (item 18, part F2: whether holding a king forever pays).
+  beside those held less long and free again (captors are war's winners) and every realm (item 18, part F2: whether
+  holding a king forever pays).
 - Save version 93.
