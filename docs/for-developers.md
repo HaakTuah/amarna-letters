@@ -5,7 +5,7 @@ Running, testing and publishing Amarna Letters, and how it is put together. The 
 
 ## Run locally
 
-You need Node 26 or later.
+You need Node at the version in `core/.node-version`, the one CI and the cloud setup use.
 
 ```bash
 npm ci

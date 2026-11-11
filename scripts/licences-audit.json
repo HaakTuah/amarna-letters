@@ -128,7 +128,7 @@
       ]
     },
     {
-      "name": "numpy",
+      "name": "numpy@2.5.4",
       "kind": "tool",
       "licence": "BSD-3-Clause",
       "used": "scripts/music/, by hand (pip, as docs/audio/SOURCES.md says)",
@@ -137,7 +137,7 @@
       ]
     },
     {
-      "name": "scipy",
+      "name": "scipy@1.18.1",
       "kind": "tool",
       "licence": "BSD-3-Clause",
       "used": "scripts/music/, by hand",
@@ -146,7 +146,7 @@
       ]
     },
     {
-      "name": "soundfile",
+      "name": "soundfile@0.14.0",
       "kind": "tool",
       "licence": "BSD-3-Clause",
       "used": "scripts/music/, by hand",
@@ -155,7 +155,7 @@
       ]
     },
     {
-      "name": "matplotlib",
+      "name": "matplotlib@3.11.2",
       "kind": "tool",
       "licence": "PSF-2.0",
       "used": "scripts/music/inspect_audio.py, by hand, to look at what was rendered",

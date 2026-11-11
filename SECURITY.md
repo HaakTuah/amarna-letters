@@ -4,14 +4,13 @@ This game takes the floor whole, `core/floor/security.md` and `core/floor/topics
 `core/floor/threat-model.md`, to which `docs/threat-model.md` adds this game's own. What this game adds under the
 floor's numbers:
 
-3. **The protected files.** The trusted builder: Claude's builder sessions (`core/modules/roles.md`). Besides those
-   the floor names:
+3. **The protected files,** besides those the floor names:
    - **what runs by itself or with credentials:** `scripts/cloud-setup.sh`; `scripts/site-publish.sh`, which `pages.yml`
-     and `preview.yml` run with a token that writes `gh-pages`; and the simulation's walls, which Claude Code runs as
-     hooks, wire in or prove (`sim/guard.js`, `sim/poller-guard.js`, `sim/wait.js`, `sim/setup.js`,
-     `sim/isolation.js`, `sim/check-isolation.js`, `sim/audit.js`);
-   - **the rule files:** `docs/builder-rules.md`, `docs/review-guidelines.md`,
-     `docs/threat-model.md` and this file;
+     and `preview.yml` run with a token that writes `gh-pages`; `scripts/links.mjs`, which `links.yml` runs every
+     week; and the simulation's walls, which Claude Code runs as hooks, wire in or prove (`sim/guard.js`,
+     `sim/poller-guard.js`, `sim/wait.js`, `sim/setup.js`, `sim/isolation.js`, `sim/check-isolation.js`,
+     `sim/audit.js`);
+   - **the rule files:** `docs/builder-rules.md`, `docs/review-guidelines.md` and `docs/threat-model.md`;
    - **the checks on the work:** the copies check's config and baseline (`scripts/copies.json`,
      `scripts/copies-baseline.json`), the reading-size check's marks (`scripts/sizes.json`), and the licence check's
      config and audit (`scripts/licences.json`, `scripts/licences-audit.json`), and `.npmrc`, which keeps install

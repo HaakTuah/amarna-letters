@@ -51,8 +51,7 @@ game's own, which "Principles over rules" never reaches: no model games until th
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, a specification (its "question N" plans): read it by the question
   you need.
 - **Print little:** tests with `scripts/test.sh` and script games with `scripts/sim.sh`. Model-game simulations
-  (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`); none run until the
-  build order is done.
+  (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`).
 - **Never edit `docs/intent/` or `docs/builder-rules.md`;** a design decision goes to the design session.
 - **The smallest game that tests the rule** (archive item 28): a few powers on part of the map, a handful of seasons
   and only the characters a test needs; full-size games only in the replays, the save round trip and a smoke game; long
@@ -78,8 +77,8 @@ npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright s
 node core/scripts/licences.mjs scripts/licences.json # the licence check
 ```
 
-Benchmarks: `scripts/sim.sh --versus solo ...` ("Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`). No
-model games: no API key is set in cloud sessions.
+Benchmarks: `scripts/sim.sh --versus solo ...` ("Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`). No API
+key is set in cloud sessions.
 
 ## Review guidelines
 

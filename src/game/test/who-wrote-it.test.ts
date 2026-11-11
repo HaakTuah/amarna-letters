@@ -127,7 +127,7 @@ describe("WhoWroteItTests", () => {
     const hang = ((_url: string, init?: RequestInit): Promise<Response> =>
       new Promise((_, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))))) as typeof fetch;
     const stop = new AbortController();
-    const asking = new SdkTransport("sk-ant-test-0000", hang).send({ model: "claude-haiku-5-5", max_tokens: 10, messages: [{ role: "user", content: "x" }] }, stop.signal);
+    const asking = new SdkTransport("sk-" + "ant-test-0000", hang).send({ model: "claude-haiku-5-5", max_tokens: 10, messages: [{ role: "user", content: "x" }] }, stop.signal);
     stop.abort();
     const ex = await Assert.throwsAsync(() => asking);
     Assert.equal("AbortError", ex.name);

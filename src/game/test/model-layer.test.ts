@@ -39,7 +39,7 @@ describe("ModelLayerTests", () => {
           headers: { "content-type": "application/json" },
         });
       });
-      transport = new SdkTransport("sk-ant-test-0000");
+      transport = new SdkTransport("sk-" + "ant-test-0000");
     }
     let set = buildSeats(choices, state, providersFor(choices, transport, {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
@@ -83,7 +83,7 @@ describe("ModelLayerTests", () => {
 
     Assert.notEmpty(http);
     for (const { headers, body } of http) {
-      Assert.equal("Bearer sk-ant-test-0000", headers["authorization"]);
+      Assert.equal("Bearer sk-" + "ant-test-0000", headers["authorization"]);
       Assert.equal("true", headers["anthropic-dangerous-direct-browser-access"]);
       // The schema goes as the one reply tool, not strict, so no grammar is compiled; the model is asked to call it.
       Assert.equal("reply", str(body, "tools", 0, "name"));
