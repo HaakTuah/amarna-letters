@@ -360,12 +360,14 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   for (const [k, v] of SignalDetector.count(s)) signals[k] = v;
   let standingKept = 0;
   for (const b of s.standing.values()) standingKept += b.last;
+  // The bold and careful roads are the characters' own: no king, reigning, fallen or dead, is counted on them (item 18, F2).
+  const reigned = new Set([...[...s.reigns.values()].map((r) => r.character), ...s.reignsEnded.map((r) => r.character)]);
   const summary: GameSummary = {
     board: board.map(boardLine),
     topWealth: Math.max(0, ...characters.filter((x) => !x.dead).map((x) => x.holding)),
     firstIsKing: board.length > 0 && board[0].power !== null,
     characterResults: characters.map((x) => characterResult(x.character)),
-    money: watch.end(characters),
+    money: watch.end(characters.filter((x) => !reigned.has(x.character.id))),
     spending: spent.end(),
     held: captives.end(s, (p) => standingOf(p, engine.growth(p))),
     gained,
