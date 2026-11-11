@@ -11,7 +11,7 @@ What reaches the owner, and how his words are kept. Read at the start of every t
   or unsure (a call of taste, such as a name, music or a look, always unsure); from the same search, its verdict on any
   open idea on that topic (yes, later or no, with the reason and a rough cost), posted on it; and, on a PR players will
   see, his likely notes on its pictures and text.
-- **His inbox is the repository's issues,** assigned to `HaakTuah`: ideas (`enhancement`) and bugs (`bug`), with the
+- **His inbox is the repository's issues,** assigned to the *owner's account*: ideas (`enhancement`) and bugs (`bug`), with the
   template's headings (`.github/ISSUE_TEMPLATE/`), each saying in plain words what it is and why it matters; search
   first, never file twice. A PR or report only points to them.
 - **An obvious improvement is built at once** (core archive 147), in its own PR, save where the floor needs his yes.

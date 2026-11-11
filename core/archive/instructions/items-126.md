@@ -224,3 +224,10 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      publishes the site:
 
      > Why not use one shared workflow? Obvious improvements gets implemented automatically.
+
+148. **11 November 2026** (the core, in the design chat, 21:18 UTC), asked whether the core should be opened to […]'s
+     project, so a project of another owner takes it whole, its updates through sync PRs, once the owner's GitHub
+     account, written into five places (floor rule 4 among them), became a slot each project fills; he chose the answer
+     offered as:
+
+     > Open the core to him (Recommended)

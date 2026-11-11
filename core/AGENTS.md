@@ -17,7 +17,8 @@ Read when needed: `floor/topics.md`, `floor/threat-model.md`, `modules/roles.md`
 
 The slots here: the *progress file*: this repository's open PRs; the *report*: the PR's description (`reports/` keeps
 the audits and the reports written before 12 November 2026); the archive is `archive/instructions.md`, cited "(core
-archive N)"; the *settling references* and the *descriptions*: `README.md`; the *large file*: past about 50 KB.
+archive N)"; the *settling references* and the *descriptions*: `README.md`; the *large file*: past about 50 KB; the
+*owner's account*: `HaakTuah`.
 
 ## How changes are made here
 

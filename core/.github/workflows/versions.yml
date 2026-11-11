@@ -46,6 +46,10 @@ jobs:
         run: |
           set -euo pipefail
           behind="$RUNNER_TEMP/behind.json"
+          # the issues go to the manifest's *owner's account* (core.yml checks its form); the core itself has no
+          # manifest, and its own go to its repository's owner
+          assignee=$( (grep -E "^\| \*owner's account\* \| \`[A-Za-z0-9-]+\` \|$" core-manifest.md 2>/dev/null || true) | head -1 | cut -d'`' -f2)
+          assignee=${assignee:-$GITHUB_REPOSITORY_OWNER}
           # only the issues this workflow opened count: an outsider's idea with the same title must not silence one
           open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" \
             --jq '.[] | select(.user.login == "github-actions[bot]") | .title')
@@ -53,5 +57,5 @@ jobs:
             title=$(jq -r ".[$i].title" "$behind")
             if grep -qF -- "$(jq -r ".[$i].key" "$behind")" <<<"$open"; then echo "already open: $title"; continue; fi
             jq -r ".[$i].body" "$behind" > "$RUNNER_TEMP/body.md"
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/body.md" --label enhancement --assignee HaakTuah
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/body.md" --label enhancement --assignee "$assignee"
           done
