@@ -5,10 +5,6 @@
       "Edit(//**/.git)"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:core/scripts/statusline.sh 2>/dev/null) || exit 0; bash -c \"$f\" statusline'"
-  },
   "hooks": {
     "SessionStart": [
       {
