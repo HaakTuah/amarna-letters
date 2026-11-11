@@ -14,8 +14,9 @@ What reaches the owner, and how his words are kept. Read at the start of every t
 - **His inbox is the repository's issues,** assigned to `HaakTuah`: ideas (`enhancement`) and bugs (`bug`), with the
   template's headings (`.github/ISSUE_TEMPLATE/`), each saying in plain words what it is and why it matters; search
   first, never file twice. A PR or report only points to them.
-- **Ideas are cheap to file,** a line of what and why, at most a couple per task; nothing is built from one until he
-  moves it into the *progress file*, whatever the stand-in's verdict; it closes one against his decided word, saying
+- **An obvious improvement is built at once** (core archive 147), in its own PR, save where the floor needs his yes.
+  **Other ideas are cheap to file,** a line of what and why, at most a couple per task; nothing is built from one until
+  he moves it into the *progress file*, whatever the stand-in's verdict; it closes one against his decided word, saying
   why.
 - **Bugs don't wait.** One in the task at hand is fixed in it; one outside it is filed, and any lane whose files it
   touches may fix it. Its fix's commit says "Fixes #n", so it closes when the fix reaches `main`, never by hand.

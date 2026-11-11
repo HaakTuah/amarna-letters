@@ -75,7 +75,7 @@
       "name": "actions/download-artifact",
       "kind": "action",
       "licence": "MIT",
-      "used": "pages.yml and preview.yml"
+      "used": "pages.yml"
     },
     {
       "name": "actions/setup-node",
@@ -110,12 +110,6 @@
       "kind": "tool",
       "licence": "Artistic-2.0",
       "used": "bundled with Node: npm ci installs package-lock.json's packages"
-    },
-    {
-      "name": "GitHub CLI",
-      "kind": "tool",
-      "licence": "MIT",
-      "used": "gh in preview.yml, the runner's own"
     },
     {
       "name": "Python",

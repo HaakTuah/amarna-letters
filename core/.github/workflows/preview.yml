@@ -1,0 +1,75 @@
+# The pull-request previews, for every game that takes the core (core archive 147): a pull request's playable preview at
+# pr-<number>/ on the game's gh-pages branch, one comment on the PR linking it, and the preview removed when the PR
+# closes. The game's own build workflow, on pull_request with a read-only token, uploads the artifact "preview": the
+# file pr-number and, unless the PR closed, the built site in site/. A workflow of the game's own, on workflow_run of
+# that build, calls this one pinned to a full commit SHA ("How a project takes the core" in README.md, point 5), with
+# the job's permissions contents: write, actions: read and pull-requests: write. workflow_run always runs main's copy
+# of the caller, and this job checks out main, so no PR can change what it does. It never runs the PR's code: it takes
+# the uploaded site as files, and the PR's number only after checking it against the PR itself (same repository, same
+# head commit as the run). It writes only pr-<number>/, never the root, with the game's core/scripts/site-publish.sh.
+name: preview
+
+on:
+  workflow_call:
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # One queue per pull request (its repository and branch), so a publish never lands after the removal that its close
+    # started.
+    concurrency:
+      group: preview-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      contents: write # site-publish.sh pushes gh-pages, with the token this checkout keeps
+      actions: read # the artifact of the build run
+      pull-requests: write # the PR's one comment
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: preview
+          path: ${{ runner.temp }}/preview
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Publish or remove the preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          PREVIEW: ${{ runner.temp }}/preview
+        run: |
+          n=$(head -c 20 "$PREVIEW/pr-number" | tr -d '[:space:]')
+          [[ $n =~ ^[1-9][0-9]{0,9}$ ]] || { echo "not a PR number: $n"; exit 1; }
+          read -r state sha repo < <(gh api "repos/$GITHUB_REPOSITORY/pulls/$n" --jq '"\(.state) \(.head.sha) \(.head.repo.full_name)"')
+          [ -n "$state" ] || { echo "could not read PR #$n"; exit 1; }
+          if [ "$sha" != "$RUN_SHA" ] || [ "$repo" != "$GITHUB_REPOSITORY" ]; then
+            echo "PR #$n's head is now $sha from $repo, not this run's $RUN_SHA: a newer run will publish it"; exit 0
+          fi
+          if [ "$state" = open ] && [ -f "$PREVIEW/site/index.html" ]; then
+            out=$(core/scripts/site-publish.sh "pr-$n" "$PREVIEW/site"); echo "$out"
+            case $out in *"gh-pages: published"*|*"unchanged"*) ;; *) exit 0 ;; esac
+            owner=${GITHUB_REPOSITORY%%/*}
+            url="https://${owner,,}.github.io/${GITHUB_REPOSITORY#*/}/pr-$n/"
+            marker='<!-- preview -->'
+            body="$marker
+          **Playable preview:** $url
+          Built from ${sha:0:7}; updated on every push, removed when this PR closes. It may take a minute or two to appear."
+            id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" --paginate --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -1)
+            if [ -n "$id" ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+            else
+              gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="$body" > /dev/null
+            fi
+          elif [ "$state" = closed ]; then
+            core/scripts/site-publish.sh "pr-$n" --remove
+          else
+            echo "PR #$n is open but its run uploaded no site"; exit 1
+          fi

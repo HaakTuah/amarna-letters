@@ -218,4 +218,4 @@ jobs:
           name: site
           path: site
       - name: Publish to the root of gh-pages
-        run: scripts/site-publish.sh root site
+        run: core/scripts/site-publish.sh root site

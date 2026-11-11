@@ -218,3 +218,9 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > Well, that took you a couple of hours. Just remove all reference to usage caps, you and the orchestrators all mess
      > it up, and can't track it in the cloud regardless. Just keep the rules about spending other providers first e.g.
      > codex. Does that sound sensible to you, expert?
+
+147. **11 November 2026** (both games, in the design chat, 17:44 UTC), told that one shared workflow for the games'
+     pull-request previews (an idea filed in the core) waited on his yes, since it changes what runs with the token that
+     publishes the site:
+
+     > Why not use one shared workflow? Obvious improvements gets implemented automatically.

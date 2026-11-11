@@ -43,7 +43,10 @@ alike (core archive 68). The owner's words behind each rule: `archive/instructio
    `delete-merged-branches.yml` and, if it has versions Dependabot cannot see, `versions.yml` keep their triggers and
    call the core's of the same name (`uses: HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>`). Only a
    sync PR moves those pins, and only when the called workflow changed; `core.yml` fails a call pinned where it differs
-   from the core's pin. Its `.github/dependabot.yml` ignores `HaakTuah/agent-core*`.
+   from the core's pin. Its `.github/dependabot.yml` ignores `HaakTuah/agent-core*`. A game served by GitHub Pages
+   publishes main with `site-publish.sh root`, and its pull requests' previews through a `preview.yml` of its own, on
+   `workflow_run` of its build, that calls the core's (the build uploads the artifact `preview`: `pr-number`, and the
+   site in `site/`).
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
 
