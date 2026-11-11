@@ -159,9 +159,11 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   measured from what he brought into play (`characterResult`, from his savings brought in, `Earnings.savings`: 1 for as
   much as he brought, 1 more for every shekel gained, below 1 in proportion to what he lost of it; 0 for the dead),
   ranked among what the best five characters who never reigned gained in each script game (`CharacterPar` in
-  `rules/par-results.ts`, `CharacterParBest`, the pooled results of seeds 101-200, written by `scripts/sim.sh --par-out`,
-  with `rankAmong`): a realm is ranked against one result a game, and some 300 characters each ranked against all
-  characters' results stood first together in a third of the games (item 18, part F2; [58](58-the-balance-pass.md)).
+  `rules/par-results.ts`, the pooled results of seeds 101-200, written by `scripts/sim.sh --par-out`; how many a game,
+  `CharacterParBest` in `rules/scoring.ts`; with `rankAmong`): a realm is ranked against one result a game, and some
+  300 characters each ranked against all characters' results stood first together in a third of the games (item 18,
+  part F2; [58](58-the-balance-pass.md)). A fallen realm's king or heir in exile is ranked against it too, though
+  none who reigned is in it: he plays for gold as a character does once his realm is gone.
 - **The realms' final scores are their kings' rows** (`finalScores`): a realm whose king is dead and whose heir has not
   yet risen has none. **The winner** (`decideWinners`) is the first person on the board: a king's realm, or a character
   by his name and where he is from (`nameFrom`) (`GameState.winners` holds names, `winnerName` in the web app), so no seat wins when a character

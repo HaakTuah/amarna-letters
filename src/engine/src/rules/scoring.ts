@@ -40,16 +40,16 @@ export function strength(
  * counts (item 11e: a mean with falls counted as 0 let any survivor of a fragile position win). A power with no measure is
  * ranked against a single result of 1.
  */
+export function standingOf(p: Power, growth: number): number {
+  return 2 * rankAmong(ParResults[p] ?? [1], growth);
+}
+
 /**
  * Item 18, part F2 (#825: "a character wins now and then"): a character's par is what the best this many characters of
  * each script game gained, not every character's: a realm is measured against one result a game, and some 300
  * characters each measured against all of theirs would together stand first in a third of the games.
  */
 export const CharacterParBest = 5;
-
-export function standingOf(p: Power, growth: number): number {
-  return 2 * rankAmong(ParResults[p] ?? [1], growth);
-}
 
 /**
  * Where a result ranks among recorded results, from 0 to 1 (each recorded result standing at the middle of its share, so

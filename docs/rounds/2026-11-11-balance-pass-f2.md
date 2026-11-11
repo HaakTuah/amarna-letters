@@ -40,6 +40,13 @@ against 14% and 18% as the line read. Most of "the careful dying more often" (pa
 left is the road, where the careful, who take more of the jobs, travel more. The lines now count only those who never
 reigned.
 
+**The top five and twenty** of those who never reigned, on seeds 1-100 after the par refresh: the bold 285 of the top
+five and 994 of the top twenty, from 18,831 characters, 12% dead; the careful 215 and 1,006, from 10,181, 14% dead. A
+careful character reaches the top five 1.40 times as often a head as a bold one (part D measured 1.20 with fallen kings
+on the board) and the top twenty 1.87 times; the bold take 57% of the top five from 65% of the characters. Neither road
+always wins, but the bold's is the poorer; tuning it (the danger premium, lending's rates, untried since part D) needs
+an hour a try on the same seeds, and goes to F3 beside the use-against-ignore runs.
+
 ## Par refreshed, and the weight of size (#825)
 
 **Par** measured again on the play as it now stands (`scripts/sim.sh --games 100 --seed 101 --par-out`, 100 games
@@ -137,6 +144,10 @@ Nothing in the measure asks them to move: holding a king forever is allowed and 
 - **#878 fixed here** (claimed from the orchestrator's brief: it lies in the guard this part measures): the fix the
   issue proposed, without changing a rule; the rulebook says "the season before" where it said "that season", which is
   what the code now does. Principle: "Bugs don't wait".
+- **A fallen realm's king or heir in exile is ranked against the characters' par, though none who reigned is in it:**
+  once his realm is gone he plays for gold as a character does, and the par is the measure of that road; a king's own
+  results, a realm's growth, would set the characters' par by another measure. Principle: one measure for every
+  person, "par for his own start".
 - **Par from 100 games, not 50:** the item measures on seeds 101-200, and a par of 100 results ranks a result to a
   hundredth where 50 ranked it to a fiftieth. Principle: the item's text.
 - **Part F in three pull requests:** each 100-game batch takes an hour, and a session's container was restarted once
@@ -151,6 +162,9 @@ From a fresh branch off `main` once this is merged, on the play as F2 leaves it:
    background, in halves of 50 seeds (a restart loses less); each that does not pay is taught to play better or the
    feature redesigned. The caretaker's realm keeping par while its king is held long (above) says the script kings'
    own campaigning adds little over holding; check it against the war of choice's numbers (17++a) there.
-2. **The people 17+ added** judged by what they did (the list to the owner); **starting positions, banditry and far
+2. **Bold and careful:** the careful reach the top five 1.40 times as often a head (above); tune the bold road until
+   both pay. **Arzawa** stood first in no game of seeds 1-100 at any weight up to 10, where about 4 were due: look for
+   why with the win rates of seeds 101-200.
+3. **The people 17+ added** judged by what they did (the list to the owner); **starting positions, banditry and far
    provinces** against the sources; **commanders' worth** by the distance of the front and the realm's size.
-3. Then **stop for review**: the review questions to the owner as `question` issues, and on to item 18a.
+4. Then **stop for review**: the review questions to the owner as `question` issues, and on to item 18a.
