@@ -20,6 +20,7 @@ import {
   courtDecided,
   earningsTotal,
   fmt,
+  fmtN,
   groupBy,
   hash,
   idNumber,
@@ -613,15 +614,21 @@ export function callSizes(log: GameLog): string {
   return lines.join("\n");
 }
 
-/** Current bot against the frozen baseline: growth and wins for each side, overall and per power. */
+/** Current bot against the frozen baseline: growth, standing against par and wins for each side, overall, and growth per power. */
 export function versusReport(games: readonly GameSummary[], current: readonly Set<Power>[]): string {
   const lines = ["", "Current bot against the baseline (the same kings play both sides across seeds):"];
   const newGrowth: number[] = [];
   const oldGrowth: number[] = [];
+  // Item 18, part F3: each side's standing against par too, where a feast or a fall of one power weighs no more than its rank.
+  const newStanding: number[] = [];
+  const oldStanding: number[] = [];
   let newWins = 0;
   let oldWins = 0;
   for (let i = 0; i < games.length; i++) {
-    for (const p of AllPowers) (current[i].has(p) ? newGrowth : oldGrowth).push(games[i].growth[p]);
+    for (const p of AllPowers) {
+      (current[i].has(p) ? newGrowth : oldGrowth).push(games[i].growth[p]);
+      (current[i].has(p) ? newStanding : oldStanding).push(standingOf(p, games[i].growth[p]));
+    }
     for (const w of games[i].winners) {
       const p = parsePower(w);
       if (p === null) continue;
@@ -632,10 +639,10 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
   const newSeats = sum(current, (c) => c.size);
   const oldSeats = games.length * AllPowers.length - newSeats;
   lines.push(
-    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
+    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, standing ${fmtN(mean(newStanding), 3)}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
   lines.push(
-    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
+    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, standing ${fmtN(mean(oldStanding), 3)}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
   lines.push("  Per power, mean growth as current / as baseline:");
   for (const p of AllPowers) {
