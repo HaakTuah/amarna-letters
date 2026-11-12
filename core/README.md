@@ -87,6 +87,19 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
    templates and settings are its own, written for its *owner's account*.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
+7. **Where a module's rule does not fit it,** its manifest lists the difference under "Differences" (core archive
+   161): a pointer to the rule as the pointer check reads one (`core/modules/roles.md`, "The builders"), what holds here
+   in its place, and why. Only what is listed there stands in place of the core's words. Every other rule of the
+   project's own adds to the core: one that asks for more than a module does (a stricter check, a further review, its
+   safety rules) is no difference and needs no line, and one that would replace a module's rule unlisted yields to it
+   (`modules/how-to-work.md`, "A project's own rules add to the core's"). A difference is the project's owner's to give,
+   his word quoted in the PR that lists it. None is against the floor, against what a floor rule rests on (who reviews
+   a change and who may merge it, in `modules/reviews.md` and `modules/roles.md`: the builder never reviews its own
+   work), or against the review guidelines. `core.yml` fails a manifest whose differences name the floor or the review
+   guidelines: a tripwire for the plain case, while what holds the rule is the reviews every change to the manifest
+   gets, as a protected file. The pointer check fails a difference whose rule the core has since renamed or removed,
+   so it is read again at that sync. And each is filed with the core as an idea ("Reporting to the core"): a rule a
+   project had to differ from may not be general enough.
 
 ## Slots
 
@@ -130,6 +143,9 @@ Floor: whole. Modules: <all, or the list of those taken>.
 | Slot | Here |
 | --- | --- |
 <one row per slot it has>
+
+## Differences
+<only where it differs from a module's rule ("How a project takes the core", point 7), one line each>
 ```
 
 ## Setting up (the owner's part)

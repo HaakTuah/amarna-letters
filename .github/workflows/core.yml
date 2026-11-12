@@ -12,4 +12,4 @@ permissions:
 
 jobs:
   core:
-    uses: HaakTuah/agent-core/.github/workflows/core.yml@aefa51746aa1623391eb98c4d065ffe6bd703968
+    uses: HaakTuah/agent-core/.github/workflows/core.yml@a93e5840c17d4bf8e151a66b85f7167b77753e6f

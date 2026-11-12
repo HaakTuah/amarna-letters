@@ -21,6 +21,5 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
   yourself; a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your
   level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core
   archive 73).
-- **Work continuously, other providers first** (core archive 2, 14, 76 and 146): Claude's usage is also the owner's own,
-  so Codex, and any provider he keeps only for the projects, gets every part of the work it can do well
-  (`modules/roles.md`) before Claude does.
+- **Work continuously, other providers first** (core archive 2, 14, 76, 146 and 162): Claude's usage is also the owner's
+  own, so what another provider can build goes to it first (`modules/roles.md`).
