@@ -27,6 +27,7 @@ import { seasonPlay, type SeasonPlay } from "../map/moments.ts";
 import { speedIndex } from "../ui/keys.ts";
 import { IncrementalReader, ReadReplaced } from "./incremental.ts";
 import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
+import { closingLedger, type LedgerLine } from "./ledger.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
@@ -120,6 +121,8 @@ export class Session {
   private waiting = new Map<number, (m: FromWorker) => void>();
   private scenes = new Map<string, MapScene>();
   private scenesFor = -1;
+  /** The closing lines of seasons already read for the Season tab's ledger, by season, eyes and names: words, never scenes. */
+  private closings = new Map<string, string>();
   private framesGeneration = 0;
   private seenGeneration = -1;
   private fallSeen = false;
@@ -206,6 +209,7 @@ export class Session {
     if (m.reset || newGame) {
       this.frames = [];
       this.recent.clear();
+      this.closings.clear();
       this.history.clear();
       this.reader.cancel();
       this.reader = new IncrementalReader();
@@ -408,6 +412,11 @@ export class Session {
   /** Whether auto-play runs as the page shows it: on, and its season not held still. */
   get autoPlaying(): boolean {
     return this.live.auto && !this.playoutHeld;
+  }
+
+  /** The closing lines of the last few seasons up to `index`, newest first, for the Season tab (`closingLedger`). */
+  ledger(index: number, viewer: Power | null): LedgerLine[] {
+    return closingLedger(this.frames, index, viewer, this.closings, (i) => this.scenes.get(`${i}/${viewer ?? ""}`) ?? buildScene(this.frames, i, viewer));
   }
 
   /** The map's scene for a season and a pair of eyes, built once and kept while the frames stand. */

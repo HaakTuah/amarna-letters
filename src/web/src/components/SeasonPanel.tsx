@@ -2,6 +2,7 @@ import { WorldMap, powerOrdinal, type Power } from "@amarna/engine";
 import { memo } from "react";
 import { captureLine, unitKindName, type MapScene, type MoveStyle } from "../map/scene.ts";
 import type { FrameNews, FrameSleep } from "../session/frames.ts";
+import type { LedgerLine } from "../session/ledger.ts";
 import { cap, winnerName, dated, powerName, provinceName, shekels, when, whenCap } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
@@ -34,10 +35,12 @@ export function sleepLine(s: FrameSleep, court: Power | null): string {
  */
 export const SeasonPanel = memo(function SeasonPanel({
   scene,
+  ledger,
   onProvince,
   onPerson,
 }: {
   scene: MapScene;
+  ledger: readonly LedgerLine[];
   onProvince: (id: string) => void;
   onPerson: (id: string) => void;
 }) {
@@ -67,6 +70,20 @@ export const SeasonPanel = memo(function SeasonPanel({
           <p className="muted small">
             {v !== null ? `What ${powerName(v)} saw of the season's moves, and its own people as it believes them.` : "Everything that happened in the season."}
           </p>
+        </>
+      )}
+
+      {/* The closing lines of the last few seasons, newest first, which the map shows only as each season ends (#647). */}
+      {ledger.length > 0 && (
+        <>
+          <h4>The last seasons</h4>
+          <ul className="lines plain ledger">
+            {ledger.map((l) => (
+              <li key={l.index}>
+                <strong>{whenCap(l.index, v)}</strong>: {l.line}
+              </li>
+            ))}
+          </ul>
         </>
       )}
 
@@ -189,4 +206,4 @@ export const SeasonPanel = memo(function SeasonPanel({
       )}
     </div>
   );
-}, (a, b) => a.scene === b.scene);
+}, (a, b) => a.scene === b.scene && a.ledger.length === b.ledger.length && a.ledger.every((l, i) => l.index === b.ledger[i].index && l.line === b.ledger[i].line));
