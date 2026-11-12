@@ -132,8 +132,8 @@ jobs:
       - name: The tests that read the core's scripts
         run: |
           set -euo pipefail
-          # (each name whole, whatever is in it; none found runs nothing)
-          { git grep -l -z -F 'core/scripts/' -- ':(glob)src/*/test/**/*.test.ts' ':(glob)src/*/test/**/*.test.tsx' || true; } \
+          # (each name whole, whatever is in it; none found, which git grep ends 1 on, runs nothing; an error of its own fails)
+          { git grep -l -z -F 'core/scripts/' -- ':(glob)src/*/test/**/*.test.ts' ':(glob)src/*/test/**/*.test.tsx' || [ $? -eq 1 ]; } \
             | xargs -0 -r npx --no-install vitest run
 
   # The check main's ruleset requires for the code: lint, types and every test shard passed, or were all skipped for
