@@ -16,11 +16,14 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. The war of choice for the powers other than the Great Kings: a patch, then its measure (seeds 1-100).
-2. Vassal play (`--vassal-play-half`, seeds 1-50 and 51-100 **running**) with the line of vassals taken by their own overlords; then a trial on
-   `tributeReturn` if the Great Kings still lose by it.
+1. The war of choice with a city keeping its peace (938ba68, a trial): `--war-play-half`, seeds 1-50 **running**, then
+   51-100.
+2. Vassal play (`--vassal-play-half`, on 81c9490), seeds 1-50 **running** (restarted: the machine restarted at about
+   22:40 and stopped both halves), then 51-100; then a trial on `tributeReturn` if the Great Kings still lose by it.
 3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
-4. Seeds 101-200 for the close rows and the null split, the rows named once 1 is in.
+4. Seeds 101-200 for the close rows and the null split.
+
+Nothing heavy (a type check, the tests) runs beside two runs: the restart came when one did.
 
 ### Finished
 
@@ -40,3 +43,4 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 | 7a sea play, seeds 51-100 | `--games 50 --seed 51 --sea-play-half` | 81c9490 | 51 minutes. Growth 0.78 / 0.73, standing 1.013 / 1.001, wins 23 / 21; Great Kings 0.94 / 0.95 (0.979 / 0.986), the rest 0.75 / 0.70 (1.019 / 1.004). Landings 7, blockades in 30 games (225). **Seeds 1-100: growth 0.775 / 0.735 (the null's 0.775 / 0.78), standing 1.021 / 1.002 (the null's 1.035 / 1.017), wins 44 / 47 (the null's 43 / 47); Great Kings' standing 1.026 / 0.977.** Ahead in growth by more than the null's halves differ; level in standing and wins |
 | 17++a the war of choice, seeds 1-50 | `--games 50 --seed 1 --war-play-half` | 81c9490 | 48 minutes. Growth 0.80 / 0.80, standing 1.056 / 1.062, wins 25 / 25; **Great Kings 1.03 / 0.96 (standing 1.126 / 0.940), the rest 0.76 / 0.77 (1.044 / 1.083)**. Against the null's halves (1.043 / 1.026; Great Kings 1.012 / 0.958, the rest 1.048 / 1.038): the Great Kings far ahead, the rest behind. Captive kings: 116 held long, their realms at 1.05 against par and their captors at 1.20; held less long and free again, 154, their realms at 0.87 and their captors at 1.23; every realm 1.04 |
 | 17++a the war of choice, seeds 51-100 | `--games 50 --seed 51 --war-play-half` | 81c9490 | 49 minutes. Growth 0.78 / 0.80, standing 1.042 / 1.059, wins 22 / 24; Great Kings 0.98 / 1.00 (1.044 / 1.010), the rest 0.75 / 0.77 (1.041 / 1.067). Captive kings held long: 113, realms 1.01, captors 1.19; held less long, 187, realms 0.84, captors 1.12; every realm 1.03. **Seeds 1-100: growth 0.79 / 0.80, standing 1.049 / 1.061 (the null's 1.035 / 1.017), wins 47 / 49 (the null's 43 / 47); Great Kings 1.085 / 0.975 (the null's 1.006 / 0.987), the rest 1.043 / 1.075 (the null's 1.040 / 1.022).** Pays the Great Kings well; costs the rest about 0.05 of standing against the null |
+| The war of choice by rank, a check | 4 games, seed 11, 60 seasons, `--war-play-half`, a print in `strategy` not kept | 8b820b0 | Of the seasons a king of the current half waged war on a king at peace with him: the cities 71, every war chosen while the peace stood (9 chosen), none kept through a peace sealed after it began; the Great Kings 106, 17 of them through a later peace. The cities lose by choosing to break a peace, not by fighting on through one |
