@@ -4,7 +4,7 @@
  */
 
 import { WorldMap, crossingBetween, dateLabel, type Power, type UnitKind } from "@amarna/engine";
-import { powerName, provinceName } from "../ui/format.ts";
+import { powerName, provinceName, toldAgo } from "../ui/format.ts";
 import { F, Shapes, add, between, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { glyphId } from "./glyphs.ts";
@@ -161,7 +161,6 @@ export function outlaws(s: MapScene): string {
     const bands = [...found].sort((a, b) => a.age - b.age);
     const at = city(province);
     const ring = ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0);
-    const ago = (age: number): string => `as your people last told of it, ${age} season${age === 1 ? "" : "s"} ago`;
     const led = (b: SceneBand): string => (b.chief !== "" ? `, led by ${b.chief}` : "");
     const mark = (k: number, cls: string, text: string, inner: string): void => {
       sb += `<g class="band-mark${cls}" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">${title(text)}`;
@@ -176,7 +175,7 @@ export function outlaws(s: MapScene): string {
       mark(
         k,
         `${b.ship ? " pirate" : ""}${old(b.age)}`,
-        `${b.ship ? "A pirate crew" : "A band"} of ${b.men} men in ${provinceName(province)}${led(b)}${b.age > 0 ? `: ${ago(b.age)}` : ""}`,
+        `${b.ship ? "A pirate crew" : "A band"} of ${b.men} men in ${provinceName(province)}${led(b)}${b.age > 0 ? `: ${toldAgo(b.age)}` : ""}`,
         `<use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/>`,
       ),
     );
@@ -187,8 +186,8 @@ export function outlaws(s: MapScene): string {
       // One age for them all is said once; mixed word gives each old line its own. The count fades by its newest word.
       const ages = new Set(rest.map((b) => b.age));
       const shared = ages.size === 1 ? rest[0].age : 0;
-      const lines = rest.map((b) => `${b.men} men${b.ship && ships < rest.length ? " with a ship" : ""}${led(b)}${b.age > 0 && shared === 0 ? `: ${ago(b.age)}` : ""}`);
-      mark(2, old(Math.min(...ages)), `${rest.length} more ${what} in ${provinceName(province)}${shared > 0 ? `, ${ago(shared)}` : ""}:\n${lines.join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
+      const lines = rest.map((b) => `${b.men} men${b.ship && ships < rest.length ? " with a ship" : ""}${led(b)}${b.age > 0 && shared === 0 ? `: ${toldAgo(b.age)}` : ""}`);
+      mark(2, old(Math.min(...ages)), `${rest.length} more ${what} in ${provinceName(province)}${shared > 0 ? `, ${toldAgo(shared)}` : ""}:\n${lines.join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
     }
   }
   return sb;

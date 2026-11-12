@@ -18,6 +18,13 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); next: draw what is in view.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
+- **Queued ideas** (stand-in's sure yeses, 12 November 2026), in order:
+  [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681)
+  once the bug above ends (keeps gains from creeping back; archive item 97);
+  ~~[The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647)~~
+  done;
+  ~~[The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631)~~
+  done (a phone has no hover). All small.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
@@ -65,10 +72,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
   `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx` (the
   start screen; its saved-games card is 2.5 KB).
-- **The README as a front page** (an outside review of the repositories, 11 November 2026: about 7,000 words, rules
-  that read like a legal code, which players will not read): the README keeps what the game is, how to start and how a
-  season goes, in a few hundred words, and points to the rulebook for the rules in full; whatever moves goes to the
-  rulebook or the design notes, nothing a player needs is lost, and the copies check proves nothing is said twice.
+- ~~**The README as a front page** (an outside review, 11 November 2026: about 7,000 words).~~ Done (12 November 2026): about
+  450 words; the rest is word for word in `docs/design/61-the-rules-a-player-reads/`.
 - **The code files near the split line** (the same review): 17 code files are past 40 KB, `turn/plans.ts` within a few
   hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
   PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
@@ -118,6 +123,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   person"; built in #850, report `docs/rounds/2026-11-09-captive-caretaker.md`); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
   "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
   the people fight back (#832; War, "The people defend their land").
+
+- **A standing reserve for a far province's coffer** (stand-in's sure yes, 12 November 2026;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: the king's own
+  standing order, like paying troops (archive item 96). A new save version, the script kings' use and a measurement.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.

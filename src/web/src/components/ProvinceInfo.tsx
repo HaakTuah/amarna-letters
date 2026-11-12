@@ -26,6 +26,7 @@ import {
   describedAs } from "@amarna/engine";
 import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
 import { about, counted, powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { BandsHere } from "./BandsHere.tsx";
 import { Emblem } from "./Emblem.tsx";
 import type { HistoryOf } from "./HistoryPanel.tsx";
 import { LearnMore } from "./LearnMore.tsx";
@@ -215,6 +216,8 @@ export function ProvinceInfo({
           {u.ghost ? `: last seen here in ${when(u.seenAt + 1, scene.viewer)}; it may have gone` : " stands here"}.
         </p>
       ))}
+      {/* The bands and pirate crews the seat knows of here, which the map tells only in a mark's hover title (#631). */}
+      <BandsHere scene={scene} id={id} />
       {faced.length > 0 && <p className="small">Its border glows where two powers' armies face each other. On the other side, as you see them this season:</p>}
       {faced.map(({ q, armies }) => (
         <p className="small" key={q}>

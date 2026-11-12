@@ -64,6 +64,7 @@ import { HistoryPanel } from "../src/components/HistoryPanel.tsx";
 import { InboxPanel } from "../src/components/InboxPanel.tsx";
 import { PeoplePanel } from "../src/components/PeoplePanel.tsx";
 import { ProvinceInfo } from "../src/components/ProvinceInfo.tsx";
+import { closingLedger } from "../src/session/ledger.ts";
 import { SearchPanel } from "../src/components/SearchPanel.tsx";
 import { SeasonPanel } from "../src/components/SeasonPanel.tsx";
 import { StandingsPanel } from "../src/components/StandingsPanel.tsx";
@@ -383,7 +384,7 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
     { what: "court strip", text: markup(createElement(CourtStrip, { scene })) },
     {
       what: "season panel",
-      text: markup(createElement(SeasonPanel, { scene, onProvince: none, onPerson: none })),
+      text: markup(createElement(SeasonPanel, { scene, ledger: closingLedger(frames, t, p, new Map(), (i) => sceneAt(i, p)), onProvince: none, onPerson: none })),
     },
     {
       what: "inbox",
