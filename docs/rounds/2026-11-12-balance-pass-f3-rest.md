@@ -16,9 +16,10 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. 7a sea play (seeds 51-100 **running**), the war of choice (seeds 1-50 **running**, then 51-100), 7a sea play, 8 inventories,
-   on the new par.
-2. The vassal line (paying vassals taken by their own overlords) and the trial on `tributeReturn`, seeds 1-100.
+1. 7a sea play (seeds 51-100 **running**), the war of choice (`--war-play-half`, seeds 1-50 **running**, then 51-100), on
+   the new par.
+2. Vassal play (`--vassal-play-half`, seeds 1-100) with the line of vassals taken by their own overlords; then a trial on
+   `tributeReturn` if the Great Kings still lose by it.
 3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
 4. Seeds 101-200 for the close rows and the null split, the rows named once 1 is in.
 
