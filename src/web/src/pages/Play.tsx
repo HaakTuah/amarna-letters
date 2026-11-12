@@ -154,7 +154,8 @@ export function Play() {
   }
 
   // The music and the sounds follow the season shown, as this view knows it (item 19+++).
-  useGameAudio(s.frames, s.shownIndex, viewerOf(), live.hasRunner ? live.gameId : "", () => map.current?.view() ?? null);
+  // A player hears his own court; a spectator, the character he follows, the realm he watches or the world (item 19+++c).
+  useGameAudio(s.frames, s.shownIndex, viewerOf(), live.hasRunner ? live.gameId : "", () => map.current?.view() ?? null, viewerOf() !== null && live.humans.includes(viewerOf()!), followId);
 
   // Follow keeps the camera on its person as the seasons go, where the seat last knew him ("Following, travel lines and
   // borders" under Interface), until the player moves the camera or stops following.

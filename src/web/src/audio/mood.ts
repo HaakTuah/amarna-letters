@@ -3,8 +3,9 @@
  * as Civilization V's and Empire Earth's music follows the state of the game rather than each season's events (a season
  * watched at speed passes in under two seconds; the sounds and stings carry the events). The heat rises fast and cools
  * slow, in seasons and in seconds, whichever is slower, so the music feels the same watched at speed and played a season
- * at a time; each mood is harder to enter than to leave, holds about 90 s, and falls one step at a time. The shade is
- * read here too. Pure, the clock passed in, so it is tested and measured without a browser. Presentation only.
+ * at a time; each mood is harder to enter than to leave, a rise is heard at once, a fall waits out about 90 s and comes
+ * one step at a time (item 19+++c: the hold holds back falls only). A siege heats less after its first few seasons. The
+ * shade is read here too. Pure, the clock passed in, so it is tested and measured without a browser. Presentation only.
  */
 import { UnrestData, isGreatKing, type Power } from "@amarna/engine";
 import type { FrameMove, SeasonFrame } from "../session/frames.ts";
@@ -39,8 +40,14 @@ export const Steps = [
 /** The heat halves every so many seasons or seconds, whichever is slower. */
 export const HalfLife = { seasons: 2, seconds: 30 } as const;
 
-/** Seconds of play a mood holds before it changes, unless the seat's own capital is attacked. */
+/** Seconds of play a mood holds before it falls; a rise is never held back. */
 export const Hold = 90;
+
+/** A siege older than this many seasons heats a step less (battle to war, war to unease, unease to little): it drags on. */
+export const Drag = 3;
+
+/** Seconds a clear event stays clear: long enough for the rise it brings to cross (crossing.ts, `Wait.rise`). */
+const ClearFor = 12;
 
 /** A battle is sizeable with this many units attacking, or this many in it on both sides, as far as the viewer saw. */
 const Sizeable = { attacking: 2, all: 4 } as const;
@@ -56,17 +63,23 @@ export interface Signal {
   add: number;
   /** The top step's music, where the season reaches it: a battle, or a siege of the seat's own land. */
   top: "battle" | "siege" | null;
-  /** The seat's own capital attacked: the music rises without waiting out its hold. */
-  capital: boolean;
+  /** Something clear in front of the viewer: a real battle of its own, its own capital attacked (a character: a fight or a siege where he is). A spectator's music rises at once only for this. */
+  clear: boolean;
   /** The diviners read the omens of the end as grave: the last seasons, below war. */
   grave: boolean;
   ended: boolean;
 }
 
+/** Heat a step lower, for a siege that drags on. */
+const eased = (h: number): number => (h >= Heat.battle ? Heat.war : h >= Heat.war ? Heat.unease : Heat.little);
+
+/** How the heat of a siege is read: its full heat in its first few seasons, a step less after. */
+export const siegeHeat = (h: number, f: SeasonFrame, s: { since: number }): number => (f.turn - s.since >= Drag ? eased(h) : h);
+
 const grave = (f: SeasonFrame): boolean => f.omen === "Grave" || f.omen === "Borrowed" || f.omen === "Darkest";
 
 /** A sizeable clash at a place held by `holder`, among the moves the viewer saw: most of the script kings' are one on one. */
-const sizeable = (moves: readonly FrameMove[], at: string, holder: Power | null): boolean =>
+export const sizeable = (moves: readonly FrameMove[], at: string, holder: Power | null): boolean =>
   moves.filter((m) => m.target === at && m.power !== holder).length >= Sizeable.attacking ||
   moves.filter((m) => m.target === at || m.from === at).length >= Sizeable.all;
 
@@ -81,18 +94,23 @@ function kingsAtWar(f: SeasonFrame): Set<Power> {
   return out;
 }
 
+/** A season that tells the music nothing yet: only the age's end and the diviners' omens. */
+export function quietSignal(f: SeasonFrame | undefined): Signal {
+  return { heat: 0, add: 0, top: null, clear: false, grave: f !== undefined && grave(f), ended: f !== undefined && f.ended };
+}
+
+/** Raises a signal's heat to at least `h`; a battle outranks a siege as the top step's music. */
+export function raiseSignal(out: Signal, h: number, top: "battle" | "siege" | null = null): void {
+  out.heat = Math.max(out.heat, h);
+  if (top !== null && out.top !== "battle") out.top = top;
+}
+
 /** What a season tells the music, as the viewer knows it; god view (null) by the world's temperature. */
 export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null): Signal {
   const f = frames[index];
-  const out: Signal = { heat: 0, add: 0, top: null, capital: false, grave: false, ended: false };
+  const out = quietSignal(f);
   if (f === undefined) return out;
-  out.ended = f.ended;
-  out.grave = grave(f);
-  const raise = (h: number, top: "battle" | "siege" | null = null): void => {
-    out.heat = Math.max(out.heat, h);
-    // A battle outranks a siege as the top step's music.
-    if (top !== null && out.top !== "battle") out.top = top;
-  };
+  const raise = (h: number, top: "battle" | "siege" | null = null): void => raiseSignal(out, h, top);
   if (f.omen === "Troubled") raise(Heat.unease);
   const moves = index > 0 ? seen(f, viewer) : [];
   if (viewer === null) {
@@ -106,7 +124,15 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
       const holder = f.owner.get(s.province) ?? null;
       if (holder === null || !isGreatKing(holder) || holder === s.besieger) continue;
       const capital = capitals.some((c) => c.id === s.province && c.home === holder);
-      raise(capital ? Heat.battle : Heat.unease, capital ? "siege" : null);
+      raise(siegeHeat(capital ? Heat.battle : Heat.unease, f, s), capital ? "siege" : null);
+    }
+    // What changed the world (item 19+++c): a Great King's capital newly taken, a Great King fallen.
+    const prev = frames[index - 1];
+    if (prev !== undefined) {
+      const was = owners(prev, null);
+      const now = owners(f, null);
+      if (capitals.some((c) => isGreatKing(c.home!) && (was.get(c.id) ?? null) !== (now.get(c.id) ?? null))) raise(Heat.battle, "siege");
+      if ([...f.eliminated].some((p) => isGreatKing(p) && !prev.eliminated.has(p))) raise(Heat.battle, "siege");
     }
     // Several Great Kings at war: those who fought one another in the last three seasons.
     const kings = new Set<Power>();
@@ -126,16 +152,18 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
     if (!(hostile(m) || m.destroyed) || !involves(m, viewer)) continue;
     const at = m.target ?? m.from;
     const foe: Power | null = m.power === viewer ? m.targetOwner : m.power;
-    if (at === home && m.power !== viewer) out.capital = true;
+    if (at === home && m.power !== viewer) out.clear = true;
     const real = (foe !== null && foe !== viewer && isGreatKing(foe)) || held.get(at) === viewer || sizeable(moves, at, m.targetOwner);
-    if (real) raise(Heat.battle, "battle");
-    else out.add = Skirmish.add;
+    if (real) {
+      raise(Heat.battle, "battle");
+      out.clear = true;
+    } else out.add = Skirmish.add;
   }
   for (const s of f.sieges) {
-    if (s.besieger === viewer) raise(Heat.war);
+    if (s.besieger === viewer) raise(siegeHeat(Heat.war, f, s));
     else if (own.get(s.province) === viewer && sight.has(s.province)) {
-      raise(Heat.battle, "siege");
-      if (s.province === home) out.capital = true;
+      raise(siegeHeat(Heat.battle, f, s), "siege");
+      if (s.province === home && f.turn - s.since < Drag) out.clear = true;
     }
   }
   // Foreign troops standing in its land, as far as it can see.
@@ -161,6 +189,7 @@ export class MoodDirector {
   private top: "battle" | "siege" = "battle";
   private last: Signal | null = null;
   private shown: { key: string; index: number } | null = null;
+  private clearUntil = -Infinity;
 
   /**
    * The heat at a season and a second: cooled by seasons or by seconds since it was last raised, whichever is slower; by
@@ -171,8 +200,11 @@ export class MoodDirector {
     return this.h0 * (now === null ? bySeasons : Math.max(bySeasons, 0.5 ** ((now - this.t0) / HalfLife.seconds)));
   }
 
-  /** A season shown, at `now` seconds of play. */
-  season(frames: readonly SeasonFrame[], index: number, viewer: Power | null, key: string, now: number): void {
+  /**
+   * A season shown, at `now` seconds of play. `read` is what a season tells the music, for whatever the viewer watches
+   * (item 19+++c: a realm, a character, the world); by default the viewer's own.
+   */
+  season(frames: readonly SeasonFrame[], index: number, viewer: Power | null, key: string, now: number, read: (k: number) => Signal = (k) => signalAt(frames, k, viewer)): void {
     const was = this.shown;
     if (was !== null && was.key === key && was.index === index) return;
     this.shown = { key, index };
@@ -180,7 +212,7 @@ export class MoodDirector {
       // Afresh: the seasons before, cooled by seasons alone, then the step the heat reaches, held from now.
       this.h0 = 0;
       this.s0 = 0;
-      for (let k = Math.max(0, index - Lookback); k <= index; k++) this.feed(signalAt(frames, k, viewer), k, null);
+      for (let k = Math.max(0, index - Lookback); k <= index; k++) this.feed(read(k), k, null);
       this.h0 = this.heat(index, null);
       this.s0 = index;
       this.t0 = now;
@@ -188,9 +220,12 @@ export class MoodDirector {
       this.step = this.reach(this.h0);
       this.mood = this.name(this.step, this.last!);
       this.since = -Infinity;
+      this.clearUntil = -Infinity;
       return;
     }
-    this.feed(signalAt(frames, index, viewer), index, now);
+    const s = read(index);
+    this.feed(s, index, now);
+    if (s.clear) this.clearUntil = now + ClearFor;
     this.at(now);
   }
 
@@ -204,6 +239,14 @@ export class MoodDirector {
     this.h0 = raised;
     this.s0 = index;
     this.t0 = now ?? 0;
+  }
+
+  /**
+   * Whether something clear is in front of the viewer, as of `now`: a season that showed a real battle of its own or its
+   * capital attacked, for the few seconds a rise takes to cross; never at a fresh start, a change of eyes is not an event.
+   */
+  clear(now: number): boolean {
+    return now < this.clearUntil;
   }
 
   /** The highest step a heat enters. */
@@ -224,8 +267,8 @@ export class MoodDirector {
   }
 
   /**
-   * The mood at `now`: a rise at once, a fall one step down, and a change within a step (siege and battle, tension and
-   * the last seasons), each past the hold; a rise within it only when the seat's own capital is attacked.
+   * The mood at `now`: a rise at once, never held back; a fall one step down, and a change within a step (siege and
+   * battle, tension and the last seasons), each past the hold.
    */
   at(now: number): Mood {
     const s = this.last;
@@ -235,7 +278,7 @@ export class MoodDirector {
     const held = now - this.since < Hold;
     const want = this.reach(h);
     let step = this.step;
-    if (want > step && (!held || s.capital)) step = want;
+    if (want > step) step = want;
     else if (step > 0 && h < Steps[step].leave && !held) step--;
     const mood = this.name(step, s);
     if (step !== this.step || (mood !== this.mood && !held)) {
@@ -253,17 +296,17 @@ export class MoodDirector {
  * last three seasons (mourning); -1 with war in the last three seasons (a siege it lays, a skirmish, several Great Kings
  * at war in god view), on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land,
  * or a harvest it saw with no hunger in it and no war; 0 otherwise. It chooses the next piece's variation and never cuts
- * the one playing.
+ * the one playing. `read` is what a season tells the music, for whatever the viewer watches (item 19+++c).
  */
-export function shadeAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null): -2 | -1 | 0 | 1 {
+export function shadeAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null, read: (k: number) => Signal = (k) => signalAt(frames, k, viewer)): -2 | -1 | 0 | 1 {
   const f = frames[index];
   if (f === undefined) return 0;
-  if (signalAt(frames, index, viewer).heat >= Heat.battle) return -2;
+  if (read(index).heat >= Heat.battle) return -2;
   let war = false;
   for (let k = index; k > Math.max(0, index - 3); k--) {
     const c = cuesAt(frames, k, viewer);
     if (c.moment === "fall" || c.moment === "solemn") return -2;
-    const s = signalAt(frames, k, viewer);
+    const s = read(k);
     if (s.heat >= Heat.war || s.add > 0) war = true;
   }
   const seenHere = (kind: string): boolean => f.events.some((e) => e.kind === kind && (viewer === null || e.visibleTo.includes(viewer)));
