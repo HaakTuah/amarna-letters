@@ -2,7 +2,8 @@
  * Every power's opening troops, treasury and starting strength: public facts every court knows (the script kings read them
  * from the map data too). Generated from the map data and the config alone, so the text stays byte-stable wherever it is shown.
  */
-import { WorldMap, StartGold, StartUnits, type StartUnit, type UnitKind } from "../model/map.ts";
+import { WorldMap, type UnitKind } from "../model/map.ts";
+import { StartGold, StartUnits, type StartUnit } from "../model/start-positions.ts";
 import type { GameConfig } from "../model/config.ts";
 import { carriedOf, economyOf, grainWorth, harvestOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { strengthOf } from "./scoring.ts";

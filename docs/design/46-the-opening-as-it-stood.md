@@ -16,7 +16,7 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   units standing there when the season begins, before they move, kept as exceptions to the whole order (`payExcept`,
   `feedExcept`): held back while the whole order pays, or paid while it pays none, so a king may pay only some.
 
-## Where things stood (`StartUnits`, `cityUnits` in `model/map.ts`; `StartDebts` in `rules/factory.ts`)
+## Where things stood (`StartUnits`, `cityUnits` in `model/start-positions.ts`; `StartDebts` in `rules/factory.ts`)
 
 - **The Great Kings' men** stand where the dossiers place them in 1346, at item 13's sizes: Egypt at Men-nefer 6,000, Akhetaten
   4,000, Waset 2,200, in Kush 2,800 (the viceroy's, Akhenaten's one attested campaign), Gaza and Sumur 100 each; Hatti at
@@ -68,7 +68,7 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   drawing and the connections, as item 11f+ requires; the Jordan cases in `docs/design/36-map-neighbours.md` are read
   with this note.
 
-## Places and people by their own names (`model/map.ts`, `model/power.ts`, `rules/cast.ts`, `model/languages.ts`)
+## Places and people by their own names (`model/place-names.ts`, `model/power.ts`, `rules/cast.ts`, `model/languages.ts`)
 
 - **Every province's shown name** (`Province.name`) is the name the sources of 1346 use: the Amarna letters' form, as Moran
   normalises it, where the letters name the place (Dimashqa, Gubla, Ṣurru, Ṣiduna, Urusalim, Magidda, Shakmu, Hasura,

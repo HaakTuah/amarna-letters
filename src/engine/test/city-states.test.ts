@@ -37,7 +37,7 @@ describe("City-states as powers (item 11+)", () => {
     Assert.equal(47, AllPowers.length);
     Assert.equal(7, GreatKings.length);
     // Item 17+: each city's men stand in it, or where the sources place them in 1346, one unit to a province (Aziru's in
-    // Amurru beside Sumur, Arwad's ships in its own waters, Sidon's at home: CityStarts in model/map.ts).
+    // Amurru beside Sumur, Arwad's ships in its own waters, Sidon's at home: CityStarts in model/start-positions.ts).
     const placed: Record<string, string> = { Amurru: "amurru", Arwad: "sumurwaters", Sidon: "sidon" };
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);

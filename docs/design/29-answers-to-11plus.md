@@ -4,7 +4,7 @@ Build order item 11d (`docs/intent/build-order/item-11.md`), the owner's answers
 "Agree to all. Though a character based on the incentive structure we have now should never say yes to point 6, as it
 is essentially game over." Report: `docs/rounds/2026-10-29-answers-to-11plus.md`. Save version 25.
 
-- **Walls from the sources** (`StartWalls`, `model/map.ts`). Each city-state's city starts with the walls the walls
+- **Walls from the sources** (`StartWalls`, `model/start-positions.ts`). Each city-state's city starts with the walls the walls
   dossier proposes (`docs/history/12-walls-roads-harbours.md`, "Walls by city"): Qatna and Qadesh 3; Carchemish, Aleppo,
   Ugarit, Arwad, Byblos, Tyre, Shechem and Susa 2; Isuwa, Alalakh, Nuhashshe, Amurru, Sidon, Damascus, Megiddo,
   Jerusalem, Suhu and Arrapha 1; Mira, Seha and Terqa, which the dossier does not list, 1, as it gives the other towns
