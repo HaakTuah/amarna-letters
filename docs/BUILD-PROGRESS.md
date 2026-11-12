@@ -21,8 +21,8 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
 - **Queued ideas** (stand-in's sure yeses, 12 November 2026), in order:
   [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681)
   once the bug above ends (keeps gains from creeping back; archive item 97);
-  [The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647)
-  (no history shows the last few at a glance);
+  ~~[The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647)~~
+  done;
   [The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631)
   (a phone has no hover). All small.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),

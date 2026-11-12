@@ -8,6 +8,8 @@
 .lines li { display: block; padding: .3rem .2rem; border-bottom: 1px solid var(--line); cursor: pointer; font-size: .92rem; line-height: 1.35; }
 .lines li:hover { background: var(--surface-2); }
 .lines.plain li { cursor: default; }
+/* The Season tab's last seasons (#647): a ledger to glance down, so smaller than the season's own lines, the dates standing out. */
+.lines.ledger li { font-size: .85rem; line-height: 1.3; }
 .lines li.believed { color: var(--muted); }
 .mv-tag { display: inline-block; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; padding: 0 .3rem; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); vertical-align: .1em; }
 .ms-attack .mv-tag { background: var(--danger); color: var(--accent-ink); border-color: var(--danger); }
