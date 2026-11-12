@@ -16,6 +16,7 @@ const ok = (cond, what) => { console.log(`${cond ? "ok  " : "FAIL"} ${what}`); i
 const agent = (tool_input, tool_name = "Agent", session_id = "s1") => ({ session_id, hook_event_name: "PreToolUse", tool_name, tool_input });
 const text = (...args) => JSON.stringify(agent(...args));
 const whole = { description: "x", prompt: "y", subagent_type: "general-purpose", model: "sonnet", effort: "medium" };
+const WINDOWS = process.platform === "win32";
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "helper-call-test-"));
 process.on("exit", () => fs.rmSync(tmp, { recursive: true, force: true }));
 
@@ -47,7 +48,8 @@ ok(defines(project, "poller") && !defines(project, "Poller") && !defines(project
 const odd = path.join(tmp, "odd");
 fs.mkdirSync(odd);
 fs.writeFileSync(path.join(odd, ".claude"), "x");
-ok(!defines(path.join(tmp, "nowhere"), "poller") && defines(odd, "poller"), "a project with no agents folder defines none; one whose folder cannot be read is let through");
+// (Windows says "no such folder" of a path under a file, so there the odd project defines none, as one without the folder)
+ok(!defines(path.join(tmp, "nowhere"), "poller") && defines(odd, "poller") === !WINDOWS, "a project with no agents folder defines none; one whose folder cannot be read is let through");
 
 // the count of first tries
 const marks = path.join(tmp, "marks");
@@ -66,8 +68,11 @@ fs.symlinkSync(target, linked);
 ok(!firstTry(agent({ prompt: "link" }), path.dirname(linked)) && !there(linked) && firstTry(agent({ prompt: "link" }), path.dirname(linked)) && there(linked).isFile() && fs.readFileSync(target, "utf8") === "keep", "a link planted at a mark's name counts as the mark: it is removed, never followed or written through");
 const fifo = markFor(agent({ prompt: "fifo" }));
 fs.unlinkSync(fifo);
-execFileSync("mkfifo", [fifo]);
-ok(!firstTry(agent({ prompt: "fifo" }), path.dirname(fifo)) && !there(fifo), "a pipe planted at a mark's name counts as the mark: it is removed, never opened");
+if (WINDOWS) console.log("skip a pipe planted at a mark's name: Windows has no pipe that stands at a file's name");
+else {
+  execFileSync("mkfifo", [fifo]);
+  ok(!firstTry(agent({ prompt: "fifo" }), path.dirname(fifo)) && !there(fifo), "a pipe planted at a mark's name counts as the mark: it is removed, never opened");
+}
 const folder = markFor(agent({ prompt: "dir" }));
 fs.unlinkSync(folder);
 fs.mkdirSync(folder);
@@ -91,7 +96,7 @@ const twins = await Promise.all(Array.from({ length: 4 }, () => new Promise(done
   child.stdin.end(text({ prompt: "twins" }, "Agent", "f7"));
 })));
 ok(twins.every(code => code === 0 || code === 2) && twins.includes(0), "the same call made several times at once: at least one goes on, in whatever order they run");
-const nowhere = input => spawnSync(process.execPath, [file], { input, encoding: "utf8", env: { ...env, TMPDIR: path.join(tmp, "none") } });
+const nowhere = input => spawnSync(process.execPath, [file], { input, encoding: "utf8", env: { ...env, TMPDIR: path.join(tmp, "none"), TEMP: path.join(tmp, "none"), TMP: path.join(tmp, "none") } }); // (TEMP and TMP: Windows' names for it)
 ok(nowhere(text({ prompt: "y" }, "Agent", "f8")).status === 0 && nowhere(text({ prompt: "y", effort: "max" }, "Agent", "f8")).status === 2, "where no mark can be made, a call with a field left out goes on at once, and max is still refused");
 ok(JSON.parse(run("", ["--command"]).stdout) === COMMAND && !COMMAND.includes("\n"), "--command prints the hook's command, one line, as a settings file holds it");
 

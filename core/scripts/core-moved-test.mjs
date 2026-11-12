@@ -56,23 +56,28 @@ function program(pin, newest, issues, args = []) {
   });
   return { status: r.status, out: r.stdout + r.stderr, calls: fs.existsSync(log) ? fs.readFileSync(log, "utf8") : "" };
 }
-let r = program(A, A, "");
-ok(r.status === 0 && r.out.includes("nothing") && !/gh issue/.test(r.calls), "up to date and no issue: nothing is done");
-ok(/^git ls-remote https:\/\/github\.com\/HaakTuah\/agent-core refs\/heads\/main$/m.test(r.calls), "the core's main is asked for, and nothing else of git");
-r = program(A, B, "");
-ok(r.status === 0 && /gh issue create --repo someone\/project --title The core has moved past this project's copy --body-file \S+ --label enhancement --assignee someone/.test(r.calls), "behind and no issue: one is opened for the owner");
-r = program(A, B, line(12, BOT, TITLE));
-ok(r.status === 0 && /gh issue edit 12 --repo someone\/project --body-file/.test(r.calls) && !/issue create/.test(r.calls), "behind and an issue open: it is brought up to date, no second one");
-r = program(A, A, line(12, BOT, TITLE));
-ok(r.status === 0 && /gh issue close 12 --repo someone\/project/.test(r.calls), "up to date again: the issue is closed");
-r = program(A, B, line(12, "someone-else", TITLE));
-ok(/issue create/.test(r.calls) && !/issue edit/.test(r.calls), "an outsider's issue of the same title is left alone");
-r = program(A, "not-a-commit", "");
-ok(r.status === 1 && !/gh /.test(r.calls), "a main that gives no commit fails before anything is written");
-r = program("abc", B, "");
-ok(r.status === 1 && r.calls === "", "a manifest without its pin fails before anything is asked");
-r = program(A, B, "", ["--dry"]);
-ok(r.status === 0 && r.out.includes("open") && !/gh /.test(r.calls), "--dry says what it would do and calls gh for nothing");
+// (its stand-ins for git and gh are shell scripts, which Windows does not run by their name; the workflow that runs
+// the program, core-moved.yml, runs on Linux)
+if (process.platform === "win32") console.log("skip the program whole: its stand-ins for git and gh are shell scripts");
+else {
+  let r = program(A, A, "");
+  ok(r.status === 0 && r.out.includes("nothing") && !/gh issue/.test(r.calls), "up to date and no issue: nothing is done");
+  ok(/^git ls-remote https:\/\/github\.com\/HaakTuah\/agent-core refs\/heads\/main$/m.test(r.calls), "the core's main is asked for, and nothing else of git");
+  r = program(A, B, "");
+  ok(r.status === 0 && /gh issue create --repo someone\/project --title The core has moved past this project's copy --body-file \S+ --label enhancement --assignee someone/.test(r.calls), "behind and no issue: one is opened for the owner");
+  r = program(A, B, line(12, BOT, TITLE));
+  ok(r.status === 0 && /gh issue edit 12 --repo someone\/project --body-file/.test(r.calls) && !/issue create/.test(r.calls), "behind and an issue open: it is brought up to date, no second one");
+  r = program(A, A, line(12, BOT, TITLE));
+  ok(r.status === 0 && /gh issue close 12 --repo someone\/project/.test(r.calls), "up to date again: the issue is closed");
+  r = program(A, B, line(12, "someone-else", TITLE));
+  ok(/issue create/.test(r.calls) && !/issue edit/.test(r.calls), "an outsider's issue of the same title is left alone");
+  r = program(A, "not-a-commit", "");
+  ok(r.status === 1 && !/gh /.test(r.calls), "a main that gives no commit fails before anything is written");
+  r = program("abc", B, "");
+  ok(r.status === 1 && r.calls === "", "a manifest without its pin fails before anything is asked");
+  r = program(A, B, "", ["--dry"]);
+  ok(r.status === 0 && r.out.includes("open") && !/gh /.test(r.calls), "--dry says what it would do and calls gh for nothing");
+}
 
 console.log(failed ? `${failed} of ${count} failed` : `ok   ${count} assertions on the core-moved check`);
 process.exitCode = failed ? 1 : 0;

@@ -79,8 +79,9 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
    his list of personal terms; a person's name stays out all the same (floor rule 11), and where its buyers must see
    one, its build takes it from outside the repository. The terms it is sold under are the owner's to give (floor rule
    10). **The default branch is `main`,** which the hooks read their scripts from, letting every call
-   through where there is none. **On Windows** Claude Code runs both hooks in Git Bash, and the second needs Node on
-   the path; where either is missing, the hook stops nothing. **Another tool's session** has neither hook, which are
+   through where there is none (`core.yml` fails another name). **On Windows** Claude Code runs both hooks in Git Bash, and the second needs Node on
+   the path; where either is missing, the hook stops nothing. The core's own tests run the scripts and both hooks
+   there on every change (`.github/workflows/tests.yml`). **Another tool's session** has neither hook, which are
    Claude Code's: what holds its work is its reading of `AGENTS.md` and the checks on every pull request. **The copy's
    own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this repository's, not the project's: its issue
    templates and settings are its own, written for its *owner's account*.

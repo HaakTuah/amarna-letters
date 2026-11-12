@@ -28,6 +28,12 @@ for (const [what, change] of [
   ["a lockfile the config names, a tool in it under GPL", LOCK("GPL-3.0-only")],
   ["an audited install in a string of code, with a comment after it", write("scripts/run.mjs", "execSync('npm install -g mossgrip-cli@1.2.3') // the one we audited\n")],
   ["an audited install with a comment after it", append("scripts/setup.sh", "npm install -g mossgrip-cli@1.2.3 # the one we audited\n")],
+  ["a comment naming a fetcher, in a file whose lines end as Windows writes them", append("scripts/setup.sh", "# we once ran curl -L https://mossgrip.example here\r\necho moss\r\n")],
+  ["a workflow comment naming a fetcher, its lines ending as Windows writes them", append(".github/workflows/ci.yml", "      # was: dotnet tool install --global mossgrip\r\n")],
+  ...["dotnet restore --locked-mode", "dotnet test", "dotnet add src/Moss.csproj reference src/Bark.csproj", "dotnet tool restore", "choco list", "dotnet package list --vulnerable", "dotnet package search Mossgrip"]
+    .map((line) => [`a .NET or Windows command that fetches nothing by a name written here: ${line}`, append(".github/workflows/ci.yml", `      - run: ${line}\n`)]),
+  ["dotnet run as an array for what fetches nothing by a name written here", write("scripts/build.mjs", "execFileSync('dotnet', ['build', '-c', 'Release']);\nexecFileSync('dotnet', ['add', 'src/Moss.csproj', 'reference', 'src/Bark.csproj']);\nexecFileSync('dotnet', ['tool', 'restore']);\nexecFileSync('choco', ['--help']);\nexecFileSync('choco', ['list']);\n")],
+  ["a PowerShell command's name held as data", write("scripts/labels.mjs", "const label = 'Invoke-WebRequest';\nif (name === \"Install-Module\") skip();\nconst all = ['iwr', 'irm', 'Start-BitsTransfer'];\nconst note = 'IRM protected, irm v1.2';\n")],
   ["npm run after an option", append("scripts/setup.sh", "npm --silent run build\n")],
   ["npm config get registry, which sets nothing", append("scripts/setup.sh", "npm config get registry\n")],
   ["npm link of a folder, and output redirected after an audited install", append("scripts/setup.sh", "npm link ../moss\nnpm install -g mossgrip-cli@1.2.3 > moss.log 2>&1\n")],
