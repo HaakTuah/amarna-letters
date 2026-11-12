@@ -1,7 +1,7 @@
 # agent-core
 
 The shared core of the owner's agent-built projects: a floor every project takes whole and modules each project picks
-(`README.md`). Codex: read `modules/codex.md` at the start of every task.
+(`README.md`). A builder of another provider: read `modules/other-builders.md` at the start of every task.
 
 ## The core this repository takes
 
@@ -13,7 +13,7 @@ imports them):
 @modules/inbox.md
 
 Read when needed: `floor/topics.md`, `floor/threat-model.md`, `modules/roles.md`, `modules/helpers.md`,
-`modules/reviews.md`, `modules/review-guidelines.md` and `modules/github-calls.md`.
+`modules/reviews.md`, `modules/review-guidelines.md`, `modules/codex.md` and `modules/github-calls.md`.
 
 The slots here: the *progress file*: this repository's open PRs; the *report*: the PR's description (`reports/` keeps
 the audits and the reports written before 12 November 2026); the archive is `archive/instructions.md`, cited "(core
