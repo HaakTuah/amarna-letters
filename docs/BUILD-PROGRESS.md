@@ -23,8 +23,8 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   once the bug above ends (keeps gains from creeping back; archive item 97);
   ~~[The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647)~~
   done;
-  [The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631)
-  (a phone has no hover). All small.
+  ~~[The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631)~~
+  done (a phone has no hover). All small.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
