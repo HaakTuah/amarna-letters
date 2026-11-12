@@ -80,7 +80,7 @@ export function confessedMaster(s: GameState, id: string, court: Power): Power |
 }
 
 /**
- * What `viewer` knows of a person, in words. A king whose realm has fallen "Ruled" it (`fall` in turn/resolve.ts); to a
+ * What `viewer` knows of a person, in words. A king whose realm has fallen "Ruled" it (`fall` in turn/falls.ts); to a
  * court that has not yet heard of the fall (`fallsHeard`), he still "Rules" it (bug #817).
  */
 function factsAsHeard(s: GameState, c: Character, viewer: Power): string[] {
