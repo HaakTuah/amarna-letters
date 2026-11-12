@@ -73,6 +73,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
   PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
   the files already judged one thing above stay whole.
+  The list, one line each, and what waits for an open lane: `docs/rounds/2026-11-12-split-the-big-files.md`. Split so
+  far: `turn/plans.ts` (standing orders to `standing.ts`).
 
 ## Follow-ups
 

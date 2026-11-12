@@ -2,8 +2,8 @@
  * Sleeping seats. The world advances every season, but a seat that may sleep sleeps after every set of orders, and is
  * asked again only when something concerns it or the hidden cap is reached: a king never chooses when he wakes (the design
  * document's "Decided: sleep is the default" and "No triggers of the seat's own"). There is never a global skip: each seat
- * sees only its own wake-ups, and everything it is told comes from its own view. (Scheduled and standing orders are in
- * plans.ts.)
+ * sees only its own wake-ups, and everything it is told comes from its own view. (Scheduled orders are in plans.ts,
+ * standing orders in standing.ts.)
  */
 import { EconomyData } from "../model/economy.ts";
 import { HSet } from "../core/collections.ts";
