@@ -94,8 +94,8 @@ it knows (the opening bonds, public, and the tablets it holds):
   `tribute` and `askProtect`), and never makes war on that overlord.
 - **As overlord**, it notes the gold a vassal's envoy brings; a vassal that paid within a year and the road's grace is
   weighed for war as any king is, with a sealed tablet's price where one binds them (item 18, part F3: its tribute is a
-  share of a season's yield a year, its land the whole yield every season, and overlords that held paying vassals friends
-  never to be attacked lost to those that did not, 0.76 to 0.78 growth in 100 games); one in arrears hears a demand
+  share of a season's yield a year, its land the whole yield every season; vassal play, which lost 0.77 to 0.79 growth in
+  100 games while it held paying vassals friends never to be attacked, won 0.765 to 0.745 without it); one in arrears hears a demand
   (`askTribute`, a threat, a broken oath) and is the more welcome a war (`bondWar`).
 - **Offers**: a king three times a neighbour's strength offers it vassalage (`askTribute`, `protect`, `askServe`) unless
   it serves a king he would rather not cross; a power that a neighbour three times its strength threatens, serving

@@ -178,7 +178,8 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
   // Sales: all the grain to spare, at whatever each market pays (item 18, part F3). A sale moves grain from our stores to
   // our people's market and gold from their purse to the treasury, both counted in our strength, so it costs nothing in the
   // score at any price; the treasury's gold pays for troops, works and errands where grain in the stores pays for nothing.
-  // Held back for a better price, the grain only spoiled (kings that did lost to kings that sold it all, 0.80 to 0.87).
+  // Held back for a better price, the grain only spoiled (the whole economy, which lost 0.80 to 0.865 growth to plain selling
+  // while it held grain back, won 0.865 to 0.765 selling it all).
   let expected = 0;
   for (const x of sortBy([...ps.values()], [(x: Mutable<ProvinceEconomyView>) => x.province, cmpStr])) {
     if (besieged.has(x.province)) continue;

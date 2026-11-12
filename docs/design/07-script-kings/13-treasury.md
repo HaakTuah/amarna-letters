@@ -56,8 +56,8 @@ Before the rest of the treasury, each season:
 - **Sales** of all the grain to spare at each market, measure by measure along the curve, at whatever it pays (item 18,
   part F3): a sale moves grain from our stores to our people's market and gold from their purse to the treasury, both
   counted in the strength, so no price lowers the score, and the treasury's gold can be spent where the stores' grain
-  cannot. Kings that held grain back for a better price lost to kings that sold it all (0.80 to 0.87 growth in 100
-  games, `--plain-economy-half`). Its income for the season is the mines and these sales.
+  cannot. Kings playing the whole economy, which lost 0.80 to 0.865 growth to plain selling (`--plain-economy-half`,
+  100 games) while they held grain back for a better price, won 0.865 to 0.765 selling it all. Its income for the season is the mines and these sales.
 - **Feeding**: what would still be lost for want of room goes to a town whose market holds less than its need.
 - **Flow** for disbanding and levies is the mines plus what the markets can go on paying: no more than the realm's local
   need, its grain to spare after its troops' food, and the pay its troops spend at home plus a share of the purses

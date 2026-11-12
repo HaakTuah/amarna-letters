@@ -32,7 +32,7 @@ runs at once are what a session's machine holds (each grows to about 4.5 GB; a t
 ## The economy at home: sell all the spare grain (9+a)
 
 Kings that play the economy (depots, caravans, feeding, purchases, trade abroad) against kings that keep two seasons of
-food and sell the rest (`--plain-economy-half`), seeds 1-100: **0.80 growth to 0.865, standing 1.02 to 1.066, 40 wins
+food and sell the rest (`--plain-economy-half`), seeds 1-100: **0.80 growth to 0.865, standing 1.020 to 1.067, 40 wins
 to 53**, the clearest loss of any feature. Most of it was one choice: the playing king sold only while the market paid
 nine tenths of the base price (six tenths, then a third, as the treasury ran low), and kept the rest in the stores to
 spoil. A sale moves grain from the king's stores to his own people's market and gold from their purse to his treasury,
@@ -143,9 +143,12 @@ fails in this cloud container with and without the patches, untouched here, and 
 The owner asked that nothing new be started, so these are listed, not begun:
 
 1. **F3's remainder,** on a fresh branch off `main`: par measured again on the patched play; the benchmarks; the five
-   features not measured and the war of choice on the patched play (above); 17++ A and 17++ D; and the Great Kings'
-   small loss by vassal play (0.96 to 1.015 growth on the patched play), where the vassal's belief that a paid overlord
-   spares it (`tributeReturn`) is the next lever to try.
+   features not measured and the war of choice on the patched play (above); 17++ A and 17++ D; seeds 101-200 for the
+   rows that are close (F2's hand-off); the caretaker's realm against the war of choice's numbers (F2's hand-off, not
+   reached here); and the Great Kings' small loss by vassal play (0.96 to 1.015 growth on the patched play), where the
+   vassal's belief that a paid overlord spares it (`tributeReturn`), now an exploit script vassals fall for, is the next
+   lever, with a line counting the paying vassals their own overlords take (item 11+ asks whether kings build vassal
+   networks as well as conquer).
 2. **F4, the bold road and Arzawa.** The careful reach the top five 1.40 times as often a head as the bold (F2). The
    second builder's diagnostic (12 games, old play; people and top five by way): bold Climbers 1,298 and 18, Keepers
    1,200 and 12, Steady 89 and 3, Sellers 122 and 1; careful Steady 576 and 17, Climbers 253 and 5, Keepers 251 and 2,

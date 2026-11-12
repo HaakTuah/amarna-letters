@@ -173,12 +173,12 @@ Every item adds its numbers here ("Every item tests them" in the builder rules; 
 
 The rows of done items (6c to 17++) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
 17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check");
-new rows are added here. Where they stand (F3: measured in item 18 F3):
+new rows are added here. Where they stand (F3: item 18 F3):
 **pays** 6c planning ahead, 7b roads, 9 authority (F3), 9+a the economy (F3, patched), 9+b trade, 10+a land play (F3),
 10+b borders, 11a and 11a+ money and seasons (a little), 13 command (a little), 15 works (growth), 16 the council, 17++
 (occupying, the census, governors' regions and grants, the spy's check, remnants); **a little ahead** (F3) 9 winter
 strokes, 12 languages, 17 buying food and stirring, 17+ holding back pay, 17++ D talk; **even** (F3) 10 judging people,
-11b hunting, 11b+ borrowing, raiders, 11e walls, 11f caravans abroad, 11+ vassalage (patched), 18 E gifts; #806 and 18
+11b, 11b++ hunting, 11b+ borrowing, raiders, 11e walls, 11f caravans abroad, 11+ vassalage (patched), 18 E gifts; #806 and 18
 F2 a captive king; **mixed** 17++a the war of choice (F3, unpatched play); **not measured again yet** 7a sea play, 8
 inventories, tidings, rides, coffers, 17++ A the ledger, 17++ D a carrier caught; nothing to measure for 11d,
 11f+, 13+, 14 and 17+'s names.

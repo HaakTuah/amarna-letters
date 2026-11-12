@@ -79,8 +79,8 @@ function awe(b: Board, me: Power, over: Power): number {
 }
 
 /**
- * The season's reckoning, before strategy: the bonds this court knows, the overlord it still serves and the vassals it
- * counts as friends ({@link Brain.bondFriends}), and the tribute it owes this year.
+ * The season's reckoning, before strategy: the bonds this court knows, the overlord it still serves (a friend by the bond,
+ * {@link Brain.bondFriends}), and the tribute it owes this year.
  */
 export function vassalSeason(b: Board, brain: Brain): void {
   brain.bonds = knownBonds(b);
@@ -123,9 +123,9 @@ export function noteGold(brain: Brain, sender: Power, turn: number): void {
 
 /**
  * What a war on `x` is worth beside its prize, from the bonds (added to the war target's score): a vassal of ours that pays
- * adds nothing, so it is weighed as any king is, with a sealed tablet's price where one binds us (item 18, part F3:
- * overlords that held such vassals friends never to be attacked lost to those that did not, 0.76 to 0.78 growth in 100
- * games); one in arrears is the more welcome a war; the overlord we serve we do not attack; and another's vassal brings
+ * adds nothing, so it is weighed as any king is, with a sealed tablet's price where one binds us (item 18, part F3: vassal
+ * play, which lost 0.77 to 0.79 growth in 100 games while it held such vassals friends never to be attacked, won 0.765
+ * to 0.745 without it); one in arrears is the more welcome a war; the overlord we serve we do not attack; and another's vassal brings
  * its overlord's troops, if they are near, and his friendship lost.
  */
 export function bondWar(b: Board, brain: Brain, x: Power): number {
