@@ -13,10 +13,9 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
 - **A bug beside it, now:** #666, a phone at Fast still drops frames past 50 ms, mostly the browser's own layering and
-  painting of the map's SVG; its own lane on the map's drawing, which the music does not touch, measured as item 17+++
-  part G measured it, until frames stay under 50 ms on a phone and on desktop at every speed. PR #930
-  (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's 1.4% to 0.4%; next, one
-  transform a symbol.
+  painting of the map's SVG; measured as item 17+++ part G did, until frames stay under 50 ms on phone and on
+  desktop at every speed. PR #930 (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's
+  1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); next: draw what is in view.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),

@@ -26,6 +26,9 @@ the phone profile was made of, and what changed:
 - **Smaller costs**: the map's numbers are kept once written (`F`), thousands are formatted by one formatter, and the
   steps' budget is 4 ms, since a frame that writes the map pays some 30 ms of the browser's own work after them.
 
-What is left is the browser's own layerization (8 to 20 ms in every frame that writes the map, over the symbols' many
-transforms) and the steps that still take 10 to 30 ms on the phone (the names, the tints, the works, the units): the
-report's "What is left".
+What is left is the browser's own layerization, paint and style (each about a fifth of a long frame, with the script that
+writes the map) and the steps that still take 10 to 30 ms on the phone (the names, the tints, the works, the units). One
+transform a symbol was tried and did not pay: the browser's work seems to follow how much is drawn together (or how many drawings; the bench does not
+tell the two apart), not the transforms
+(`docs/rounds/2026-11-12-phone-frames-2.md`, which also names the next lever, drawing only what the view shows;
+`src/web/scrub.mjs` is the bench that sets two builds against each other).
