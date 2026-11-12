@@ -75,10 +75,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
   `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx` (the
   start screen; its saved-games card is 2.5 KB).
-- **The README as a front page** (an outside review of the repositories, 11 November 2026: about 7,000 words, rules
-  that read like a legal code, which players will not read): the README keeps what the game is, how to start and how a
-  season goes, in a few hundred words, and points to the rulebook for the rules in full; whatever moves goes to the
-  rulebook or the design notes, nothing a player needs is lost, and the copies check proves nothing is said twice.
+- ~~**The README as a front page** (an outside review, 11 November 2026: about 7,000 words).~~ Done (12 November 2026): about
+  450 words; the rest is word for word in `docs/design/61-the-rules-a-player-reads/`.
 - **The code files near the split line** (the same review): 17 code files are past 40 KB, `turn/plans.ts` within a few
   hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
   PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
