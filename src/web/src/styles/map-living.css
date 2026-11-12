@@ -64,9 +64,7 @@
 .lod0 .map .station { display: none; }
 /* The works at a city: only close up, in a row to its right below its news, clear of its outermost ring. */
 .lod0 .map .works-at, .lod1 .map .works-at { display: none; }
-/* One transform a mark (#666): the city's place (--ax, --ay), the ring's offset beside its outermost ring (--ring), the symbol's size
-   (--sym) and the mark's place in the row (--wi, 15 units a mark, the first 7 clear of the ring). */
-.map .wk { transform: translate(calc(1px * (var(--ax) + var(--ring) * var(--cs) + var(--sym) * (11 + 15 * var(--wi)))), calc(1px * (var(--ay) + 13 * var(--sym)))) scale(var(--sym)); transform-box: view-box; transform-origin: 0 0; }
+.map .wring { transform: translate(calc(1px * (var(--ring) * var(--cs) + 4 * var(--sym))), calc(13px * var(--sym))); transform-box: view-box; transform-origin: 0 0; }
 .map .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; fill-opacity: .92; stroke-opacity: .92; }
 :is(.map, .legend) .hb-sand { fill: none; stroke: var(--sand); stroke-width: 1.4; stroke-linecap: round; }
 :is(.map, .legend) .hb-mole { fill: none; stroke: #6b6355; stroke-width: 1.8; stroke-linecap: round; }
