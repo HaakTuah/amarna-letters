@@ -1,0 +1,40 @@
+# The core has moved ("How a project takes the core" in README.md, point 5), for a project whose orchestrator does not
+# wake every day: once a day it compares the commit the project's core-manifest.md pins with the newest commit of this
+# repository's main, and keeps one issue open for the owner while they differ, saying what changed and how a session
+# takes it; it closes that issue once the project holds the newest commit again. It opens no pull request and changes no
+# file: a session makes the sync, since a pull request a workflow opens gets no checks without a stored token. A project
+# calls it (workflow_call) from a daily schedule of its own (it runs on a schedule or when started by hand, and on no
+# other event), pinned to a full commit SHA, from a job that grants `contents: read` and `issues: write`. It runs the
+# project's own core/scripts/core-moved.mjs on the core's one exact Node; Node's own modules only, no package installed.
+# Nothing is checked out but the calling repository's default branch; the two commits are 40 hex characters before they
+# are used, and no other text reaches a command. It may write issues, and nothing else.
+name: core-moved
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  core-moved:
+    # never on a pull request's or a push's event (floor rule 2); the checkout below takes the default branch whatever
+    # branch a manual start names, so the script it runs and the pin it reads are always that branch's
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }} # the project's own state, not a sync branch's
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+      - name: One issue while the core is ahead of the project's copy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node core/scripts/core-moved.mjs

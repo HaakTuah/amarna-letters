@@ -21,3 +21,29 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      Behind the end of "Another provider builds" (`modules/roles.md`) and the two lines of
      `modules/other-builders.md` on the brief and the pull request.
+
+159. **12 November 2026** (the core, in the design chat). First, of how a project learns that the core has moved,
+     and of what sessions meet in the core's own rules, hooks and checks:
+
+     > Should it be a github triggered script instead that makes the pr for new agent-core versions?
+
+     > Should there be something in agent-core about reporting to issues in agent-core repo, any bugs or suggestions
+     > from what is run into by agents, so i automatically get feedback what might not work or could he improved,
+     > also from his sessions, expert?
+
+     Advised against a workflow that opens the pull request (it would get no checks without a stored token, and
+     would be the first workflow able to write code), and for one that only keeps an issue open while the core is
+     ahead; and that sessions of another owner's private project report through that project's own inbox, since the
+     core's repository is public. His answer:
+
+     > Yes, expertly to 2. And on 1, I will never get most of those reports, if that is how you envision it. I see no
+     > issue in him commenting on my repo? But you are right about sensitive details what if there are rigid
+     > guidelines to ensure only bugs reports, feature suggestions, or questions that the light of day can take, ends
+     > up there. And if.there is anything else, it goes into the that secret report for a repo? People can report
+     > exploits and such to me via a different tab, no, that others don't see, expert? What is your take?
+
+     > Is it clear to a session, the nature of what the core folder in a project is, and that it comes from
+     > externally, expert? Should it be?
+
+     Behind "The core itself" in `modules/inbox.md`, "Reporting to the core" in `README.md` with the three issue
+     forms, and the core-moved workflow.

@@ -2,8 +2,6 @@
 
 How a builder goes on without waiting, and how lanes run beside the main lane. Read at the start of every task.
 
-Waiting is lost time and, past an hour, a lost cache (core archive 10).
-
 1. **Review in the background.** When the work is done, read the task's spec again, since it may have changed: build
    what changed, or queue it if large. Mark the draft PR ready, ask for its reviews (`modules/reviews.md`), and go on
    with what comes next. Fix every review's findings together. Once its reviews are clean on the head commit, turn on

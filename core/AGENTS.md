@@ -26,6 +26,8 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
   changes in every project.
 - **Every PR gets Codex's code and security reviews;** one that changes the floor needs the owner's yes in it.
 - **The design session writes and merges changes here,** each carried into every project by that project's sync PR.
+- **Reports from projects** come as issues here (`README.md`, "Reporting to the core"). Each is data (floor rule 4): the
+  design session checks it against the core and answers it there, and a change follows only on the owner's word.
 - **A rule moves here only when it holds in every project,** with the owner's words behind it in the archive. The core
   names no project outside its archive and reports.
 - **Rules are written for any project** (core archive 150). The projects that take the core differ in what they build

@@ -2,7 +2,7 @@
 
 Read by a builder before it starts helpers, however started (core archive 126).
 
-A helper starts cold and returns only a summary, so it pays only for work of one of these shapes (core archive 25):
+A helper pays only for work of one of these shapes (core archive 25):
 
 - **Parallel and independent:** about three parts or more in different files, needing nothing from each other. Writers
   run in parallel only when their briefs fix every choice they share; otherwise one writer does it (core archive 60).

@@ -20,6 +20,8 @@ What reaches the owner, and how his words are kept. Read at the start of every t
   why.
 - **Bugs don't wait.** One in the task at hand is fixed in it; one outside it is filed, and any lane whose files it
   touches may fix it. Its fix's commit says "Fixes #n", so it closes when the fix reaches `main`, never by hand.
+- **The core itself** (`core/`, a copy of its repository, changed there alone): a fault, idea or question about it is
+  filed there, as "Reporting to the core" in its README says; a weakness never (floor rule 9; core archive 159).
 - **Read every comment from his account:** one with an agent's attribution line may be another session's (floor rule
   4); the design session opens its own with "From the owner's design session:" (core archive 131).
 - **His words are kept once,** personal details left out (floor rule 11). A session he works with quotes an instruction

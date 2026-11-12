@@ -7,8 +7,8 @@
     { "name": "actions/dependency-review-action", "kind": "action", "licence": "MIT", "used": "licences.yml, the licence gate on new and updated packages" },
     { "name": "github/codeql-action", "kind": "action", "licence": "MIT", "used": "codeql.yml, code scanning" },
     { "name": "CodeQL CLI", "kind": "github-service", "licence": "LicenseRef-GitHub-Terms", "used": "code scanning, run by github/codeql-action: a GitHub service, free while a repository is public" },
-    { "name": "GitHub CLI", "kind": "tool", "licence": "MIT", "used": "gh in versions.yml, delete-merged-branches.yml and preview.yml, the runner's own" },
-    { "name": "jq", "kind": "tool", "licence": "MIT", "used": "versions.yml, the runner's own: it reads the issues the versions check would open" },
+    { "name": "GitHub CLI", "kind": "tool", "licence": "MIT", "used": "gh in versions.yml, core-moved.yml (through scripts/core-moved.mjs), delete-merged-branches.yml and preview.yml, the runner's own" },
+    { "name": "jq", "kind": "tool", "licence": "MIT", "used": "versions.yml, the runner's own: it reads the issues the versions check would open; and scripts/core-moved-test.mjs, which runs through it the expression gh is handed" },
     { "name": "Node.js", "kind": "tool", "licence": "MIT", "files": ["scripts/node.sh"], "used": "every script: the core's one exact Node, .node-version, which scripts/node.sh fetches as the node-linux-x64 or node-linux-arm64 package (npm pack) and checks by its sum" },
     { "name": "npm", "kind": "tool", "licence": "Artistic-2.0", "used": "bundled with Node: npm view in versions.mjs, npm pack in node.sh, npm ci and npm audit signatures in signatures.yml" }
   ]
