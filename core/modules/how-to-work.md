@@ -23,15 +23,15 @@ and 57).
   "old" copies, nothing left unused. Look for an existing helper before writing one.
 - **Split by meaning, from the start** (core archive 25 and 26): each file holds one thing people look up on its own, as
   small as that thing is; new work goes into its own file. A file past about 20 KB probably holds two things. A split
-  goes in its own PR, behaviour proven unchanged; a file past about 50 KB is split before it is changed (core archive
-  45).
+  goes in its own PR, behaviour proven unchanged; a file past the *size marks*' split mark is split before it is changed
+  (core archive 45).
 - **Principles over rules** (core archive 25): where a rule's letter would defeat its purpose, follow the purpose, say
   so under "Readings taken", and flag the rule to be fixed. Never for the floor, nor for a rule the project's
   `AGENTS.md` marks as a safety rule.
 - **A project's own rules add to the core's** (core archive 161): one that replaces a module's yields unless its
   manifest lists it under "Differences", on its owner's word; never against the floor, who reviews or merges, or the
   review guidelines.
-- **The smallest setup that tests the rule** (core archive 12): each test sets up only what it needs, and runs only where
-  a change can affect it (core archive 9); long measurements run outside the suite and CI.
+- **The smallest setup that tests the rule** (core archive 12): each test sets up only what it needs, and runs only
+  where a change can affect it (core archive 9); long measurements run outside the suite and CI.
 - **Rule files state rules,** briefly, with at most a pointer to the archive (core archive 74); a new rule replaces text
   rather than adding to it.
