@@ -127,7 +127,7 @@ Nothing under `src/engine`, `src/game` or `src/batch` changed, nor the worker's 
 before and the bot benchmarks cannot move; no save version. `scripts/test.sh` passes (1,860 tests, 1 skipped, as on
 `main`), the smoke test of the built app passes (its check that no name overlaps a marker now skips a name not drawn,
 which measured as an empty box at the screen's corner), and `scripts/sim.sh --games 50 --seed 1 --verify-replay`:
-SIMRESULT.
+every one of the 50 games replays as it played.
 
 ## What is left
 
