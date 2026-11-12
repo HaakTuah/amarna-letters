@@ -75,10 +75,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   start screen; its saved-games card is 2.5 KB).
 - ~~**The README as a front page** (an outside review, 11 November 2026: about 7,000 words).~~ Done (12 November 2026): about
   450 words; the rest is word for word in `docs/design/61-the-rules-a-player-reads/`.
-- **The code files near the split line** (the same review): 17 code files are past 40 KB, `turn/plans.ts` within a few
-  hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
-  PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
-  the files already judged one thing above stay whole.
+- **The code files near the split line** (the same review): 17 code files are past 40 KB. Each is split where it holds
+  two things, in a PR of its own when no open lane touches it, behaviour proven unchanged; generated data and the
+  files judged one thing above stay whole. The list and what waits: `docs/rounds/2026-11-12-split-the-big-files.md`.
+  Split so far: `turn/plans.ts` (standing orders to `standing.ts`), `turn/intel.ts` (captives, assays).
 
 ## Follow-ups
 
