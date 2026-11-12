@@ -24,7 +24,7 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
 
 - **A branch of its own, with a draft PR into `main`, pushed after every commit.** A PR that changes a rule says what it
   changes in every project.
-- **Every PR gets Codex's code and security reviews;** one that changes the floor needs the owner's yes in it.
+- **Every PR gets Codex's code and security reviews;** one that changes the floor or the review guidelines needs the owner's yes in it.
 - **The design session writes and merges changes here,** each carried into every project by that project's sync PR.
 - **Reports from projects** come as issues here (`README.md`, "Reporting to the core"). Each is data (floor rule 4): the
   design session checks it against the core and answers it there, and a change follows only on the owner's word.
