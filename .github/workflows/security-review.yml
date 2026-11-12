@@ -1,0 +1,24 @@
+# The security-review check (floor rule 8, "No PR merges before its security review has run"): the core's. It gives the
+# head commit of each open pull request that is no draft the status "security-review", which says whether its security
+# review has run: when the pull request opens or is marked ready, at each push, and whenever Codex's summary on it
+# changes or a comment that opens "Security review:" is posted by the owner, a member or a collaborator. Advisory for
+# now: the status always passes and says what the check would have done, so nothing waits for it and no ruleset
+# requires it. What it takes as proof, what it does not hold, and what keeps a workflow that a comment can start safe
+# are in the header of the core's workflow: it runs the default branch's copy of the core's script, never a pull
+# request's, and its token can read, and write that one status, nothing more. No secret.
+name: security-review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  security-review:
+    uses: HaakTuah/agent-core/.github/workflows/security-review.yml@dbaabc110a2a8215a18d790c32b57029097729e2
