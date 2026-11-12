@@ -173,18 +173,15 @@ Every item adds its numbers here ("Every item tests them" in the builder rules; 
 
 The rows of done items (6c to 17++) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
 17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check");
-new rows are added here. Where they stand (item 18 F3 measured those marked F3, seeds 1-100, against its null split):
-**pays** 6c planning ahead, 7b roads, 9 authority (F3), 9+a the economy (F3, once its kings sell all their spare grain),
-9+b trade, 10+a land play (F3, the most of any), 10+b borders, 11a and 11a+ money and seasons (a little), 13 command (a
-little), 15 works (growth), 16 the council, 17++ (occupying, the census, governors' regions and grants, the spy's check,
-remnants); **a little ahead** (F3) 9 winter strokes, 12 languages, 17 buying food and stirring (growth), 17+ holding
-back pay, 17++ D talk of a province's leaning; **even** 10 judging people (F3), 11b hunting bands (F3), 11b+ borrowing
-and repaying (F3), raiders from beyond the map (F3), 11e walls (F3; ahead in wins), 11f caravans through foreign land
-(F3), 11+ vassalage (F3, once an overlord weighs a war on a paying vassal as on any king; the Great Kings a little
-behind), 18 E gifts (F3), #806 and 18 F2 a captive king; **mixed** 17++a the war of choice (F3, on the play before its
-patches: behind in standing, ahead in wins); **not measured again yet** (F3's remainder) 7a sea play, 8 inventories,
-the tidings, the ride, the coffer, the war of choice on the patched play, 17++ A the ledger's script play, 17++ D a
-carrier caught (too rare); nothing to measure for 11d, 11f+, 13+, 14 and 17+'s names.
+new rows are added here. Where they stand (F3: measured in item 18 F3):
+**pays** 6c planning ahead, 7b roads, 9 authority (F3), 9+a the economy (F3, patched), 9+b trade, 10+a land play (F3),
+10+b borders, 11a and 11a+ money and seasons (a little), 13 command (a little), 15 works (growth), 16 the council, 17++
+(occupying, the census, governors' regions and grants, the spy's check, remnants); **a little ahead** (F3) 9 winter
+strokes, 12 languages, 17 buying food and stirring, 17+ holding back pay, 17++ D talk; **even** (F3) 10 judging people,
+11b hunting, 11b+ borrowing, raiders, 11e walls, 11f caravans abroad, 11+ vassalage (patched), 18 E gifts; #806 and 18
+F2 a captive king; **mixed** 17++a the war of choice (F3, unpatched play); **not measured again yet** 7a sea play, 8
+inventories, tidings, rides, coffers, 17++ A the ledger, 17++ D a carrier caught; nothing to measure for 11d,
+11f+, 13+, 14 and 17+'s names.
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
@@ -197,14 +194,14 @@ carrier caught (too rare); nothing to measure for 11d, 11f+, 13+, 14 and 17+'s n
 | 18 E | A vassal's tribute judged by the peace it buys (`--vassal-play-half`) | 0.74 growth to 0.78, 21 wins to 19 | Growth ahead, wins even |
 | #806 | A captive king under a caretaker: his ransom by his word home or, short of it, giving in with land; a spy sent to free him; letters to his sworn friends; a captor keeping his letters, guarding him once a plot is found, and letting him go for land; with 17b's ransoms (`--king-play-half`) | 0.83 growth to 0.82, 19 wins to 22, in 50 games; 395 kings held, 22 still held at the age's end; 132 escapes, 6 helped by a spy; 2 letters smuggled, 6 kept; 8 gave in | Even, within the noise of 50 games; not yet in wins |
 | 18 F2 | A captive king, after #878 and the new par (`--king-play-half`) | 0.82 growth to 0.80, 44 wins to 50, in 100 games (before: 0.82 to 0.81, 39 to 37); a king held long gains his captor nothing beyond the capture | Even; holding a king forever neither pays nor ruins |
-| 18 F3 | Every feature on seeds 1-100, against the null split (`--null-half`: the halves with nothing switched off, standing +0.006, wins 38 to 51) | the economy 0.80 growth to 0.865, then with its kings selling all their spare grain 0.865 to 0.765; vassalage 0.77 to 0.79, then with a paying vassal weighed as any king 0.75 to 0.765 (standing 1.031 to 1.026); land play 0.855 to 0.715; the rest in `docs/rounds/2026-11-11-balance-pass-f3.md` | The economy and vassalage patched; land play and authority pay; five features not yet measured |
+| 18 F3 | Every feature, against a null split (`--null-half`) | the economy 0.80 growth to 0.865, patched 0.865 to 0.765; vassalage 0.77 to 0.79, patched even; the rest in F3's report | Two patched; five not measured |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | in progress, in parts (the report lists them): A to F1 merged (#828, #830, #833, #835, #839, #843, #845; save versions 87 to 92), F2 merged (#895; save version 94; report `docs/rounds/2026-11-11-balance-pass-f2.md`), F3 merged (#899: every feature's use against ignore against a null split, the script kings' grain sold at any price and a paying vassal weighed as any king, no save version; report `docs/rounds/2026-11-11-balance-pass-f3.md`, wrapped up at the owner's word of 12 November with its remainder unfinished); **pick up at the F3 report's "Split, and where to pick up"**: F3's remainder (par on the patched play, the benchmarks, five features and the war of choice not measured), F4 (the bold road, with the second F3 builder's findings and commit f2e973c on `claude/f3-per-way-line`; Arzawa), F5 (the people 17+ added, starting positions, banditry and far provinces, commanders' worth), then stop for review; the owner asked on 12 November that no new task be started | `item/balance-f3` | `docs/rounds/2026-11-07-balance-pass.md` |
+| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); **pick up at the F3 report's "Split, and where to pick up"**: F3's remainder (par, benchmarks, five features), F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review (none started: the owner's word, 12 November) | `item/balance-f3` | `docs/rounds/2026-11-11-balance-pass-f3.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |
