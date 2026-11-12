@@ -258,3 +258,35 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      Behind "Where more than one can build" in `modules/roles.md`, "The builders", and the *other builders* slot; behind
      the *security reviewer* slot's default, Codex of what its own provider built too, floor rule 3's two reviews
      standing; and behind the cap of item 164 at 47 KB.
+
+172. **12 November 2026** (the core, in the design chat), an hour after item 170, whose words were read as the weekly
+     sweep alone; told that six ideas in one project and three in the core still had no verdict, since the sweep starts
+     only once an idea has waited a week and the stand-in, called for a question, judged only the ideas on that
+     question's topic:
+
+     > But are we telling it now to do all when the stand-in steps forward?
+
+     That change was written on those words and held when its review found them a question and no instruction. Asked
+     then outright whether the stand-in, every time it is called, should give every open idea that lacks one its
+     verdict, and whether the three ideas it had just given a sure yes in the core should be built (a feature that may
+     wait for a later stage, the checks still unbuilt, a real run of Copilot's agent):
+
+     > Do you agree, expertly?
+
+     Told yes to each, in that order, the check that holds a merge for its security review advisory for a week first,
+     and the run likely to need his own approval of the agent's workflows once:
+
+     > Do what you expertly advice on these points.
+
+     Behind "whenever it is called, its verdict on every open idea that lacks one" in `modules/inbox.md`: item 170's
+     "should take all when it first runs" meant any run of the stand-in, not the sweep's alone. The sweep of
+     `modules/orchestrating.md` stays for a project where a week passes without a call.
+
+173. **12 November 2026** (the core, in the design chat), by his word in item 172 ("Do what you expertly advice on these
+     points") on the three ideas the stand-in had given a sure yes; the first, filed when one game listed it as a
+     difference from the core: a feature that does not pay yet may wait for the later stage that brings what it needs.
+     The stand-in rested it on his words of items 86 ("Can't draw conclusion right now, as the game isn't fully
+     constructed yet, but once it starts being feature complete, this cannot be the case") and 107 (no temporary
+     features), with item 89's limit that the computer players' bad play is never what waits.
+
+     Behind the third outcome in "Using a feature must pay, measured three ways" (`modules/game-design.md`).

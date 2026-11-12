@@ -8,9 +8,9 @@ Read at the start of every task.
 - **The stand-in** (core archive 142 and 166), a fresh session, searches his words (the archives, the closed issues and
   the reports quoting his corrections), never reading them whole. It gives his most likely answer, marked sure or unsure
   (always unsure: a call of taste, such as a name, music or a look, and one resting only on the core's archive where the
-  core's owner is another, whose words give way to his own); from the same search, its verdict on any open idea on that
-  topic (yes, later or no, sure or unsure, with the reason and a rough cost), posted on it; and, on a PR its users will
-  see, his likely notes on its pictures and text.
+  core's owner is another, whose words give way to his own); whenever it is called, its verdict on every open idea that
+  lacks one (yes, later or no, sure or unsure, with the reason and a rough cost), posted on it; and, on a PR its users
+  will see, his likely notes on its pictures and text.
 - **His inbox is the repository's issues,** assigned to the *owner's account*: ideas (`enhancement`) and bugs (`bug`),
   with the template's headings (`.github/ISSUE_TEMPLATE/`), each saying in plain words what it is and why it matters;
   search first, never file twice. A PR or report only points to them.
