@@ -22,7 +22,7 @@ changes, so they wait for a later pass.
 | `src/game/src/bots/tactics.ts` | 46,900 | One 620-line `makePlan` (judged in the progress file) | none | whole; also the balance pass's folder |
 | `src/engine/src/turn/intel.ts` | 46,790 | Three: spies at work (placing, watching, reporting), captives and ransom, and assays, authentication and forgery | captives and ransom to `captives.ts`; assays and forgery to `authentication.ts` | later |
 | `src/engine/src/model/views.ts` | 45,990 | One: the seat view's shapes and its schema, which must agree | none | whole |
-| `src/engine/src/model/map.ts` | 45,854 | Two: the `WorldMap` class (neighbours, distances, lookups) and the 1346 BCE start world it is built from (`buildMap` and the tables of walls, units and names) | the start world to its own file | later |
+| `src/engine/src/model/map.ts` | 45,854 | Three: the map (`WorldMap`, `buildMap`), the powers' opening (walls, armies, fleets, gold) and the provinces' names; `WorldMap.default` and `buildMap` need each other, so they stay together | the opening's tables to `start-positions.ts`, the names to `place-names.ts` | **split** (29 KB, 13 KB, 4 KB) |
 | `src/web/src/map/svg-renderer.ts` | 45,275 | One class, already split once (item 561) | none | whole; the polish lane's folder |
 | `src/engine/src/turn/resolve.ts` | 44,904 | Two: the season's movement and ownership, and land changing hands (transfers, levies, a kingdom's fall) beside the end of turn | transfers, levies and the fall to their own file | later |
 | `src/llm/src/rules.ts` | 43,718 | One: the rulebook text, byte-stable for prompt caching; its sleeping-seats part (6.8 KB) is a separate subject | sleeping seats' rules to their own file, text unchanged byte for byte | later |
