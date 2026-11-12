@@ -121,7 +121,7 @@ export class Session {
   private waiting = new Map<number, (m: FromWorker) => void>();
   private scenes = new Map<string, MapScene>();
   private scenesFor = -1;
-  /** The closing lines of seasons already read for the Season tab's ledger, by season and eyes: words, never scenes. */
+  /** The closing lines of seasons already read for the Season tab's ledger, by season, eyes and names: words, never scenes. */
   private closings = new Map<string, string>();
   private framesGeneration = 0;
   private seenGeneration = -1;

@@ -2,9 +2,11 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
+import { provinceName } from "../src/ui/format.ts";
 import { SeasonPanel } from "../src/components/SeasonPanel.tsx";
 import { buildScene } from "../src/map/scene.ts";
 import { closingLedger, LedgerSeasons } from "../src/session/ledger.ts";
+import { setNames } from "../src/ui/names.ts";
 import { frame } from "./audio-frame.ts";
 
 // The Season tab keeps the closing lines of the last few seasons (#647): the line the map shows as each season ends, newest
@@ -60,5 +62,22 @@ describe("SeasonLedger", () => {
     // None at the opening, where there is nothing to say.
     const opening = renderToStaticMarkup(createElement(SeasonPanel, { scene: buildScene(frames, 0, null), ledger: [], onProvince: () => {}, onPerson: () => {} }));
     expect(opening).not.toContain("The last seasons");
+  });
+
+  test("A line kept in the names of one setting is made again when the player changes the names", () => {
+    // A province whose name of 1346 differs from the one a modern reader knows it by.
+    setNames({ places: "modern" });
+    const p = WorldMap.default.landProvinces.find((x) => provinceName(x.id) !== x.name)!;
+    const modern = provinceName(p.id);
+    const storm = newGameEvent({ kind: "ship-lost", text: `A ship was lost near ${p.name}.`, visibleTo: [] });
+    const world = Array.from({ length: 3 }, (_, i) => frame(i, i === 2 ? { events: [storm] } : {}));
+    const cache = new Map<string, string>();
+    try {
+      expect(closingLedger(world, 2, null, cache)[0].line).toContain(modern);
+      setNames({ places: "period" });
+      expect(closingLedger(world, 2, null, cache)[0].line).toContain(p.name);
+    } finally {
+      setNames({ places: "period" });
+    }
   });
 });
