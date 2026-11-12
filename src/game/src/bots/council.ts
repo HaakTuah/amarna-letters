@@ -164,7 +164,7 @@ export class Council {
     Tactics.besiege(b, brain, plan);
     const sallies = Tactics.sallies(b, plan.orders.values(), brain);
     const rest: Order[] = [];
-    Statecraft.economy(b, brain, plan, rest, rng);
+    Statecraft.economy(b, brain, plan, rest);
     const orders = [...plan.orders.values(), ...sallies, ...rest].filter((o) => TroopTypes.has(o.type));
     const pictured = Search.pictured(b, brain, orders, brain.r(view.turn, "council-picture"));
     const lines = new Dict<string, string>();

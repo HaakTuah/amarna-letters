@@ -13,7 +13,6 @@ import {
   cede,
   inboxOf,
   ownedBy,
-  land,
   move,
   newGame,
   newGameConfig,

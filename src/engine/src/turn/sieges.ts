@@ -54,7 +54,7 @@ declare module "./core.ts" {
     tightness(x: Siege): number;
     caughtByBesiegers(c: Character, tightness: number): boolean;
     intercept(c: Character, lord: Power, siege: Siege, leaving: boolean, dispatch: Dispatch | null, cargo: HomeCargo | null, due: number): void;
-    seize(c: Character, lord: Power, captor: Power, dispatch: Dispatch | null, cargo: HomeCargo | null, source: string): string[];
+    seize(lord: Power, captor: Power, dispatch: Dispatch | null, cargo: HomeCargo | null, source: string): string[];
     surrender(x: Siege, owner: Power | null, tell: (p: Power | null, at: string, line: string) => void, how: "gate" | "thirst" | "breach"): void;
     /**
      * Item 17 ("Hunger breaks loyalty"): the seasons a starving city holds before someone opens a gate from within: longer
@@ -297,7 +297,7 @@ P.intercept = function (c, lord, siege, leaving, dispatch, cargo, due) {
   c.intercepted = true;
   const trail = this.trail(dispatch?.trailId ?? cargo?.trailId ?? null);
   trail?.outcomes.push(`caught ${leaving ? "leaving" : "coming home to"} ${city} by ${whose(besieger)} besiegers`);
-  const lines = this.seize(c, lord, besieger, dispatch, cargo, `taken from ${c.name}, envoy of ${powerName(lord)}, caught at ${city}`);
+  const lines = this.seize(lord, besieger, dispatch, cargo, `taken from ${c.name}, envoy of ${powerName(lord)}, caught at ${city}`);
   const said =
     dispatch !== null
       ? `leaving the city for the court of ${trail !== null ? powerName(trail.to) : ""}. The letter he was to speak: ${quoteWords(dispatch.letter)}` + (dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(dispatch.mandate)}` : "")
@@ -417,7 +417,7 @@ P.ownWallsText = function (a) {
  * at its fine weight, and the tablets (the one to be sealed, those shown as evidence, those brought home) into its
  * archive. Returns the lines that tell the captor.
  */
-P.seize = function (c, lord, captor, dispatch, cargo, source) {
+P.seize = function (lord, captor, dispatch, cargo, source) {
   const S = this.s;
   const lines: string[] = [];
   const gold = dispatch?.gold ?? cargo?.gold ?? 0;

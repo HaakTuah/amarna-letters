@@ -1,0 +1,97 @@
+# The security-review check (floor rule 8: "No PR merges before its security review has run, nor with a blocking
+# security finding open"), for every project that takes the core: it gives the head commit of each open pull request
+# that is no draft a commit status, "security-review", that says whether its security review has run. Proof is the
+# summary Codex's own app keeps on the pull request, saying its security review is completed, or a comment that opens
+# "Security review:" from the repository's owner, a member or a collaborator, which is how the fallback reviewer's or
+# another reviewer's is posted (modules/reviews.md, point 3); where Codex marks a finding of its security review open,
+# only such a comment settles it, posted after its newest finding where one is to be found; nothing else counts
+# (scripts/security-review.mjs, whose header says what it does not hold). A project calls it (workflow_call) from a
+# workflow of its own of the same name, on pull_request (the types opened, reopened, synchronize and ready_for_review)
+# and on issue_comment (created and edited), so that the status follows a review the moment its comment arrives and
+# moves with each push, in a job that grants contents: read, pull-requests: read and statuses: write, pinned to a full
+# commit SHA ("How a project takes the core" in README.md, point 5).
+#
+# Advisory, unless the caller turns that off: the status always passes and says what the check would have done ("would
+# wait, ..."), so nothing waits for it until a week of pull requests has shown it right. Turned off, the status stays
+# pending until the review has run, and a ruleset can require it. Not before a pure sync has a way through of its own,
+# which is not built yet: the floor lets one merge with no security review (rule 8), and this check would hold it.
+#
+# What keeps it safe, since a comment starts it and it may write a status (floor rule 2): it checks out the default
+# branch, never the pull request, and runs only that branch's copy of the script; a comment's text is read only in the
+# job's condition and as data from GitHub's API, never written into a run line; it runs for a comment only where that
+# is the summary of Codex's app or opens "Security review:" from the owner, a member or a collaborator; on
+# pull_request it runs only for a branch of the repository itself and not for Dependabot, whose token could not write
+# the status (theirs is written when a review's comment arrives); and the token can read, and write a commit status,
+# nothing more. A posted review that is later edited away or deleted is seen at the next push, not at once.
+name: security-review
+
+on:
+  workflow_call:
+    inputs:
+      advisory:
+        description: Whether the status always passes, saying what the check would have done. Left out, it does.
+        required: false
+        type: boolean
+        default: true
+      root:
+        description: The folder that holds the core's scripts/ and .node-version. Left out, core.
+        required: false
+        type: string
+        default: core
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  report:
+    if: >-
+      ${{ (github.event_name == 'pull_request' && !github.event.pull_request.draft
+      && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+      || (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.issue.state == 'open'
+      && ((github.event.comment.user.login == 'chatgpt-codex-connector[bot]'
+      && startsWith(github.event.comment.body, '<!-- codex-pull-request-review-summary -->'))
+      || (contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+      && (startsWith(github.event.comment.body, 'Security review:')
+      || startsWith(github.event.comment.body, '**Security review:'))))) }}
+    # one at a time for a pull request, in the order they came: the last to run has read the newest comments
+    concurrency:
+      group: security-review-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }} # the default branch's script, never the pull request's
+          persist-credentials: false # nothing after the checkout needs git's token
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: ${{ inputs.root }}/.node-version # the one exact Node ("Node" in modules/updates.md)
+      - name: Has the security review run?
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          ROOT: ${{ inputs.root }}
+          ADVISORY: ${{ inputs.advisory }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "$ROOT/scripts/security-review.mjs" ]; then
+            echo "The default branch does not hold the check's script yet: nothing to say."
+            exit 0
+          fi
+          d=$(mktemp -d)
+          gh api "repos/$REPO/pulls/$NUMBER" > "$d/pull.json"
+          gh api --paginate --slurp "repos/$REPO/issues/$NUMBER/comments?per_page=100" > "$d/comments.json"
+          gh api --paginate --slurp "repos/$REPO/pulls/$NUMBER/comments?per_page=100" > "$d/findings.json"
+          node "$ROOT/scripts/security-review.mjs" "$d/pull.json" "$d/comments.json" "$d/findings.json" > "$d/out.json"
+          sha=$(jq -r '.sha // empty' "$d/out.json")
+          if [ -z "$sha" ]; then
+            echo "The pull request is closed or a draft: nothing to say."
+            exit 0
+          fi
+          jq -r '.status | "\(.state): \(.description)"' "$d/out.json"
+          jq '.status' "$d/out.json" | gh api -X POST "repos/$REPO/statuses/$sha" --input - > /dev/null

@@ -185,3 +185,108 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      "On every wake", and "A verdict the stand-in is sure of decides one" in `modules/inbox.md`, which replaces item
      142's hold. What the stand-in is never sure of stays as it was: a call of taste, and an answer resting only on
      the core's archive in a project of another owner.
+
+169. **12 November 2026** (the core, in the design chat), told that the core said who builds first but left each
+     project to write down how a Claude session hands a task to another provider, and that neither game did:
+
+     > Hand off is only possible via a tool like herdr, or a plug-in in claude code. We have already tested trying to
+     > do it via github, there it can initiate, but codex in legacy cloud can't push, so no use. So only review and
+     > security review is avaliable via github. Seems to me a more generalized rule to just handoff what you can, is
+     > the best way? Shouldn't that produce what we do now, when we only have github? And then use plug-in if it is
+     > there? But prefer herdr even more if you set it up with it? What is your take, expert? This is the kind of
+     > stuff agent-core should solve for […], since he isn't familiar with the options. Are there more holes like
+     > this, that leaves things open for him, without good cause, expert?
+
+     Shown that rule as a table (the tool that runs agents side by side, else the plug-in, else Claude's build) and
+     six more places the core left to a project of another owner; offered his rule and four of them as one change
+     (how a reviewer other than Codex is asked; a reviewer that never answers; Codex's model and effort; which session
+     is the design session in a project with none), the other two left until that project reports (a licence check
+     for another installer; setting up a local machine), with the cap's room to be found or asked for:
+
+     > Yes, expertly. Then explain clearly to me every change you made to the rules.
+
+     Behind "by the first way there is" in `modules/roles.md`, "The builders"; `modules/codex.md`, "Building";
+     `modules/copilot.md`; "asked and not waited for" in `modules/reviews.md`, point 2; and "in a project with none"
+     in `modules/inbox.md`.
+
+     The second security review asked two things of the change, both taken into it: who reviews when a reviewer is not
+     waited for, and that work built through the plug-in is pushed by its briefer, with no protected file in it and its
+     builder named. Asked meanwhile:
+
+     > So copilot is always last resort then, is that what you're saying? Should at least be preferred over claude, no?
+     > Expert?
+
+     Told that Copilot reviewed ahead of Claude's reviewer only where a project named it, and built only under the tool
+     that runs the agents side by side; offered it second in the default order of reviewers, and its agent on GitHub as
+     a third way to build, after Codex's plug-in, with what that costs (its plan's requests), that GitHub marks the call
+     a preview and that it was not yet run; and asked again whether the cap may go to 46 KB:
+
+     > Agreed to all, expertly, but allow for other tools too!
+
+     Behind the default order of the *code reviewers* and "a way the project names" in `modules/roles.md`. Copilot's
+     building is not in the change: three rounds of review each found a step of it that only a real run can settle (its
+     own push before any check of its diff, and the approval its workflows wait for, which asks a permission the
+     sessions' sign-ins are set up without), so it is filed as an idea (issue 124) with what a run must show, and a
+     project that has Copilot's agent names it as its own way meanwhile. The cap of item 164 goes from 45 to 46 KB on
+     that yes.
+
+170. **12 November 2026** (the core, in the design chat), told that the stand-in had given its verdict on nine of one
+     project's fifteen open ideas and that the six newest had none, since its sweep took only the ideas that had waited
+     a week:
+
+     > That's a glip, should take all when it first runs, no?
+
+     Behind "every idea that lacks one" in `modules/orchestrating.md`: a week's wait still starts the sweep, and once it
+     runs it takes every open idea without a verdict, so none is left for a call of its own.
+
+171. **12 November 2026** (the core, in the design chat), after the change of item 169 was merged with the ways of
+     handing work over in order, but nothing on which provider builds where more than one can:
+
+     > Also, are all other providers also treated like codex? How does it select if it both has codex and something
+     > else?
+
+     Told that every other provider's builder follows the same rules and only Codex has a part in the core; that nothing
+     chose between two that could both build; offered: the project's order if it names one, otherwise Codex first, a
+     task one failed at twice going to the next and Claude's last; told what Codex first costs (work Codex built cannot
+     have Codex's code review, and its security review fell to Claude's fallback reviewer, which spends Claude's usage),
+     and that the rule needed room the cap did not have: 47 KB, or cuts.
+
+     > Maybe codex still can be used for security.
+     >
+     > But yeah, fine how you've laid it out. Yes to everything, now and before, expertly.
+
+     Behind "Where more than one can build" in `modules/roles.md`, "The builders", and the *other builders* slot; behind
+     the *security reviewer* slot's default, Codex of what its own provider built too, floor rule 3's two reviews
+     standing; and behind the cap of item 164 at 47 KB.
+
+172. **12 November 2026** (the core, in the design chat), an hour after item 170, whose words were read as the weekly
+     sweep alone; told that six ideas in one project and three in the core still had no verdict, since the sweep starts
+     only once an idea has waited a week and the stand-in, called for a question, judged only the ideas on that
+     question's topic:
+
+     > But are we telling it now to do all when the stand-in steps forward?
+
+     That change was written on those words and held when its review found them a question and no instruction. Asked
+     then outright whether the stand-in, every time it is called, should give every open idea that lacks one its
+     verdict, and whether the three ideas it had just given a sure yes in the core should be built (a feature that may
+     wait for a later stage, the checks still unbuilt, a real run of Copilot's agent):
+
+     > Do you agree, expertly?
+
+     Told yes to each, in that order, the check that holds a merge for its security review advisory for a week first,
+     and the run likely to need his own approval of the agent's workflows once:
+
+     > Do what you expertly advice on these points.
+
+     Behind "whenever it is called, its verdict on every open idea that lacks one" in `modules/inbox.md`: item 170's
+     "should take all when it first runs" meant any run of the stand-in, not the sweep's alone. The sweep of
+     `modules/orchestrating.md` stays for a project where a week passes without a call.
+
+173. **12 November 2026** (the core, in the design chat), by his word in item 172 ("Do what you expertly advice on these
+     points") on the three ideas the stand-in had given a sure yes; the first, filed when one game listed it as a
+     difference from the core: a feature that does not pay yet may wait for the later stage that brings what it needs.
+     The stand-in rested it on his words of items 86 ("Can't draw conclusion right now, as the game isn't fully
+     constructed yet, but once it starts being feature complete, this cannot be the case") and 107 (no temporary
+     features), with item 89's limit that the computer players' bad play is never what waits.
+
+     Behind the third outcome in "Using a feature must pay, measured three ways" (`modules/game-design.md`).

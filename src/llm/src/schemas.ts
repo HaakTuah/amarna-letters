@@ -32,5 +32,3 @@ export const Schemas = {
   OtherActions,
 };
 
-/** What the orders reply, read back from the model, holds (every field, with a sleeping seat's schedule). */
-export type LeaderOrdersReply = z.infer<ReturnType<typeof leaderOrders>>;

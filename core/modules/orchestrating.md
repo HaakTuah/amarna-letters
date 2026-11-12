@@ -13,7 +13,7 @@ sessions does it say so and stop.
   project's pin, start a routine lane (once a day where checks cost money) that runs `core/scripts/sync.mjs` and opens
   the sync PR (never auto-merged: floor rule 8); turn back on any scheduled workflow GitHub switched off (`gh workflow
   enable`); act on what is new in the *progress file*; once an open idea has waited a week with no verdict of the
-  stand-in's, have it give every such idea its verdict, in one call (`modules/inbox.md`).
+  stand-in's, have it judge every idea that lacks one, in one call (`modules/inbox.md`).
 - **Hand over at once:** start the next session as soon as a task merges. One session per task, continued for its review
   fixes while its context is under an hour old and small; otherwise a fresh one (core archive 10).
 - **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`.

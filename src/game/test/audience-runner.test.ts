@@ -2,7 +2,6 @@ import { describe, test } from "vitest";
 import {
   AllPowers,
   type EnvoyReaction,
-  type HostReply,
   type MindReply,
   first,
   newEnvoyReaction,
@@ -12,7 +11,6 @@ import {
   single,
 } from "@amarna/engine";
 import {
-  type EnvoyContext,
   GameRunner,
   type ICharacterMind,
   type MindContext,
@@ -32,10 +30,10 @@ describe("AudienceRunnerTests", () => {
     get label(): string {
       return "Pliant";
     }
-    present(ctx: EnvoyContext, ct: AbortSignal): Promise<PresentResult> {
+    present(): Promise<PresentResult> {
       return Promise.resolve(newPresentResult({ speech: "My lord greets you." }));
     }
-    react(ctx: EnvoyContext, host: HostReply, ct: AbortSignal): Promise<EnvoyReaction> {
+    react(): Promise<EnvoyReaction> {
       return Promise.resolve(newEnvoyReaction({ speech: "I thank you.", acceptBribe: true }));
     }
     write(ctx: MindContext, ct: AbortSignal): Promise<MindReply> {

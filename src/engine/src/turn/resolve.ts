@@ -1,30 +1,28 @@
 /** The season's resolution (phase 4 of TurnEngine): movement, land changing hands, transfers, levies, the end. */
 import { endSieges } from "../model/sieges-ended.ts";
 import { Dict, HSet } from "../core/collections.ts";
-import { idiv, roundTo, fmt } from "../core/num.ts";
+import { idiv, roundTo } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
-import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, placesNamed, told, unitOf } from "../model/order-reading.ts";
+import { cmpNum, cmpStr, count, distinct, sortBy } from "../core/seq.ts";
+import { placesNamed, told, unitOf } from "../model/order-reading.ts";
 import { placesKnown } from "../rules/units-known.ts";
 import { newTurnSubmission, type RejectedOrder, type TurnSubmission } from "../model/submission.ts";
 import { type CourtOrder, type CommandOrder, type EnlistOrder, type PayOffOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type LetterOrder, type BuyLetterOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
-import { AllPowers, cmpPower, king, land, type Power, whose, powerName } from "../model/power.ts";
-import { isSealedAgreement } from "../model/records.ts";
-import { alive, findCharacter, isAlive, ledger, logEvent, newId, newKingdomFall, notify, ownedBy, unitAt, wallsOf } from "../model/state.ts";
+import { AllPowers, king, land, type Power, powerName } from "../model/power.ts";
+import { alive, findCharacter, isAlive, logEvent, newId, newKingdomFall, notify, ownedBy, unitAt, wallsOf } from "../model/state.ts";
 import { newUnit, unitLabel, type Unit, loseUnit, keepGone } from "../model/units.ts";
 import { listed, upper } from "../rules/wording.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
-import { WorldMap } from "../model/map.ts";
-import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
+import { forMen, LandData, levySize, menAvailable, menOf } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { commandStrength } from "../model/command.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { finalScore, strength as scoringStrength, standingOf, type FinalScore } from "../rules/scoring.ts";
+import { strength as scoringStrength } from "../rules/scoring.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
@@ -123,7 +121,7 @@ P.resolveSeason = function (submissions) {
     }
     return out;
   };
-  const any = (o: Order): o is Order => true;
+  const any = (_o: Order): _o is Order => true;
 
   // Item 13: command granted and taken back, and mandates sent, before the moves, to the units where they stand as the king names them.
   for (const [p, o] of all((o): o is RelieveOrder => o.type === "relieve")) this.relieveCommand(p, o);

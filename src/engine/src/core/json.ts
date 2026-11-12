@@ -50,7 +50,6 @@ const resolve = (s: SchemaLike): Schema => (typeof s === "function" ? { k: "lazy
 
 export const opt = (of: SchemaLike): Schema => ({ k: "opt", of: resolve(of) });
 export const list = (of: SchemaLike): Schema => ({ k: "list", of: resolve(of) });
-export const set = (of: SchemaLike): Schema => ({ k: "set", of: resolve(of) });
 export const dict = (of: SchemaLike): Schema => ({ k: "dict", of: resolve(of) });
 /** A get-only C# property: written, never read back. */
 export const computed = <T>(of: SchemaLike, get: (o: T) => unknown): Schema => ({ k: "computed", of: resolve(of), get: get as (o: never) => unknown });
