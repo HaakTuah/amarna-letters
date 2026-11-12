@@ -50,7 +50,8 @@ export function characterSignal(frames: readonly SeasonFrame[], index: number, v
   const held = owners(f, viewer).get(place) ?? null;
   const moves = index > 0 ? seen(f, viewer) : [];
   for (const m of moves) {
-    if ((m.target !== place && m.from !== place) || !(hostile(m) || m.destroyed)) continue;
+    // Where the fight was: the place attacked (a hold or a unit destroyed, where it stood), never where an army set out from.
+    if ((m.target ?? m.from) !== place || !(hostile(m) || m.destroyed)) continue;
     const kings = m.targetOwner !== null && isGreatKing(m.power) && isGreatKing(m.targetOwner);
     if (kings || sizeable(moves, place, m.targetOwner) || (realm !== null && held === realm)) {
       raiseSignal(out, Heat.battle, "battle");

@@ -111,6 +111,8 @@ class Player {
   private pass: Pass | null = null;
   private passPiece: string | null = null;
   private synthRestUntil = 0;
+  /** The mood the pass before the rest stood for, so a rise during the rest is heard at once. */
+  private restFrom: Mood | null = null;
   /** The fallback's engine, when its versions play; and the listening page's own. */
   private synth: SynthDeck | null = null;
   private soloSynth: SynthDeck | null = null;
@@ -474,7 +476,8 @@ class Player {
     this.synth.version = this.style() as Version;
     if (!this.synth.playing) {
       // The rest between passes (item 19+++c), the engine stopped for it.
-      if (performance.now() < this.synthRestUntil) return;
+      // A moment, or a rise the viewer is to hear at once, ends it.
+      if (performance.now() < this.synthRestUntil && this.moment === null && !(this.restFrom !== null && riseNow(this.restFrom, this.mood, this.turn()))) return;
       this.pass = null;
       this.synth.start();
       this.open(false);
@@ -505,9 +508,12 @@ class Player {
     let piece = this.passPiece;
     if (this.pass === null || this.pass.left <= 0 || mood !== this.pass.mood || piece === null) {
       const rose = this.pass !== null && mood !== this.pass.mood && this.pass.left > 0;
-      const rise = this.pass !== null && riseNow(heardMood(this.passPiece, this.pass.mood), mood, turn);
+      const heard = this.pass !== null ? heardMood(this.passPiece, this.pass.mood) : this.restFrom;
+      const rise = heard !== null && riseNow(heard, mood, turn);
+      this.restFrom = null;
       if (this.pass !== null && this.pass.left <= 0 && !rise) {
         this.synthRestUntil = performance.now() + restFor(Math.random) * 1000;
+        this.restFrom = heard;
         this.pass = null;
         return null;
       }

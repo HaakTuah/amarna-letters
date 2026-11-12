@@ -36,6 +36,9 @@ describe("AudioListeningTests", () => {
     // A war elsewhere is not his.
     const elsewhere = [season(0), season(1, { moves: [attack("Hatti", "gaza", "Mitanni"), attack("Egypt", "kadesh", "Hatti")] })];
     Assert.equal(0, characterSignal(elsewhere, 1, null, "c1").heat);
+    // An army setting out from his province to fight elsewhere is not a battle where he stands.
+    const leaving = [season(0), season(1, { moves: [attack("Egypt", "kadesh", "Hatti", home)] })];
+    Assert.equal(0, characterSignal(leaving, 1, null, "c1").heat);
     // His place besieged is his danger; foreign troops standing in it, unease.
     const siege = { province: home, besieger: "Hatti" as Power, progress: 1, walls: 2, since: 2 };
     Assert.equal([Heat.battle, "siege"], ((x) => [x.heat, x.top])(characterSignal([season(0), season(1, { sieges: [siege] })], 1, null, "c1")));
