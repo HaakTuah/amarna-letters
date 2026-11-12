@@ -47,8 +47,8 @@ in a third-party notices file that ships. Tools that only run, nothing of which 
 Source Initiative approves; a tool's code never moves into what ships without passing the first list. Never, in either:
 non-commercial or no-derivatives terms, source-available terms (BSL, SSPL, Elastic, Commons Clause), or no licence. A
 check on every PR fails one that adds or updates a package to a licence off its list; one the owner wants anyway waits
-for his yes. CodeQL is free only while a repository is public. The owner's own work carries no licence but the terms he
-gives it, all rights reserved: never add or change them unasked.
+for his yes. The owner's own work carries no licence but the terms he gives it, all rights reserved: never add or change
+them unasked.
 
 **15. Dependencies** (core archive 76): installed from the lock file (`npm ci` or its like), except where a PR adds or
 updates a package; never running a package's install scripts; pinned as rule 7 says; a new one only with a reason, from

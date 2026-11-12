@@ -45,9 +45,9 @@ built from pieces when the test runs, sample names and addresses invented (core 
 **11. Nothing personal, ever** (core archive 30 and 43). No file, commit, PR, issue, comment, log or picture holds
 personal information about the owner or anyone in his life: no names (he is "the owner"), profession, employer or
 workplace, family, home, age, health, memberships or money, nor anything else about his life outside the project; nor
-does any prompt or brief given to an agent. His archived words leave such details out as "[…]". The one exception is the
-GitHub account in the repository's own address. The check `personal-terms.yml` fails a PR holding a term from the
-Actions secret `PERSONAL_TERMS`.
+does any prompt or brief given to an agent. His archived words leave such details out as "[…]". Excepted: the GitHub
+account in the repository's own address, and the company name a project is sold under, naming no person. The check
+`personal-terms.yml` fails a PR holding a term from the Actions secret `PERSONAL_TERMS`.
 
 **12. `main` is the owner's** and what its users get is built from it: never pushed to, never force-pushed. It changes
 only by a merged pull request, brought up to date with `main` and its checks passed (core archive 113).
