@@ -35,6 +35,8 @@ jobs:
         run: node scripts/pr-description-test.mjs
       - name: The workflow check
         run: node scripts/workflows-test.mjs
+      - name: The core-moved check
+        run: node scripts/core-moved-test.mjs
       - name: None of the core's own workflows names the forbidden trigger
         run: node scripts/workflows.mjs
       - name: What the core's own workflows and scripts use, each to its list

@@ -1,23 +1,26 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
+name: Idea for the core
+about: A rule, hook or check the core lacks, or one that would hold better written another way
 title: ''
 labels: enhancement
 assignees: HaakTuah
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is.
+<!--
+This repository is public, and so is every word written here. Before you write, read what may stand in an issue:
+"Reporting to the core" in the README (https://github.com/HaakTuah/agent-core#reporting-to-the-core).
+A weakness is never filed here: the Security tab, "Report a vulnerability", which only the owner sees.
+-->
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**What it is**
+The idea in a line or two, in plain words.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Why it matters**
+What went wrong or cost time without it, and how often.
 
-**Why it matters, and a rough cost**
-The rule or principle it serves, and how big the work would be.
+**Which part of the core it touches**
+The file and section, if there is one. The commit of the core your project holds.
 
-**Additional context**
-Add any other context about the feature request here.
+**The kind of project**
+No closer than this: public or private; the platform it is built on; the cloud or the owner's own computer.

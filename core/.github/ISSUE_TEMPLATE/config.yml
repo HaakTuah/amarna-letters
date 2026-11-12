@@ -1,0 +1,6 @@
+# What a person sees when opening an issue here: the three forms only, and where a weakness goes instead.
+blank_issues_enabled: false
+contact_links:
+  - name: A weakness, reported privately
+    url: https://github.com/HaakTuah/agent-core/security/advisories/new
+    about: Never in an issue. Only the owner sees what is reported here.
