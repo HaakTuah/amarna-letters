@@ -3,6 +3,7 @@ name: sim-poller
 description: Runs sim/wait.js for a workflow that orchestrates an Amarna Letters simulation, and reports its output. Only for that workflow; never use it for any other work.
 tools: Bash
 model: haiku
+effort: low
 hooks:
   PreToolUse:
     - matcher: ".*"
