@@ -8,7 +8,7 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 ## The core
 
 This game takes the shared rules in `core/` by `core-manifest.md`, whose slots and names fill the core's words. Read
-these whole at the start of every task (Claude Code imports them; Codex: read each file named):
+these whole at the start of every task (Claude Code imports them; any other builder: read each file named):
 
 @core-manifest.md
 @core/floor/security.md
@@ -17,7 +17,7 @@ these whole at the start of every task (Claude Code imports them; Codex: read ea
 @core/modules/work-flow.md
 @core/modules/git.md
 
-A builder of another provider (Codex): read `core/modules/other-builders.md` at the start of every task. The other files
+A builder of another provider: read `core/modules/other-builders.md` at the start of every task. The other files
 of the core, `core/floor/topics.md` and `core/modules/game-design.md` among them, are read when a task needs them; each
 says when. A safety rule of this game's own, which "Principles over rules" (`core/modules/how-to-work.md`) never
 reaches: no model games until the build order is done.
@@ -26,7 +26,7 @@ reaches: no model games until the build order is done.
 
 | What | Where | Notes |
 | --- | --- | --- |
-| Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
+| Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; any other builder reads them at the start of every task. |
 | Security | `SECURITY.md`, `docs/threat-model.md` | What this game adds to the floor and to its threat model. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
@@ -36,6 +36,8 @@ reaches: no model games until the build order is done.
 | History | `docs/archive/` (build log; the owner's instructions word for word; the design document's history) | Read only when a task points there. |
 
 ## Starting a task
+
+A builder of another provider starts from its brief instead (`core/modules/other-builders.md`).
 
 1. Find the next item in `docs/BUILD-PROGRESS.md`. The item's own text is its brief:
    `docs/intent/build-order/item-<n>.md` (`item-6.md`, `item-9plus.md`, ...).
@@ -51,8 +53,10 @@ reaches: no model games until the build order is done.
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, a specification (its "question N" plans): read it by the question
   you need.
 - **Print little:** tests with `scripts/test.sh` and script games with `scripts/sim.sh`. Model-game simulations
-  (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`).
-- **Never edit `docs/intent/` or `docs/builder-rules.md`;** a design decision goes to the design session.
+  (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`): its seats are
+  players, not helpers (`core/modules/helpers.md`).
+- **Never edit `docs/intent/` or `docs/builder-rules.md`;** a design decision is taken as a reading
+  (the core's "The work never waits") and goes to the design session to settle.
 - **The smallest game that tests the rule** (archive item 28): a few powers on part of the map, a handful of seasons
   and only the characters a test needs; full-size games only in the replays, the save round trip and a smoke game; long
   measurements (benchmarks, use against ignore) in `scripts/sim.sh`. When an item grows the starting world, the tests'
@@ -60,9 +64,9 @@ reaches: no model games until the build order is done.
 - **A standing rule of the owner's** for this game moves into the builder rules at the next refresh of the design
   document's copy, and leaves this file in the same PR.
 - **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
-- **Lanes beside the items** (archive item 23): beside the numbered items run splits, history
-  dossiers, script play outside the current item's code, tests, and interface polish on screens the item does not
-  touch; a lane's draft PR's title names its entry.
+- **Lanes beside the items** (archive item 23): beside the numbered items run, with the core's own (an obvious
+  improvement, a bug's fix: `core/modules/inbox.md`), splits, history dossiers, script play outside the current item's
+  code, tests, and interface polish on screens the item does not touch; a lane's draft PR's title names its entry.
 
 ## Commands
 
@@ -80,5 +84,5 @@ key is set in cloud sessions.
 
 ## Review guidelines
 
-Every reviewer, Codex's code review included, reads `core/modules/review-guidelines.md` and this game's own,
+Every reviewer, the code reviewers and the security reviewer included, reads `core/modules/review-guidelines.md` and this game's own,
 `docs/review-guidelines.md`, whole, and judges the change by them, with `SECURITY.md` and the floor.
