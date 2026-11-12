@@ -98,7 +98,7 @@ export interface WorksPart {
 
 /**
  * The works at a city, close up: a row of small marks to the right of the city, below its news, clear of its outermost
- * ring (the stylesheet's `wring`); markers in the upper drawing, which give way where they would touch another (the
+ * ring (the stylesheet's `.wk`); markers in the upper drawing, which give way where they would touch another (the
  * renderer's placement), and are drawn only when the map is zoomed in (lod2), where there is room.
  */
 export function cityWorks(s: MapScene, province: string, capital: boolean, walls: number): WorksPart {
@@ -120,11 +120,13 @@ export function cityWorks(s: MapScene, province: string, capital: boolean, walls
   marks.push(...lifeMarks(s, province));
   if (marks.length === 0) return { markup: "", tips: [] };
   const at = city(province);
-  let sb = `<g class="works-at" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(capital, walls))}"><g class="wring"><g class="sym">`;
+  // One transform a mark (#666, the stylesheet's `.wk`): the city's place, the ring's offset and the symbol's size, which the
+  // mark used to have as three groups round it, are the mark's own, from the numbers set here.
+  let sb = `<g class="works-at" data-province="${province}" style="--ax:${F(at.x)};--ay:${F(at.y)};--ring:${F(ringOf(capital, walls))}">`;
   marks.forEach((m, i) => {
-    sb += `<g class="wk ${m.cls}" transform="translate(${F(7 + i * 15)},0)"><title></title><circle class="wk-bg" r="7"/>${m.inner}</g>`;
+    sb += `<g class="wk ${m.cls}" style="--wi:${i}"><title></title><circle class="wk-bg" r="7"/>${m.inner}</g>`;
   });
-  return { markup: sb + "</g></g></g>", tips: marks.map((m) => m.text) };
+  return { markup: sb + "</g>", tips: marks.map((m) => m.text) };
 }
 
 /** The works of every city the viewer has any to show at, as the upper drawing's layer: one part a land province (part G). */
