@@ -85,3 +85,17 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      Behind "Another provider builds first" in `modules/roles.md` (every task or part a brief can carry and a check or
      its review can judge, where the owner set it up for the project) and the end of "Work continuously, other
      providers first" in `modules/claude.md`.
+
+163. **12 November 2026** (the core, in the design chat), of "Another provider builds first" (item 162) and of the
+     project of item 154, whose owner pastes no further word of this chat into his sessions:
+
+     > Important that this is only if Claude is the orchestrator, doesn't prohibit other kinds of work
+
+     > Check thoroughly for other contradictions and for cohesion across the board!
+
+     > […] won't reprompt, so I hope this all gets fixed with new imports of core.
+
+     Behind "Where Claude's sessions hand out work, another provider builds first" in `modules/roles.md` and the
+     orchestrator's own line of it in `modules/orchestrating.md`; `setup/sync-notes.md`, what a sync asks of a project
+     beyond the copy, which the sync script prints and an orchestrator gives a lane; and the audit's fixes of the
+     same pull request.

@@ -22,8 +22,12 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
 
 1. **An exact copy under `core/`,** pinned to one commit of this repository and never edited by hand. A change reaches a
    project only through a sync PR there, made by `core/scripts/sync.mjs`. A pure sync (only the copy and its pins, as
-   `scripts/pure-sync.mjs` proves) gets no review of its own, since the core's PR reviewed what it carries (floor rule
-   8); one that also fixes the project's pointers into core files the sync moved or removed is reviewed like any PR. The
+   `scripts/pure-sync.mjs` proves, run from a checkout of this repository's `main` and never from the PR's own copy)
+   gets no review of its own, since the core's PR reviewed what it carries (floor rule 8), and is merged by hand at the
+   head that script names, never by auto-merge; one that also fixes the project's pointers into core files the sync
+   moved or removed is reviewed like any PR. Where a change to the core asks something of the project itself (a row of
+   its manifest, a line of a rule file, a workflow), `setup/sync-notes.md` says so, the sync script prints the entries a
+   sync brings, and each is done in a PR of its own once the sync is merged. The
    core's `core.yml`, which the project calls on every PR as a required check, fails one whose `core/` differs from the
    core at its pin. The first copy is the sync script's too, run from a clone of this repository once the manifest is
    written (the script's header says how); the copy's own `.gitattributes` keeps every line ending as it is.
@@ -93,8 +97,9 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
    project's own adds to the core: one that asks for more than a module does (a stricter check, a further review, its
    safety rules) is no difference and needs no line, and one that would replace a module's rule unlisted yields to it
    (`modules/how-to-work.md`, "A project's own rules add to the core's"). A difference is the project's owner's to give,
-   his word quoted in the PR that lists it. None is against the floor, against what a floor rule rests on (who reviews
-   a change and who may merge it, in `modules/reviews.md` and `modules/roles.md`: the builder never reviews its own
+   his word quoted in the PR that lists it; until he gives it the module's rule holds, and the work goes on by it
+   (or, where its letter would defeat its purpose, by "Principles over rules"). None is against the floor, against what a floor rule rests on (who reviews
+   a change and who may merge it, in `modules/reviews.md`, `modules/roles.md` and `modules/git.md`: no session reviews its own
    work), or against the review guidelines. `core.yml` fails a manifest whose differences name the floor or the review
    guidelines: a tripwire for the plain case, while what holds the rule is the reviews every change to the manifest
    gets, as a protected file. The pointer check fails a difference whose rule the core has since renamed or removed,
@@ -124,7 +129,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 | *major version checks* | the extra checks a new major version gets |
 | *other builders' checks* | what a builder of another provider runs before it finishes (`modules/other-builders.md`); a row still named *Codex's checks* is this one, renamed at the project's next sync |
 | *code reviewers* | who reviews whose work, in order, with the fallback reviewer last, how each one that is not Codex is asked, and which of its findings block where it marks none so; left out, the core's own (`modules/roles.md`) |
-| *security reviewer* | who gives each PR its security review, and how it is asked; left out, Codex (`modules/reviews.md`, point 3) |
+| *security reviewer* | who gives each PR its security review, how it is asked, and who gives it where that reviewer's own provider built the PR; left out, Codex, and the fallback reviewer of what Codex built (`modules/reviews.md`, point 3) |
 | *computer players*, *measured players*, *what they are shown*, *use-against-ignore measurement*, *where the numbers go*, *where rules are taught* | a game's names for what `game-design.md` speaks of |
 
 ## The manifest's format

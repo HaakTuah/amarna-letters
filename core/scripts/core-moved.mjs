@@ -46,8 +46,9 @@ export function body(pin, newest) {
     `What changed: https://github.com/${CORE}/compare/${pin}...${newest}`,
     "",
     "To take it, a session runs `node core/scripts/sync.mjs` on a branch of its own and opens the sync pull request " +
-      '(the core\'s README, "How a project takes the core", point 1). This issue closes by itself once the project ' +
-      "holds the newest commit.",
+      '(the core\'s README, "How a project takes the core", point 1), then does what the sync asks of the project ' +
+      "itself, in a pull request of its own (`core/setup/sync-notes.md`). This issue closes by itself once the " +
+      "project holds the newest commit.",
     "",
   ].join("\n");
 }

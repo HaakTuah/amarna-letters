@@ -1,7 +1,8 @@
 // The sync (README, "How a project takes the core", point 1): run from a project's root, it brings the project's copy
 // of the core to a newer commit of the core, as a sync PR carries it. It writes `core/` whole at that commit, moves the
 // manifest's "Core:" line to it, and moves each call to a core workflow whose workflow changed (as `core.yml` checks),
-// listing those calls. It commits and pushes nothing: the session that runs it reviews the diff and opens the PR,
+// listing those calls, and prints what the sync asks of the project beyond the copy (the core's setup/sync-notes.md, the
+// entries it gained between the two commits). It commits and pushes nothing: the session that runs it reviews the diff and opens the PR,
 // which, a pure sync, its merger checks with `scripts/pure-sync.mjs` (floor rule 8). Git, tar and Node's own modules
 // only.
 //
@@ -17,6 +18,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const CORE = "HaakTuah/agent-core";
+const NOTES = "setup/sync-notes.md";
 const URL = `https://github.com/${CORE}`;
 const git = (args, cwd) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 class Failure extends Error {}
@@ -65,6 +67,18 @@ function sync(tmp) {
   console.log(moved.length
     ? `Workflow calls moved:\n  ${moved.join("\n  ")}`
     : "No workflow call moved: the PR changes no workflow.");
+  // What this sync asks of the project beyond the copy: the entries the core's sync notes gained between the two pins.
+  // (A pin from before the notes gives every entry. Where the entries cannot be read, it says so: never an all-clear.)
+  let asks = null;
+  try {
+    asks = git(["diff", "--unified=0", "--no-color", "--no-ext-diff", "--no-textconv", old, pin, "--", NOTES], tmp)
+      .split("\n").filter(l => l.startsWith("+- ")).map(l => l.slice(1));
+  } catch { /* said below */ }
+  console.log(asks === null
+    ? `What this sync asks of the project beyond the copy could not be read: read core/${NOTES} for the entries newer than the old pin.`
+    : asks.length
+      ? `This sync asks more of the project than the copy (core/${NOTES}). Not in this PR, a pure sync: do each in a PR of its own once this one is merged, or queue it in the progress file where it is large.\n${asks.join("\n")}`
+      : `This sync asks nothing of the project beyond the copy (core/${NOTES}).`);
 }
 
 // The clone lives in a temporary folder, removed however the sync ends.

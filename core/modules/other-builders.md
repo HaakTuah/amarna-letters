@@ -7,6 +7,6 @@ Read at the start of every task by a builder that is not Claude's.
 - **The tests you are given are the contract:** make them pass; never change, skip or weaken them. If one seems wrong,
   say why in your report and leave that part.
 - Run the *other builders' checks* before you finish. Your work goes to the task's branch, never to `main`, in its PR,
-  which you open if none was.
+  which you open if none was; its reviews and merge are your briefer's.
 - Report anything missing that the suites need; never work around it. List your readings, ideas and bugs in your
   report, and any helpers you ran with what each gave.
