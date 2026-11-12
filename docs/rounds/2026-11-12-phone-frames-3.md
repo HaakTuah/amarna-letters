@@ -36,11 +36,19 @@ comes back as the view comes near it.
 
 ## No hole at the view's edge
 
-`docs/rounds/2026-11-12-phone-frames-3/holes.mjs` (kept with this report, not shipped): with every mark left out measured
-as if drawn, none lies on the screen. 79 checks on the phone and 79 on desktop, each at rest, at each of eight steps of a
-drag in each of four directions, after each of seven wheel steps out and in, three times during each of five button glides
-(zoom out and in), twice during each of five key pans, and after stepping two seasons back and two on: none with a mark
-left out on screen.
+`node src/web/scrub.mjs --holes [--desktop]` (new, on the bench): seed 1 at season 30, and at each check every element
+left out measured as if drawn; none may lie on the screen. 78 checks on the phone and 78 on desktop: at rest; at each of
+eight steps of a drag in each of four directions, mid-gesture, and after each; after each of seven wheel steps out and in;
+three times during each of five button glides (zoom out and in) and after each; twice during each of five key pans; after
+stepping two seasons back and two on. None on either, for both tries. A first run of the check found one: the season's
+capture marks, kept whole for their animations, were still marked when their own layer was written; fixed before any
+measurement below.
+
+**The look.** The same views on both builds, with reduced motion so nothing is caught mid-animation (seed 1, season 30, the
+opening view, after the drags, and after the zooms and pans), compared pixel by pixel: on desktop 64, 32 and 133 pixels of
+a million differ, none by more than 24 levels of 255; on the phone 854, 1,813 and 206 of 329,160, all along the rims of a
+few marks (the camp-fire and band marks, a crossing), every element present and in its place, the pictures the same to the
+eye. With motion the pictures also differ where the battles' bursts and the marchers' dust were caught at another moment.
 
 ## Measured
 
@@ -74,8 +82,15 @@ thirds of those off the screen.
 | `main` 3 | 1,380 | 311 | 89 | 35 | 255 | 37 | 171 | 67 |
 | first try 1 | 1,325 | 262 | 79 | 42 | 223 | 35 | 160 | 54 |
 | first try 2 | 1,399 | 281 | 87 | 43 | 234 | 36 | 177 | 62 |
+| second try 1 | 1,164 | 212 | 73 | 38 | 196 | 34 | 155 | 41 |
+| `main` 4 | 1,288 | 296 | 82 | 35 | 248 | 35 | 150 | 54 |
+| second try 2 | 1,266 | 221 | 79 | 43 | 216 | 35 | 164 | 44 |
+| `main` 5 | 1,361 | 304 | 85 | 36 | 259 | 35 | 163 | 62 |
 
 `main` on desktop (one run): busy 308, layerize 73, style 21, layout 8, paint 56, commit 9, script 29; 16 tasks over 50 ms.
 
 The first try: layerize and paint about a tenth less, in line with a third of the marks left out, and within the bench's
-noise.
+noise. The second, each run beside a run of `main`: layerization 212 and 221 against 286 to 327 in all five of `main`'s
+runs (about a quarter less), paint 196 and 216 against 248 to 270 (a fifth less), style a tenth less, busy time 1,164 and
+1,266 against 1,288 to 1,430, and 41 and 44 tasks over 50 ms against 54 to 80. Layout and script stand where they stood:
+the marking costs little (`map:inview`).
