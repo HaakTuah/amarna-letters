@@ -7,7 +7,7 @@ import { cmpStr, split } from "../core/text.ts";
 import { WorldMap } from "../model/map.ts";
 import { coverOf, hiddenAt, type Character } from "../model/people.ts";
 import { captiveMaster, characterView, confessedMaster, dutyText, envoyHomeTiming, homeTiming, isOurs, knownDemand, knows, seenAtCourt, termText, timingText, unheardHire } from "./people-views.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, nameGivenBy, ownLand, powerName, type Power } from "../model/power.ts";
 import { repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -38,9 +38,8 @@ export { tongueClaimsAs } from "./people-views.ts";
 import { ageBand } from "./ending.ts";
 import { omenLine } from "./omens.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
-import { asShown, basePrice, trustIn } from "../turn/turn-engine.ts";
+import { asShown, trustIn } from "../turn/turn-engine.ts";
 import { debtLeft, isPowerParty, standsForBorrower } from "../model/money.ts";
-import { travelTurns } from "../turn/core.ts";
 
 /**
  * Every power's land-based growth from who holds what, the living best first (ties in the fixed order of powers), then

@@ -17,7 +17,6 @@ import {
   type Clause,
   roundEven,
   sortBy,
-  sum,
   tier,
   toInt,
   trim,

@@ -133,8 +133,8 @@ describe("PressTests", () => {
     Assert.equal(["askWithdraw", "gift", "wellWishes"], recited.map((c) => c.kind));
     Assert.equal(40, recited[1].amount);
     let answer = [clause("refuse", { answers: "askGold" }), clause("threat")];
-    Assert.equal(["refuse", "threat"], reportClauses(answer, [], timid, true, false, false).map((c) => c.kind));
-    let bribed = reportClauses(answer, [clause("newsStrength", { power: "Hatti", amount: 0 })], timid, false, true, false);
+    Assert.equal(["refuse", "threat"], reportClauses(answer, [], true, false, false).map((c) => c.kind));
+    let bribed = reportClauses(answer, [clause("newsStrength", { power: "Hatti", amount: 0 })], false, true, false);
     Assert.equal(["accept", "newsStrength"], bribed.map((c) => c.kind));
   });
 

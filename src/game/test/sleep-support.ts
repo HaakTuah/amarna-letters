@@ -18,7 +18,6 @@ import {
   newGame,
   newGameConfig,
   newHostReply,
-  newId,
   newPlannedOrder,
   newScheduledOrders,
   newSleepSpell,
@@ -26,7 +25,6 @@ import {
   newStandingOrder,
   newStandingRequest,
   newTurnSubmission,
-  newUnit,
   unitAt,
   unitOf,
 } from "@amarna/engine";
@@ -58,12 +56,12 @@ export class Sleeper implements ISeat {
     return true;
   }
 
-  decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+  decide(view: SeatView): Promise<TurnSubmission> {
     this.views.push(view);
     return Promise.resolve(this.#decide(view));
   }
 
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+  hostAudience(view: AudienceView, court: SeatView): Promise<HostReply> {
     {
       this.hosted.push(view.turn);
       this.courts.push(court);
@@ -82,10 +80,10 @@ export class Scripted implements ISeat {
   get label(): string {
     return "Scripted";
   }
-  decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+  decide(view: SeatView): Promise<TurnSubmission> {
     return Promise.resolve(this.#decide?.(view) ?? newTurnSubmission());
   }
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+  hostAudience(): Promise<HostReply> {
     return Promise.resolve(newHostReply({ end: true }));
   }
 }
@@ -98,7 +96,7 @@ export class ModelRecorder implements JsonAsker {
   }
   specs: CallSpec[] = [];
 
-  askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+  askJson(spec: CallSpec): Promise<JsonObject> {
     this.specs.push(spec);
     // A court reply welcomes every envoy the request names, by his id.
     if (spec.key.includes("/court/")) {
@@ -193,13 +191,6 @@ export function emptyDurkurigalzu(s: GameState): void {
   removeAll(s.units, (u) => u.province === "durkurigalzu");
 }
 
-// <summary>An Assyrian army in Susa, which Babylon can see from its homeland; the city is Assyria's, its walls gone.</summary>
-export function assyriaInSusa(s: GameState): void {
-  s.walls.delete("susa");
-  s.owner.set("susa", "Assyria");
-  s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "susa" }));
-}
-
 // <summary>A standing order of Babylon's waiting for Assyria to enter Arrapha, bound to its units.</summary>
 export function waiting(s: GameState, id: string, ...orders: Order[]): StandingOrder {
   return newStandingOrder({
@@ -226,7 +217,7 @@ export class Replying implements JsonAsker {
   }
   specs: CallSpec[] = [];
 
-  askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+  askJson(spec: CallSpec): Promise<JsonObject> {
     this.specs.push(spec);
     let json = spec.key.includes("/orders/")
       ? (this.#orders(spec.turn) ?? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`)

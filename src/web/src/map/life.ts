@@ -9,7 +9,7 @@ import { glyphId } from "./glyphs.ts";
 import { outerRing } from "./markup.ts";
 import { FamineBelow } from "./memory.ts";
 import type { MapScene } from "./scene.ts";
-import type { FrameRoad, SeasonFrame } from "../session/frames.ts";
+import type { FrameRoad } from "../session/frames.ts";
 import { counted, powerName, provinceName, thousands } from "../ui/format.ts";
 
 const Map_ = WorldMap.default;

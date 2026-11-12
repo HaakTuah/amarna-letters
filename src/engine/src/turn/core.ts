@@ -221,7 +221,7 @@ export class TurnEngine {
    * A servant whose fee its master let fall due unpaid, withheld or could not pay (item 11a): it loses loyalty, remembers
    * it and counts another broken promise, once a season.
    */
-  missedPay(c: Character, p: Power, memory: string): void {
+  missedPay(c: Character, memory: string): void {
     if (!this._missedPayNow.add(c.id)) return;
     c.unpaidTurns++;
     c.traits.loyalty = Math.max(0, c.traits.loyalty - 15);
@@ -490,9 +490,6 @@ export function travelTurns(config: GameConfig, map: WorldMap, fromProvince: str
 export function obeyedIn(s: GameState, province: string): number {
   return s.obeyed.getOrDefault(province, 1000) / 1000;
 }
-
-/** The notice that someone at court was paid the back pay owed, or could not be paid it all. */
-export const BackPayTitle = "Back pay";
 
 /** The notice to the power that took a king's capital, and with it his kingdom. */
 export const KingdomFallsTitle = "A kingdom falls to you";

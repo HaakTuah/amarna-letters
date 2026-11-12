@@ -72,7 +72,7 @@ A builder of another provider starts from its brief instead (`core/modules/other
 
 ```bash
 scripts/cloud-setup.sh        # cloud machines: the core's Node, npm packages and Playwright's Chromium, if missing (it runs by itself when a cloud session starts, without Chromium)
-scripts/test.sh               # type-check, lint, the copies, pointer and reading-size checks, and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
+scripts/test.sh               # type-check (a local, import or parameter nothing reads fails it), lint (a skipped or narrowed test, and a file or export nothing imports, fail it), the copies, pointer and reading-size checks, and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 npm run dev --workspace src/web                       # the web app at http://localhost:5183
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app

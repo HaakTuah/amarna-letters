@@ -11,7 +11,6 @@ import {
   CountData,
   HSet,
   cede,
-  clamp,
   cmpBool,
   cmpNum,
   cmpPower,
@@ -216,7 +215,7 @@ export function reachableLand(b: Board): HSet<string> {
 
 // ================================================================= treasury
 
-export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Order[], rng: Rng): void {
+export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Order[]): void {
   const p = brain.p;
   const v = b.v;
   const me = b.me;
@@ -247,7 +246,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const homePay = sum(b.mine.filter((u) => depotFor(b, u) !== null), (u) => (u.kind === "Army" ? v.prices.get("armyUpkeep") : v.prices.get("fleetUpkeep")));
   const sustainable = Math.min(
     sum(v.provinces, (x) => x.need),
-    Math.max(0, sum(v.provinces, (x) => x.tax) - sum(b.mine, (u) => EconomyData.armyFood)),
+    Math.max(0, sum(v.provinces, (x) => x.tax) - sum(b.mine, () => EconomyData.armyFood)),
     (homePay * EconomyData.spentPercent) / 100 + sum(v.provinces, (x) => x.purse) / Math.max(6, b.horizon),
   );
   let flow = mines + Math.max(sustainable, Math.min(sales, sustainable * 1.5)) - costs;

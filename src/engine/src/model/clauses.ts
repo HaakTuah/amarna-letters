@@ -62,7 +62,6 @@ export type ClauseKind = (typeof ClauseKindValues)[number];
 export const ProposalKinds: readonly ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree", "fugitives", "protect", "serve"];
 export const RequestKinds: readonly ClauseKind[] = ["askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "askTollFree", "askProtect", "askServe"];
 export const NewsKinds: readonly ClauseKind[] = ["newsTroops", "newsStrength", "newsTaken", "newsSiege"];
-export const AnswerKinds: readonly ClauseKind[] = ["accept", "refuse", "counter"];
 /**
  * What the one who receives the letter would give, were he to agree: a script king never seals a tablet that holds one,
  * except the passage or basing he means to grant (item 9).

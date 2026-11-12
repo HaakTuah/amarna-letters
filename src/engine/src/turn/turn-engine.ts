@@ -81,7 +81,6 @@ export { ClaimEstablishedTitle } from "./press.ts";
 export { TidingsTitle, isTidingsSource, reportsTo } from "./tidings.ts";
 export { RideData, RiderBackTitle } from "./rides.ts";
 export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from "./travel.ts";
-export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
 export { OfferData, OfferTerms } from "./offers.ts";
 export { CaravanOfferData } from "./offer-caravans.ts";

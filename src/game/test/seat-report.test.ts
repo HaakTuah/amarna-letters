@@ -1,7 +1,6 @@
 import { describe, test } from "vitest";
 import {
   AllPowers,
-  type AudienceView,
   CapReason,
   type HostReply,
   type Power,
@@ -30,10 +29,10 @@ describe("SeatReportTests", () => {
     get label(): string {
       return "Tester";
     }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(view: SeatView): Promise<TurnSubmission> {
       return Promise.resolve(this.#decide(view));
     }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
     }
   }

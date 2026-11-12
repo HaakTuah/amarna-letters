@@ -74,17 +74,17 @@ describe("AudioListeningTests", () => {
   });
 
   test("Drifting, the music of the realm doing the most, kept until another clearly does more", () => {
-    const struck = (i: number, who: Power, target: string, owner: Power): Partial<SeasonFrame> => ({ moves: [attack(who, target, owner), attack(who, target, owner, "y")] });
+    const struck = (who: Power, target: string, owner: Power): Partial<SeasonFrame> => ({ moves: [attack(who, target, owner), attack(who, target, owner, "y")] });
     const owner = new Map<string, Power | null>([["a", "Egypt"], ["b", "Hatti"], ["c", "Mitanni"]]);
     const frames = [frame(0, { owner })];
-    for (let i = 1; i < 6; i++) frames.push(frame(i, { owner, ...struck(i, "Egypt", "kadesh", "Hatti") }));
+    for (let i = 1; i < 6; i++) frames.push(frame(i, { owner, ...struck("Egypt", "kadesh", "Hatti") }));
     Assert.equal("Egypt", busiest(frames, 5, null));
     // Quiet for a while, nobody doing anything: whose music it was is kept.
     const quiet = [...frames];
     for (let i = 6; i < 16; i++) quiet.push(frame(i, { owner }));
     Assert.equal("Egypt", busiest(quiet, 15, "Egypt"));
     // Another does a little more: not clearly more, the music stays.
-    const near = [...frames, frame(6, { owner, ...struck(6, "Hatti", "gaza", "Egypt") })];
+    const near = [...frames, frame(6, { owner, ...struck("Hatti", "gaza", "Egypt") })];
     Assert.equal("Egypt", busiest(near, 6, "Egypt"));
     // Another does far more, season after season: it takes the music.
     const more = [...frames];

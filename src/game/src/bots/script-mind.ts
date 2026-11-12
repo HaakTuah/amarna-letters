@@ -223,7 +223,7 @@ export function recite(cs: readonly Clause[], t: Traits, fearful: boolean, fond:
  * out the threats against their lord, and the bribed turn a refusal into acceptance and pass on the host's news as their
  * own.
  */
-export function reportClauses(heard: readonly Clause[], bribeNews: readonly Clause[], t: Traits, faithful: boolean, bribed: boolean, fearful: boolean): Clause[] {
+export function reportClauses(heard: readonly Clause[], bribeNews: readonly Clause[], faithful: boolean, bribed: boolean, fearful: boolean): Clause[] {
   let out = heard.map((x) => ({ ...x }));
   if (faithful) return out;
   if (bribed || fearful) out = out.filter((x) => x.kind !== "threat");
@@ -283,7 +283,7 @@ function report(ctx: MindContext): MindReply {
     // The host's answer in clauses, as it reports them (item 8); in structured press they are its words.
     const heard = trail.exchanges.flatMap((x) => x.clauses).filter((x) => !(keptSome && x.kind === "lightGift"));
     const bribeNews = bribed ? trail.exchanges.flatMap((x) => x.bribeClauses) : [];
-    answer = reportClauses(heard, bribeNews, t, faithful, bribed, fearful);
+    answer = reportClauses(heard, bribeNews, faithful, bribed, fearful);
     // In structured press the bribe's news is told in the one answer, as the king's own (#591: no second line marks it).
     if (ctx.structured && answer.length > 0) lines.push(`The king answered: "${renderClauses(answer, host, lord)}"`);
     for (const [i, words] of (ctx.structured ? [] : hostWords).entries()) {

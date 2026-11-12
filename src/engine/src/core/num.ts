@@ -80,11 +80,6 @@ export function dbl(x: number): string {
   return layout(x < 0, digits, exp, exp < -4 || exp >= 17);
 }
 
-/** A number as C# interpolates it: an int as is, a double by {@link dbl}. Use for doubles; ints may use String(). */
-export function num(x: number): string {
-  return Number.isInteger(x) && !Object.is(x, -0) ? String(x) : dbl(x);
-}
-
 /**
  * The 15 significant digits C# rounds a double to before a custom format ("0.00") rounds it again: digits and the
  * exponent of the first.

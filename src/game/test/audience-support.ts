@@ -14,12 +14,12 @@ export class Sender implements ISeat {
   get label(): string {
     return "Sender";
   }
-  decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+  decide(view: SeatView): Promise<TurnSubmission> {
     return Promise.resolve(
       view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.#envoyId, this.#to, "Greetings, brother.", { gold: this.#gold })] }) : newTurnSubmission(),
     );
   }
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+  hostAudience(): Promise<HostReply> {
     return Promise.resolve(newHostReply({ end: true }));
   }
 }
@@ -34,10 +34,10 @@ export class Host implements ISeat {
   get label(): string {
     return "Host";
   }
-  decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+  decide(): Promise<TurnSubmission> {
     return Promise.resolve(newTurnSubmission());
   }
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+  hostAudience(view: AudienceView): Promise<HostReply> {
     this.views.push(view);
     return Promise.resolve(this.#reply(view));
   }
@@ -48,10 +48,10 @@ export class Idle implements ISeat {
   get label(): string {
     return "Idle";
   }
-  decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+  decide(): Promise<TurnSubmission> {
     return Promise.resolve(newTurnSubmission());
   }
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+  hostAudience(): Promise<HostReply> {
     return Promise.resolve(newHostReply({ end: true }));
   }
 }

@@ -613,7 +613,3 @@ function create(s: GameState, rng: Rng, sd: Seed, callingAs: string | null = nul
   return c;
 }
 
-/** The C# build's static classes GameFactory and CharacterFactory. */
-export const GameFactory = { newGame };
-export const CharacterFactory = { populate };
-

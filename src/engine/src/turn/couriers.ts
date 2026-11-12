@@ -13,7 +13,7 @@ import { newCourier } from "../model/command.ts";
 import { describe, told, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type Order } from "../model/orders.ts";
-import { land, quoteWords, type Power, powerName } from "../model/power.ts";
+import { quoteWords, type Power, powerName } from "../model/power.ts";
 import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify, unitAt } from "../model/state.ts";

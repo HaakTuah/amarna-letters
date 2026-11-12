@@ -4,7 +4,7 @@
  * approach to someone in the same place and its answers to approaches made to it, quitting, and an errand's gold.
  */
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
-import { type Hoard, HoardSchema, type LendOffer, LendOfferSchema } from "./money.ts";
+import { type Hoard, type LendOffer, LendOfferSchema } from "./money.ts";
 import type { Power } from "./power.ts";
 
 /** A court as a character knows it: how far, whether it is hiring, its record of paying, the price of bread there. */
@@ -42,25 +42,6 @@ export function newCourtSeen(init: Partial<CourtSeen> = {}): CourtSeen {
   return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, keptAged: 0, brokenAged: 0, executions: 0, lost: 0, seized: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
 }
 
-export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSeen, {
-  court: S,
-  travel: I,
-  hiring: opt(I),
-  trust: I,
-  kept: I,
-  broken: I,
-  keptAged: I,
-  brokenAged: I,
-  executions: I,
-  lost: I,
-  seized: I,
-  grain: I,
-  growth: I,
-  besieged: B,
-  ask: I,
-  stranger: B,
-});
-
 /** A debt tablet as its holder or its borrower sees it. */
 export interface DebtSeen {
   id: string;
@@ -76,8 +57,6 @@ export interface DebtSeen {
 export function newDebtSeen(init: Partial<DebtSeen> = {}): DebtSeen {
   return { id: "", other: "", otherId: "", left: 0, dueTurn: 0, kept: "", ...init };
 }
-
-export const DebtSeenSchema: ObjSchema<DebtSeen> = obj("DebtSeen", newDebtSeen, { id: S, other: S, otherId: S, left: I, dueTurn: I, kept: S });
 
 /** Someone else in the same place. */
 export interface PersonHere {
@@ -100,19 +79,6 @@ export function newPersonHere(init: Partial<PersonHere> = {}): PersonHere {
   return { id: "", name: "", standing: "", kept: 0, broken: 0, keptAged: 0, brokenAged: 0, understood: true, through: null, throughPrice: null, ...init };
 }
 
-export const PersonHereSchema: ObjSchema<PersonHere> = obj("PersonHere", newPersonHere, {
-  id: S,
-  name: S,
-  standing: S,
-  kept: I,
-  broken: I,
-  keptAged: I,
-  brokenAged: I,
-  understood: B,
-  through: opt(S),
-  throughPrice: opt(I),
-});
-
 /** An approach made to it, waiting for its answer. */
 export interface ApproachSeen {
   id: string;
@@ -134,22 +100,6 @@ export interface ApproachSeen {
 export function newApproachSeen(init: Partial<ApproachSeen> = {}): ApproachSeen {
   return { id: "", from: "", fromName: "", words: "", giveGold: 0, askGold: 0, giveDebts: [], askDebts: [], repay: 0, seasons: 0, collect: null, fee: 0, payOnDone: false, ...init };
 }
-
-export const ApproachSeenSchema: ObjSchema<ApproachSeen> = obj("ApproachSeen", newApproachSeen, {
-  id: S,
-  from: S,
-  fromName: S,
-  words: S,
-  giveGold: I,
-  askGold: I,
-  giveDebts: list(S),
-  askDebts: list(S),
-  repay: I,
-  seasons: I,
-  collect: opt(S),
-  payOnDone: B,
-  fee: I,
-});
 
 /** What a character knows of its own situation when it decides its season. */
 export interface LifeView {
@@ -232,49 +182,6 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
     ...init,
   };
 }
-
-const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: "", debtId: "", borrower: "", collected: 0, home: "Egypt" as Power, since: 0, reached: false, payOnDone: false }), {
-  employer: S,
-  employerName: S,
-  debtId: S,
-  borrower: S,
-  collected: I,
-  home: S,
-  since: I,
-  reached: B,
-  payOnDone: B,
-});
-
-export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, {
-  turn: I,
-  at: opt(S),
-  free: B,
-  employer: opt(S),
-  jobUntil: opt(I),
-  restDue: I,
-  payOnDone: B,
-  seeking: B,
-  waited: I,
-  purse: I,
-  hoard: () => HoardSchema,
-  lendOffer: () => LendOfferSchema,
-  living: I,
-  heardRate: opt(I),
-  courts: list(() => CourtSeenSchema),
-  alias: opt(S),
-  held: list(() => DebtSeenSchema),
-  owes: list(() => DebtSeenSchema),
-  owedFees: list(obj("OwedFee", () => ({ court: "Egypt" as Power, amount: 0 }), { court: S, amount: I })),
-  here: list(() => PersonHereSchema),
-  approaches: list(() => ApproachSeenSchema),
-  errand: () => ErrandSeenSchema,
-  offers: list(obj("OfferSeen", () => ({ court: "Egypt" as Power, rate: 0 }), { court: S, rate: I })),
-  ending: S,
-  leftRoad: opt(I),
-  tongues: list(S),
-  bridgePrice: opt(I),
-  crowds: list(obj("CrowdSeen", () => ({ province: "", name: "", loose: 0, band: 0 }), { province: S, name: S, loose: I, band: I })),
-});
 
 /** An approach it makes: the same fields as an {@link Approach}, to someone in the same place. */
 export interface ApproachMade {
@@ -422,26 +329,6 @@ export function newChiefView(init: Partial<ChiefView> = {}): ChiefView {
   return { turn: 0, men: 0, ship: false, purse: 0, cost: 0, short: 0, here: LandSeenSchema.make(), next: [], shipCost: null, shipMen: 0, kill: null, ending: "", home: null, canGoHome: false, captives: 0, paidBy: null, paidUntil: 0, ...init };
 }
 
-export const ChiefViewSchema: ObjSchema<ChiefView> = obj("ChiefView", newChiefView, {
-  turn: I,
-  men: I,
-  ship: B,
-  purse: I,
-  cost: I,
-  short: I,
-  here: () => LandSeenSchema,
-  next: list(() => LandSeenSchema),
-  shipCost: opt(I),
-  shipMen: I,
-  kill: opt(S),
-  ending: S,
-  home: opt(S),
-  canGoHome: B,
-  captives: I,
-  paidBy: opt(S),
-  paidUntil: I,
-});
-
 /** What a chief decides for his band's next season, taken at its start; `turn` is the season he decided it. */
 export interface ChiefChoice {
   turn: number;
@@ -485,20 +372,6 @@ export interface ReportsView {
 export function newReportsView(init: Partial<ReportsView> = {}): ReportsView {
   return { turn: 0, post: "", master: "Egypt", reports: 0, waited: 0, purse: 0, home: 0, passing: 0, hired: null, paysOnDelivery: false, border: null, ...init };
 }
-
-export const ReportsViewSchema: ObjSchema<ReportsView> = obj("ReportsView", newReportsView, {
-  turn: I,
-  post: S,
-  master: S,
-  reports: I,
-  waited: I,
-  purse: I,
-  home: I,
-  passing: I,
-  hired: opt(I),
-  paysOnDelivery: B,
-  border: opt(S),
-});
 
 /** What the spy decides for the next season: the most it pays now from its purse for a carrier, and whether it carries them home itself if nobody takes them. */
 export interface ReportsChoice {

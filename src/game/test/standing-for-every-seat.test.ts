@@ -6,7 +6,6 @@ import { Contingencies } from "../src/bots/contingencies.ts";
 import { MilitaryPlan } from "../src/bots/tactics.ts";
 import {
   AllPowers,
-  type AudienceView,
   Dict,
   type GameConfig,
   type GameState,
@@ -61,12 +60,12 @@ describe("StandingForEverySeatTests", () => {
       return "Awake";
     }
 
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(view: SeatView): Promise<TurnSubmission> {
       this.views.push(view);
       return Promise.resolve(this.#decide?.(view) ?? newTurnSubmission());
     }
 
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
     }
   }
@@ -291,7 +290,7 @@ describe("StandingForEverySeatTests", () => {
   class Modelled implements JsonAsker {
     specs: CallSpec[] = [];
 
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+    askJson(spec: CallSpec): Promise<JsonObject> {
       this.specs.push(spec);
       let json =
         spec.key === "t1/orders/Babylonia"
