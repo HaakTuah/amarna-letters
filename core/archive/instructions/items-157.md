@@ -47,3 +47,12 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      Behind "The core itself" in `modules/inbox.md`, "Reporting to the core" in `README.md` with the three issue
      forms, and the core-moved workflow.
+
+160. **12 November 2026** (the core, in the design chat), of the table of models, which gave the orchestrator Sonnet
+     at high:
+
+     > Maybe orchestrator should say opus or Sonnet? […] runs it on opus, i believe, and it is the one instance that
+     > a human starts, so dictating it to the agents doesn't make much sense at all? Should it just say so, expert?
+
+     Behind the orchestrator's row in `modules/claude.md`: the owner starts it, at the model and effort he chooses;
+     Sonnet is enough, since it builds nothing itself (item 27).
