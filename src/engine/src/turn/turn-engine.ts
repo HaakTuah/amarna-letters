@@ -21,6 +21,8 @@ import "./archives.ts";
 import "./sieges.ts";
 import "./works.ts";
 import "./intel.ts";
+import "./captives.ts";
+import "./authentication.ts";
 import "./envoys.ts";
 import "./envoys-home.ts";
 import "./court.ts";
@@ -67,7 +69,8 @@ export { TurnEngine, idNumber, travelTurns, obeyedIn, KingdomFallsTitle } from "
 export { removeAll } from "./resolve.ts";
 export { ArchiveTakenTitle, goldName } from "./archives.ts";
 export { SiegesTitle, EnvoyCaughtTitle } from "./sieges.ts";
-export { FullWeight, LossNewsSeasons } from "./intel.ts";
+export { LossNewsSeasons } from "./intel.ts";
+export { FullWeight } from "./authentication.ts";
 export { MaxSpeech, CommittedPrefix, commitment, weighedGold } from "./envoys.ts";
 export { NoticeTitle, FeeDueTitle, askingPrice, basePrice, errandWords } from "./court.ts";
 export { trustIn, recordKnown, jobValue, feeFor, rateOf, restOf, talkWeight, foldOldPay } from "./jobs.ts";
