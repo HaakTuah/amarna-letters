@@ -18,7 +18,8 @@ PR none at all (floor rule 8).
    marked ready. A later commit that fixes a security finding, or changes what the review is for (input, a workflow, the
    network, saved files, a dependency), gets the fallback reviewer's check of that change; a security review not
    finished within about 30 minutes of that is done by the fallback reviewer over the whole diff (core archive 47 to
-   51). Floor rule 3's two each cover the whole diff.
+   51). Floor rule 3's two each cover the whole diff. A security review its reviewer's app did not post itself is posted
+   on the PR in a comment that opens "Security review:", which the `security-review` check reads.
 4. **The design check:** on the design-checked PRs, once before the merge, a fresh reviewer judges the work against the
    design alone, and its "Readings taken" as the stand-in would (core archive 22).
 5. **When a PR passes,** whatever its score: every blocking point fixed; every other fixed if it lies in the change,

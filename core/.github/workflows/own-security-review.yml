@@ -1,0 +1,23 @@
+# The security-review check on this repository's own pull requests: the core's workflow (security-review.yml, beside
+# this file), with the script from its source (scripts/security-review.mjs on main). It marks each open pull
+# request's head commit with whether its security review has run, when the pull request opens, at each push and
+# whenever a review's comment arrives. This repository only; no project calls it. What it may do and what keeps it
+# safe is in that workflow's header: it reads, and writes one commit status, with no secret.
+name: own-security-review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  security-review:
+    uses: ./.github/workflows/security-review.yml
+    with:
+      root: .
