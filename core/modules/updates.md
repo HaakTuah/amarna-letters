@@ -10,9 +10,9 @@ behind. A new major version is its own PR, with the *major version checks*. One 
 breaks something, runs worse, changes its licence, or its project is abandoned or changes hands), written in the closed
 PR and an open issue.
 
-**Node:** CI and the cloud machines run the same Node, the exact version in the core's `.node-version`: CI reads it, and
-every project's cloud setup runs `scripts/node.sh`, which holds its checksums. When a new even-numbered Node becomes
-long-term support, both move to it, proven by the full suites (core archive 39).
+**Node** runs the core's scripts in every project: CI and the cloud machines run the same one, the exact version in the
+core's `.node-version`: CI reads it, and a cloud setup runs `scripts/node.sh`, which holds its checksums. When a new
+even-numbered Node becomes long-term support, both move to it, proven by the full suites (core archive 39).
 
 **CodeQL,** where the repository has it, checks every PR into `main`, every push to it and once a week; a finding is
 handled as floor rule 9 says.
