@@ -23,5 +23,5 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
   level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core
   archive 73).
 - **Work continuously, other providers first** (core archive 2, 14, 76 and 146): Claude's usage is also the owner's own,
-  so Codex, and any provider he keeps only for the projects, gets every part of the work it can do well (today its
-  reviews; its lanes once it builds) before Claude does.
+  so Codex, and any provider he keeps only for the projects, gets every part of the work it can do well
+  (`modules/roles.md`) before Claude does.
