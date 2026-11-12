@@ -4,7 +4,8 @@ Read when a PR is reviewed. What reviewers judge by: `modules/review-guidelines.
 
 **Which:** every PR gets its security review (point 3); every PR that changes the project, its tests, tools, config or a
 rule file also gets its code review; the *design-checked PRs* also get the design check, and a PR its users will see the
-stand-in's notes (`modules/inbox.md`). Docs alone get no code review, and a pure sync PR none at all (floor rule 8).
+stand-in's notes (`modules/inbox.md`). Docs alone get no code review unless another provider built them, and a pure sync
+PR none at all (floor rule 8).
 
 1. **Ask** the code reviewer (`modules/roles.md`) as its part (`modules/codex.md`, `modules/copilot.md`) or the project
    says.
