@@ -16,7 +16,7 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. 8 inventories (seeds 1-50 **running**), the coffer (seeds 51-100 **running**), 7a sea play (seeds 51-100), 7a sea play, 8 inventories, the war of choice: each `--*-play-half`, seeds 1-50
+1. The coffer (seeds 51-100 **running**), 7a sea play (seeds 51-100 **running**), 7a sea play, 8 inventories, the war of choice: each `--*-play-half`, seeds 1-50
    and 51-100, on the new par.
 2. The vassal line (paying vassals taken by their own overlords) and the trial on `tributeReturn`, seeds 1-100.
 3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
@@ -35,3 +35,4 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 | Ride, seeds 1-50 | `--games 50 --seed 1 --ride-play-half` | 81c9490 | 53 minutes. Growth 0.78 / 0.77, standing 1.045 / 1.025, wins 27 / 22; Great Kings 0.96 / 0.96 (1.019 / 0.959). The null's halves on the same seeds: 1.043 / 1.026, 26 / 22: level with it. Riders hired twice, in one game of the 50: too rare to move a game. A check with each step logged (2 games, seed 3, 60 seasons, prints in `rideOrders` not kept): not once did a court have a province of its own out of the season's sight, its report two seasons old, under siege or beside a hostile king; a king's land lies within a season's courier almost everywhere (`sight`), so its holder is current. Seeds 51-100 not run, the answer being plain |
 | Coffer, seeds 1-50 | `--games 50 --seed 1 --coffer-play-half` | 81c9490 | 53 minutes. Growth 0.79 / 0.79, standing 1.055 / 1.035, wins 24 / 25; Great Kings 0.98 / 0.94 (1.046 / 0.949), the rest 0.76 / 0.76 (1.057 / 1.050). Against the null's halves (1.043 / 1.026, 26 / 22; Great Kings 1.012 / 0.958): standing level, the Great Kings ahead, wins a few behind |
 | 7a sea play, seeds 1-50 | `--games 50 --seed 1 --sea-play-half` | 81c9490 | 53 minutes. Growth 0.77 / 0.74, standing 1.028 / 1.003, wins 21 / 26; Great Kings 0.99 / 0.96 (1.072 / 0.968), the rest 0.73 / 0.70 (1.021 / 1.010). Blockades in 30 games (181), landings 3. Against the null's halves: ahead in growth and standing, behind in wins |
+| 8 inventories, seeds 1-50 | `--games 50 --seed 1 --inventory-play-half` | 81c9490 | 52 minutes. Growth 0.78 / 0.78, standing 1.041 / 1.028, wins 27 / 22; level with the null's halves (1.043 / 1.026, 26 / 22). Gold sent without an inventory 6 times in 50 games, each saving the scribe's 20 shekels (`inventoryFee`): too rare to move a game. Seeds 51-100 not run |
