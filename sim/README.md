@@ -108,12 +108,12 @@ passes through that session's context, which by the end of a game is several hun
 reread at every call. The second simulation (Build order item 4) ran both its games from a workflow script instead:
 the session starts the script, and the script runs the loop and hands back only counts.
 
-- **The poller.** `.claude/agents/sim-poller.md` is an agent type of its own: Haiku, the Bash tool only, told to run
-  the one command it is given and report the JSON line `wait.js` prints. Its PreToolUse hook, `sim/poller-guard.js`,
+- **The poller.** `.claude/agents/sim-poller.md` is an agent type of its own: Haiku at low effort, the Bash tool only,
+  told to run the one command it is given and report the JSON line `wait.js` prints. Its PreToolUse hook, `sim/poller-guard.js`,
   allows only a Bash command of the form `node sim/wait.js <plain arguments>` (letters, digits and `_./:-`) and the
   StructuredOutput call that returns the line to the workflow; it blocks everything else, so the poller cannot read
-  a seat's files. Unlike the kings' and characters' agent types, it is not made by `setup.js` and is kept in git. It
-  holds this repository's absolute path, as the other agent files do.
+  a seat's files. Unlike the kings' and characters' agent types, it is not made by `setup.js` and is kept in git. Its
+  hook finds the repository by `CLAUDE_PROJECT_DIR`, where the other agent files hold its absolute path.
 - **The driver,** `sim/workflow-driver.js`, a Claude Code workflow script (it runs only where the session can run
   workflows). Each round it starts one poller on `node sim/wait.js <log> 100 --seed <S>` (each poll waits up to 100
   seconds). On `waiting` it starts every listed request in parallel, as an agent of the listed type (`king-*` on
