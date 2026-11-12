@@ -95,11 +95,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
   `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
 
-- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
-  code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
-  owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
-  only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
-  reviews"); report a PR that lacks it.
+- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (2) The
+  code-scanning alert open on `main` gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
+  owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row; report a PR that lacks it.
+
+- **Model trial 2** (the owner, 12 November 2026): from 16 November the next numbered part is built twice, as
+  `docs/rounds/2026-11-12-model-trial-2.md` says.
 
 - **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
   "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
