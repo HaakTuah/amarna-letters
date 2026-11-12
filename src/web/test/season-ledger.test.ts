@@ -4,20 +4,11 @@ import { describe, expect, test } from "vitest";
 import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { SeasonPanel } from "../src/components/SeasonPanel.tsx";
 import { buildScene } from "../src/map/scene.ts";
-import type { SeasonFrame } from "../src/session/frames.ts";
 import { closingLedger, LedgerSeasons } from "../src/session/ledger.ts";
+import { frame } from "./audio-frame.ts";
 
 // The Season tab keeps the closing lines of the last few seasons (#647): the line the map shows as each season ends, newest
 // first, as the eyes shown knew each season. Eight hand-built seasons; a ship lost to a storm in the fourth, visible to Hatti only.
-function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
-  return {
-    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(), knownSieges: new Map(),
-    knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
-    sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
-    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], knownCaravans: new Map(), walking: [], omen: "Quiet", governed: new Map(), governedKnown: new Map(), bonds: new Map(), knownBonds: new Map(), moodRead: new Map(), obeyed: new Map(), ...over,
-  } as SeasonFrame;
-}
 
 const place = WorldMap.default.landProvinces.find((p) => !p.capital)!;
 const lost = newGameEvent({ kind: "ship-lost", text: `A ship was lost near ${place.name}.`, visibleTo: ["Hatti" as Power] });
