@@ -201,7 +201,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's remainder in progress (branch `item/balance-f3-rest`; its runs, done and still to do, in `docs/rounds/2026-11-12-balance-pass-f3-rest.md`); then, from the F3 report's "Split, and where to pick up": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review (none started: the owner's word, 12 November) | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
+| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's remainder in progress (its runs, done and to do, in its report); then, by the F3 report's "Split, and where to pick up": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review (none started: the owner's word, 12 November) | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |
