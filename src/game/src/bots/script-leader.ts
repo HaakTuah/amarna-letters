@@ -138,7 +138,7 @@ export class ScriptLeader implements ISeat {
     }
 
     const orders: Order[] = [];
-    Statecraft.economy(board, brain, plan, orders, rng);
+    Statecraft.economy(board, brain, plan, orders);
     // Item 17: our armies buy their food where they stand by leave, with gold sent for it; restless land pays less tax.
     supplyOrders(board, brain, orders, view.gold - view.feesDue - (view.upkeep + view.worksUpkeep + view.fees));
     reliefOrders(board, orders);

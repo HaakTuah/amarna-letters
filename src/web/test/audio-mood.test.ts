@@ -1,11 +1,12 @@
 import { describe, test } from "vitest";
 import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
-import { Heat, Hold, MoodDirector, Skirmish, shadeAt, signalAt } from "../src/audio/mood.ts";
+import { Drag, Heat, Hold, MoodDirector, Skirmish, shadeAt, signalAt } from "../src/audio/mood.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 import { frame } from "./audio-frame.ts";
 
-// Item 19+++b: the music follows the seat's state as that seat knows it, from a heat that rises fast and cools slow. Each
+// Item 19+++b: the music follows the seat's state as that seat knows it, from a heat that rises fast and cools slow; item
+// 19+++c: a rise is never held back, a siege heats less once it drags on. Each
 // test builds only the frames it needs, by hand: two or three powers, a province or two, no game.
 const attack = (power: Power, target: string, targetOwner: Power, from = "x"): FrameMove =>
   ({ power, kind: "Army", from, order: "move", target, to: target, helped: null, succeeded: false, destroyed: false, targetOwner }) as FrameMove;
@@ -56,13 +57,13 @@ describe("AudioMoodTests", () => {
     Assert.equal(0, signalAt([frame(0), fight(1, "Egypt", [attack("Hatti", "ugarit", "Mitanni")])], 1, "Egypt").heat);
   });
 
-  test("Its land besieged is the siege's music, its capital attacked lets the music rise at once; a siege it lays is war", () => {
+  test("Its land besieged is the siege's music, its capital attacked is clear in front of it; a siege it lays is war", () => {
     const siege = (province: string, besieger: Power) => ({ province, besieger, progress: 1, walls: 2, since: 1 });
     const sight = new Map([["Egypt" as Power, new Set(["gaza", egyptsCapital])]]);
     const owns = known("Egypt", { gaza: "Egypt", [egyptsCapital]: "Egypt" });
     const at = (s: ReturnType<typeof siege>) => signalAt([frame(0, { knownOwner: owns }), frame(1, { sieges: [s], knownOwner: owns, sight } as Partial<SeasonFrame>)], 1, "Egypt");
-    Assert.equal([Heat.battle, "siege", false], ((x) => [x.heat, x.top, x.capital])(at(siege("gaza", "Hatti"))));
-    Assert.true(at(siege(egyptsCapital, "Hatti")).capital);
+    Assert.equal([Heat.battle, "siege", false], ((x) => [x.heat, x.top, x.clear])(at(siege("gaza", "Hatti"))));
+    Assert.true(at(siege(egyptsCapital, "Hatti")).clear);
     Assert.equal([Heat.war, null], ((x) => [x.heat, x.top])(at(siege("kadesh", "Egypt"))));
     // A siege out of its sight, or of a city it does not know is its own, tells it nothing.
     Assert.equal(0, signalAt([frame(0), frame(1, { sieges: [siege("gaza", "Hatti")], knownOwner: owns })], 1, "Egypt").heat);
@@ -103,15 +104,60 @@ describe("AudioMoodTests", () => {
     Assert.equal([2, 2, 3], ["battle", "war", "tension"].map((m) => moods.filter((x) => x === m).length / 600));
   });
 
-  test("A mood just entered holds against a rise, unless the seat's own capital is attacked", () => {
+  test("A rise is never held back by the hold, which holds back falls only (item 19+++c)", () => {
     const owns = { knownOwner: known("Egypt", { gaza: "Egypt", [egyptsCapital]: "Egypt" }), sight: new Map([["Egypt" as Power, new Set(["gaza", egyptsCapital])]]) };
     const units = [{ id: "u1", power: "Hatti" as Power, kind: "Army" as const, province: "gaza" }];
     const uneasy = frame(1, { units, ...owns } as Partial<SeasonFrame>);
-    // Troops in its land bring tension; the battle a season later waits out the hold.
+    // Troops in its land bring tension; the battle a season later, within the hold, is heard at once.
     const battle = [frame(0), uneasy, fight(2, "Egypt", [attack("Hatti", "gaza", "Egypt")], owns)];
-    Assert.equal("tension", play(battle, "Egypt", 6).at(-1));
-    const capital = [frame(0), uneasy, fight(2, "Egypt", [attack("Hatti", egyptsCapital, "Egypt")], owns)];
-    Assert.equal("battle", play(capital, "Egypt", 6).at(-1));
+    Assert.equal("battle", play(battle, "Egypt", 6).at(-1));
+    // The fall back down waits out the hold all the same.
+    const after = [...battle];
+    for (let i = 3; i < 40; i++) after.push(frame(i));
+    const moods = play(after, "Egypt", 6);
+    Assert.true(moods.indexOf("war") - moods.indexOf("battle") >= Hold);
+  });
+
+  test("A battle of its own, or its capital attacked, is clear in front of the viewer, for a few seconds; a fresh start is not an event", () => {
+    const owns = { knownOwner: known("Egypt", { gaza: "Egypt" }) };
+    const frames = [frame(0), frame(1), fight(2, "Egypt", [attack("Hatti", "gaza", "Egypt")], owns), frame(3)];
+    const d = new MoodDirector();
+    d.season(frames, 0, "Egypt", "g", 0);
+    d.season(frames, 1, "Egypt", "g", 1);
+    Assert.false(d.clear(1));
+    d.season(frames, 2, "Egypt", "g", 2);
+    Assert.true(d.clear(2));
+    Assert.false(d.clear(2 + 60));
+    // Jumped to straight, the battle is what he came to, not what happened in front of him.
+    const e = new MoodDirector();
+    e.season(frames, 2, "Egypt", "g", 0);
+    Assert.false(e.clear(0));
+  });
+
+  test("A siege heats less after its first few seasons: it drags on", () => {
+    const siege = { province: egyptsCapital, besieger: "Hatti" as Power, progress: 1, walls: 2, since: 1 };
+    const sieged = (i: number) => frame(i, { sieges: [siege], owner: new Map([[egyptsCapital, "Egypt" as Power]]) });
+    const early = signalAt([frame(0), sieged(1)], 1, null);
+    Assert.equal([Heat.battle, "siege"], [early.heat, early.top]);
+    const frames = [frame(0)];
+    for (let i = 1; i <= Drag + 3; i++) frames.push(sieged(i));
+    // The world hears a siege that drags on little, a capital's too; a seat's own land besieged, a step less.
+    Assert.equal(Heat.little, signalAt(frames, frames.length - 1, null).heat);
+    // A siege it lays, dragging on, is only unease.
+    const laid = { province: "kadesh", besieger: "Egypt" as Power, progress: 1, walls: 2, since: 1 };
+    const lay = [frame(0)];
+    for (let i = 1; i <= Drag + 3; i++) lay.push(frame(i, { sieges: [laid] }));
+    Assert.equal(Heat.unease, signalAt(lay, lay.length - 1, "Egypt").heat);
+  });
+
+  test("God view: a Great King's capital newly taken, or a Great King fallen, is the world's great change", () => {
+    const taken = [frame(0, { owner: new Map([[egyptsCapital, "Egypt" as Power]]) }), frame(1, { owner: new Map([[egyptsCapital, "Hatti" as Power]]) })];
+    const s = signalAt(taken, 1, null);
+    Assert.equal([Heat.battle, "siege"], [s.heat, s.top]);
+    Assert.equal(0, signalAt(taken, 0, null).heat);
+    const gone = [frame(0), frame(1, { eliminated: new Set(["Mitanni" as Power]) })];
+    Assert.equal(Heat.battle, signalAt(gone, 1, null).heat);
+    Assert.equal(0, signalAt([frame(0), frame(1, { eliminated: new Set(["Byblos" as Power]) })], 1, null).heat);
   });
 
   test("A heat between a mood's two thresholds keeps it: hard to enter, easy to stay", () => {

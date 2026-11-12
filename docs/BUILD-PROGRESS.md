@@ -16,11 +16,7 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   painting of the map's SVG; measured as item 17+++ part G did, until frames stay under 50 ms on phone and on
   desktop at every speed. PR #930 (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's
   1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); next: draw what is in view.
-- **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
-  text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
-  or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
-  music turns over calmly (archive items 248 and 249); each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
-  of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
+- **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
@@ -29,8 +25,8 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
   help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
-  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; god view's music
-  and the draw: 19+++c, above).
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`) and war music a share,
+  never the whole (19+++c, #963; report `docs/rounds/2026-11-12-war-music-a-share.md`).
 - **What belongs, here:** graphical glitches and inconsistencies first, as item 19++ asks; light and dark too; the
   rulebook's wording as well as the interface's. Never a request to a model, the save version or the names item 17+ will
   change: those go to their items.
@@ -52,15 +48,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
-  expert?", then "Yes, expertly to all, expert!"). "Keep it lean" forbids leftovers, but no check holds it. (1) Finish
-  `--noUnusedLocals` on `turn/counts.ts`, `turn/couriers.ts`, `turn/economy.ts`, `turn/resolve.ts`, `turn/unrest.ts` and
-  `web/src/map/life.ts`, then turn on `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`, so
-  `scripts/test.sh` fails a leftover. (2) Exports and files nothing imports: one clean-up PR, then a finder in
-  `scripts/test.sh`; a small script on the compiler's own API first, a pinned dev tool (floor rules 7 and 10) only if
-  that falls short; what is reached indirectly is listed with its reason. (3) A lint rule fails a test skipped or
-  narrowed to one (`.skip`, `.only`, `.todo`; the owner, the same day: "Yes, expertly to all!"). The replays prove play
-  unchanged. A routine lane.
+- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
+  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
+  `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
+  imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
+  both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node
+  scripts/unused-code.mjs --all`).
 - ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
   Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
   own (#721) gave way to them.

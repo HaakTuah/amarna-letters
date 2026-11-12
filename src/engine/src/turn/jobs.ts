@@ -316,7 +316,7 @@ P.duesSeason = function () {
       if (c.at !== p || c.heldBy !== null) continue;
       c.owedDue.set(p, -1);
       this.recordPay(p, false, c.at ?? p, c);
-      this.missedPay(c, p, `The king of ${land(p)} did not pay me the ${formatMoney(c.owed.get(p))} he owed for my job.`);
+      this.missedPay(c, `The king of ${land(p)} did not pay me the ${formatMoney(c.owed.get(p))} he owed for my job.`);
       logEvent(S, "fee-unpaid", `${p} let ${c.name}'s fee go unpaid.`, [p], "fee-unpaid");
     }
 };

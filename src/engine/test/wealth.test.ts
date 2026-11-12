@@ -12,7 +12,6 @@ import {
   earningsTotal,
   first,
   gain,
-  idNumber,
   newAudienceRecord,
   newAudienceRound,
   newCharacter,
@@ -23,9 +22,8 @@ import {
   newTurnSubmission,
   single,
   spend,
-  newHoard,
 } from "@amarna/engine";
-import { Assert, last, orderBy, smallWorld } from "./support.ts";
+import { Assert, last, smallWorld } from "./support.ts";
 
 // <summary>The richest characters: what a character gains, by source, and what its standing reads at the end.</summary>
 describe("WealthTests", () => {

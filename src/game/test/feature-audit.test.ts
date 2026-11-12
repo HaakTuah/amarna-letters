@@ -234,7 +234,7 @@ describe("FeatureAuditTests", () => {
       plan.role.set(u.province, "hold");
     }
     let orders: Order[] = [];
-    Statecraft.economy(board, brain, plan, orders, Rng.for(Seed, s.turn, "test", "economy"));
+    Statecraft.economy(board, brain, plan, orders);
     return [plan, orders];
   }
 

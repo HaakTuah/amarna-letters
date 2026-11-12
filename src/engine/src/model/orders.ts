@@ -757,4 +757,3 @@ export type Order =
   | HuntBandsOrder
   | UnreadableOrder;
 
-export type OrderType = Order["type"];

@@ -1,6 +1,7 @@
-// The engine's determinism rules ("Engine rules" under Tech stack in the design document): a replay, the parity gate and,
-// later, a server and its clients must reach the same state, so the engine uses no clock, no randomness of its own, no
-// culture-sensitive text, and only the Math functions whose results every JavaScript engine rounds the same way.
+// Two sets of rules. The engine's determinism rules ("Engine rules" under Tech stack in the design document): a replay, the
+// parity gate and, later, a server and its clients must reach the same state, so the engine uses no clock, no randomness
+// of its own, no culture-sensitive text, and only the Math functions whose results every JavaScript engine rounds the
+// same way. And, in every test file, no test skipped or narrowed to one.
 import tseslint from "typescript-eslint";
 
 const exactMath = ["abs", "sign", "floor", "ceil", "round", "trunc", "min", "max", "sqrt", "imul", "clz32", "fround"];
@@ -39,11 +40,33 @@ const determinism = {
   ],
 };
 
+// A test that is skipped, narrowed to one or only planned is a test that no longer runs, and the suite stays green over
+// the gap ("Keep it lean" in AGENTS.md): remove it, or mend it. Vitest's `.skip`, `.only` and `.todo`, the conditional
+// `.skipIf` and `.runIf`, a `context.skip()` inside a test, and Jest's `xit` and `fit` forms are all refused.
+const noSilencedTests = {
+  "no-restricted-syntax": [
+    "error",
+    {
+      selector: "MemberExpression[property.name=/^(skip|only|todo|skipIf|runIf)$/]",
+      message: "A test is run or removed, never skipped or narrowed (.skip, .only, .todo, .skipIf, .runIf): mend it or delete it.",
+    },
+    {
+      selector: "CallExpression[callee.name=/^(xit|xtest|xdescribe|fit|fdescribe)$/]",
+      message: "A test is run or removed, never skipped or narrowed (xit, fit and their kin): mend it or delete it.",
+    },
+  ],
+};
+
 export default tseslint.config(
   { ignores: ["**/dist/**", "**/node_modules/**"] },
   {
     files: ["src/engine/src/**/*.ts"],
     languageOptions: { parser: tseslint.parser },
     rules: determinism,
+  },
+  {
+    files: ["src/*/test/**/*.{ts,tsx}"],
+    languageOptions: { parser: tseslint.parser },
+    rules: noSilencedTests,
   },
 );

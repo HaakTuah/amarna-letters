@@ -216,7 +216,7 @@ describe("FileCharacterTests", () => {
 
   // <summary>Answers at once, the same way every time, without files.</summary>
   class Fixed implements JsonAsker {
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+    askJson(spec: CallSpec): Promise<JsonObject> {
       let stem = safeName(spec.key);
       return Promise.resolve(JSON.parse(plainOf(stem, "Fixed words for " + spec.key, 5, true))!);
     }
@@ -414,7 +414,7 @@ describe("FileCharacterTests", () => {
       this.#takes = takes;
       this.#keep = keep;
     }
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+    askJson(spec: CallSpec): Promise<JsonObject> {
       let stem = safeName(spec.key);
       return Promise.resolve(JSON.parse(plainOf(stem, "May all go well with my lord.", this.#keep, this.#takes))!);
     }

@@ -237,9 +237,6 @@ export function at(json: unknown, ...path: (string | number)[]): unknown {
 /** A string inside parsed JSON (C#'s JsonNode[...]!.GetValue<string>()). */
 export const str = (json: unknown, ...path: (string | number)[]): string => at(json, ...path) as string;
 
-/** LINQ's Average. */
-export const average = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
-
 /** C#'s list.Contains(record): whether a list holds an item equal by value (records compare by value in C#). */
 export const holds = <T>(xs: readonly T[], x: T): boolean => xs.some((y) => JSON.stringify(plain(y)) === JSON.stringify(plain(x)));
 

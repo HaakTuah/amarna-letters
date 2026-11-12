@@ -1,5 +1,5 @@
 import { Dict } from "../core/collections.ts";
-import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
+import { B, I, type ObjSchema, S, dict, list, obj, opt } from "../core/json.ts";
 import { type Mandate, MandateSchema } from "./command.ts";
 import { newGameConfig } from "./config.ts";
 import type { UnitKind } from "./map.ts";
@@ -1298,24 +1298,6 @@ export interface LandStanding {
   fallen: boolean;
   // computed in C#: StartYield <= 0 ? 0 : (double)Yield / StartYield
 }
-
-export function newLandStanding(init: Partial<LandStanding> = {}): LandStanding {
-  return {
-    power: "Egypt",
-    yield: 0,
-    startYield: 0,
-    fallen: false,
-    ...init,
-  };
-}
-
-export const LandStandingSchema: ObjSchema<LandStanding> = obj("LandStanding", newLandStanding, {
-  power: S,
-  yield: I,
-  startYield: I,
-  fallen: B,
-  growth: computed(D, (o: LandStanding) => landGrowth(o)),
-});
 
 
 /** A land's growth: its yield over its starting yield (0 for none at the start). */

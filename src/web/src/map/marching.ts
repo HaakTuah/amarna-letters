@@ -50,7 +50,7 @@ function places(road: Road): Keyframe[] {
 function headings(road: Road, offsets: readonly Keyframe[]): Keyframe[] {
   const out: Keyframe[] = [];
   let last: number | null = null;
-  road.forEach((p, i) => {
+  road.forEach((_p, i) => {
     const a = road[Math.min(i + 1, road.length - 1)];
     const b = road[Math.max(Math.min(i + 1, road.length - 1) - 1, 0)];
     const d = sub(a, b);
