@@ -1,6 +1,5 @@
 import {
   Greeting,
-  WorldMap,
   type Power,
 } from "@amarna/engine";
 import { player } from "../../audio/player.ts";

@@ -13,7 +13,7 @@ import { AllPowers, land, powerName, reignKnown, type Power } from "../model/pow
 import { type PendingTask } from "../model/records.ts";
 import { isAlive, type GameState } from "../model/state.ts";
 import { newCharacterView, newNewsOffer, type CharacterView } from "../model/views.ts";
-import { formatMoney, season } from "./calendar.ts";
+import { formatMoney } from "./calendar.ts";
 import { courtOf, kingLossUnheard, realmOfKing } from "./court.ts";
 import { claimKnown } from "./claims.ts";
 import { askingPrice, basePrice, LetterData } from "../turn/turn-engine.ts";

@@ -589,7 +589,6 @@ P.settleMarkets = function (orders) {
       [...new Set(group.map(([p]) => p))].map((p) => [p, group.filter(([x]) => x === p).map(([, o]) => o)] as const),
       [([p]: readonly [Power, unknown]) => p, cmpStr],
     )) {
-      const t = S.treasuries.get(p);
       const offered = Math.min(this.stores(prov), sum(list.filter((o) => o.type === "sell"), (o) => o.amount));
       const wanted = sum(list.filter((o) => o.type === "purchase"), (o) => o.amount);
       const net = offered - wanted;

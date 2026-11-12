@@ -2,7 +2,6 @@ import { describe, test } from "vitest";
 import { Near, smallSeats } from "./small-world.ts";
 import {
   AllPowers,
-  type AudienceView,
   type HostReply,
   OrderSchema,
   type SeatView,
@@ -38,13 +37,13 @@ describe("StandInTests", () => {
       return true;
     }
 
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(view: SeatView): Promise<TurnSubmission> {
       this.seen.push(view);
       if (view.turn >= this.#failFrom) throw new Error("the model did not answer");
       return Promise.resolve(this.#decide?.(view) ?? newTurnSubmission());
     }
 
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ speech: "Go in peace.", end: true }));
     }
   }
@@ -54,10 +53,10 @@ describe("StandInTests", () => {
     get label(): string {
       return "Idle";
     }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(): Promise<TurnSubmission> {
       return Promise.resolve(newTurnSubmission());
     }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
     }
   }

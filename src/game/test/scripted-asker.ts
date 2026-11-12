@@ -8,7 +8,7 @@ export class ScriptedAsker implements JsonAsker {
   }
   asked: CallSpec[] = [];
 
-  askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+  askJson(spec: CallSpec): Promise<JsonObject> {
     this.asked.push(spec);
     return Promise.resolve(JSON.parse(this.#reply(spec)) as JsonObject);
   }

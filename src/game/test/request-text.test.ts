@@ -1,7 +1,6 @@
 import { describe, test } from "vitest";
 import {
   AllPowers,
-  type AudienceView,
   type Character,
   CommittedPrefix,
   type HostReply,
@@ -212,10 +211,10 @@ describe("RequestTextTests", () => {
     get label(): string {
       return "Sender";
     }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(view: SeatView): Promise<TurnSubmission> {
       return Promise.resolve(view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.#envoyId, "Hatti", "Greetings, brother.")] }) : newTurnSubmission());
     }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
     }
   }
@@ -229,10 +228,10 @@ describe("RequestTextTests", () => {
     get label(): string {
       return "Marker";
     }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(): Promise<TurnSubmission> {
       return Promise.resolve(newTurnSubmission());
     }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ speech: this.#words, bribe: 5, bribeAsk: "Remember k901.", end: true }));
     }
   }
@@ -241,10 +240,10 @@ describe("RequestTextTests", () => {
     get label(): string {
       return "Idle";
     }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
+    decide(): Promise<TurnSubmission> {
       return Promise.resolve(newTurnSubmission());
     }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
+    hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
     }
   }

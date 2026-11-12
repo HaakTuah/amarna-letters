@@ -562,7 +562,7 @@ P.caughtOnRoad = function (j, c, captor, province) {
   }
   const trail = this.trail(j.dispatch?.trailId ?? j.cargo?.trailId ?? null);
   trail?.outcomes.push(`caught on the road in ${name} by ${whose(captor)} men`);
-  const lines = spy ? [] : this.seize(c, lord, captor, j.dispatch, j.cargo, `taken from ${c.name}, envoy of ${powerName(lord)}, caught on the road in ${name}`);
+  const lines = spy ? [] : this.seize(lord, captor, j.dispatch, j.cargo, `taken from ${c.name}, envoy of ${powerName(lord)}, caught on the road in ${name}`);
   const said = spy
     ? `a spy of ${powerName(lord)}, ${out ? `on the way to watch ${place ?? `the court of ${powerName(j.to)}`}` : "on the way home"}.`
     : j.dispatch !== null

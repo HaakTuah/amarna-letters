@@ -499,7 +499,7 @@ export function route(from: string, to: string): Pt[] {
 /** The provinces a unit's move passes through: next door by its own kind of connection, or for an army by sea along the sea zones. */
 export function unitWay(kind: "Army" | "Fleet", from: string, to: string): string[] {
   if (Map_.canMove(kind, from, to) || Map_.areAdjacent(from, to)) return [from, to];
-  if (kind === "Army") return provincesOn(from, to, (a, b) => b === to || Map_.get(b).isSea);
+  if (kind === "Army") return provincesOn(from, to, (_a, b) => b === to || Map_.get(b).isSea);
   return provincesOn(from, to, (_, b) => Map_.get(b).isSea || b === to);
 }
 

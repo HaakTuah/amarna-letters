@@ -8,7 +8,7 @@
  */
 import { clamp } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
-import { cmpNum, count, sortBy } from "../core/seq.ts";
+import { cmpNum, sortBy } from "../core/seq.ts";
 import { Doors, ReasonValues, ReasonWords, type Beyond, type Door, type Reason } from "../model/doors.ts";
 import { MoneyData } from "../model/money.ts";
 import { newCharacter, newFact, newTraits, type Character } from "../model/people.ts";

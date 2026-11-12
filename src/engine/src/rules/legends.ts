@@ -9,7 +9,7 @@ import { listed } from "./wording.ts";
 import { cmpNum, cmpStr, desc, sortBy } from "../core/seq.ts";
 import { nameKnownAt, type Character } from "../model/people.ts";
 import { AllPowers, powerName, type Power, type RisenPower } from "../model/power.ts";
-import type { GameEvent, Tablet } from "../model/records.ts";
+import type { Tablet } from "../model/records.ts";
 import type { GameState } from "../model/state.ts";
 import { WorldMap } from "../model/map.ts";
 import { renderClauses } from "./clauses.ts";

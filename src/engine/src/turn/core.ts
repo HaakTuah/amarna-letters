@@ -221,7 +221,7 @@ export class TurnEngine {
    * A servant whose fee its master let fall due unpaid, withheld or could not pay (item 11a): it loses loyalty, remembers
    * it and counts another broken promise, once a season.
    */
-  missedPay(c: Character, p: Power, memory: string): void {
+  missedPay(c: Character, memory: string): void {
     if (!this._missedPayNow.add(c.id)) return;
     c.unpaidTurns++;
     c.traits.loyalty = Math.max(0, c.traits.loyalty - 15);

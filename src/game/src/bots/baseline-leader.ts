@@ -132,7 +132,7 @@ export class BaselineLeader implements ISeat {
     const rng = Rng.for(this.seed, view.turn, "bot-decide", view.power);
     const orders: Order[] = [];
     const destinations = military(view, m, rng, orders);
-    economy(view, m, rng, orders, destinations);
+    economy(view, rng, orders, destinations);
     diplomacy(view, m, rng, orders);
     court(view, m, rng, orders);
     // The owner's answers to item 11a: each errand is a job, offered to the man sent, at what he asks up to 40 a season.
@@ -340,7 +340,7 @@ function stepToward(u: UnitView, v: SeatView, me: Power, peace: HSet<Power>, m: 
   return null;
 }
 
-function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations: HSet<string>): void {
+function economy(v: SeatView, rng: Rng, orders: Order[], destinations: HSet<string>): void {
   const me = v.power;
   let gold = v.gold;
   const reserve = v.upkeep + v.fees + 80;

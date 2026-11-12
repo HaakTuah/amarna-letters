@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, LetterHeldTerms, OfferUnheard, newJourney, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
+import { LetterHeldTerms, OfferUnheard, newJourney, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
 import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // #592 (the owner: "Agreed to all, expertly!"): a caught offer is a thing held. Babylon, Babylonia's capital, leans to

@@ -67,7 +67,7 @@ describe("RequestsAreRulesTests", () => {
     }
     calls: CallSpec[] = [];
 
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+    askJson(spec: CallSpec): Promise<JsonObject> {
       this.calls.push(spec);
       return Promise.resolve(structuredClone(this.#reply));
     }

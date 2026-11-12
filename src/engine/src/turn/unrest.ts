@@ -21,7 +21,7 @@ import { courierSeasons, standsAt } from "../rules/court.ts";
 import { menIn, shareOfFull, wallMenOf } from "../model/land.ts";
 import { EconomyData } from "../model/economy.ts";
 import { gain, newRisingView, remember, type Character } from "../model/people.ts";
-import { AllPowers, land, type Power, powerName, whose } from "../model/power.ts";
+import { AllPowers, type Power, powerName, whose } from "../model/power.ts";
 import { findCharacter, isAlive, logEvent, newId, siegeOf, wallsOf } from "../model/state.ts";
 import { newUnit, type Unit, loseUnit } from "../model/units.ts";
 import { newMindRequest } from "../model/exchanges.ts";

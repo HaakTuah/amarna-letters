@@ -12,7 +12,7 @@ import { type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { courierSeasons, standsAt, wordHomeAt } from "../rules/court.ts";
-import { dateLabel, formatMoney, measures } from "../rules/calendar.ts";
+import { formatMoney, measures } from "../rules/calendar.ts";
 import { pick } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
 import { people } from "./people.ts";
