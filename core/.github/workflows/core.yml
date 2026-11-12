@@ -3,7 +3,7 @@
 # pin, or the pin of a call to one of its workflows, is not a commit of this repository's main (so what a project takes
 # passed the core's reviews; floor rule 8; the call to this workflow itself: scripts/pure-sync.mjs), or
 # whose calls to the core's workflows are pinned to a commit where the called workflow differs from the one at that pin,
-# or whose manifest does not fill the *owner's account* with one GitHub login.
+# or whose manifest does not fill the *owner's account* with one GitHub login, or whose default branch is not main.
 # A project calls it (workflow_call) on every pull request and push to main, docs-only changes included,
 # pinned to a full commit SHA. Reads only, with no secret: it fetches this public repository at the pin it reads, which
 # must be a full commit SHA before it is used, and runs nothing from either repository.
@@ -23,6 +23,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
+      - name: The default branch is main
+        env:
+          DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          # (both hooks read their scripts from main's copy, so where the default branch has another name they stop
+          # nothing, and say nothing: README, "The default branch is main")
+          if [ -n "$DEFAULT" ] && [ "$DEFAULT" != main ]; then
+            echo "The default branch here is $DEFAULT. The core's hooks read their scripts from main, so here they stop nothing: rename the default branch to main."; exit 1
+          fi
       - name: The core pin
         id: pin
         run: |

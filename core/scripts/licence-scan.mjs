@@ -13,7 +13,8 @@
 //     script, the parts of a page or component that run, any command in a JSON or TOML file), written
 //     name@exact.version and audited at that version, one entry for each version used, so an update is audited again,
 //     with what it pulls in. A fetch it cannot read fails, but npm pack's, which runs nothing it fetches, and another
-//     fetcher's (curl, wget, pip, pnpm, yarn, bun, playwright install, git clone and the like): each of those passes
+//     fetcher's (curl, wget, pip, pnpm, yarn, bun, playwright install, git clone, dotnet tool install, choco, winget,
+//     PowerShell's Invoke-WebRequest and the like): each of those passes
 //     only in a file an entry's "files" names, that entry its hand audit;
 //   - an entry covering each script in a language it cannot read (Python, Ruby, PowerShell and the like): the entries
 //     of what it uses;
@@ -30,7 +31,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join, posix } from "node:path";
-import { OTHER_FETCHER, commandLines, commands, fetched } from "./licence-commands.mjs";
+import { commandLines, commands, fetched, otherFetch } from "./licence-commands.mjs";
 
 const OWN = "HaakTuah/";
 const SHELL = /\.(ya?ml|sh|bash|zsh|fish|mk|toml|envrc)$|(^|\/)(Dockerfile[^/]*|Makefile|GNUmakefile|\.envrc)$/iu;
@@ -157,7 +158,8 @@ export function scan(settings, root, entries, auditPath, lockfiles = []) {
     }
     if (/\bnpm_config_(@[\w-]+:)?registry\b|\bnpm_config_replace_registry_host\b|\bnpm_config_(user|global)config\b/iu.test(text)) fail(`${f}: it points npm at another registry than npm's, so no audited name can be trusted there`);
     if (/\bnpm_config_(package_lock|shrinkwrap)\b/iu.test(text)) fail(`${f}: it installs without the lockfile, so what it installs is not what the lockfile's check read`);
-    if (OTHER_FETCHER.test(text) && !byHand(f)) fail(`${f}: ${OTHER_FETCHER.exec(text)[0]} fetches what no entry's "files" says (name ${f} in the entry that audits it)`);
+    const other = byHand(f) ? undefined : otherFetch(text);
+    if (other) fail(`${f}: ${other.trim()} fetches what no entry's "files" says (name ${f} in the entry that audits it)`);
   };
 
   for (const key of ["served", "tools", "skip"]) for (const p of settings[key] ?? []) if (p !== "" && !tracked.some((f) => holds(p, f))) fail(`the config's "scan.${key}": ${p} names no tracked file (a folder ends in "/")`);
@@ -182,7 +184,8 @@ export function scan(settings, root, entries, auditPath, lockfiles = []) {
     if (runs) {
       // (a line that is only a comment fetches nothing; a comment after code stays, since a # or // in a string is none)
       const comment = JS.test(f) || WEB.test(f) ? /^\s*\/\/.*$/u : /^\s*#.*$/u;
-      const src = (WEB.test(f) ? executable(text, f) : text).split("\n").map((l) => l.replace(comment, "")).join("\n");
+      // (lines end as Windows writes them too, or a comment there would be read as code)
+      const src = (WEB.test(f) ? executable(text, f) : text).split(/\r?\n/u).map((l) => l.replace(comment, "")).join("\n");
       if (YAML.test(f)) {
         for (const m of src.matchAll(/(?:^|[\s{,])['"]?uses['"]?\s*:\s*['"]?([^\s'",}]+)/gu)) {
           const used = m[1];
@@ -196,7 +199,7 @@ export function scan(settings, root, entries, auditPath, lockfiles = []) {
       try { json = JSON.parse(text); } catch {
         // (a config with comments, as jsconfig.json and the like may hold: read whole, but a package.json must parse)
         if (posix.basename(f) === "package.json") fail(`${f} cannot be read as JSON, so the commands in it cannot be scanned`);
-        else fetches(text.split("\n").map((l) => l.replace(/^\s*\/\/.*$/u, "")).join("\n"), f);
+        else fetches(text.split(/\r?\n/u).map((l) => l.replace(/^\s*\/\/.*$/u, "")).join("\n"), f);
       }
       if (json !== undefined) {
         for (const line of commandLines(json)) fetches(String(line), f, line.literal === true);

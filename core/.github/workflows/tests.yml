@@ -1,5 +1,7 @@
-# The core's scripts' own tests, and its own licence audit, on every pull request here and every push to main. This
-# repository only; no project calls it. Reads only, with no secret, on the core's one exact Node; nothing is installed.
+# The core's scripts' own tests, and its own licence audit, on every pull request here and every push to main, on Linux
+# and on Windows, where a project built there runs the scripts and both hooks (in Git Bash, as Claude Code does). Every
+# suite runs though another failed, so one run shows them all. This repository only; no project calls it. Reads only,
+# with no secret, on the core's one exact Node; nothing is installed.
 name: tests
 
 on:
@@ -11,9 +13,16 @@ permissions:
   contents: read
 
 jobs:
-  tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+  suites:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -24,20 +33,45 @@ jobs:
       - name: The versions check
         run: node scripts/versions-test.mjs
       - name: The licence check's lists and readers
+        if: ${{ !cancelled() }}
         run: node scripts/licences-test.mjs
       - name: The licence check on a whole project, and its scan
+        if: ${{ !cancelled() }}
         run: node scripts/licence-scan-test.mjs
       - name: The licence scan on every form of a fetch
+        if: ${{ !cancelled() }}
         run: node scripts/licence-fetch-test.mjs
       - name: The helper hook
+        if: ${{ !cancelled() }}
         run: node scripts/helper-call-test.mjs
+      - name: The work-saved hook
+        if: ${{ !cancelled() }}
+        run: node scripts/work-saved-test.mjs
       - name: The description check
+        if: ${{ !cancelled() }}
         run: node scripts/pr-description-test.mjs
       - name: The workflow check
+        if: ${{ !cancelled() }}
         run: node scripts/workflows-test.mjs
       - name: The core-moved check
+        if: ${{ !cancelled() }}
         run: node scripts/core-moved-test.mjs
       - name: None of the core's own workflows names the forbidden trigger
+        if: ${{ !cancelled() }}
         run: node scripts/workflows.mjs
       - name: What the core's own workflows and scripts use, each to its list
+        if: ${{ !cancelled() }}
         run: node scripts/licences.mjs .github/licences.json
+
+  # (the one check the ruleset asks for by name: it passes only where the suites passed on both)
+  tests:
+    needs: suites
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: The suites passed on Linux and on Windows
+        env:
+          RESULT: ${{ needs.suites.result }}
+        run: |
+          echo "the suites: $RESULT"; [ "$RESULT" = success ]
