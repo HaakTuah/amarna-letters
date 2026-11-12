@@ -290,7 +290,7 @@
   four in each misled: "I thought I was fourth of six when I was in fact below my start".)
 - **Opening positions are public.** Every king reads every power's opening troops, treasury,
   homeland's worth a season and starting strength in the rulebook ("OPENING POSITIONS (known to every
-  court)"), generated from the map data (`src/engine/src/model/map.ts`) by `openingLines` (`src/engine/src/rules/opening.ts`), so the cached block stays byte-stable.
+  court)"), generated from the map data (`src/engine/src/model/map.ts`, `start-positions.ts`) by `openingLines` (`src/engine/src/rules/opening.ts`), so the cached block stays byte-stable.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
   read the same facts from the map data.
 - **Ending** (build order item 6a, "Random ending" and "An open age" under Victory; `src/engine/src/rules/ending.ts`).

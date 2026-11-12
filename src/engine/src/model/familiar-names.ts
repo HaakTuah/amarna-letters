@@ -6,7 +6,8 @@
  * land or city, so its known name is that place's familiar name (Byblos for Gubla). Presentation only: requests to
  * models, seat views and the engine's logs keep the names as they are.
  */
-import { ModernNames, WorldMap } from "./map.ts";
+import { WorldMap } from "./map.ts";
+import { ModernNames } from "./place-names.ts";
 import type { FixedPower } from "./power.ts";
 
 /**

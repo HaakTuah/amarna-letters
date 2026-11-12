@@ -11,7 +11,8 @@
 import { idiv } from "../core/num.ts";
 import { carriedOf, foodOf, harvestOf } from "./economy.ts";
 import { climateOf, terrainOf } from "./geography.ts";
-import { seasonOfTurn, StartUnits, type Province, type UnitKind, type WorldMap } from "./map.ts";
+import { seasonOfTurn, type Province, type UnitKind, type WorldMap } from "./map.ts";
+import { StartUnits } from "./start-positions.ts";
 import type { GameState } from "./state.ts";
 
 /** A province's people at home: the settled on the land, its men of fighting age among them, and the loose. */
