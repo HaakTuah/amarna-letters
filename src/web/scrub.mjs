@@ -8,20 +8,17 @@
 // (display: none), to find what a drawing costs; --css adds rules. Runs differ by 15% or more: repeat a run before reading a small gap.
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { serveDist } from "./serve-dist.mjs";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(name);
-  return i > 0 ? process.argv[i + 1] : fallback;
-};
-const desktop = process.argv.includes("--desktop");
+const flag = (name) => process.argv.indexOf(name);
+const arg = (name, fallback) => (flag(name) > 0 ? process.argv[flag(name) + 1] : fallback);
+const desktop = flag("--desktop") > 0;
 const target = Number(arg("--season", "30"));
 const back = Number(arg("--steps", "10"));
 const hide = arg("--hide", "");
 const css = arg("--css", "");
-const site = resolve(arg("--site", fileURLToPath(new URL("./dist/", import.meta.url)))) + "/";
+const site = resolve(arg("--site", `${import.meta.dirname}/dist`)) + "/";
 
 const { server, root } = await serveDist(site, { base: "/amarna-letters/pr-0/" });
 const browser = await chromium.launch();
