@@ -53,15 +53,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
-  expert?", then "Yes, expertly to all, expert!"). "Keep it lean" forbids leftovers, but no check holds it. (1) Finish
-  `--noUnusedLocals` on `turn/counts.ts`, `turn/couriers.ts`, `turn/economy.ts`, `turn/resolve.ts`, `turn/unrest.ts` and
-  `web/src/map/life.ts`, then turn on `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`, so
-  `scripts/test.sh` fails a leftover. (2) Exports and files nothing imports: one clean-up PR, then a finder in
-  `scripts/test.sh`; a small script on the compiler's own API first, a pinned dev tool (floor rules 7 and 10) only if
-  that falls short; what is reached indirectly is listed with its reason. (3) A lint rule fails a test skipped or
-  narrowed to one (`.skip`, `.only`, `.todo`; the owner, the same day: "Yes, expertly to all!"). The replays prove play
-  unchanged. A routine lane.
+- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
+  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
+  `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
+  imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
+  both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node
+  scripts/unused-code.mjs --all`).
 - ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
   Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
   own (#721) gave way to them.
