@@ -113,6 +113,14 @@ describe("What is drawn follows the view", () => {
     Assert.false(out(u), "slides from where it stood in view");
     cull.arrived(u as unknown as Element);
     Assert.true(out(u), "arrived far off the view");
+    // From one side of the view to the other, both ends far off it: its slide crosses the view.
+    const across = piece(-400, 50);
+    layer.kids.push(Object.assign(across, { parent: layer }));
+    cull.pass([layer as unknown as Element]);
+    Assert.true(out(across), "standing far off");
+    across.attrs.set("style", "transform:translate(500px,50px);--ring:3");
+    cull.pass([layer as unknown as Element]);
+    Assert.false(out(across), "its slide crosses the view");
   });
 
   test("a layer written outside the drawings that follow the view is never looked into", () => {

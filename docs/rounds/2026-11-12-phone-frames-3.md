@@ -21,15 +21,16 @@ comes back as the view comes near it.
   of a path written in absolute points (a road, a band). Anything else is kept whole: a path with arcs or relative steps, a
   group of shapes, the drawings below the marks (the land, the season's ground, the realms' colours), the season's arrows,
   scenes and selection (they play animations of their own, which would start again on coming back), and a piece marching
-  (it may cross the view from outside it). A piece sliding from one season's place to the next counts where it stood too,
-  until its slide ends.
+  (it may cross the view from outside it). A piece sliding from one season's place to the next counts the box between where
+  it stood and where it stands, which holds all of its straight slide, until its slide ends.
 - **How far a mark reaches** from its place, by its kind, in screen pixels: the most measured at every zoom on the phone and
   on desktop (seed 1, season 30), and a third more: a city's works 185, a court's people 130, an outlaws' band 105, a
   traveller 100, a city 50, a stele 45, a crossing 30, a life mark 25; a name, a unit and anything else 200 (a name 125
   measured, longer under other name settings; a unit 150); a path's stroke 20. The margin is a tenth of the view a side.
 - **When:** in the frame the view moves (`zoom.ts` tells the renderer at each move, before the frame is painted), only when
   the view has left what is drawn; for a glide, all it crosses from start to end, since each edge of a view moves one way
-  only; when a gesture or glide settles, exactly for the view; after each layer is written, for what was written; and when a
+  only, until the camera's transition has really ended (on a busy phone it starts late); when a gesture settles, exactly
+  for the view; after each layer is written, for what was written; and when a
   piece's slide or a season's marching ends.
 - **The names' placement** (`svg-renderer.ts`, `placeNamesNow`) skips a name left out, and leaves what is left out as it
   was placed last.
@@ -37,12 +38,15 @@ comes back as the view comes near it.
 ## No hole at the view's edge
 
 `node src/web/scrub.mjs --holes [--desktop]` (new, on the bench): seed 1 at season 30, and at each check every element
-left out measured as if drawn; none may lie on the screen. 78 checks on the phone and 78 on desktop: at rest; at each of
-eight steps of a drag in each of four directions, mid-gesture, and after each; after each of seven wheel steps out and in;
-three times during each of five button glides (zoom out and in) and after each; twice during each of five key pans; after
-stepping two seasons back and two on. None on either, for both tries. A first run of the check found one: the season's
-capture marks, kept whole for their animations, were still marked when their own layer was written; fixed before any
-measurement below.
+left out measured as if drawn; none may lie on the screen (it fails if one does). At rest; at each of eight steps of a drag
+in each of four directions, mid-gesture, and after each; after each of seven wheel steps out and in; during and after each
+of seven button glides (zoom out and in) and seven key pans, two of each with the page held busy for 200 ms in the task of
+the gesture, as a slow phone's is; and three times as the pieces slide after each of four seasons stepped. None on either
+size, for both tries, at first with 78 checks. The code review then found that a busy page starts the camera's glide late,
+after the glide's own timer had narrowed what is drawn to where the view would stop: the busy checks, added for it, found
+a stele and a capital left out on the screen mid-glide on the build before the fix, and none after (104 checks on the
+phone, 96 on desktop before the slides' checks). An earlier first run found one too: the season's capture marks, kept
+whole for their animations, were still marked when their own layer was written; fixed before any measurement below.
 
 **The look.** The same views on both builds, with reduced motion so nothing is caught mid-animation (seed 1, season 30, the
 opening view, after the drags, and after the zooms and pans), compared pixel by pixel: on desktop 64, 32 and 133 pixels of

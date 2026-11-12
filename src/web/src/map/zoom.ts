@@ -73,6 +73,9 @@ export function attach(view, onSettle, onView) {
   view.addEventListener("click", onClick, true);
   view.addEventListener("wheel", onWheel, { passive: false });
   view.addEventListener("dblclick", onDbl);
+  const onGlided = e => { if (e.target === layer && e.propertyName === "transform") narrow(st); };
+  layer.addEventListener("transitionend", onGlided);
+  layer.addEventListener("transitioncancel", onGlided);
   // The view's size, kept as it changes (#666: read at each ask, it forced a style and layout of whatever the page had just
   // written, 20 to 40 ms on a slow phone, from the sounds' look at the camera after each redraw).
   st.ro = new ResizeObserver(() => { st.size = { w: view.clientWidth, h: view.clientHeight }; clamp(st); apply(st); settle(st, true); });
@@ -82,6 +85,8 @@ export function attach(view, onSettle, onView) {
     view.removeEventListener("click", onClick, true);
     view.removeEventListener("wheel", onWheel);
     view.removeEventListener("dblclick", onDbl);
+    layer.removeEventListener("transitionend", onGlided);
+    layer.removeEventListener("transitioncancel", onGlided);
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     st.ro.disconnect();
@@ -265,10 +270,18 @@ function animate(st, change) {
   clearTimeout(st.glideTimer);
   st.glideTimer = setTimeout(() => {
     st.layer.classList.remove("glide");
-    st.sweep = null;
-    if (st.onView) st.onView(area(st), true);
+    narrow(st);
   }, 260);
   settle(st);
+}
+
+/// A glide has ended: what is drawn follows the view where it stopped. Only once the camera's transition has really ended
+/// (`transitionend`, or the timer if none is left running): on a busy phone it starts late, and a timer alone would narrow
+/// what is drawn while the camera is still on its way.
+function narrow(st) {
+  if (!st.sweep || st.layer.getAnimations().some((a) => a.transitionProperty === "transform")) return;
+  st.sweep = null;
+  if (st.onView) st.onView(area(st), true);
 }
 
 // The camera stops at the board's edges, so an edge province can be centred, and never shows past the drawn world

@@ -132,7 +132,8 @@ export class InView {
     const kind = el.tagName === "path" ? null : (el.getAttribute("class") ?? "").split(" ")[0];
     const reach = (kind === null ? StrokePx : ReachPx[kind] ?? FarthestPx) / d.k;
     const near = (b: Box): boolean => b.x1 >= d.x0 - reach && b.x0 <= d.x1 + reach && b.y1 >= d.y0 - reach && b.y0 <= d.y1 + reach;
-    const out = !near(spot) && (spot.was === null || !near(spot.was)) && !el.classList.contains("marching");
+    // A piece sliding goes straight from where it stood to where it stands: the box round both holds all of its slide.
+    const out = !near(spot.was === null ? spot : span(spot, spot.was)) && !el.classList.contains("marching");
     if (out !== el.hasAttribute("data-out")) el.toggleAttribute("data-out", out);
     return true;
   }
@@ -151,6 +152,9 @@ export class InView {
     return spot;
   }
 }
+
+/** The box round two boxes. */
+const span = (a: Box, b: Box): Box => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) });
 
 /** A translate's place, as a box of no size. */
 function placed(src: string): Box | null {

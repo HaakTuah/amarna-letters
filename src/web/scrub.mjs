@@ -7,9 +7,10 @@
 // and the tasks over 50 ms. --hide takes layer names (data-layer) or selectors starting with "." whose drawing is taken away
 // (display: none), to find what a drawing costs; --css adds rules. Runs differ by 15% or more: repeat a run before reading a small gap.
 // --holes, in place of the timing: proves that what the map leaves out far off the view (map/in-view.ts) never lies on the
-// screen, at rest, mid-drag, between wheel steps, mid-glide (the zoom buttons and the pan keys) and after stepping seasons:
-// at each, every element left out is measured as if drawn. Prints the checks with one on the screen; with --shots <prefix>, a
-// picture at rest, after the drags and at the end.
+// screen, at rest, mid-drag, between wheel steps, mid-glide (the zoom buttons and the pan keys, also with the page busy as a
+// slow phone's is) and while the pieces slide after a season is stepped: at each, every element left out is measured as if
+// drawn. Prints the checks with one on the screen, and fails (exit 1) if there is one; with --shots <prefix>, a picture at
+// rest, after the drags and at the end.
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { serveDist } from "./serve-dist.mjs";
@@ -46,10 +47,10 @@ while ((await p.evaluate(() => Number(document.querySelector(".slider")?.max ?? 
 await p.click('button[aria-label="Pause"]');
 await p.waitForTimeout(3000);
 if (holes) {
-  await checkHoles();
+  const found = await checkHoles();
   await browser.close();
   server.close();
-  process.exit(0);
+  process.exit(found ? 1 : 0);
 }
 if (!desktop) await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
 const rules = hide.split(",").filter((x) => x !== "").map((x) => `${x.startsWith(".") ? x : `[data-layer=${x}]`}{display:none !important}`).join("") + css;
@@ -132,31 +133,48 @@ async function checkHoles() {
     await p.waitForTimeout(60);
     results.push(await check(`wheel ${dy}`));
   }
-  for (const label of ["Zoom out", "Zoom out", "Zoom in", "Zoom in", "Zoom in"]) {
+  // A busy page as a slow phone has it, in the task of the gesture itself: the camera's glide starts late, after the glide's
+  // own timer has run.
+  const busyNext = (ms) =>
+    ms > 0 &&
+    p.evaluate((ms) => {
+      const block = () => {
+        const end = performance.now() + ms;
+        while (performance.now() < end);
+      };
+      for (const kind of ["click", "keydown"]) window.addEventListener(kind, block, { once: true, capture: false });
+    }, ms);
+  for (const [label, busy] of [["Zoom out", 0], ["Zoom out", 0], ["Zoom in", 0], ["Zoom in", 0], ["Zoom in", 0], ["Zoom out", 200], ["Zoom in", 200]]) {
+    await busyNext(busy);
     // On a phone the buttons are tucked away: clicked as a script would.
     await p.locator(`button[aria-label="${label}"]`).first().evaluate((b) => b.click());
-    for (const ms of [40, 80, 80]) {
+    for (const ms of busy > 0 ? [180, 60, 60, 60] : [40, 80, 80]) {
       await p.waitForTimeout(ms);
-      results.push(await check(`${label}, gliding`));
+      results.push(await check(`${label}${busy > 0 ? ", the page busy" : ""}, gliding`));
     }
     await p.waitForTimeout(400);
     results.push(await check(`${label}, done`));
   }
-  for (const key of ["d", "d", "s", "a", "w"]) {
+  for (const [key, busy] of [["d", 0], ["d", 0], ["s", 0], ["a", 0], ["w", 0], ["d", 200], ["a", 200]]) {
+    await busyNext(busy);
     await p.keyboard.press(key);
-    for (const ms of [50, 100]) {
+    for (const ms of busy > 0 ? [40, 50, 50, 50] : [50, 100]) {
       await p.waitForTimeout(ms);
-      results.push(await check(`key ${key}, gliding`));
+      results.push(await check(`key ${key}${busy > 0 ? ", the page busy" : ""}, gliding`));
     }
     await p.waitForTimeout(400);
   }
   await shot("end");
+  // A season stepped: the pieces slide to their places (mid-slide, and after).
   for (const label of ["One season back", "One season back", "One season on", "One season on"]) {
     await p.click(`button[aria-label="${label}"]`);
-    await p.waitForTimeout(1500);
-    results.push(await check(label));
+    for (const ms of [150, 150, 1200]) {
+      await p.waitForTimeout(ms);
+      results.push(await check(label));
+    }
   }
   const bad = results.filter((r) => r.bad.length > 0);
   console.log(`${desktop ? "desktop" : "phone"}: ${results.length} checks, ${bad.length} with something left out on the screen`);
   for (const r of bad.slice(0, 8)) console.log(`  ${r.label} (zoom ${r.zoom}): ${r.bad.slice(0, 4).join("; ")}`);
+  return bad.length > 0;
 }
