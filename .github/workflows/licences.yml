@@ -10,6 +10,6 @@ permissions:
 
 jobs:
   licences:
-    uses: HaakTuah/agent-core/.github/workflows/licences.yml@8d9d418adf581dc8ff010c4a35606bcf8b825443
+    uses: HaakTuah/agent-core/.github/workflows/licences.yml@77cac90a011556eeeda548f923200e482357171e
     with:
       config: scripts/licences.json

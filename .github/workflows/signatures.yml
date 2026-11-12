@@ -21,4 +21,4 @@ permissions:
 
 jobs:
   signatures:
-    uses: HaakTuah/agent-core/.github/workflows/signatures.yml@d79346a019b52cbfadc305d3898c280331f221be
+    uses: HaakTuah/agent-core/.github/workflows/signatures.yml@77cac90a011556eeeda548f923200e482357171e

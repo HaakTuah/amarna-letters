@@ -9,9 +9,11 @@
 # What it does not hold: that a lock entry which names one registry package resolves to that package and not another
 # of the registry's, and the rest of rule 7's source check (the same publisher and repository, a provenance kept where
 # the old version had one, the diff read against the release notes): those stay with the reviews, which read the lock
-# file's diff. A project calls it (workflow_call) from a workflow of its own of the same name, on a pull request that
-# changes a package list, a lock file, an `.npmrc` or that workflow, pinned to a full commit SHA ("How a project takes
-# the core" in README.md, point 5). Read-only, with no secret.
+# file's diff. A project calls it (workflow_call) from a workflow of its own of the same name, on every pull request,
+# pinned to a full commit SHA ("How a project takes the core" in README.md, point 5). It looks itself whether the pull
+# request changes a package list, a lock or shrinkwrap file, an `.npmrc`, the Node version or the calling workflow
+# (git's own diff against the base), installs and checks only then, and passes otherwise: so it reports on every pull
+# request and a ruleset can require it. Where it cannot tell what changed, it checks. Read-only, with no secret.
 name: signatures
 
 on:
@@ -34,12 +36,42 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
+          fetch-depth: 2 # the merge commit and its parents: the base the first step diffs from
+      - name: Does the pull request change what this check reads?
+        id: what
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }} # empty where the caller runs on anything but a pull request
+        run: |
+          # The checkout is the pull request merged into its base, with both parents, so the diff from the base is what
+          # it changes. Any doubt (no base, a base that is not there and cannot be fetched, a git command that fails, a
+          # listed file that is a link to another) means the check runs.
+          paths=(':(glob)**/package.json' ':(glob)**/package-lock.json' ':(glob)**/npm-shrinkwrap.json'
+            ':(glob)**/.npmrc' core/.node-version .github/workflows/signatures.yml)
+          run=true
+          if [ -n "$BASE" ] \
+            && { git cat-file -e "$BASE^{commit}" 2>/dev/null || git fetch --quiet --no-tags --depth=1 origin "$BASE"; } \
+            && changed=$(git diff --no-renames --name-only "$BASE" HEAD -- "${paths[@]}") \
+            && listed=$(git ls-files -s -- "${paths[@]}"); then
+            if [ -n "$changed" ]; then
+              echo "Changed:"
+              printf '%s\n' "$changed" | sed 's/^/- /' # behind a dash, so that no file's name starts a workflow command
+            elif printf '%s\n' "$listed" | grep -q '^120000 '; then
+              echo "A listed file is a link to another, whose changes this step would not see."
+            else
+              run=false
+              echo "No package list, lock file, .npmrc, Node version or signatures workflow changed: nothing to verify."
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         with:
           node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
       - name: Install from the lock file, from the registry alone, running no package's install script
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         working-directory: ${{ inputs.directory }}
         run: npm ci --ignore-scripts --no-audit --no-fund --allow-git=none --allow-remote=none --allow-file=none
       - name: The registry's signature on each installed name and version
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         working-directory: ${{ inputs.directory }}
         run: npm audit signatures
