@@ -895,7 +895,7 @@ export function Play() {
       case "events":
         return <EventsPanel state={state} upTo={s.historyTurn} viewer={viewer} />;
       default:
-        return <SeasonPanel scene={scene} onProvince={clicked} onPerson={follow} />;
+        return <SeasonPanel scene={scene} ledger={s.ledger(index, viewer)} onProvince={clicked} onPerson={follow} />;
     }
   }
 

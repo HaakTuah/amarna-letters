@@ -7,6 +7,10 @@ most live in `GameConfig` (`src/engine/src/model/config.ts`) or the map's starti
 One file per topic under `docs/design/`, so a session reads only the topics its task needs; a new topic gets its own
 file and a line here. Sizes in KB, to judge the cost of a read before making it.
 
+The rules as a player reads them (what a king can do, the courts, winning, watching a game), moved out of the
+README, are in `design/61-the-rules-a-player-reads/`: an item that changes what a player sees or may do updates them
+and the rulebook, and the README only if its season or start changes.
+
 The historical sources behind the data (item 6+) are in [`history/`](history/README.md): dossiers on 1346 BCE, each
 claim graded and sourced.
 
@@ -95,4 +99,13 @@ claim graded and sourced.
 | [`design/57-every-person.md`](design/57-every-person.md) | Every person on one scoreboard (item 17b): the kings as persons, by their own traits from the sources, varied in each game, acting through script and model play (part A) | 2.4 |
 | [`design/58-the-balance-pass.md`](design/58-the-balance-pass.md) | The balance pass (item 18): par refreshed, the weight of size, the land against gold and goods, bold and careful characters at the top (part B); the slower breach, the age's length kept (part C); danger money to the bold, the money report (part D); gifts as investments, the spending report (part E) | 6.4 |
 | [`design/59-a-captive-kings-realm.md`](design/59-a-captive-kings-realm.md) | A captive king's realm under a caretaker (#806): the caretaker's mandate, the captive's letters through his captor's court and his word home, a spy's help, holding a king forever measured | 3.5 |
-| [`design/60-the-phones-frames.md`](design/60-the-phones-frames.md) | The phone's frames (#666): a drawing a layer, no layout read inside the redraw, the worker's message, the read and the redraw in tasks of their own, the works and bands in parts, the slide's timing on the pieces only, the names by a grid, only what the view shows drawn; what is left | 2.5 |
+| [`design/60-the-phones-frames.md`](design/60-the-phones-frames.md) | The phone's frames (#666): a drawing a layer, no layout read inside the redraw, the worker's message, the read and the redraw in tasks of their own, the works and bands in parts, the slide's timing on the pieces only, the names by a grid, only what the view shows drawn; what is left | 4.3 |
+| [`design/61-the-rules-a-player-reads/01-what-a-king-can-do.md`](design/61-the-rules-a-player-reads/01-what-a-king-can-do.md) | The rules a player reads: what a king can do | 8.5 |
+| [`design/61-the-rules-a-player-reads/02-walls-sieges-and-terrain.md`](design/61-the-rules-a-player-reads/02-walls-sieges-and-terrain.md) | The rules a player reads: walls, sieges and terrain | 1.7 |
+| [`design/61-the-rules-a-player-reads/03-winning-and-the-end.md`](design/61-the-rules-a-player-reads/03-winning-and-the-end.md) | The rules a player reads: winning and the end of the game | 3.1 |
+| [`design/61-the-rules-a-player-reads/04-the-seven-great-kings.md`](design/61-the-rules-a-player-reads/04-the-seven-great-kings.md) | The rules a player reads: The seven Great Kings | 5.0 |
+| [`design/61-the-rules-a-player-reads/05-the-courts.md`](design/61-the-rules-a-player-reads/05-the-courts.md) | The rules a player reads: the courts | 3.2 |
+| [`design/61-the-rules-a-player-reads/06-envoys-and-other-servants.md`](design/61-the-rules-a-player-reads/06-envoys-and-other-servants.md) | The rules a player reads: envoys and other servants | 2.3 |
+| [`design/61-the-rules-a-player-reads/07-playing-with-claude.md`](design/61-the-rules-a-player-reads/07-playing-with-claude.md) | The rules a player reads: playing with claude | 4.4 |
+| [`design/61-the-rules-a-player-reads/08-watching-a-game.md`](design/61-the-rules-a-player-reads/08-watching-a-game.md) | The rules a player reads: watching a game | 5.4 |
+| [`design/61-the-rules-a-player-reads/09-music-and-sound.md`](design/61-the-rules-a-player-reads/09-music-and-sound.md) | The rules a player reads: music and sound | 0.9 |
