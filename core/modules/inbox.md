@@ -24,8 +24,8 @@ Read at the start of every task.
 - **The core itself** (`core/`, a copy of its repository, changed there alone): a fault, idea or question about it is
   filed there, as "Reporting to the core" in its README says; a weakness never (floor rule 9; core archive 159).
 - **Read every comment from his account:** one with an agent's attribution line may be another session's (floor rule 4);
-  the design session (where he writes the rules) opens its own with "From the owner's design session:" (core archive
-  131).
+  the design session (where he writes the rules; in a project with none, the session he gives a standing rule to) opens
+  its own with "From the owner's design session:" (core archive 131).
 - **His words are kept once,** personal details left out (floor rule 11). A session he works with quotes an instruction
   in the PR or report that acts on it, and records nothing more. The design session keeps, word for word and dated in
   the archive (the project's, or the core's if it holds for every project), those that become standing rules, and writes
