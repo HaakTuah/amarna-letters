@@ -34,19 +34,31 @@ const Depth = 3;
 
 /** A translate's place: `translate(x,y)` in an attribute, or `transform:translate(xpx,ypx)` in a style. */
 const Place = /translate\(\s*(-?[\d.e]+)(?:px)?[\s,]+(-?[\d.e]+)/;
+/**
+ * A path in absolute moves, lines and curves only, whose numbers are all points: their bounds hold the path (a curve lies
+ * within its control points). Any other path (arcs, relative steps) has no box read here and is kept whole.
+ */
+const Points = /^[MLQCZ\d\s.,e-]*$/;
 
-interface Spot {
-  /** The translate it was read from. */
+interface Box {
+  readonly x0: number;
+  readonly y0: number;
+  readonly x1: number;
+  readonly y1: number;
+}
+
+interface Spot extends Box {
+  /** What its place was read from: its translate, or its path. */
   readonly src: string;
-  readonly x: number;
-  readonly y: number;
   /** Where it stood before, while it may still be sliding from there (a step of the timeline). */
-  readonly was: { readonly x: number; readonly y: number } | null;
+  readonly was: Box | null;
 }
 
 export class InView {
   /** What is drawn: the view and its margin; null draws everything. */
   private drawn: Area | null = null;
+  /** The screen pixels a unit took when the view last settled. */
+  private settledK = Infinity;
   private readonly spots = new WeakMap<Element, Spot>();
 
   private readonly roots: () => readonly Element[];
@@ -64,9 +76,12 @@ export class InView {
    */
   look(view: Area, exact = false): void {
     const d = this.drawn;
-    if (!exact && d !== null && d.k === view.k && view.x0 >= d.x0 && view.y0 >= d.y0 && view.x1 <= d.x1 && view.y1 <= d.y1) return;
+    if (exact) this.settledK = view.k;
+    if (!exact && d !== null && view.x0 >= d.x0 && view.y0 >= d.y0 && view.x1 <= d.x1 && view.y1 <= d.y1) return;
     const w = (view.x1 - view.x0) * Margin, h = (view.y1 - view.y0) * Margin;
-    this.drawn = { x0: view.x0 - w, y0: view.y0 - h, x1: view.x1 + w, y1: view.y1 + h, k: view.k };
+    // The marks keep the size they settled at until the gesture settles (zoom.ts sizes them then): a pinch in mid-gesture
+    // draws them larger in the board's units than the zoom it has reached would.
+    this.drawn = { x0: view.x0 - w, y0: view.y0 - h, x1: view.x1 + w, y1: view.y1 + h, k: Math.min(view.k, this.settledK) };
     this.pass(this.roots());
   }
 
@@ -92,28 +107,53 @@ export class InView {
     this.mark(el);
   }
 
-  /** Marks one element in or out of the drawing by its own translate; false when it has none. */
+  /** Marks one element in or out of the drawing by its own place; false when it has none. */
   private mark(el: Element): boolean {
     const d = this.drawn!;
     const spot = this.spot(el);
     if (spot === null) return false;
     const reach = ReachPx / d.k;
-    const near = (p: { readonly x: number; readonly y: number }): boolean => p.x >= d.x0 - reach && p.x <= d.x1 + reach && p.y >= d.y0 - reach && p.y <= d.y1 + reach;
+    const near = (b: Box): boolean => b.x1 >= d.x0 - reach && b.x0 <= d.x1 + reach && b.y1 >= d.y0 - reach && b.y0 <= d.y1 + reach;
     const out = !near(spot) && (spot.was === null || !near(spot.was)) && !el.classList.contains("marching");
     if (out !== el.hasAttribute("data-out")) el.toggleAttribute("data-out", out);
     return true;
   }
 
-  /** Where an element stands by its own translate, or null if it has none. */
+  /** Where an element stands by its own translate or path, or null if it has neither. */
   private spot(el: Element): Spot | null {
-    const src = el.getAttribute("transform") ?? el.getAttribute("style");
+    const moved = el.getAttribute("transform") ?? el.getAttribute("style");
+    const src = moved !== null && moved.includes("translate") ? moved : el.tagName === "path" && !el.hasAttribute("transform") ? el.getAttribute("d") : null;
     if (src === null) return null;
     const kept = this.spots.get(el);
     if (kept !== undefined && kept.src === src) return kept;
-    const m = Place.exec(src);
-    if (m === null) return null;
-    const spot = { src, x: Number(m[1]), y: Number(m[2]), was: kept === undefined ? null : { x: kept.x, y: kept.y } };
+    const box = src === moved ? placed(src) : bounds(src);
+    if (box === null) return null;
+    const spot = { src, ...box, was: kept === undefined ? null : { x0: kept.x0, y0: kept.y0, x1: kept.x1, y1: kept.y1 } };
     this.spots.set(el, spot);
     return spot;
   }
+}
+
+/** A translate's place, as a box of no size. */
+function placed(src: string): Box | null {
+  const m = Place.exec(src);
+  if (m === null) return null;
+  const x = Number(m[1]), y = Number(m[2]);
+  return { x0: x, y0: y, x1: x, y1: y };
+}
+
+/** The bounds of a path's points, or null for a path whose numbers are not all points. */
+function bounds(d: string): Box | null {
+  if (!Points.test(d)) return null;
+  const n = d.match(/-?[\d.]+(?:e-?\d+)?/g);
+  if (n === null || n.length < 2 || n.length % 2 !== 0) return null;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < n.length; i += 2) {
+    const x = Number(n[i]), y = Number(n[i + 1]);
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  }
+  return { x0, y0, x1, y1 };
 }
