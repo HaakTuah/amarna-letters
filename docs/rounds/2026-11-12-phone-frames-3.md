@@ -94,3 +94,19 @@ noise. The second, each run beside a run of `main`: layerization 212 and 221 aga
 runs (about a quarter less), paint 196 and 216 against 248 to 270 (a fifth less), style a tenth less, busy time 1,164 and
 1,266 against 1,288 to 1,430, and 41 and 44 tasks over 50 ms against 54 to 80. Layout and script stand where they stood:
 the marking costs little (`map:inview`).
+
+**Soak, phone, Fast** (`soak.mjs --phone --speed fast --minutes 2`, seed 1; the second try against `main`, one run each in
+turn):
+
+| Run | frames over 50 ms | the worst in play (ms, after season 0) | the browser's long tasks | seasons reached |
+|---|---|---|---|---|
+| `main` 1 | 281 of 5,275 (5.33%) | 217 | 217 | 63 |
+| second try 1 | 250 of 5,446 (4.59%) | 300 | 192 | 62 |
+| `main` 2 | 303 of 5,258 (5.76%) | 250 | 209 | 62 |
+| second try 2 | 168 of 5,884 (2.86%) | 183 | 109 | 69 |
+
+The opening's first draw (season -1 and 0) is 3.1 to 3.6 s and 0.7 to 0.9 s in every run, as before. Per step on the phone
+(mean ms, `main`'s two runs, then the second try's): the names 27.7 and 29.1, then 24.0 and 19.7 (fewer names measured);
+the works at the cities 13.6 and 12.6, then 13.6 and 10.9; the cities 8.8 and 11.5, then 11.3 and 9.9; the bands 8.6 and
+9.1, then 10.0 and 7.7. The marking itself (`map:inview`) ran some nine times a season, 2.0 and 1.8 ms on average, about
+1 s in two minutes; its worst once, 120 to 124 ms (see below).
