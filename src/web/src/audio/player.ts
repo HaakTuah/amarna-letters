@@ -17,7 +17,7 @@ import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
 import { audioSettings, onAudioSettings, scheduleStartFade, type MusicStyle } from "./settings.ts";
 import { Attack, Level, Mixer, type Layer } from "./mix.ts";
-import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
+import { MomentPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
 interface Variation {
   readonly file: string;
