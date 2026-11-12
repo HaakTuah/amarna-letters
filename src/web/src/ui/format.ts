@@ -23,9 +23,16 @@ export const provinceName: (id: string) => string = placeName;
 /** The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's. */
 export const when = (turn: number, court: Power | null): string => dateLabel(turn, court);
 
+/**
+ * A number with its thousands separated, as `toLocaleString("en")` writes it, by one formatter kept (#666: the method makes
+ * a formatter at every call, and the map's tooltips called it some two hundred times a season).
+ */
+const En = new Intl.NumberFormat("en");
+export const thousands = (n: number): string => En.format(n);
+
 /** A count as a king reads it (item 17++): two figures ("about 18,000"), never to the last head; one for an old count. */
 export function about(n: number, figures = 2): string {
-  return toFigures(n, figures).toLocaleString("en");
+  return thousands(toFigures(n, figures));
 }
 
 /** A count of `age` seasons (null: never counted, a guess) in words: "about 650,000" while fresh, "some 600,000" once old. */

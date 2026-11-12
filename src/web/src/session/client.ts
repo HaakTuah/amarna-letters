@@ -145,15 +145,28 @@ export class Session {
   getVersion = (): number => this.version;
 
   private notify(): void {
+    clearTimeout(this.redraw);
+    this.redraw = 0;
     this.version++;
     // Simulate stopped (paused, the age ended, or another pace chosen): the last season is read, and the game opens there.
     const sim = this.simulating;
     if (this.wasSimulating && !sim) this.readSoon();
     this.wasSimulating = sim;
-    // React's render of the page follows in a task of its own: the time from here to the next frame drawn is the page's redraw.
+    // React's render of the page follows in this task's microtasks: the time from here to the next frame drawn is the page's redraw.
     performance.mark("page:notify");
     for (const f of this.listeners) f();
   }
+
+  /**
+   * The page told of a change the worker or a timer brought (an update, a season played out, the state read): the redraw
+   * comes in a task of its own (#666: React renders a change of the store in the microtasks of the task that tells it, and
+   * the worker's message, its read and the page's redraw in one task came to 70 to 130 ms on a slow phone). A change the
+   * player makes redraws at once (`notify`).
+   */
+  private notifySoon(): void {
+    if (this.redraw === 0) this.redraw = window.setTimeout(() => this.notify(), 0);
+  }
+  private redraw = 0;
 
   private send(m: ToWorker): void {
     this.worker.postMessage(m);
@@ -178,10 +191,11 @@ export class Session {
       this.held = [];
       this.endPlayout();
     } else if (this.held.length > 0 || (this.playout?.live === true && m.frames.length > 0)) {
-      // The season computed ahead waits for the one playing (item 17+++); a pause, an error or a notice shows at once.
+      // The season computed ahead waits for the one playing (item 17+++); a pause, an error or a notice shows at the page's
+      // next redraw, a task later.
       this.held.push(m);
       this.live = { ...this.live, auto: m.live.auto, error: m.live.error, notice: m.live.notice };
-      this.notify();
+      this.notifySoon();
       return;
     }
     this.apply(m, newGame);
@@ -229,11 +243,6 @@ export class Session {
     if (m.live.states.length > 0) {
       for (const d of m.live.states) this.history.apply(d);
       this.recent.clear();
-      // The newest season is read in a task of its own, after the frames have shown (item 17a: one task under the 50 ms
-      // bar holds the message and the map, the next the state); only what changed is read, and a season looked back at
-      // is read when looked at (displayed). Until then the panels show the season before. Simulate reads nothing until it
-      // stops (notify).
-      if (!(this.delayMs === 0 && m.live.auto)) this.readSoon();
     }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
@@ -254,7 +263,12 @@ export class Session {
     // One season on from the season shown plays out; anything else (a new or loaded game, a resume, Simulate) shows at once.
     if (m.frames.length === 1 && !m.reset && !newGame && this.frames.length > 1 && !this.simulating) this.startPlayout();
     else if (m.frames.length > 0) this.tellPlayed(this.frames.length - 1);
-    this.notify();
+    this.notifySoon();
+    // The newest season is read in tasks of its own, after the page's redraw has shown the frames (item 17a: one task under
+    // the 50 ms bar holds the message and the map, the next the state; #666: the redraw is asked first, so it comes first);
+    // only what changed is read, and a season looked back at is read when looked at (displayed). Until then the panels show
+    // the season before. Simulate reads nothing until it stops (notify).
+    if (m.live.states.length > 0 && !(this.delayMs === 0 && m.live.auto)) this.readSoon();
   }
 
   // ---------------------------------------------------------------- the season plays out (item 17+++)
@@ -301,7 +315,7 @@ export class Session {
     this.heldAt = null;
     this.tellPlayed(p.index);
     while (this.held.length > 0 && this.playout === null) this.apply(this.held.shift()!, false);
-    this.notify();
+    this.notifySoon();
   }
 
   private endPlayout(): void {
@@ -348,7 +362,7 @@ export class Session {
         if (generation !== this.seenGeneration) return;
         performance.measure("page:reader", { start: t });
         this.state = state;
-        this.notify();
+        this.notifySoon();
         if (this.readAgain || index !== this.history.length - 1) this.readSoon();
       },
       (e: unknown) => {

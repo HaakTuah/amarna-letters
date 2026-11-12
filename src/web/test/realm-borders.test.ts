@@ -1,8 +1,11 @@
 import { describe, expect, test } from "vitest";
 import type { Power } from "@amarna/engine";
 import { frontierPath } from "../src/map/art.ts";
-import { bands, facedAcross } from "../src/map/land-layers.ts";
+import { bands as bandParts, facedAcross } from "../src/map/land-layers.ts";
 import type { MapScene, SceneUnit } from "../src/map/scene.ts";
+
+/** The bands' layer as drawn: its parts in order. */
+const bands = (s: MapScene): string => bandParts(s).map((b) => b.parts.join("")).join("");
 
 // Borders strong between powers, quiet within one ("Following, travel lines and borders"): a province's band runs only along
 // its frontier, each ring's frontier one unbroken line, closed when the whole ring is frontier.

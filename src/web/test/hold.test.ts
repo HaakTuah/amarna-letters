@@ -1,29 +1,30 @@
 import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
 
+type Sent = { type: string; on?: boolean; index?: number };
+type Session = InstanceType<(typeof import("../src/session/client.ts"))["Session"]>;
+/** A page's session whose worker hears every message and answers none (one is started as the module loads). */
+const withSession = async (run: (s: Session, sent: Sent[]) => Promise<void>): Promise<void> => {
+  const had = { Worker: globalThis.Worker, window: (globalThis as { window?: unknown }).window };
+  const sent: Sent[] = [];
+  globalThis.Worker = class {
+    postMessage(m: Sent): void {
+      sent.push(m);
+    }
+  } as unknown as typeof Worker;
+  (globalThis as { window?: unknown }).window ??= globalThis;
+  try {
+    const { Session } = await import("../src/session/client.ts");
+    await run(new Session(), sent);
+  } finally {
+    globalThis.Worker = had.Worker;
+    (globalThis as { window?: unknown }).window = had.window;
+  }
+};
+
 // Item 17+++a: "Space pauses and unpauses, even while a season plays out". The page's clock holds the season playing out
 // and lets it go on from where it stood; the worker's gate stays shut while it is held.
 describe("A season held still", () => {
-  type Sent = { type: string; on?: boolean; index?: number };
-  type Session = InstanceType<(typeof import("../src/session/client.ts"))["Session"]>;
-  /** A page's session whose worker hears every message and answers none (one is started as the module loads). */
-  const withSession = async (run: (s: Session, sent: Sent[]) => Promise<void>): Promise<void> => {
-    const had = { Worker: globalThis.Worker, window: (globalThis as { window?: unknown }).window };
-    const sent: Sent[] = [];
-    globalThis.Worker = class {
-      postMessage(m: Sent): void {
-        sent.push(m);
-      }
-    } as unknown as typeof Worker;
-    (globalThis as { window?: unknown }).window ??= globalThis;
-    try {
-      const { Session } = await import("../src/session/client.ts");
-      await run(new Session(), sent);
-    } finally {
-      globalThis.Worker = had.Worker;
-      (globalThis as { window?: unknown }).window = had.window;
-    }
-  };
   test("Pausing holds the season, playing again goes on from where it stood, and its end is told only then", async () => {
     await withSession(async (s, sent) => {
       // Auto-play on, the worker busy computing ahead, and a season of half a second playing out.
@@ -63,6 +64,28 @@ describe("A season held still", () => {
       s.stepForward();
       Assert.false(s.playoutHeld);
       Assert.false(sent.some((m) => m.type === "auto" && m.on === true));
+    });
+  });
+});
+
+// #666: the page redraws after the worker's update, a season played or a read in a task of its own, once however often it
+// is asked, and not again after a redraw at once (a change the player made).
+describe("The page's redraw, soon", () => {
+  test("asked twice, it comes once, in a later task; a redraw at once takes its place", async () => {
+    await withSession(async (s) => {
+      let redraws = 0;
+      s.subscribe(() => redraws++);
+      const soon = (): void => (s as unknown as { notifySoon(): void }).notifySoon();
+      soon();
+      soon();
+      Assert.equal(0, redraws);
+      await new Promise((r) => setTimeout(r, 20));
+      Assert.equal(1, redraws);
+      soon();
+      (s as unknown as { notify(): void }).notify();
+      Assert.equal(2, redraws);
+      await new Promise((r) => setTimeout(r, 20));
+      Assert.equal(2, redraws);
     });
   });
 });
