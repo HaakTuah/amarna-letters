@@ -218,3 +218,69 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > Well, that took you a couple of hours. Just remove all reference to usage caps, you and the orchestrators all mess
      > it up, and can't track it in the cloud regardless. Just keep the rules about spending other providers first e.g.
      > codex. Does that sound sensible to you, expert?
+
+147. **11 November 2026** (both games, in the design chat, 17:44 UTC), told that one shared workflow for the games'
+     pull-request previews (an idea filed in the core) waited on his yes, since it changes what runs with the token that
+     publishes the site:
+
+     > Why not use one shared workflow? Obvious improvements gets implemented automatically.
+
+148. **11 November 2026** (the core, in the design chat, 21:18 UTC), asked whether the core should be opened to […]'s
+     project, so a project of another owner takes it whole, its updates through sync PRs, once the owner's GitHub
+     account, written into five places (floor rule 4 among them), became a slot each project fills; he chose the answer
+     offered as:
+
+     > Open the core to him (Recommended)
+
+149. **11 November 2026** (the core, in the design chat, 21:37 UTC), asked whether floor rule 18 should gain an
+     exception for an owner's own computer, since as written it forbade a setup another owner already runs (one tool
+     calling another's under his own account); behind rule 18 cut down to what agents do, the setup itself left to
+     the owner and `setup/server.md`:
+
+     > Really, the setup is something the owner does, so why even have rules for what kind of set-up is allowed? Seems
+     > like overreach, all it acheives is the system refusing to work, it doesn't help it make it right, like our build
+     > rules does, right?
+
+     And, at 21:43 UTC, to the design session's answer (rule 18 keeps only what agents do; and the phrases of the core
+     that assume a game or a live site, one of them in floor rule 12, are made to fit any project):
+
+     > Yes, expertly to all, expertly!
+
+150. **11 November 2026** (the core, in the design chat, 21:56 UTC), once a project of another owner, not a game, could
+     take the core; behind "Rules are written for any project" and the words check:
+
+     > Yes, and we have to make sure rule changes made to agent-core from now on, is general enough, and accounts for
+     > this? How do we ensure it expert? I want my rules to be general, but implementers are so easily biased in
+     > phrasing by the only 2 projects in front of them.
+
+151. **11 November 2026** (the core, in the design chat, 22:14 UTC), asked for his yes to five places where the floor
+     assumed a public web project on npm (everything public; npm's signature check alone, with "a check that cannot
+     run holds the release back"; `npm ci`; text reaching "the page"; a session on his computer holding "no key beyond
+     its own sign-in"), after a sample project that was none of those took the core from nothing:
+
+     > Yes, agreed with everything expertly! Nuget and that should be allowed. Should we have a verified by trustable
+     > source, like nugget itself, criteria or ideal, or something like that, expert?
+
+152. **11 November 2026** (the core, in the design chat, 23:34 UTC), told that a check of the core's own for actions
+     not pinned had drawn a new way past it in each of five review rounds, since it read YAML by lines, and that
+     GitHub's own setting "Require actions to be pinned to a full-length commit SHA" reads a workflow as GitHub runs
+     it, but asks the same of GitHub's own actions, which floor rule 2 lets stand at a tag; the advice given: pin
+     those too, then turn the setting on, the core and one project first, and keep of the check only its search for
+     `pull_request_target`:
+
+     > Is the no install rule sensible then, expert? Test the setting instead, if you advice so in your expert
+     > opinion.
+
+     > Yes, do everything you recommend on this, expertly, expert!
+
+153. **11 November 2026** (the core, in the design chat), shown six rules held only by discipline, each of which a
+     check could hold, the sixth being that every PR says what the owner can try and what readings it took, which the
+     advice at first left out as rarely broken; a count then showed about three in four merged PRs without the first:
+
+     > Yes, expertly to all! But i think mechanical enforcement of rules like code size checks and just stuff the
+     > agents get wrong in following the rules, is good to run everytime, like we do, to ensure nothing not allowed
+     > goes in, or not, expert?
+
+     > Are all 6 added now, expert?
+
+     > Why should we leave out 6, expert? Did you advice only 1-5, why, expert?

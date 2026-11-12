@@ -95,7 +95,9 @@ export class IncrementalReader {
 
   /**
    * The same, spread over tasks (item 17a: no frame over about 50 ms): each task reads fields for about `budgetMs`, then
-   * yields; the state is given once every field is read. A read begun while one is under way replaces it.
+   * yields; the state is given once every field is read. A read begun while one is under way replaces it. The first step
+   * too runs in a task of its own, never in the one that asked (#666: begun in the worker's message, it made that task
+   * 10 to 15 ms longer on a slow phone).
    */
   read(refs: Uint32Array, texts: readonly string[], budgetMs = 10): Promise<GameState> {
     this.cancel();
@@ -117,7 +119,7 @@ export class IncrementalReader {
           reject(e as Error);
         }
       };
-      go();
+      setTimeout(go, 0);
     });
   }
 

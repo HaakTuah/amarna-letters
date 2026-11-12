@@ -53,39 +53,67 @@ export function patchChildren(live: Node, next: Node): void {
   }
 }
 
-/** A layer written in parts: each part's markup as last written, and the element it made (null for an empty part). */
+/** A layer written in parts: each part's markup and tooltips as last written, and the element it made (null for an empty part). */
 export interface Parts {
   markup: string[];
   nodes: (Element | null)[];
+  tips: (readonly string[])[];
 }
 
+/** A part of a layer: its markup, its tooltips (`<title>`) left empty, and their texts in the order they stand. */
+export interface Part {
+  markup: string;
+  tips: readonly string[];
+}
+
+const sameTips = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((x, i) => x === b[i]);
+
 /**
- * Writes a layer whose children are parts (each one element, or nothing): only the parts whose markup changed are parsed
- * and put in place (part G: the works at the cities, a few of which change in a season). Gives whether anything was written.
+ * Writes a layer whose children are parts (each one element, or nothing): only the parts whose markup changed are parsed,
+ * and each is patched onto the element standing (put in place where none stands) (part G: the works at the cities, a few
+ * of which change in a season); the tooltips are written into the elements standing, never parsed (#666: a granary's
+ * tooltip changes every season). Gives whether a part was written anew; a tooltip moves nothing on the map.
  */
-export function patchParts(live: Element, was: Parts, markup: readonly string[]): boolean {
-  if (was.markup.length !== markup.length) {
+export function patchParts(live: Element, was: Parts, parts: readonly Part[]): boolean {
+  if (was.markup.length !== parts.length) {
     live.textContent = "";
-    was.markup = markup.map(() => "");
-    was.nodes = markup.map(() => null);
+    was.markup = parts.map(() => "");
+    was.nodes = parts.map(() => null);
+    was.tips = parts.map(() => []);
   }
   let wrote = false;
   const scratch = live.cloneNode(false) as Element;
-  for (let i = markup.length - 1; i >= 0; i--) {
-    if (was.markup[i] === markup[i]) continue;
-    wrote = true;
-    scratch.innerHTML = markup[i];
-    const made = scratch.firstElementChild;
-    const old = was.nodes[i];
-    if (old !== null) old.remove();
-    if (made !== null) {
-      // Before the next part standing: the parts are walked from the last, so every later one is in place.
-      let before: Element | null = null;
-      for (let j = i + 1; j < was.nodes.length && before === null; j++) before = was.nodes[j];
-      live.insertBefore(made, before);
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const { markup, tips } = parts[i];
+    if (was.markup[i] !== markup) {
+      wrote = true;
+      scratch.innerHTML = markup;
+      let made = scratch.firstElementChild;
+      const old = was.nodes[i];
+      if (old !== null && made !== null && old.nodeName === made.nodeName) {
+        // Patched where it stands (#666: put in anew, a city's marks were restyled and laid out whole when one changed).
+        attributes(old, made);
+        patchChildren(old, made);
+        made = old;
+      } else if (old !== null) old.remove();
+      if (made !== null && made !== old) {
+        // Before the next part standing: the parts are walked from the last, so every later one is in place.
+        let before: Element | null = null;
+        for (let j = i + 1; j < was.nodes.length && before === null; j++) before = was.nodes[j];
+        live.insertBefore(made, before);
+      }
+      was.markup[i] = markup;
+      was.nodes[i] = made;
+      was.tips[i] = [];
     }
-    was.markup[i] = markup[i];
-    was.nodes[i] = made;
+    const node = was.nodes[i];
+    if (node === null || sameTips(was.tips[i], tips)) continue;
+    const slots = node.querySelectorAll("title");
+    tips.forEach((text, k) => {
+      const slot = slots[k];
+      if (slot !== undefined && slot.textContent !== text) slot.textContent = text;
+    });
+    was.tips[i] = tips;
   }
   return wrote;
 }

@@ -16,6 +16,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: HaakTuah/agent-core/.github/workflows/versions.yml@1a55b0be29b6737dcd077e8a7c261b583ed2553b
+    uses: HaakTuah/agent-core/.github/workflows/versions.yml@8d9d418adf581dc8ff010c4a35606bcf8b825443
     with:
       config: scripts/versions.json

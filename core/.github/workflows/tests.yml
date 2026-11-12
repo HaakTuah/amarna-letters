@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
       - name: The versions check
@@ -29,5 +29,13 @@ jobs:
         run: node scripts/licence-scan-test.mjs
       - name: The licence scan on every form of a fetch
         run: node scripts/licence-fetch-test.mjs
+      - name: The helper hook
+        run: node scripts/helper-call-test.mjs
+      - name: The description check
+        run: node scripts/pr-description-test.mjs
+      - name: The workflow check
+        run: node scripts/workflows-test.mjs
+      - name: None of the core's own workflows names the forbidden trigger
+        run: node scripts/workflows.mjs
       - name: What the core's own workflows and scripts use, each to its list
         run: node scripts/licences.mjs .github/licences.json

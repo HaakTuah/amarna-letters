@@ -52,10 +52,10 @@ how `sim/` plays a game with Claude Code agents as the kings (see `sim/README.md
 Changes go in through pull requests: every pull request builds and runs the tests
 (`.github/workflows/pages.yml`) and gets a playable preview at its own address,
 `https://haaktuah.github.io/amarna-letters/pr-<number>/`, linked in a comment on the pull request and removed when it
-closes (`.github/workflows/preview.yml`). Merging into `main` publishes the browser game at the site's root. Both are
-written to the `gh-pages` branch, which Pages serves: `main` to its root, each pull request to its own `pr-<number>/`
-folder (`scripts/site-prepare.sh`, `scripts/site-publish.sh`). No pull request's own code can write to that branch, so
-none can replace the root. To publish the static files somewhere else, such as S3:
+closes (`.github/workflows/preview.yml`, which calls the core's). Merging into `main` publishes the browser game at
+the site's root. Both are written to the `gh-pages` branch, which Pages serves: `main` to its root, each pull request
+to its own `pr-<number>/` folder (`scripts/site-prepare.sh`, `core/scripts/site-publish.sh`). No pull request's own
+code can write to that branch, so none can replace the root. To publish the static files somewhere else, such as S3:
 
 ```bash
 npm run build --workspace src/web

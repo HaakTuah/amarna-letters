@@ -110,22 +110,23 @@ export function facedAcross(s: MapScene, id: string, armies: Map<string, Set<Pow
   return arcNeighbours(id).filter((q) => (s.owner.get(q) ?? null) !== o && [...(armies.get(q) ?? [])].some((b) => [...here].some((a) => a !== b)));
 }
 
-export function bands(s: MapScene): string {
+/**
+ * The realms' border bands in the two groups their clips draw them in, a part a land province: its band and the contested
+ * stroke under it in a group, or nothing (#666: the renderer parses only the parts that changed, `patchParts`; the layer
+ * parsed whole cost 15 to 30 ms on a slow phone whenever one band changed).
+ */
+export function bands(s: MapScene): { clip: string; parts: string[] }[] {
   const armies = seenArmies(s);
-  let sb = "";
-  for (const [clip, group] of LandByClip) {
-    sb += `<g class="bands" clip-path="${clip}">`;
-    for (const p of group) {
+  return LandByClip.map(([clip, group]) => ({
+    clip,
+    parts: group.map((p) => {
       const o = s.owner.get(p.id) ?? null;
-      if (o === null) continue;
+      if (o === null) return "";
       const faced = facedAcross(s, p.id, armies);
       // A province's band is traced again only when its holder, its neighbours' or the armies facing it change (part G).
       const key = `${o}|${arcNeighbours(p.id).map((q) => s.owner.get(q) ?? "").join(",")}|${faced.join(",")}`;
       const kept = BandsDrawn.get(p.id);
-      if (kept !== undefined && kept.key === key) {
-        sb += kept.markup;
-        continue;
-      }
+      if (kept !== undefined && kept.key === key) return kept.markup;
       let markup = "";
       const other = (q: string): boolean => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o;
       // A frontier where armies of two powers stand face to face, one on each side: a wider, fainter stroke under the band.
@@ -135,12 +136,11 @@ export function bands(s: MapScene): string {
       }
       const d = frontierPath(p.id, (across) => across.length === 0 || across.some(other));
       if (d !== "") markup += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+      if (markup !== "") markup = `<g>${markup}</g>`;
       BandsDrawn.set(p.id, { key, markup });
-      sb += markup;
-    }
-    sb += "</g>";
-  }
-  return sb;
+      return markup;
+    }),
+  }));
 }
 /** Each province's band as last traced, with what it was traced from. */
 const BandsDrawn = new Map<string, { key: string; markup: string }>();

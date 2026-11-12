@@ -1,13 +1,6 @@
 /** The makers of every order (`orders.ts`), with the C# records' defaults. */
-import type { LetterFate } from "./held-letters.ts";
-import type { UnitKind } from "./map.ts";
-import type { WorkKind } from "./works.ts";
+// (each maker's parameters take their types from the order it makes, so they are written once, in orders.ts)
 import type { Power } from "./power.ts";
-import type { Clause } from "./clauses.ts";
-import type { GreetingOptions, TabletProposal } from "./records.ts";
-import type { Authority, GrantKind } from "./authority.ts";
-import type { JobWhat } from "./people.ts";
-import type { Mandate } from "./command.ts";
 import type { HoldOrder, MoveOrder, SupportOrder, ConvoyOrder, BesiegeOrder, BuildOrder, RazeOrder, SallyOrder, SellOrder, PurchaseOrder, FeedOrder, SendOrder, CaravanOrder, TradeOrder, ShipOrder, TollOrder, DemandOrder, AnswerOrder, CensusOrder, WelcomeOrder, DeportOrder, ExpelOrder, ReturnRunawaysOrder, RaiseOrder, DisbandOrder, FoldOrder, CedeProvinceOrder, GiftUnitOrder, DispatchOrder, ReleaseOrder, SeekCandidatesOrder, HireOrder, RenewOrder, SeizeHoardOrder, SellDebtOrder, PayCarriersOrder, UpkeepOrder, CommandOrder, RelieveOrder, SupplyOrder, MandateOrder, GovernOrder, CrownOrder, UnseatOrder, EnlistOrder,
   PayOffOrder, CourtOrder, HuntOrder, HuntBandsOrder, PayFeeOrder, BorrowOrder, RepayOrder, BuyNewsOrder, DismissOrder, BackgroundCheckOrder, PlaceSpyOrder, RecallSpyOrder, StealOrder, GiftOrder, CounterIntelOrder, RoadsOrder, ClaimNameOrder, RevokeOrder, GrantOrder, RepudiateOrder, AssayOrder, AuthenticateOrder, ForgeOrder, CaptiveFate, CaptiveOrder, PayRansomOrder, WriteOrder, LetterOrder, BuyLetterOrder, UnreadableOrder } from "./orders.ts";
 
@@ -15,7 +8,7 @@ export const hold = (unit: string): HoldOrder => ({ type: "hold", unit });
 export const command = (unit: string, character: string): CommandOrder => ({ type: "command", unit, character });
 export const relieve = (unit: string): RelieveOrder => ({ type: "relieve", unit });
 export const supply = (unit: string, buy: boolean, gold = 0): SupplyOrder => ({ type: "supply", unit, buy, gold });
-export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrder => ({ type: "mandate", unit, mandate });
+export const mandateOrder = (unit: string, mandate: MandateOrder["mandate"]): MandateOrder => ({ type: "mandate", unit, mandate });
 export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
 export const crown = (character: string, provinces: string[], tribute: number, price = 0): CrownOrder => ({ type: "crown", character, provinces, tribute, price });
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
@@ -26,10 +19,10 @@ export const move = (unit: string, to: string, forced = false): MoveOrder => (fo
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });
 export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit });
-export const build = (province: string, kind: WorkKind, level: number, labour = false, share: number | null = null): BuildOrder => ({ type: "build", province, kind, level, labour, ...(share !== null ? { share } : {}) });
-export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
+export const build = (province: string, kind: BuildOrder["kind"], level: number, labour = false, share: number | null = null): BuildOrder => ({ type: "build", province, kind, level, labour, ...(share !== null ? { share } : {}) });
+export const raze = (unit: string, kind: RazeOrder["kind"]): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
-export const raise = (province: string, kind: UnitKind, men: number | null = null, share: number | null = null): RaiseOrder =>
+export const raise = (province: string, kind: RaiseOrder["kind"], men: number | null = null, share: number | null = null): RaiseOrder =>
   share !== null ? { type: "raise", province, kind, share } : men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men };
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
 export const fold = (unit: string, into: string): FoldOrder => ({ type: "fold", unit, into });
@@ -39,7 +32,7 @@ export function dispatch(
   envoy: string,
   to: Power,
   letter: string,
-  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null; authority?: Authority | null; checkClaim?: string | null; collect?: string | null } = {},
+  opts: Partial<Omit<DispatchOrder, "type" | "envoy" | "to" | "letter">> = {},
 ): DispatchOrder {
   return {
     type: "dispatch",
@@ -63,7 +56,7 @@ export const release = (character: string, reply = ""): ReleaseOrder => ({ type:
 export const seekCandidates = (): SeekCandidatesOrder => ({ type: "seekCandidates" });
 /** A job's terms beyond its fee: its errand, the standing orders that go with it, and the envoy carrying an offer abroad. */
 export interface JobTerms {
-  what?: JobWhat | null;
+  what?: HireOrder["what"];
   where?: string | null;
   payOnDone?: boolean;
   offerAgain?: boolean;
@@ -115,7 +108,7 @@ export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "coun
 export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
 export const claimName = (name: string): ClaimNameOrder => ({ type: "claimName", name });
 export const revoke = (grantee: Power, province: string | null = null): RevokeOrder => ({ type: "revoke", grantee, province });
-export const grant = (grantee: Power, kind: GrantKind, province: string | null = null, seasons: number | null = null): GrantOrder => ({ type: "grant", grantee, kind, province, seasons });
+export const grant = (grantee: Power, kind: GrantOrder["kind"], province: string | null = null, seasons: number | null = null): GrantOrder => ({ type: "grant", grantee, kind, province, seasons });
 export const repudiate = (copy: string): RepudiateOrder => ({ type: "repudiate", copy });
 export const assay = (lot: string): AssayOrder => ({ type: "assay", lot });
 export const authenticate = (copy: string, spend: number): AuthenticateOrder => ({ type: "authenticate", copy, spend });
@@ -125,7 +118,7 @@ export const question = (character: string, spend: number): CaptiveOrder => ({ t
 export const handOver = (character: string, to: Power): CaptiveOrder => ({ type: "captive", character, fate: "HandOver", ransom: 0, poison: "", to });
 export const steal = (character: string): StealOrder => ({ type: "steal", character });
 export const giftTo = (character: string, gold: number): GiftOrder => ({ type: "gift", character, gold });
-export const letter = (province: string, fate: LetterFate, to: Power, price = 0, written: number | null = null): LetterOrder => ({ type: "letter", province, fate, to, price, written });
+export const letter = (province: string, fate: LetterOrder["fate"], to: Power, price = 0, written: number | null = null): LetterOrder => ({ type: "letter", province, fate, to, price, written });
 export const buyLetter = (province: string, written: number | null = null): BuyLetterOrder => ({ type: "buyLetter", province, written });
 export const payRansom = (character: string): PayRansomOrder => ({ type: "payRansom", character });
 export const writeLetter = (to: Power, letter: string): WriteOrder => ({ type: "write", to, letter });

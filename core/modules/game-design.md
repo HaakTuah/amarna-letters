@@ -1,7 +1,8 @@
 # Game design
 
 The principles every game taking the core shares, read before a task changes a rule, a feature or how the computer
-players play; each game's own add to them. A feature is any move, rule or power a player can choose to use.
+players play, and before a polish-lane task; each game's own add to them. A feature is any move, rule or power a player
+can choose to use.
 
 - **The computer players never know who is a person** (core archive 87). Nothing in the logic of the *computer players*,
   nor in *what they are shown*, says whether another player is a person; they judge every player by behaviour alone, so
@@ -82,5 +83,7 @@ players play; each game's own add to them. A feature is any move, rule or power 
   optimization that changes decisions proves, on fresh seeds, that nothing a player would notice did (skill, styles,
   feel and look, within noise; core archive 143); and one that changes play says what it changes and starts a new
   version. A game whose rules changed while it was played replays exactly only from the change on.
+- **The polish lane** (`modules/work-flow.md`, point 4) also takes its finds from whole games watched at top speed, on a
+  phone and on desktop, and proves play unchanged by "Same seed, same game".
 - **Readable by every player** (core archive 112). Nothing is told apart by colour alone, reduced motion keeps whatever
   informs, and each thing has one name everywhere the game shows it.

@@ -5,11 +5,10 @@ This game takes the floor whole, `core/floor/security.md` and `core/floor/topics
 floor's numbers:
 
 3. **The protected files,** besides those the floor names:
-   - **what runs by itself or with credentials:** `scripts/cloud-setup.sh`; `scripts/site-publish.sh`, which `pages.yml`
-     and `preview.yml` run with a token that writes `gh-pages`; `scripts/links.mjs`, which `links.yml` runs every week;
-     `scripts/versions.json`, which the monthly versions workflow reads before it opens issues; and the simulation's
-     walls, which Claude Code runs as hooks, wire in or prove (`sim/guard.js`, `sim/poller-guard.js`, `sim/wait.js`,
-     `sim/setup.js`, `sim/isolation.js`, `sim/check-isolation.js`, `sim/audit.js`);
+   - **what runs by itself or with credentials:** `scripts/cloud-setup.sh`; `scripts/links.mjs`, which `links.yml` runs
+     every week; `scripts/versions.json`, which the monthly versions workflow reads before it opens issues; and the
+     simulation's walls, which Claude Code runs as hooks, wire in or prove (`sim/guard.js`, `sim/poller-guard.js`,
+     `sim/wait.js`, `sim/setup.js`, `sim/isolation.js`, `sim/check-isolation.js`, `sim/audit.js`);
    - **the rule files:** `docs/builder-rules.md`, `docs/review-guidelines.md` and `docs/threat-model.md`;
    - **the checks on the work:** the copies check's config and baseline (`scripts/copies.json`,
      `scripts/copies-baseline.json`), the reading-size check's marks (`scripts/sizes.json`), and the licence check's

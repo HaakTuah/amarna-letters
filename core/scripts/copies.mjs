@@ -8,6 +8,8 @@
 //
 //   node core/scripts/copies.mjs <config>            the check
 //   node core/scripts/copies.mjs <config> --write    lower the baseline to what still stands (it never adds a copy)
+//   node core/scripts/copies.mjs <config> --first    write the first baseline, the copies that stand when a project
+//                                                    takes the check; only where no baseline exists yet
 //
 // The config, a JSON file the project keeps (its *copies check* slot names it), says what is checked: "baseline", the
 // baseline's path; "code" and "prose", lists of git pathspecs (":!" leaves a path out); and "proseFromSecurity": true
@@ -20,7 +22,7 @@ import { ruleFiles } from "./rule-files.mjs";
 const git = args => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 const fail = msg => { console.error(`FAIL: ${msg}`); process.exit(1); };
 const configPath = process.argv.slice(2).find(a => !a.startsWith("--"));
-if (!configPath) fail("name the config: node core/scripts/copies.mjs <config> [--write]");
+if (!configPath) fail("name the config: node core/scripts/copies.mjs <config> [--write | --first]");
 let config;
 try { config = JSON.parse(fs.readFileSync(configPath, "utf8")); } catch { fail(`cannot read the config ${configPath} as JSON`); }
 process.chdir(fileURLToPath(new URL(".", import.meta.url)));
@@ -122,7 +124,16 @@ const ls = specs => specs.length ? execFileSync("git", ["ls-files", "-z", "--", 
 const runs = [find(ls(CODE_SPECS), codeUnits, LINES, "\n", MIN_CHARS), find(ls(proseSpecs), proseUnits, WORDS, " ", 0)];
 const found = runs.flatMap(r => r.copies);
 const places = new Map(runs.flatMap(r => [...r.dup].map(([h, list]) => [h, list.length])));
-const base = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
+if (process.argv.includes("--first")) {
+  if (fs.existsSync(BASELINE)) fail(`${BASELINE} exists: --first writes only a project's first baseline`);
+  fs.writeFileSync(BASELINE, JSON.stringify({ windows: Object.fromEntries([...places].sort()) }, null, 2) + "\n");
+  console.log(`${BASELINE}: the first baseline, ${found.length} old copies in ${places.size} windows, to be removed over time`);
+  process.exit(0);
+}
+if (!fs.existsSync(BASELINE)) fail(`no baseline at ${BASELINE}: write a project's first with --first`);
+let base;
+try { base = JSON.parse(fs.readFileSync(BASELINE, "utf8")); } catch { fail(`cannot read ${BASELINE} as JSON`); }
+if (!base || typeof base.windows !== "object" || base.windows === null || Array.isArray(base.windows)) fail(`${BASELINE} has no "windows" object ({ "windows": {} } lists none)`);
 // A count is a whole number of places, at least two; anything else would let a copy through, so it fails.
 const counted = (w, where) => {
   const bad = Object.entries(w || {}).filter(([h, n]) => !/^[0-9a-f]{12}$/.test(h) || !Number.isInteger(n) || n < 2);

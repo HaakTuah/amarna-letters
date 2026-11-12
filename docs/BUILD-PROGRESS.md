@@ -12,6 +12,11 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 ## The polish lane
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
+- **A bug beside it, now:** #666, a phone at Fast still drops frames past 50 ms, mostly the browser's own layering and
+  painting of the map's SVG; its own lane on the map's drawing, which the music does not touch, measured as item 17+++
+  part G measured it, until frames stay under 50 ms on a phone and on desktop at every speed. PR #930
+  (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's 1.4% to 0.4%; next, one
+  transform a symbol.
 - **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
   text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
   or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
@@ -48,31 +53,48 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
+- **A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
+  expert?", then "Yes, expertly to all, expert!"). "Keep it lean" forbids leftovers, but no check holds it. (1) Finish
+  `--noUnusedLocals` on `turn/counts.ts`, `turn/couriers.ts`, `turn/economy.ts`, `turn/resolve.ts`, `turn/unrest.ts` and
+  `web/src/map/life.ts`, then turn on `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`, so
+  `scripts/test.sh` fails a leftover. (2) Exports and files nothing imports: one clean-up PR, then a finder in
+  `scripts/test.sh`; a small script on the compiler's own API first, a pinned dev tool (floor rules 7 and 10) only if
+  that falls short; what is reached indirectly is listed with its reason. (3) A lint rule fails a test skipped or
+  narrowed to one (`.skip`, `.only`, `.todo`; the owner, the same day: "Yes, expertly to all!"). The replays prove play
+  unchanged. A routine lane.
 - ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
   Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
   own (#721) gave way to them.
-- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
-  #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
-  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
-  `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
-  `--noUnusedLocals` again (6 November 2026: `realm.ts`, `validator-armies.ts` and `tidings.test.ts` cleared, #748)
-  on the files open PRs still held then: `turn/counts.ts` and `web/src/map/life.ts` (#744), and `turn/couriers.ts`,
-  `turn/economy.ts`, `turn/resolve.ts` and `turn/unrest.ts` (#612). Looked at and
+- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390,
+  #392-#394, #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused
+  imports and locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it
+  found: `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588).
+  `--noUnusedLocals` cleared all but the files open PRs held then (#748), which the next entry finishes. Looked at and
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
-  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
-  (the start screen; its saved-games card is 2.5 KB).
+  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx` (the
+  start screen; its saved-games card is 2.5 KB).
+- **The README as a front page** (an outside review of the repositories, 11 November 2026: about 7,000 words, rules
+  that read like a legal code, which players will not read): the README keeps what the game is, how to start and how a
+  season goes, in a few hundred words, and points to the rulebook for the rules in full; whatever moves goes to the
+  rulebook or the design notes, nothing a player needs is lost, and the copies check proves nothing is said twice.
+- **The code files near the split line** (the same review): 17 code files are past 40 KB, `turn/plans.ts` within a few
+  hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
+  PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
+  the files already judged one thing above stay whole.
 
 ## Follow-ups
+
+- **A letters-only game** (the owner, 11 November 2026, agreeing with the design session's answer to an outside review:
+  "Agreed with all your takes, expertly!"; #927): after item 18, a preset with the letters, envoys and treaties and
+  the other systems off, played by the script kings on the same seeds as the full game, measuring how often kings keep
+  and break their word and come to trust or shun each other in each, so the game shows whether its trust comes from the
+  letters or from the economy around them.
 
 - **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
   that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
   the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
   `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
 
-- **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
-  generated `geo-fine-data.ts` (its
-  script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
-  dodge).
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `main` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
   owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
@@ -174,7 +196,6 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
-
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|

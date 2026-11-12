@@ -105,7 +105,7 @@ then style, layout and paint. What changed, step by step, each measured:
   `snapshots.ts`): a piece for each memory keeps a character whose gold changed from being read whole, while an event's
   list of courts stays one piece (cut five deep everywhere, 30,000 events became 300,000 pieces a season). Piece lists are
   `Uint32Array`s.
-- **The map draws its layers in budgeted steps** over frames (`SvgMapRenderer.renderNow`, `runSteps`, about 8 ms a frame): a
+- **The map draws its layers in budgeted steps** over frames (`SvgMapRenderer.renderNow`, `runSteps`, a budget of 8 ms a frame then, 4 ms since #666): a
   new render drops the steps still waiting, since every layer whose key changed is written by it anyway; the names are
   placed after the last step.
 
@@ -115,7 +115,8 @@ then style, layout and paint. What changed, step by step, each measured:
   lower map, since its holders' tints and the season's washes change every turn and the land, the rivers, the relief and
   the names were painted with them. Now the land itself is one layer (painted once a zoom), the tints and washes another,
   the relief a third (blending in soft light with the layers below, as a layer of its own), the fog, bands, marks, names
-  and cities a fourth, and the pieces the fifth; each lets taps through where it has nothing. In a whole fast game on
+  and cities a fourth, and the pieces the fifth; each lets taps through where it has nothing. Since #666 the marks and the
+  pieces are an `<svg>` a layer, each composited (`60-the-phones-frames.md`). In a whole fast game on
   desktop the frames over 50 ms fell from 454 to 152 (3%) and the long tasks from 333 to 51. (Headless Chromium
   rasterizes in software, so the compositor's numbers here are pessimistic; the structure helps a GPU too, since a
   season invalidates fewer tiles.)
@@ -124,7 +125,7 @@ then style, layout and paint. What changed, step by step, each measured:
   timeline named them as animation frames in which a layer was rewritten (its draw, then the style recalculation,
   layerization and paint of that layer, 150 ms and more at that speed), the worker's message (its structured clone), and
   the names placed (a layout and every marker measured). So: **a layer is written only when its markup changed**
-  (`layer`, `written`: most seasons the cities, tints and bands come out the same, and a write skipped is a style
+  (`layer`, `written`; the bands since #666 in parts, `drawBands`: most seasons the cities, tints and bands come out the same, and a write skipped is a style
   recalculation and a repaint spared); **the names are placed only when something on the map was written** (`changed`);
   **a frame travels as a difference** in its per-court maps (`toWire`, `fromWire` in `frames.ts`: known holders, known
   walls and sight equal to the frame before's are left out and put back on the page, in the board's order); and **a read

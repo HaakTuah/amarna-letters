@@ -65,13 +65,27 @@ class FakeNode {
   cloneNode(): FakeNode {
     return new FakeNode(this.nodeType, this.nodeName);
   }
+  // "name|n": one element of that name holding n empty tooltips.
   set innerHTML(markup: string) {
     writes.push(`parse ${markup}`);
-    this.kids = markup === "" ? [] : [new FakeNode(1, markup)];
-    for (const k of this.kids) k.parentNode = this;
+    const [name, tips] = markup.split("|");
+    this.kids = markup === "" ? [] : [new FakeNode(1, name)];
+    for (const k of this.kids) {
+      k.parentNode = this;
+      for (let i = 0; i < Number(tips ?? 0); i++) k.kids.push(Object.assign(new FakeNode(1, "title"), { parentNode: k }));
+    }
   }
-  set textContent(_: string) {
+  querySelectorAll(name: string): FakeNode[] {
+    return this.kids.flatMap((k) => [...(k.nodeName === name ? [k] : []), ...k.querySelectorAll(name)]);
+  }
+  text = "";
+  get textContent(): string {
+    return this.text;
+  }
+  set textContent(text: string) {
+    if (this.nodeName === "title") writes.push(`tip ${text}`);
     this.kids = [];
+    this.text = text;
   }
   get firstElementChild(): FakeNode | null {
     return this.kids[0] ?? null;
@@ -139,8 +153,8 @@ describe("A layer patched", () => {
 
   test("a layer in parts parses only the parts that changed, each in its place", () => {
     const live = new FakeNode(1, "g");
-    const was: Parts = { markup: [], nodes: [] };
-    const write = (parts: string[]): boolean => patchParts(live as unknown as Element, was, parts);
+    const was: Parts = { markup: [], nodes: [], tips: [] };
+    const write = (parts: string[]): boolean => patchParts(live as unknown as Element, was, parts.map((markup) => ({ markup, tips: [] })));
     Assert.true(write(["a", "", "c"]), "first written");
     Assert.equal("a,c", live.kids.map((k) => k.nodeName).join(","));
     writes = [];
@@ -157,5 +171,28 @@ describe("A layer patched", () => {
     Assert.equal("x", live.kids.map((k) => k.nodeName).join(","));
     write([]);
     Assert.equal(0, live.kids.length);
+  });
+
+  // #666: a granary's tooltip changes every season; its city's marks stay as they stand.
+  test("a part whose tooltips alone changed has them written in place, never parsed", () => {
+    const live = new FakeNode(1, "g");
+    const was: Parts = { markup: [], nodes: [], tips: [] };
+    const write = (parts: { markup: string; tips: string[] }[]): boolean => patchParts(live as unknown as Element, was, parts);
+    Assert.true(write([{ markup: "a|2", tips: ["a well", "granaries holding 40"] }, { markup: "b|1", tips: ["a mine"] }]), "first written");
+    Assert.equal(["a well", "granaries holding 40", "a mine"], live.querySelectorAll("title").map((t) => t.textContent));
+    const kept = live.kids[0];
+    writes = [];
+    Assert.false(write([{ markup: "a|2", tips: ["a well", "granaries holding 52"] }, { markup: "b|1", tips: ["a mine"] }]), "no part written anew");
+    Assert.equal("tip granaries holding 52", writes.join(", "));
+    Assert.true(live.kids[0] === kept, "the city's marks are the same element");
+    // A part parsed anew has its tooltips written, the unchanged ones too.
+    writes = [];
+    Assert.true(write([{ markup: "a|2", tips: ["a well", "granaries holding 52"] }, { markup: "b2|1", tips: ["a mine"] }]));
+    Assert.equal("parse b2|1, remove b, insert b2, tip a mine", writes.join(", "));
+    // A part changed into the same kind of element is patched where it stands, its tooltips written again.
+    const city = live.kids[0];
+    Assert.true(write([{ markup: "a|3", tips: ["a well", "granaries holding 52", "famine"] }, { markup: "b2|1", tips: ["a mine"] }]));
+    Assert.true(live.kids[0] === city, "the city's marks are the same element");
+    Assert.equal(["a well", "granaries holding 52", "famine", "a mine"], live.querySelectorAll("title").map((t) => t.textContent));
   });
 });

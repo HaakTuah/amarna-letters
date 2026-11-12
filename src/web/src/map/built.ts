@@ -87,11 +87,21 @@ function granary(fill: number): string {
 const Mine = `<path class="mn-pick" d="M-5,5L3,-3M0.5,-5.5Q3.5,-5 5.5,-1.5"/><path class="mn-ore" d="M-1,4.5L1.5,1.5L4.5,2.5L5,5Z"/>`;
 
 /**
+ * A city's works as a part of their layer: the marks' shapes, and their tooltips apart (#666: the granaries' tooltips
+ * change every season, and written into the shapes' markup they had every city's marks parsed and put in anew, 20 to 50 ms
+ * a season on a slow phone; the renderer writes the tooltips in place, `patchParts`).
+ */
+export interface WorksPart {
+  markup: string;
+  tips: string[];
+}
+
+/**
  * The works at a city, close up: a row of small marks to the right of the city, below its news, clear of its outermost
  * ring (the stylesheet's `wring`); markers in the upper drawing, which give way where they would touch another (the
  * renderer's placement), and are drawn only when the map is zoomed in (lod2), where there is room.
  */
-export function cityWorks(s: MapScene, province: string, capital: boolean, walls: number): string {
+export function cityWorks(s: MapScene, province: string, capital: boolean, walls: number): WorksPart {
   const marks: { cls: string; inner: string; text: string }[] = [];
   if (known(s, province)) {
     const hb = level(s, "Harbour", province);
@@ -108,16 +118,16 @@ export function cityWorks(s: MapScene, province: string, capital: boolean, walls
   if (economyOf(Map_.get(province)).mine > 0) marks.push({ cls: "mine", inner: Mine, text: "mines worked here" });
   // Item 19, pass 4: a famine's empty granary, and the town's houses (life.ts).
   marks.push(...lifeMarks(s, province));
-  if (marks.length === 0) return "";
+  if (marks.length === 0) return { markup: "", tips: [] };
   const at = city(province);
   let sb = `<g class="works-at" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(capital, walls))}"><g class="wring"><g class="sym">`;
   marks.forEach((m, i) => {
-    sb += `<g class="wk ${m.cls}" transform="translate(${F(7 + i * 15)},0)"><title>${m.text}</title><circle class="wk-bg" r="7"/>${m.inner}</g>`;
+    sb += `<g class="wk ${m.cls}" transform="translate(${F(7 + i * 15)},0)"><title></title><circle class="wk-bg" r="7"/>${m.inner}</g>`;
   });
-  return sb + "</g></g></g>";
+  return { markup: sb + "</g></g></g>", tips: marks.map((m) => m.text) };
 }
 
 /** The works of every city the viewer has any to show at, as the upper drawing's layer: one part a land province (part G). */
-export function worksAtCities(s: MapScene): string[] {
+export function worksAtCities(s: MapScene): WorksPart[] {
   return Map_.landProvinces.map((p) => cityWorks(s, p.id, p.capital, s.walls.get(p.id) ?? 0));
 }
