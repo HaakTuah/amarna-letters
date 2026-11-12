@@ -98,6 +98,8 @@ async function namesClear(p, name) {
         .map((g) => ({ id: g.dataset.label, t: g.querySelector("text") }))
         .filter((x) => !x.t.classList.contains("off"))
         .map((x) => ({ id: x.id, r: x.t.getBoundingClientRect() }))
+        // A name far off the view is not drawn (map/in-view.ts): no box, nothing to overlap.
+        .filter((x) => x.r.width > 0)
         .concat([...document.querySelectorAll(".base text.geo:not(.off)")].map((t) => ({ id: t.textContent, r: t.getBoundingClientRect() })));
       const seen = (e) => getComputedStyle(e).visibility !== "hidden";
       const markers = [];
