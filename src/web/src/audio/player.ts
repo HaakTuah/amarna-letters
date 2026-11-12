@@ -318,7 +318,7 @@ class Player {
     this.cancelPause(d);
     d.el.src = url(v.file);
     d.piece = piece;
-    d.drawn = this.moment !== null ? null : this.mood;
+    d.drawn = this.playingMoment ? null : this.mood;
     d.file = v.file;
     d.phrases = v.phrases;
     d.gain.gain.cancelScheduledValues(t);

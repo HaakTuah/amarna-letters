@@ -46,7 +46,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 | Solemn | Solemn (`solemn`) | moment: a king fallen (after the king's sting) |
 | Time | The Last Seasons (`last`) | the last seasons, and after the age's end (after its sting) |
 
-## How the music chooses (src/web/src/audio/mood.ts, situation.ts, player.ts)
+## How the music chooses (src/web/src/audio/mood.ts, listening.ts, draw.ts, crossing.ts, situation.ts, player.ts)
 
 - **Only what the seat knows** (pillar 4; the owner, 1 November 2026: "Important! The music must never reveal what's outside
   the fog of war."): its own sight, the moves it saw resolve, the owners as it knows them, the news that reached it, the
@@ -63,29 +63,66 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
   a province of its own in its sight past 60% of the unrest at which land rises, or a rumour in the last two seasons. A
   skirmish with a city-state (none of those) adds 1.5, up to 5 at most: its drums, and war at most. The heat halves
   every 2 seasons or every 30 s, whichever is slower, so a season watched at speed cools by the clock and one played by
-  hand by the seasons, and the music feels the same either way.
+  hand by the seasons, and the music feels the same either way. A siege heats a step less once it drags on (item
+  19+++c): after 3 seasons (`Drag`) its battle heat is war's, a war's unease, an unease the city-states' little.
 - **The steps**, calm, tension, war and battle, are entered at a heat of 2, 4 and 7 and left below 1, 2.5 and 5: harder
-  to enter than to leave. A mood holds at least 90 s of play before it changes, up or down, unless the seat's own capital
-  is attacked (a siege of it or an attack on it), which rises at once; it falls one step at a time, each held again. The
+  to enter than to leave. A rise is heard at once; the hold of 90 s of play holds back falls only (item 19+++c; in 19+++b
+  it held rises too, except the seat's own capital attacked), and a fall comes one step at a time, each held again. The
   top step plays the siege's music where its own land is besieged, the battle's otherwise. Below war, grave, borrowed or
   darkest omens of the end play the last seasons; the age's end plays them always. A jump through the seasons or a change
   of eyes starts afresh from the eight seasons before, cooled by seasons, at the step their heat enters.
-- **God view follows the world's temperature**: 8 for a great battle between Great Kings (sizeable, as above) or a
-  Great King's own capital besieged (the siege's music); 5 when three or more Great Kings fought one another in the last
-  three seasons; 3 for two of them, or a Great King's other city besieged; 1.5 for the city-states' wars, which count
-  little; troubled omens 3.
+- **The world's temperature** (god view, drifting): 8 for a great battle between Great Kings (sizeable, as above), a
+  Great King's own capital newly besieged (the siege's music), a Great King's capital newly taken, or a Great King fallen;
+  5 when three or more Great Kings fought one another in the last three seasons; 3 for two of them, or a Great King's
+  other city besieged; 1.5 for the city-states' wars, which count little; troubled omens 3; a siege that drags on, a step
+  less (above). No Great King can be taken captive as the game stands, so none is counted.
+- **Whose ears** (item 19+++c, archive items 247 to 249; `listening.ts`, `earsOf`). A *player* (the viewer is a human seat
+  of the table) hears his own seat, with every trigger above. A *spectator* hears what he chose to watch, as in the
+  spectator modes of Civilization VI and Paradox's games, never the middle of the view, which pans fast and, zoomed out,
+  shows no more than the rest: the **character he follows** (the Follow tab), that character's own heat in his realm's
+  music; else the **realm he watches** (a seat's eyes), that realm's heat, the seat's own signal; else, drifting in god
+  view, the **world's** temperature, in the music of the realm doing the most. A character's heat (`characterSignal`),
+  from what the viewer knows of him: a fight where he stands (8, a battle if a Great King is on both sides, it is sizeable,
+  or it is in his realm's land; else a skirmish), the place he stands in besieged (8, the siege's music), foreign troops
+  standing in it (3), held captive as the viewer knows it (3, the tension's music); nothing where the viewer knows no place
+  for him (on the road). His realm is the one the viewer knows him to serve. The realm doing the most (`busiest`) is the Great
+  King with the most blows struck and taken and sieges laid and borne over the last 6 seasons, fading by 0.6 a season, kept
+  until another has 1.5 times as much and 2 more. A realm decides only the court whose home mode the fallback plays in
+  (the orchestra's pieces are one voice for every court).
+- **A spectator's music turns over calmly** (`crossing.ts`, `crossPlan`): a rise crosses at a phrase end within 8 s only
+  for something clear in front of him (`Signal.clear`: a real battle of the realm or character he watches, that realm's
+  capital newly attacked, a fight or a siege where the character stands; kept clear for 12 s so the rise can cross), and
+  the world's own heat changes the music only at a piece's end. A change of what he watches (realm, character, god view)
+  never cuts a piece: it plays on to its end, or, if it would play longer than 45 s (`Ease`), crosses at the last phrase
+  end within 45 s of the change, to a piece drawn for what he now watches; a fresh start is not an event, so no
+  rise is clear then. The fallback's court changes only at the end of a pass. A player keeps 19+++b's clearer triggers.
 - **It rises fast and falls slow** (`crossing.ts`): each file carries its phrase ends (seconds); a rise starts 0.4 s before the next one
-  within 8 s and crosses over 3 s, or at once where none comes that soon. A fall, or a change within a step (siege and
-  battle, tension and the last seasons), never cuts a piece: it plays to its end and rests 4 to 12 s before the calmer
-  music. A moment, and a change to or from the menu, wait up to 20 s for a phrase end. The page's clock keeps the same
+  within 8 s and crosses over 3 s, or at once where none comes that soon. A piece stands for the higher of its own mood
+  and the mood it was drawn for (`heardMood`): only a mood above that is a rise, so a war piece drawn in tension is not
+  cut for the war that follows. A fall, or a change within a step (siege and battle, tension and the last seasons), never
+  cuts a piece: it plays to its end, and the next is drawn after its rest. A moment, and a change to or from the menu,
+  wait up to 20 s for a phrase end. The page's clock keeps the same
   deadline, so a stalled stream still changes, and a stream the browser refused is asked again every 2 s.
 - **Measured** in script games by `scripts/music-moods.ts` (for each seat and in god view at each pace of
   `session/pacing.ts`, by hand and at Simulate: the mood's
-  changes a minute and the share of time in each), against first guesses of about one change in two minutes and under
-  two fifths of god view in the war family (war, siege, battle); the owner's ear tunes the numbers above.
-- **Variations**: a piece plays one of its three, never the one it played last, never the file just heard; within a
-  mood the next piece is another of the mood's when it has several. Calm, tension, the menu and the last seasons rest 4
-  to 12 s between pieces; war, siege and battle do not.
+  changes a minute and the share of time in each, and, with the draw and the rests played through them, the share of
+  the music's time in the war family's pieces and in silence), against first guesses of about one change in two minutes,
+  and, for the war family, under a third of god view and under half of a seat's play while it is at war; the owner's ear
+  tunes the numbers above. The numbers are in `docs/rounds/2026-11-12-war-music-a-share.md`.
+- **No mood is a switch** (item 19+++c; `draw.ts`): the music is mostly the game's calm and its age, with war heard when
+  it is the listener's own, as in Civilization V and VI, Crusader Kings II and Europa Universalis IV, where the music
+  follows one country and war only weighs on it. Each next piece is drawn by chance from the pieces of every mood, weighted
+  toward the mood's own, as Paradox's games weigh each song by the country's state (`Shares`, first guesses for the
+  owner's ear): in war, siege and battle one piece in two is a war piece, a quarter tension, a quarter calm; in tension one
+  in three each war, tension and calm; in calm four in five calm, one in five tension, no war piece; in the last seasons
+  seven in ten the last seasons' own, the rest tension or calm. The piece just heard is not drawn again. A rise is not
+  drawn: the piece that crosses on it is the new mood's own (`ownPiece`), and the draw weighs the pieces after it. Battle
+  and siege music is earned, one piece at a time: only the mood's own draws it, never two running, so after it the
+  chariots or a calmer piece play. The menu has the Hymn alone.
+- **Rests**: a rest of silence, 4 to 30 s (`Rest`, chosen by chance), falls after every piece, so the world's own sounds
+  come through; none before a moment's piece, nor after a piece that a rise has outgrown (heard at once). The fallback's
+  versions rest between passes too (they had none before).
+- **Variations**: a piece plays one of its three, never the one it played last, never the file just heard.
 - **Moments**: a sting (2 to 5 s) silences the music, then the moment's piece plays once to its end, then the mood's music
   again. Stings: a great king's capital changing hands (or one the seat lost or took), a king fallen (the seat's own;
   in god view any), the age's end.
