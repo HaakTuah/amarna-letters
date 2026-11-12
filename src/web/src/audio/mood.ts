@@ -124,7 +124,9 @@ export function signalAt(frames: readonly SeasonFrame[], index: number, viewer: 
       const holder = f.owner.get(s.province) ?? null;
       if (holder === null || !isGreatKing(holder) || holder === s.besieger) continue;
       const capital = capitals.some((c) => c.id === s.province && c.home === holder);
-      raise(siegeHeat(capital ? Heat.battle : Heat.unease, f, s), capital ? "siege" : null);
+      // A siege that drags on heats the world little (item 19+++c), a Great King's capital included.
+      if (f.turn - s.since >= Drag) raise(Heat.little);
+      else raise(capital ? Heat.battle : Heat.unease, capital ? "siege" : null);
     }
     // What changed the world (item 19+++c): a Great King's capital newly taken, a Great King fallen.
     const prev = frames[index - 1];

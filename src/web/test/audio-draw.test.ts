@@ -33,7 +33,8 @@ describe("AudioDrawTests", () => {
     for (const mood of ["war", "siege", "battle"] as const) Assert.true(Math.abs((tally(mood).war ?? 0) - 0.5) < 0.04);
     const tension = tally("tension");
     Assert.true(Math.abs(tension.war - 1 / 3) < 0.04);
-    Assert.true(tension.tension > 0.25 && tension.calm > 0.25);
+    // The rest is weighted toward the mood's own: tension above calm.
+    Assert.true(tension.tension > tension.calm && tension.calm > 0.2);
     const calm = tally("calm");
     Assert.equal(undefined, calm.war);
     Assert.true(calm.calm > 0.7);
@@ -61,7 +62,7 @@ describe("AudioDrawTests", () => {
     Assert.true(seen > 50);
   });
 
-  test("A piece is another than the one just heard; the menu has only the Hymn", () => {
+  test("A piece is another than the one just heard where its family has another; the menu has only the Hymn", () => {
     const dice = seeded(11);
     let last: string | null = "kings";
     for (let i = 0; i < 200; i++) {

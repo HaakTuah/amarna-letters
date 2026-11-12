@@ -18,7 +18,7 @@ export const FamilyOf: Record<Mood, Family> = { menu: "menu", calm: "calm", tens
 export const Shares: Record<Family, Partial<Record<Family, number>>> = {
   menu: { menu: 1 },
   calm: { calm: 0.8, tension: 0.2 },
-  tension: { calm: 1 / 3, tension: 1 / 3, war: 1 / 3 },
+  tension: { calm: 4 / 15, tension: 0.4, war: 1 / 3 },
   war: { war: 0.5, tension: 0.25, calm: 0.25 },
   last: { last: 0.7, tension: 0.15, calm: 0.15 },
 };
@@ -45,7 +45,8 @@ export function ownPiece(mood: Mood, playing: string | null, dice: () => number)
 
 /**
  * The next piece for a mood: a family by its share, then a piece of it, another than the one just heard where the family
- * has another.
+ * has another. The war family outside siege and battle has only the chariots, which may follow themselves (in another
+ * variation, as the player never repeats a file), so war keeps its one piece in two.
  */
 export function drawPiece(mood: Mood, last: string | null, dice: () => number): string {
   const shares = Object.entries(Shares[FamilyOf[mood]]) as [Family, number][];

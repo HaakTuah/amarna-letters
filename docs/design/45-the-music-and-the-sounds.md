@@ -74,8 +74,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 - **The world's temperature** (god view, drifting): 8 for a great battle between Great Kings (sizeable, as above), a
   Great King's own capital newly besieged (the siege's music), a Great King's capital newly taken, or a Great King fallen;
   5 when three or more Great Kings fought one another in the last three seasons; 3 for two of them, or a Great King's
-  other city besieged; 1.5 for the city-states' wars, which count little; troubled omens 3; a siege that drags on, a step
-  less (above). No Great King can be taken captive as the game stands, so none is counted.
+  other city besieged; 1.5 for the city-states' wars, which count little; troubled omens 3; a siege that drags on past 3 seasons, a Great King's capital's too, 1.5 (a seat's own, a step less, above). No Great King can be taken captive as the game stands, so none is counted.
 - **Whose ears** (item 19+++c, archive items 247 to 249; `listening.ts`, `earsOf`). A *player* (the viewer is a human seat
   of the table) hears his own seat, with every trigger above. A *spectator* hears what he chose to watch, as in the
   spectator modes of Civilization VI and Paradox's games, never the middle of the view, which pans fast and, zoomed out,
@@ -95,7 +94,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
   the world's own heat changes the music only at a piece's end. A change of what he watches (realm, character, god view)
   never cuts a piece: it plays on to its end, or, if it would play longer than 45 s (`Ease`), crosses at the last phrase
   end within 45 s of the change, to a piece drawn for what he now watches; a fresh start is not an event, so no
-  rise is clear then. The fallback's court changes only at the end of a pass. A player keeps 19+++b's clearer triggers.
+  rise is clear then. The fallback ends its pass under way at a phrase end once 45 s have passed since the change, where the new view asks for a mood of another height; its court changes with a new pass. A change of eyes that asked nothing of the piece, or went 60 s unanswered, is forgotten. A player keeps 19+++b's clearer triggers.
 - **It rises fast and falls slow** (`crossing.ts`): each file carries its phrase ends (seconds); a rise starts 0.4 s before the next one
   within 8 s and crosses over 3 s, or at once where none comes that soon. A piece stands for the higher of its own mood
   and the mood it was drawn for (`heardMood`): only a mood above that is a rise, so a war piece drawn in tension is not
@@ -114,8 +113,8 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
   follows one country and war only weighs on it. Each next piece is drawn by chance from the pieces of every mood, weighted
   toward the mood's own, as Paradox's games weigh each song by the country's state (`Shares`, first guesses for the
   owner's ear): in war, siege and battle one piece in two is a war piece, a quarter tension, a quarter calm; in tension one
-  in three each war, tension and calm; in calm four in five calm, one in five tension, no war piece; in the last seasons
-  seven in ten the last seasons' own, the rest tension or calm. The piece just heard is not drawn again. A rise is not
+  in three war, two in five tension, the rest calm; in calm four in five calm, one in five tension, no war piece; in the last seasons
+  seven in ten the last seasons' own, the rest tension or calm. The piece just heard is not drawn again, where its family has another (the chariots alone may follow themselves, in another variation, which keeps war's one piece in two). A rise is not
   drawn: the piece that crosses on it is the new mood's own (`ownPiece`), and the draw weighs the pieces after it. Battle
   and siege music is earned, one piece at a time: only the mood's own draws it, never two running, so after it the
   chariots or a calmer piece play. The menu has the Hymn alone.

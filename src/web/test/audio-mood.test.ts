@@ -141,7 +141,8 @@ describe("AudioMoodTests", () => {
     Assert.equal([Heat.battle, "siege"], [early.heat, early.top]);
     const frames = [frame(0)];
     for (let i = 1; i <= Drag + 3; i++) frames.push(sieged(i));
-    Assert.equal(Heat.war, signalAt(frames, frames.length - 1, null).heat);
+    // The world hears a siege that drags on little, a capital's too; a seat's own land besieged, a step less.
+    Assert.equal(Heat.little, signalAt(frames, frames.length - 1, null).heat);
     // A siege it lays, dragging on, is only unease.
     const laid = { province: "kadesh", besieger: "Egypt" as Power, progress: 1, walls: 2, since: 1 };
     const lay = [frame(0)];

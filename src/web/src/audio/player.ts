@@ -11,7 +11,7 @@ import type { Power } from "@amarna/engine";
 import { Manifest } from "./manifest.ts";
 import { SynthDeck, type NextStretch } from "./synth/engine.ts";
 import { stretches, type Version } from "./synth/arrange.ts";
-import { crossAt, crossPlan, heardMood, nextPass, passMood, riseNow, type Ears, type Pass, type Turn } from "./crossing.ts";
+import { Ease, crossAt, crossPlan, heardMood, nextPass, passMood, riseNow, type Ears, type Pass, type Turn } from "./crossing.ts";
 import { drawPiece, ownPiece, restFor } from "./draw.ts";
 import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
@@ -282,6 +282,8 @@ class Player {
 
   /** The turn the music is asked to take: whose ears, and how long since a spectator changed what he watches. */
   private turn(): Turn {
+    // A change of eyes is turned over within 45 s; one that nothing came of is forgotten, not kept for a later change.
+    if (this.eyesAt !== null && performance.now() - this.eyesAt > (Ease + 15) * 1000) this.eyesAt = null;
     return { ears: this.ears, clear: this.clear, eyes: this.eyesAt === null ? null : (performance.now() - this.eyesAt) / 1000 };
   }
 
@@ -416,6 +418,8 @@ class Player {
     if (plan === null) {
       this.switchAt = null;
       this.askedAt = null;
+      // The piece is of the height the new view asks for: the change of eyes needs nothing of it.
+      if (want === null && turn.eyes !== null) this.eyesAt = null;
       return;
     }
     const now = d.el.currentTime;
@@ -495,6 +499,8 @@ class Player {
     // A rise is heard at this phrase end (a spectator's only where something is clear); a fall waits for the pass under
     // way to end, and a new pass is a rest, then a piece drawn for the mood (item 19+++c), or a rise's own.
     const turn = this.turn();
+    // A change of eyes ends the pass under way within 45 s, at a phrase end, where the new view asks for another height.
+    if (this.pass !== null && this.pass.left > 0 && turn.eyes !== null && turn.eyes >= Ease && crossPlan(heardMood(this.passPiece, this.pass.mood), this.mood, false, turn) !== null) this.pass = { ...this.pass, left: 0 };
     const mood = passMood(this.pass, this.mood, turn.ears === "own" || turn.clear);
     let piece = this.passPiece;
     if (this.pass === null || this.pass.left <= 0 || mood !== this.pass.mood || piece === null) {
@@ -506,6 +512,7 @@ class Player {
         return null;
       }
       this.court = this.courtAsked;
+      this.eyesAt = null;
       piece = rise || rose ? ownPiece(mood, this.passPiece, Math.random) : drawPiece(mood, this.passPiece, Math.random);
     }
     const score = synthPiece(piece, this.court);
