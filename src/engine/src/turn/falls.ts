@@ -1,6 +1,6 @@
 /**
- * A realm's fall (`fall`, `capitalsTaken`) and what remains of a fallen kingdom: it hears of its fall as the news arrives (the owner's answers to item 13's review, item
- * 13+). Since item 17b, part B, only a realm that holds nothing falls, so no land is left to come apart: its armies hear
+ * A realm's fall (`fall`, `capitalsTaken`), and what remains of a fallen kingdom: it hears of its fall as the news arrives
+ * (the owner's answers to item 13's review, item 13+). Since item 17b, part B, only a realm that holds nothing falls, so no land is left to come apart: its armies hear
  * the word where they stand, carried by road from where it fell like any news, and are then their commanders' to decide,
  * as item 13 built; its governors and commanders are their own men once their army has heard. Gold still on its way to it
  * goes to whoever holds the city where it fell.
