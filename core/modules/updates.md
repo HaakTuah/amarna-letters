@@ -14,4 +14,5 @@ PR and an open issue.
 every project's cloud setup runs `scripts/node.sh`, which holds its checksums. When a new even-numbered Node becomes
 long-term support, both move to it, proven by the full suites (core archive 39).
 
-**CodeQL checks every PR** into `main`, every push to it and once a week; a finding is handled as floor rule 9 says.
+**CodeQL,** where the repository has it, checks every PR into `main`, every push to it and once a week; a finding is
+handled as floor rule 9 says.

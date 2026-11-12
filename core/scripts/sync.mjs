@@ -2,10 +2,15 @@
 // of the core to a newer commit of the core, as a sync PR carries it. It writes `core/` whole at that commit, moves the
 // manifest's "Core:" line to it, and moves each call to a core workflow whose workflow changed (as `core.yml` checks),
 // listing those calls. It commits and pushes nothing: the session that runs it reviews the diff and opens the PR,
-// which, a pure sync, its merger checks with `scripts/pure-sync.mjs` (floor rule 8). Git and Node's own modules only.
+// which, a pure sync, its merger checks with `scripts/pure-sync.mjs` (floor rule 8). Git, tar and Node's own modules
+// only.
 //
 //   node core/scripts/sync.mjs              to the core's newest main
 //   node core/scripts/sync.mjs <full SHA>   to that commit of the core
+//
+// The first copy: a project with its manifest written and no core/ yet runs this file from a clone of the core's main
+// (`node <the clone>/scripts/sync.mjs`, a full SHA after it for another commit), and core/ is written at the commit its
+// manifest's "Core:" line names, that line moved if a SHA was given.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -19,7 +24,8 @@ const fail = msg => { throw new Failure(msg); };
 
 function sync(tmp) {
   const manifest = "core-manifest.md";
-  if (!fs.existsSync(manifest) || !fs.existsSync("core")) fail(`run it from a project's root, beside ${manifest} and core/`);
+  if (!fs.existsSync(manifest)) fail(`run it from a project's root, beside ${manifest}`);
+  const first = !fs.existsSync("core"); // (the first copy: the manifest is written, core/ not yet)
   const lineRe = new RegExp(`^Core: ${CORE} at ([0-9a-f]{40}), copied whole under core/`, "m");
   const text = fs.readFileSync(manifest, "utf8");
   const old = text.match(lineRe)?.[1] ?? fail(`${manifest} has no "Core: ${CORE} at <full commit SHA>, copied whole under core/" line`);
@@ -27,13 +33,14 @@ function sync(tmp) {
   git(["clone", "--quiet", "--bare", URL, tmp]);
   const arg = process.argv[2];
   if (arg && !/^[0-9a-f]{40}$/.test(arg)) fail("give the core's commit as a full SHA");
-  const pin = arg ?? git(["rev-parse", "refs/heads/main"], tmp);
+  const pin = arg ?? (first ? old : git(["rev-parse", "refs/heads/main"], tmp));
   try { git(["cat-file", "-e", `${pin}^{commit}`], tmp); } catch { fail(`${pin} is not a commit of the core`); }
-  if (pin === old) { console.log(`core/ is already at ${pin}: nothing to sync`); return; }
+  if (pin === old && !first) { console.log(`core/ is already at ${pin}: nothing to sync`); return; }
 
   fs.rmSync("core", { recursive: true, force: true });
   fs.mkdirSync("core");
-  execFileSync("tar", ["-x", "-C", "core"], { input: execFileSync("git", ["archive", pin], { cwd: tmp, maxBuffer: 1 << 28 }) });
+  // ("-f -": Windows' own tar reads a tape drive unless told to read its input)
+  execFileSync("tar", ["-x", "-f", "-", "-C", "core"], { input: execFileSync("git", ["archive", pin], { cwd: tmp, maxBuffer: 1 << 28 }) });
   fs.writeFileSync(manifest, text.replace(lineRe, line => line.replace(old, pin)));
 
   const moved = [];
@@ -52,6 +59,7 @@ function sync(tmp) {
     if (out !== src) fs.writeFileSync(p, out);
   }
 
+  if (first) { console.log(`core/ written at ${pin.slice(0, 7)}, the first copy; ${manifest} names it.`); return; }
   const changed = git(["diff", "--stat", "--format=", old, pin], tmp).split("\n").pop() || "no files";
   console.log(`core/ ${old.slice(0, 7)} -> ${pin.slice(0, 7)} (${changed.trim()}); ${manifest} moved.`);
   console.log(moved.length

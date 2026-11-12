@@ -53,19 +53,26 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
+- **A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
+  expert?", then "Yes, expertly to all, expert!"). "Keep it lean" forbids leftovers, but no check holds it. (1) Finish
+  `--noUnusedLocals` on `turn/counts.ts`, `turn/couriers.ts`, `turn/economy.ts`, `turn/resolve.ts`, `turn/unrest.ts` and
+  `web/src/map/life.ts`, then turn on `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`, so
+  `scripts/test.sh` fails a leftover. (2) Exports and files nothing imports: one clean-up PR, then a finder in
+  `scripts/test.sh`; a small script on the compiler's own API first, a pinned dev tool (floor rules 7 and 10) only if
+  that falls short; what is reached indirectly is listed with its reason. (3) A lint rule fails a test skipped or
+  narrowed to one (`.skip`, `.only`, `.todo`; the owner, the same day: "Yes, expertly to all!"). The replays prove play
+  unchanged. A routine lane.
 - ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
   Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
   own (#721) gave way to them.
-- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
-  #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
-  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
-  `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
-  `--noUnusedLocals` again (6 November 2026: `realm.ts`, `validator-armies.ts` and `tidings.test.ts` cleared, #748)
-  on the files open PRs still held then: `turn/counts.ts` and `web/src/map/life.ts` (#744), and `turn/couriers.ts`,
-  `turn/economy.ts`, `turn/resolve.ts` and `turn/unrest.ts` (#612). Looked at and
+- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390,
+  #392-#394, #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused
+  imports and locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it
+  found: `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588).
+  `--noUnusedLocals` cleared all but the files open PRs held then (#748), which the next entry finishes. Looked at and
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
-  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
-  (the start screen; its saved-games card is 2.5 KB).
+  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx` (the
+  start screen; its saved-games card is 2.5 KB).
 - **The README as a front page** (an outside review of the repositories, 11 November 2026: about 7,000 words, rules
   that read like a legal code, which players will not read): the README keeps what the game is, how to start and how a
   season goes, in a few hundred words, and points to the rulebook for the rules in full; whatever moves goes to the

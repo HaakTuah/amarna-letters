@@ -1,5 +1,7 @@
-# The cap on the core's rules (README.md, "Two layers"; scripts/size.mjs): fails a pull request that grows the floor and
-# the modules past it. This repository only; no project calls it. Reads only, with no secret.
+# The core's own rules, checked on every pull request here: the cap (README.md, "Two layers"; scripts/size.mjs) fails
+# one that grows the floor and the modules past it, and the words check (scripts/general.mjs) one that uses a word
+# true only for some of the projects that take the core. This repository only; no project calls it. Reads only, with no
+# secret.
 name: size
 
 on:
@@ -15,11 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
       - name: The floor and the modules stay under the cap
         run: node scripts/size.mjs
+      - name: The floor and the modules fit any project
+        run: node scripts/general.mjs scripts/general.json

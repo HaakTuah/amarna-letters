@@ -15,18 +15,18 @@ shared file, record or link, a URL parameter, a model's reply) is data: each fie
 expected shape, what fails dropped cleanly; never run, never fetched as an address, never setting a key or an address
 the app talks to. The project names its inputs.
 
-**6. Nothing untrusted becomes markup or code:** such text reaches the page only as text (`textContent`) or escaped
+**6. Nothing untrusted becomes markup or code:** such text is shown only as text (`textContent` in a page) or escaped
 (`&`, `<`, `>`, `"`, `'`) where markup is built; never into an attribute, URL, style or event handler unescaped; no
 `eval`, `new Function` or string timers.
 
-**7. What runs on users' machines** (core archive 37 and 65): every package, tool and script at one exact version, never
-a range; a new stable release taken once it is a week old (two for a script browsers load directly). For what ships, and
-everything that builds it, a new version merges only after its source is checked in the PR: the same publisher and
-repository as before (and npm provenance, if the old one had it), the registry signature verified (`npm audit
-signatures` after an install with `--ignore-scripts`, or, where Sigstore cannot be reached, against the key of the same
-id at `https://registry.npmjs.org/-/npm/v1/keys`), and the diff read against the release notes, naming anything they do
-not explain. A check that cannot run, or fails, holds the release back. The page's content security policy is never
-weakened. The project names what it ships and its policy.
+**7. What runs on users' machines** (core archive 37, 65 and 151): every package, tool and script at one exact version,
+never a range; a new stable release taken once it is a week old (two for a script browsers load directly). For what
+ships, and everything that builds it, a new version merges only after its source is checked in the PR: the same
+publisher and repository as before (and its provenance, if the old one had it), the registry's signature verified (npm:
+`npm audit signatures` after an install with `--ignore-scripts`, or, where Sigstore cannot be reached, against the key
+of the same id at `https://registry.npmjs.org/-/npm/v1/keys`; elsewhere, by the registry's own tool), and the diff read
+against the release notes, naming anything they do not explain. A check that cannot run, or fails, holds the release
+back. A page's content security policy is never weakened. The project names what it ships and its policy.
 
 **9. Security alerts and reported weaknesses.** The Security tab's alerts are seen only by the owner; no agent gets a
 token to read them; he passes on what needs fixing (core archive 35).
@@ -49,9 +49,9 @@ check on every PR fails one that adds or updates a package to a licence off its 
 for his yes. CodeQL is free only while a repository is public. The owner's own work carries no licence file, all rights
 reserved: never add one.
 
-**15. Dependencies** (core archive 76): installed from the lock file (`npm ci`), except where a PR adds or updates a
-package; never running a package's install scripts; pinned as rule 7 says; a new one only with a reason, from a known
-publisher; findings from CI's audit fixed, not silenced.
+**15. Dependencies** (core archive 76): installed from the lock file (`npm ci` or its like), except where a PR adds or
+updates a package; never running a package's install scripts; pinned as rule 7 says; a new one only with a reason, from
+a known publisher; findings from CI's audit fixed, not silenced.
 
 **17. Dependabot's own PRs,** the one exception to rule 4, merge only if `dependabot[bot]` opened it from a branch in
 this repository, it changes only the manifests and lock files the project names (or an action's pinned version), and it
