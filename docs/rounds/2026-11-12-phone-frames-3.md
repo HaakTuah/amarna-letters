@@ -3,7 +3,7 @@
 The phone-frame lane of the polish lane (`docs/BUILD-PROGRESS.md`), on bug #666, after the second step
 (`docs/rounds/2026-11-12-phone-frames-2.md`), whose "The next lever" named this one: at least half of every drawing's
 elements lie off a phone's screen, and the browser's layerization, paint and style follow how much is drawn, so draw only
-what the view shows. Presentation only, from `main` at 33fab48.
+what the view shows. Presentation only, from `main` at 33fab48 (measured there; `main` at 25cc7bd merged in after).
 
 The machine: a cloud container (4 cores, Chromium's headless shell with software raster, Playwright 1.64.1), one run at a
 time, nothing else running. The phone profile is 390x844 with the CPU slowed four times. The bench is the second report's
@@ -109,4 +109,59 @@ The opening's first draw (season -1 and 0) is 3.1 to 3.6 s and 0.7 to 0.9 s in e
 (mean ms, `main`'s two runs, then the second try's): the names 27.7 and 29.1, then 24.0 and 19.7 (fewer names measured);
 the works at the cities 13.6 and 12.6, then 13.6 and 10.9; the cities 8.8 and 11.5, then 11.3 and 9.9; the bands 8.6 and
 9.1, then 10.0 and 7.7. The marking itself (`map:inview`) ran some nine times a season, 2.0 and 1.8 ms on average, about
-1 s in two minutes; its worst once, 120 to 124 ms (see below).
+1 s in two minutes. Its worst, 120 to 124 ms, is its first pass, at season 0 inside the opening's first draw (every mark's
+place read for the first time; 81 ms in a run of its own); in play its longest are 17 to 19 ms, a few times a minute.
+
+**Soak, desktop, Fast** (`soak.mjs --speed fast --minutes 2`, one run each in turn): `main` 20 of 6,856 frames over 50 ms
+(0.29%) and 6 of 7,006 (0.09%); the second try 19 of 6,938 (0.27%) and 11 of 7,013 (0.16%); the worst in play 67 to 83 ms
+on both, the opening 0.6 s on both. The same: desktop opens on the whole board, where nothing lies off the view. The
+marking ran some four times a season, 0.8 ms on average.
+
+## Play unchanged
+
+Nothing under `src/engine`, `src/game` or `src/batch` changed, nor the worker's messages or the save, so a seed plays as
+before and the bot benchmarks cannot move; no save version. `scripts/test.sh` passes (1,860 tests, 1 skipped, as on
+`main`), the smoke test of the built app passes (its check that no name overlaps a marker now skips a name not drawn,
+which measured as an empty box at the screen's corner), and `scripts/sim.sh --games 50 --seed 1 --verify-replay`:
+SIMRESULT.
+
+## What is left
+
+The bar is not met: on the phone at Fast about one frame in 25 to 35 is still over 50 ms, and on desktop one in 400 to
+1,000, the worst in play 67 to 83 ms. Normal and Slow were not measured again; nothing here adds work to a season at any
+speed. What remains, in the order the evidence points:
+
+1. **The units' paint** (the second report: a third of a season's paint on the bench): what repaints a unit while it
+   marches, which the compositor should do alone. The units are the drawing this step leaves out least of (135 of the
+   345 elements off the screen), since a unit with its counters reaches 200 px.
+2. **The names in slices across frames**, the step that is still 20 to 24 ms on the phone.
+3. **The marking's own passes**: about 1 s in two minutes on the phone, 17 to 19 ms at worst in play; a pass reads every
+   mark's place in the layers written, where a kept index of each layer's marks would read only those that changed.
+4. **A real phone.** All of this is a slowed desktop browser with software raster.
+
+#666 stays open.
+
+## Readings taken
+
+- **Unsure: the reach of each kind of mark** (`ReachPx` in `in-view.ts`) is measured, not derived: the most each kind
+  reached at every zoom of one game, on the phone and on desktop, and a third more. A mark drawn larger later (a longer
+  name under other name settings, a city with more works) could reach past it and show cut at the view's edge until the
+  view moves. `scrub.mjs --holes` is the check to run when a mark grows; a name, a unit and any mark not in the table take
+  200 px, a third past the largest measured.
+- **Unsure: names keep their last placement while left out.** A name or marker that comes into view mid-drag shows as it
+  was last placed until the gesture settles and the names are placed again (140 ms after it ends), where before every
+  name was placed for the whole board each time. With a margin of a tenth of the view, this is the strip a drag uncovers.
+- **Unsure: a hole could show on a real phone where the bench saw none.** A mark comes back in the frame the view moves,
+  before it is painted; on a phone far slower than the profile, the frame that brings back a wide strip at once (a fast
+  fling) is a long one rather than a hole.
+- **What is kept whole:** the season's arrows, scenes and selection, since a mark that comes back plays its CSS animation
+  from its start; the drawings below the marks (the season's ground animates its change; the realms' colours and the
+  land are paths with arcs). A piece marching, and a piece sliding from one season's place to the next, stays drawn until
+  it stops.
+- **The two tries:** the brief allows two tries at a step before writing it up. The first (one reach of 200 px for every
+  mark, translates only) left out a third of the marks and moved the bench by about a tenth, within its noise; the second
+  (each kind's own reach, the paths of points) left out two thirds of what is off the screen and paid.
+- **The look compared with reduced motion**, so that both builds stand still at the same moment; with motion, the
+  battles' bursts and the marchers' dust differ by when the picture was taken.
+- **A lane, not an item:** no check of the design document; its brief is #666 and its line in the progress file.
+- **The bot benchmarks were not run:** nothing they play changed.
