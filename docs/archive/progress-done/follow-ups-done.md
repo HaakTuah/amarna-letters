@@ -259,3 +259,9 @@ Moved word for word on 7 November 2026 (the workshop check: the progress file ha
   Done, (1) on 11 November 2026: the builder rules leave model games' running, debriefs and reports to the simulation
   kit (`sim/README.md`; design document, Build order revision 377), whose start prompt counts the mistakes and points
   to floor rule 14, and whose debrief writer holds the question.
+
+Moved on 12 November 2026, word for word (every part done):
+
+- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
+  #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
+  and measured in its report.

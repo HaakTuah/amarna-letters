@@ -91,9 +91,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   letters or from the economy around them.
 
 - **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
-  that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
-  the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
-  `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
+  that always use the item's feature, beside those that use it where it fits and those that ignore it, with the
+  threshold for "by more than chance" listed as a first guess. Also unmet there: no computer player's timing gives a
+  person away; what the game shows from the past shows its age; a replay from the log of every input and model answer,
+  model and prompts counted in its version; and, not checked yet, a saved game opened in a newer version carrying on in
+  the newer rules, its log marking where. All by way of the design session (the core repository's
+  `reports/2026-11-10-step-3-now.md`, in no copy).
 
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (2) The
   code-scanning alert open on `main` gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
@@ -157,10 +160,6 @@ the workshop check, and again on 7 November): among them the history check's lin
 
 Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
-
-- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
-  #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
-  and measured in its report.
 
 ## For the owner
 
