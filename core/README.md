@@ -39,7 +39,8 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
 5. **The shared scripts and workflows,** run from its `core/` copy: `work-saved.sh` as its work-saved hook and
    `helper-call.mjs` as its hook on the Agent tool (it refuses a call that names no model or no effort, until the call
    is made again with the same prompt, and the effort max on every call but a fork's; a helper of a type the project
-   defines, a file `.claude/agents/<name>.md` holding its model and effort, goes on without the two), `copies.mjs`
+   defines, a file `.claude/agents/<name>.md` holding its model and effort, goes on without the two, and so does a
+   helper of a plug-in's own type), `copies.mjs`
    and `licences.mjs` as its copies and licence checks with configs of its own (the *copies check*; the licence check's
    with its audit of what no lockfile holds, which `licence-scan.mjs` holds whole, every action, fetched package, asset
    and copied-in code it uses, and each entry that ships with its notice), and with the copies check `pointers.mjs` and
@@ -95,6 +96,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 | *hard work* | what counts as the hard work |
 | *major version checks* | the extra checks a new major version gets |
 | *Codex's checks* | what Codex runs before it finishes |
+| *code reviewers* | who reviews whose work, in order, with the fallback reviewer last, and how each one that is not Codex is asked; left out, the core's own (`modules/roles.md`) |
 | *computer players*, *measured players*, *what they are shown*, *use-against-ignore measurement*, *where the numbers go*, *where rules are taught* | a game's names for what `game-design.md` speaks of |
 
 ## The manifest's format

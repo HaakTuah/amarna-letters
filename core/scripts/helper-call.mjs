@@ -4,11 +4,14 @@
 // may be higher, and a left-out model to the caller's own: both are spent without anyone having chosen them.
 // A fork goes on whatever its call says: Claude Code ignores both fields on one, which runs on its caller's model and
 // effort. A helper of a type the project defines itself goes on without the fields, since a model or effort named in
-// the call would overrule its definition's, but not with the effort max, which is refused on every call but a fork's:
-// a caller can always ask for less. Max is judged from the call alone, before any step that can fail. A project keeps
-// each definition as .claude/agents/<name>.md, the file named as its `name:` line says, holding its model and its
-// effort: the hook only looks whether a file of that name is there, comparing the type with the names it finds (never
-// making a path of it), and what the file holds is the review's of the PR that changes it.
+// the call would overrule its definition's, and so does a helper of a plug-in's own type, for the same reason (its name
+// holds a colon, as in `codex:codex-rescue`, which Claude Code keeps for a plug-in's types and allows in no other
+// name): a plug-in that hands work to another tool does it through such a helper. Neither goes on with the effort max,
+// which is refused on every call but a fork's: a caller can always ask for less. Max is judged from the call alone,
+// before any step that can fail. A project keeps each definition as .claude/agents/<name>.md, the file named as its
+// `name:` line says, holding its model and its effort: the hook only looks whether a file of that name is there,
+// comparing the type with the names it finds (never making a path of it), and what the file holds is the review's of
+// the PR that changes it.
 // It never traps a session (as work-saved.sh lets a second stop through): a call refused for a field left out goes on
 // when it is made again with the same prompt in the same session, so a caller that cannot pass the field (an older
 // Claude Code, a model fixed by a setting, a type defined elsewhere) loses one call and no more. An empty file in the
@@ -46,6 +49,10 @@ export function defines(project, type) {
   catch (error) { return error?.code !== "ENOENT"; }
 }
 
+// Whether the type is a plug-in's own: its name holds a colon, which Claude Code allows in no other type's name (read
+// as Claude Code reads a name, so a colon written in another width counts too).
+const plugged = type => typeof type === "string" && type.normalize("NFKC").includes(":");
+
 const whyMax = `This helper's call asks for the effort max: never max, and above high only for escalation ` +
   `(the core's modules/claude.md, "Pass both model and effort"). Ask for less.`;
 const whyLacking = lacks => `This helper's call names no ${lacks.join(" and no ")}: pass both, by the table in ` +
@@ -65,7 +72,7 @@ export function refusal(text, own = () => false, first = () => true) {
     if (call.subagent_type === "fork") return null;
     if (typeof call.effort === "string" && call.effort.trim().toLowerCase() === "max") return whyMax;
     const lacks = ["model", "effort"].filter(key => typeof call[key] !== "string" || call[key].trim() === "");
-    if (!lacks.length || own(call.subagent_type)) return null;
+    if (!lacks.length || plugged(call.subagent_type) || own(call.subagent_type)) return null;
     return first(input) ? whyLacking(lacks) : null;
   } catch { return null; }
 }

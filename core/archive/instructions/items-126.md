@@ -284,3 +284,15 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > Are all 6 added now, expert?
 
      > Why should we leave out 6, expert? Did you advice only 1-5, why, expert?
+
+154. **12 November 2026** (the core, in the design chat), of a project of another owner that hands work to Codex
+     through a plug-in in Claude Code and keeps Copilot, about to take the core; told that the core gave Codex the
+     reviews alone, named Codex and Claude's reviewer where it meant a provider and its reviewer, and counted no review
+     of Copilot's, and asked whether who reviews what should be a blank each project fills in:
+
+     > I am concerned that agent-rules is actively going to fight his setup now. So what do we do, expert?
+
+     > Yes, expertly to point 1. However, overrides are good. But are not our rules a bit rigid on these points? Is it
+     > not better to have general rules that claude hands out the work it can outsource based on the best criterias
+     > for that (are the criterias we have the best, or too strict?) And that different providers review each other
+     > where possible, and keep it to 1 reviewer? What do you think expert?
