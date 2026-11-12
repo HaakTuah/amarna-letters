@@ -25,10 +25,22 @@ the phone profile was made of, and what changed:
 - **The names checked every box placed for each name**: now a grid (`map/boxes.ts`), with the same answers.
 - **Smaller costs**: the map's numbers are kept once written (`F`), thousands are formatted by one formatter, and the
   steps' budget is 4 ms, since a frame that writes the map pays some 30 ms of the browser's own work after them.
+- **Only what the view shows is drawn** (`map/in-view.ts`; `docs/rounds/2026-11-12-phone-frames-3.md`). A mark or piece
+  whose place lies outside the view, a tenth of the view round it and its own reach, is left out of the drawing
+  (`data-out`, `display: none`), so the browser does not style, layerize or paint it; it stays in the page as written,
+  and the layers are patched as before (`morph.ts` keeps the mark). Its place is its own translate, or the bounds of a
+  path written in absolute points; its reach, the farthest its kind was measured to reach from its place at any zoom
+  and a third more (`ReachPx`). Kept whole: what
+  has no such place, the drawings below the marks, the season's arrows, scenes and selection (their animations would
+  start again on coming back), a piece marching, and a piece sliding from where it stood until its slide ends. It is
+  marked in the frame the view moves (`zoom.ts` tells the renderer, before the frame is painted) when the view leaves
+  what is drawn, for all a glide crosses, exactly when a gesture or glide settles, and after each layer is written. At
+  the phone's opening view about two thirds of what lies off the screen is left out; layerization fell by about a
+  quarter, paint by a fifth. `src/web/scrub.mjs --holes` proves nothing left out lies on the screen, at rest and mid-drag,
+  mid-zoom and mid-glide.
 
 What is left is the browser's own layerization, paint and style (each about a fifth of a long frame, with the script that
 writes the map) and the steps that still take 10 to 30 ms on the phone (the names, the tints, the works, the units). One
 transform a symbol was tried and did not pay: the browser's work seems to follow how much is drawn together (or how many drawings; the bench does not
 tell the two apart), not the transforms
-(`docs/rounds/2026-11-12-phone-frames-2.md`, which also names the next lever, drawing only what the view shows;
-`src/web/scrub.mjs` is the bench that sets two builds against each other).
+(`docs/rounds/2026-11-12-phone-frames-2.md`; `src/web/scrub.mjs` is the bench that sets two builds against each other).

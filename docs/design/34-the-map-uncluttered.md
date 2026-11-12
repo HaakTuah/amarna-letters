@@ -16,7 +16,8 @@ web app's drawing and its drawing scripts only: no rule, number or save version 
   city's mark gives way too and its province's colour says who holds it. Then the fleets at sea, the units destroyed
   this season, the travellers and the marks of the crossings, each where it touches nothing placed. Then the names, as
   item 11c+ placed them. The traveller or person being followed is placed first. Everything is measured before any
-  class changes, so a pass costs one layout.
+  class changes, so a pass costs one layout. What is not drawn, far off the view (`60-the-phones-frames.md`), is not
+  placed and keeps its last answer until it comes near and is placed again.
 - Everything zooms back as the map is zoomed in: at the closest zoom nearly every badge is full.
 - So that a city's own markers never touch each other, the counters stand above the city clear of its outermost ring
   (`--ring`, which grows with the walls), its people in rows of three to its left and its news to its right.
