@@ -18,6 +18,16 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); next: draw what is in view.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
+- **Queued ideas, in this order** (the stand-in's sure yeses of 12 November 2026, `core/modules/inbox.md`):
+  1. [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681),
+     after the phone-frames bug above ends: "what he complained about then was earlier gains creeping back, and that is
+     exactly what this guard catches" (archive item 97); small, and a first-guess threshold, rerun once before failing.
+  2. [The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647):
+     the owner asked for ledgers of events; the histories are per province, realm or person, none shows the last few
+     seasons at a glance; small, built from the existing `closingLine`.
+  3. [The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631):
+     a phone has no hover, so what the marks' titles say is out of its reach; small, with a test that it shows only the
+     seat's own knowledge.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
