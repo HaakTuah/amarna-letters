@@ -47,6 +47,9 @@ jobs:
       - name: The work-saved hook
         if: ${{ !cancelled() }}
         run: node scripts/work-saved-test.mjs
+      - name: The session's cost line
+        if: ${{ !cancelled() }}
+        run: node scripts/session-cost-test.mjs
       - name: The description check
         if: ${{ !cancelled() }}
         run: node scripts/pr-description-test.mjs

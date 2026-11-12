@@ -34,9 +34,9 @@ token to read them; he passes on what needs fixing (core archive 35).
   fixed next if it lies outside the change. A CodeQL false alarm, explained in the PR and confirmed by its security
   reviewer, may merge, with no suppression comment; where the ruleset blocks on it, the owner dismisses it (core archive
   130).
-- **In merged code, if it reaches what the threat model protects:** reported privately (an agent: only in its session's
-  last message to the owner, never in a file, PR, issue or comment) and fixed first, in a PR that says what it hardens,
-  never how to attack it.
+- **In merged code, if it reaches what the threat model protects:** reported privately (an agent: as "Reporting a
+  weakness" says, never in a file, PR, issue or comment) and fixed first, in a PR that says what it hardens, never how
+  to attack it.
 - **Any other weakness in merged code:** a `bug` issue, fixed with priority.
 
 **10. Licences: free to use, kept that way** (core archive 41). What ships, or is built into it: every package, the ones
@@ -63,3 +63,7 @@ fails a condition is closed with the reason, and the update made in a PR of the 
 
 Use GitHub's private vulnerability reporting: the repository's Security tab, "Report a vulnerability", which only the
 owner sees. If you cannot, open an issue saying only that a weakness exists and which part it touches, with no details.
+An agent files by that reporting's own call alone (`POST repos/<owner>/<repo>/security-advisories/reports`), only to its
+project's own repository or the core's, whichever the weakness is in, with no secret or personal detail and, to the
+core, nothing of its project; where the call fails it tells its own owner in its session's last message, never an issue
+(core archive 164).

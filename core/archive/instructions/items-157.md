@@ -99,3 +99,20 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      orchestrator's own line of it in `modules/orchestrating.md`; `setup/sync-notes.md`, what a sync asks of a project
      beyond the copy, which the sync script prints and an orchestrator gives a lane; and the audit's fixes of the
      same pull request.
+
+164. **12 November 2026** (the core, in the design chat), to what the day's audit left for him. Put to him: four
+     wordings of the floor (his word passed on "word for word" against "nothing personal in any brief"; "open an
+     issue" in "Reporting a weakness" against "an agent never"; "the changes rule 3 names" in rule 14, which could
+     read as every protected file; "costs money", which could read as every push to a private repository), the cap
+     raised by 1 KB for the dozen fixes that waited for room, the orchestrator's next session kept at the merge, and
+     three questions left from earlier in the day: whether each pull request should say what its session cost,
+     whether agents may file private weakness reports themselves, and whether "He has a company name, yes" (item 157)
+     had been his yes to the company's name in floor rule 11.
+
+     > Yes, expertly to everything, then breakdown everything you did, expert!
+
+     Behind the four floor wordings (rules 4 and 14 in `floor/security.md`; rule 9 and "Reporting a weakness" in
+     `floor/topics.md`), the cap of 45 KB (`scripts/size.mjs`), the fixes of the same pull request, the last line of
+     "Work from main" in `modules/git.md` with `scripts/session-cost.mjs`, and his yes, now said, to floor rule 11's
+     second exception.
+
