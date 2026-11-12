@@ -18,16 +18,13 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); next: draw what is in view.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
-- **Queued ideas, in this order** (the stand-in's sure yeses of 12 November 2026, `core/modules/inbox.md`):
-  1. [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681),
-     after the phone-frames bug above ends: "what he complained about then was earlier gains creeping back, and that is
-     exactly what this guard catches" (archive item 97); small, and a first-guess threshold, rerun once before failing.
-  2. [The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647):
-     the owner asked for ledgers of events; the histories are per province, realm or person, none shows the last few
-     seasons at a glance; small, built from the existing `closingLine`.
-  3. [The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631):
-     a phone has no hover, so what the marks' titles say is out of its reach; small, with a test that it shows only the
-     seat's own knowledge.
+- **Queued ideas** (stand-in's sure yeses, 12 November 2026), in order:
+  [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681)
+  once the bug above ends (keeps gains from creeping back; archive item 97);
+  [The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647)
+  (no history shows the last few at a glance);
+  [The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631)
+  (a phone has no hover). All small.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
@@ -125,11 +122,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
   the people fight back (#832; War, "The people defend their land").
 
-- **A standing reserve for a far province's coffer** (the stand-in's sure yes of 12 November 2026, `core/modules/inbox.md`;
-  [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: "A king may
-  automate his own acts with standing and scheduled orders, but the engine never does it for him" ("The game in one
-  page"), and the standing order to pay and feed troops is its precedent (archive item 96). A new order: a new save
-  version, the script kings' use of it where it fits and a row in "Use against ignore".
+- **A standing reserve for a far province's coffer** (stand-in's sure yes, 12 November 2026;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: the king's own
+  standing order, like paying troops (archive item 96). A new save version, the script kings' use and a measurement.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
