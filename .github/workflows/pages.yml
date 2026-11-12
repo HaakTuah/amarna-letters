@@ -21,7 +21,10 @@ concurrency:
 jobs:
   # Tests run only where a change can affect them ("The smallest setup that tests the rule" in
   # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md, but docs/history/, which a test reads) skip them;
-  # the build still runs for the preview.
+  # the build still runs for the preview. The core's copy, which the core tested before a sync brings it, counts only
+  # for what the suites take from it: its Node version runs them all, and its scripts run the tests that read them
+  # ("copy" below). The rest of the copy does not count (core.yml checks it against the core), nor does a workflow in
+  # which only the pin of a call to a core workflow moved.
   changes:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
@@ -30,6 +33,7 @@ jobs:
       contents: read
     outputs:
       code: ${{ steps.what.outputs.code }}
+      copy: ${{ steps.what.outputs.copy }}
       web: ${{ steps.what.outputs.web }}
     steps:
       - uses: actions/checkout@v7
@@ -42,12 +46,25 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$BASE" ] || [ "$BASE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            { echo "code=true"; echo "web=true"; } >> "$GITHUB_OUTPUT"; exit 0
+            { echo "code=true"; echo "copy=false"; echo "web=true"; } >> "$GITHUB_OUTPUT"; exit 0
           fi
           files=$(git diff --name-only "$BASE" HEAD)
           echo "$files"
-          code=$(echo "$files" | awk '/^docs\/history\// || !/^(docs\/|\.claude\/)|\.md$/' | { grep -c . || true; })
+          norm='s#(haaktuah/agent-core/\.github/workflows/[a-z0-9._-]+\.ya?ml@)[0-9a-f]{40}#\1<pin>#Ig'
+          own=$(echo "$files" | while IFS= read -r f; do
+            case $f in
+              core/.node-version|core/scripts/*) ;;
+              core/*) continue ;;
+              .github/workflows/*)
+                if old=$(git show "$BASE:$f" 2>/dev/null) && new=$(git show "HEAD:$f" 2>/dev/null) \
+                  && [ "$(printf '%s' "$old" | sed -E "$norm")" = "$(printf '%s' "$new" | sed -E "$norm")" ]; then continue; fi ;;
+            esac
+            printf '%s\n' "$f"
+          done)
+          code=$(echo "$own" | { grep -v '^core/scripts/' || true; } | awk '/^docs\/history\// || !/^(docs\/|\.claude\/)|\.md$/' | { grep -c . || true; })
+          copy=$(echo "$own" | { grep -c '^core/scripts/' || true; })
           echo "code=$([ "$code" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "copy=$([ "$code" -eq 0 ] && [ "$copy" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           # What the app bundles and draws: the app, the packages it bundles (the map and its names live in the engine),
           # and the root manifests and TypeScript settings; never their tests, notes or the batch runner.
           web=$(echo "$files" | grep -E '^(src/(web|engine|game|llm)/|(package(-lock)?|tsconfig(\.base)?)\.json$)' | grep -v -E '^src/[^/]+/test/|\.md$' | grep -c . || true)
@@ -92,11 +109,34 @@ jobs:
       - run: npm ci
       - run: npx --no-install vitest run --shard=${{ matrix.shard }}/4
 
+  # A change to the core's scripts alone, as a sync brings: only the tests that read them (any test file that names
+  # core/scripts/), where the whole suite would test again what no line of the game changed.
+  copy:
+    needs: changes
+    if: needs.changes.outputs.copy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+          cache: npm
+      - run: npm ci
+      - name: The tests that read the core's scripts
+        run: |
+          set -euo pipefail
+          tests=$(git grep -l -F 'core/scripts/' -- ':(glob)src/*/test/**' || true)
+          echo "$tests"
+          [ -z "$tests" ] || npx --no-install vitest run $tests
+
   # The check main's ruleset requires for the code: lint, types and every test shard passed, or were all skipped for
-  # notes alone. A job skipped by its own `if` counts as passed, and so would a required job whose needs failed, so this
-  # one always runs and reads their results.
+  # notes alone, and so for the tests that read the core's copy. A job skipped by its own `if` counts as passed, and so
+  # would a required job whose needs failed, so this one always runs and reads their results.
   checks:
-    needs: [changes, lint, test]
+    needs: [changes, lint, test, copy]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -107,7 +147,7 @@ jobs:
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
           set -- $RESULTS
-          [ $# -eq 3 ] || { echo "expected the results of changes, lint and test, got: $RESULTS"; exit 1; }
+          [ $# -eq 4 ] || { echo "expected the results of changes, lint, test and copy, got: $RESULTS"; exit 1; }
           for r in "$@"; do
             case $r in success|skipped) ;; *) echo "a job before this one ended $r"; exit 1 ;; esac
           done
