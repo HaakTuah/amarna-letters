@@ -96,8 +96,9 @@ export class SvgMapRenderer implements MapRenderer {
     // While a season's results are still to land, the names wait for them (part G: placed once a season, not once for the
     // marching and again for the results); a zoom's glide places them at once.
     if (t.matches(".mapzoom") || (t.matches(".unit, .traveller") && !this.landPending())) this.placeNames();
-    // A piece's slide has ended: it is left out if it stands far off the view.
-    if (t.matches(".unit, .traveller")) this.inView?.arrived(t);
+    // A piece's slide has ended: it is left out if it stands far off the view. Not when a slide was cut short by another
+    // (a season stepped again mid-slide), which goes on from where the piece stood.
+    if (t.matches(".unit, .traveller") && !t.getAnimations().some((a) => a instanceof CSSTransition && a.transitionProperty === "transform")) this.inView?.arrived(t);
   };
 
   mount(view: HTMLElement, handlers: MapHandlers): void {
@@ -129,7 +130,8 @@ export class SvgMapRenderer implements MapRenderer {
     // (drawn again from their start if they were left out and came back), and are few.
     const kept = new Set(["moves", "scenes", "selection"].map((n) => this.layers.get(n)!));
     const drawings = [...zoom.querySelectorAll(".map-marks, .map-upper")];
-    const inView = (this.inView = new InView(() => drawings, kept));
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const inView = (this.inView = new InView(() => drawings, kept, () => !motion.matches));
     zoom.addEventListener("click", this.onClick);
     zoom.addEventListener("transitionend", this.onMoved);
     zoom.addEventListener("transitioncancel", this.onMoved);

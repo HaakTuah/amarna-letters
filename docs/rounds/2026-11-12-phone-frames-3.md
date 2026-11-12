@@ -22,7 +22,8 @@ comes back as the view comes near it.
   group of shapes, the drawings below the marks (the land, the season's ground, the realms' colours), the season's arrows,
   scenes and selection (they play animations of their own, which would start again on coming back), and a piece marching
   (it may cross the view from outside it). A piece sliding from one season's place to the next counts the box between where
-  it stood and where it stands, which holds all of its straight slide, until its slide ends.
+  it stood and where it stands, which holds all of its straight slide, until its slide ends; moved again before it arrives,
+  all its slides since (with reduced motion nothing slides, and a piece counts where it stands).
 - **How far a mark reaches** from its place, by its kind, in screen pixels: the most measured at every zoom on the phone and
   on desktop (seed 1, season 30), and a third more: a city's works 185, a court's people 130, an outlaws' band 105, a
   traveller 100, a city 50, a stele 45, a crossing 30, a life mark 25; a name, a unit and anything else 200 (a name 125
@@ -45,7 +46,7 @@ the gesture, as a slow phone's is; and three times as the pieces slide after eac
 size, for both tries, at first with 78 checks. The code review then found that a busy page starts the camera's glide late,
 after the glide's own timer had narrowed what is drawn to where the view would stop: the busy checks, added for it, found
 a stele and a capital left out on the screen mid-glide on the build before the fix, and none after (104 checks on the
-phone, 96 on desktop before the slides' checks). An earlier first run found one too: the season's capture marks, kept
+phone, 96 on desktop before the slides' checks; 104 on each with them). An earlier first run found one too: the season's capture marks, kept
 whole for their animations, were still marked when their own layer was written; fixed before any measurement below.
 
 **The look.** The same views on both builds, with reduced motion so nothing is caught mid-animation (seed 1, season 30, the

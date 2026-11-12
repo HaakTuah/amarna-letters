@@ -121,6 +121,12 @@ describe("What is drawn follows the view", () => {
     across.attrs.set("style", "transform:translate(500px,50px);--ring:3");
     cull.pass([layer as unknown as Element]);
     Assert.false(out(across), "its slide crosses the view");
+    // Moved again before it arrived, to another place far off: it stands somewhere along its first slide still.
+    across.attrs.set("style", "transform:translate(600px,50px);--ring:3");
+    cull.pass([layer as unknown as Element]);
+    Assert.false(out(across), "still on its way across the view");
+    cull.arrived(across as unknown as Element);
+    Assert.true(out(across), "arrived far off");
   });
 
   test("a layer written outside the drawings that follow the view is never looked into", () => {
@@ -129,6 +135,16 @@ describe("What is drawn follows the view", () => {
     cull.look(view(0, 0));
     cull.pass([ground as unknown as Element]);
     Assert.false(out(ground.kids[0]), "nothing would bring it back");
+  });
+
+  test("with reduced motion no piece slides: it is placed where it stands", () => {
+    const u = piece(50, 50);
+    const layer = new Mark("g", {}, u);
+    const cull = new InView(() => [layer as unknown as Element], new Set(), () => false);
+    cull.look(view(0, 0));
+    u.attrs.set("style", "transform:translate(500px,500px);--ring:3");
+    cull.pass([layer as unknown as Element]);
+    Assert.true(out(u), "far off at once");
   });
 
   test("layers kept whole are never looked into, as a root or within one", () => {

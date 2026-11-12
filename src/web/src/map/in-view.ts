@@ -64,7 +64,7 @@ interface Box {
 interface Spot extends Box {
   /** What its place was read from: its translate, or its path. */
   readonly src: string;
-  /** Where it stood before, while it may still be sliding from there (a step of the timeline). */
+  /** Where it stood before, while it may still be sliding from there (a step of the timeline): all its slides since it last arrived. */
   readonly was: Box | null;
 }
 
@@ -77,11 +77,16 @@ export class InView {
 
   private readonly roots: () => readonly Element[];
   private readonly kept: ReadonlySet<Element>;
+  private readonly slides: () => boolean;
 
-  /** `roots`: the drawings looked into; `kept`: layers left whole (their marks play animations of their own). */
-  constructor(roots: () => readonly Element[], kept: ReadonlySet<Element>) {
+  /**
+   * `roots`: the drawings looked into; `kept`: layers left whole (their marks play animations of their own); `slides`:
+   * whether pieces slide to a new place (not with reduced motion, where no slide ends to say a piece has arrived).
+   */
+  constructor(roots: () => readonly Element[], kept: ReadonlySet<Element>, slides: () => boolean = () => true) {
     this.roots = roots;
     this.kept = kept;
+    this.slides = slides;
   }
 
   /**
@@ -147,7 +152,9 @@ export class InView {
     if (kept !== undefined && kept.src === src) return kept;
     const box = src === moved ? placed(src) : bounds(src);
     if (box === null) return null;
-    const spot = { src, ...box, was: kept === undefined ? null : { x0: kept.x0, y0: kept.y0, x1: kept.x1, y1: kept.y1 } };
+    // Where it stood; moved again before it arrived, all of the slide it was on, since it stands somewhere along it.
+    const stood = kept === undefined || !this.slides() ? null : { x0: kept.x0, y0: kept.y0, x1: kept.x1, y1: kept.y1 };
+    const spot = { src, ...box, was: stood === null || kept!.was === null ? stood : span(kept!.was, stood) };
     this.spots.set(el, spot);
     return spot;
   }
