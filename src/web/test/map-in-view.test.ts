@@ -36,6 +36,10 @@ class Mark {
     if (on) this.attrs.set(n, "");
     else this.attrs.delete(n);
   }
+  contains(other: Mark): boolean {
+    for (let n: Mark | null = other; n !== null; n = n.parent) if (n === this) return true;
+    return false;
+  }
   get classList(): { contains: (c: string) => boolean } {
     return { contains: (c) => this.classes.has(c) };
   }
@@ -43,20 +47,24 @@ class Mark {
 const at = (x: number, y: number, cls = "city"): Mark => new Mark("g", { class: cls, transform: `translate(${x},${y})` });
 const piece = (x: number, y: number): Mark => new Mark("g", { class: "unit", style: `transform:translate(${x}px,${y}px);--ring:3` });
 const out = (m: Mark): boolean => m.hasAttribute("data-out");
-// A view 100 units square at 2 screen pixels a unit: its margin is 10 units a side and a mark's reach 100 (200 px).
+// A view 100 units square at 2 screen pixels a unit: its margin is 10 units a side, a name's reach 100 (200 px), a city's 25
+// (50 px), a path's stroke 10 (20 px).
 const view = (x0: number, y0: number, k = 2): Area => ({ x0, y0, x1: x0 + 100, y1: y0 + 100, k });
 
 describe("What is drawn follows the view", () => {
   test("a mark is left out only past the view, its margin and a mark's reach; a group with no place of its own is looked into", () => {
-    const near = at(205, 50), far = at(215, 50), inside = at(50, 50), shape = new Mark("path", { d: "M0,0L900,900" });
+    const near = at(205, 50, "lab"), far = at(215, 50, "lab"), inside = at(50, 50), shape = new Mark("path", { d: "M0,0a5,5 0 0 1 900,900" });
+    const city = at(140, 50), closer = at(130, 50);
     const deep = at(-300, -300);
-    const layer = new Mark("g", {}, near, far, inside, shape, new Mark("g", { class: "xmarks" }, deep));
+    const layer = new Mark("g", {}, near, far, inside, shape, city, closer, new Mark("g", { class: "xmarks" }, deep));
     const cull = new InView(() => [layer as unknown as Element], new Set());
     cull.look(view(0, 0));
-    Assert.false(out(near), "within the reach of the margin");
+    Assert.false(out(near), "within a name's reach of the margin");
     Assert.true(out(far), "past it");
+    Assert.true(out(city), "a city reaches less far");
+    Assert.false(out(closer), "within a city's reach");
     Assert.false(out(inside), "in view");
-    Assert.false(out(shape), "a shape has no place of its own and is kept whole");
+    Assert.false(out(shape), "a shape with no place of its own is kept whole");
     Assert.true(out(deep), "a mark inside a group");
     // The view moves towards it: in, in the same pass.
     cull.look(view(100, 0));
@@ -79,7 +87,7 @@ describe("What is drawn follows the view", () => {
   });
 
   test("a view inside what is drawn makes no pass until it leaves it, or settles", () => {
-    const m = at(250, 50);
+    const m = at(250, 50, "lab");
     const layer = new Mark("g", {}, m);
     const cull = new InView(() => [layer as unknown as Element], new Set());
     cull.look(view(0, 0));
@@ -105,6 +113,14 @@ describe("What is drawn follows the view", () => {
     Assert.false(out(u), "slides from where it stood in view");
     cull.arrived(u as unknown as Element);
     Assert.true(out(u), "arrived far off the view");
+  });
+
+  test("a layer written outside the drawings that follow the view is never looked into", () => {
+    const ground = new Mark("g", {}, new Mark("path", { d: "M900,900L950,950" }));
+    const cull = new InView(() => [new Mark("svg") as unknown as Element], new Set());
+    cull.look(view(0, 0));
+    cull.pass([ground as unknown as Element]);
+    Assert.false(out(ground.kids[0]), "nothing would bring it back");
   });
 
   test("layers kept whole are never looked into, as a root or within one", () => {

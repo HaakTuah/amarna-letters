@@ -1,13 +1,15 @@
 /**
- * Only what the view can show is drawn (#666): a mark or piece of the map placed by a translate, whose place lies outside
- * the view and a margin round it, is taken out of the drawing (`data-out`, map.css: `display: none`), so the browser
+ * Only what the view can show is drawn (#666): a mark or piece of the map whose place lies outside the view and a margin
+ * round it, is taken out of the drawing (`data-out`, map.css: `display: none`), so the browser
  * neither styles, lays out, layerizes nor paints it. At least half of every drawing's elements lie off a phone's screen
  * close up, and the browser's costs follow how much is drawn (`docs/rounds/2026-11-12-phone-frames-2.md`). What is taken
  * out stays in the page, as it was written: the layers are patched as before, and the elements come back as the view
  * comes near them, in the same frame as the view moves, before it is painted.
  *
- * Kept whole: whatever has no translate of its own (the land's shapes, the roads, the bands, a layer of paths), and a
- * piece marching (it may cross the view from outside it).
+ * A mark is placed by its own translate, a path of points by its bounds. Kept whole: whatever has neither (a path with arcs
+ * or relative steps, a group of shapes), the drawings below the marks (the land, the season's ground, the realms' colours),
+ * the season's arrows, scenes and selection (they play animations of their own), and a piece marching (it may cross the
+ * view from outside it).
  */
 
 /** A part of the board, in its own units, and the screen pixels a unit takes (`k`). */
@@ -20,10 +22,22 @@ export interface Area {
 }
 
 /**
- * The farthest a mark or piece reaches from its place, in screen pixels: measured at every zoom, a unit with its counters
- * reaches 150 at most, a city's works in a row 140, a name 125 (longer under other name settings).
+ * The farthest a mark or piece reaches from its place, in screen pixels, by its first class: the most measured at any zoom
+ * (seed 1, season 30, phone and desktop) and a third more. A name, a unit with its counters and any other mark take 200 (a
+ * name 125 measured, longer under other name settings; a unit 150); a path's bounds hold all of it but its stroke.
  */
-const ReachPx = 200;
+const ReachPx: Readonly<Record<string, number>> = {
+  "works-at": 185,
+  "court-at": 130,
+  "band-mark": 105,
+  traveller: 100,
+  city: 50,
+  memorial: 45,
+  xmark: 30,
+  "life-mark": 25,
+};
+const FarthestPx = 200;
+const StrokePx = 20;
 /**
  * The margin drawn round the view, in views on each side: a pan or a pinch moves inside it without a pass. A pass is made in
  * the frame the view moves, so the margin spreads what comes into view over fewer frames; it holds no hole off.
@@ -95,7 +109,10 @@ export class InView {
         if (!this.mark(el) && depth < Depth && el.tagName === "g") walk(el, depth + 1);
       }
     };
-    for (const r of roots) if (!this.kept.has(r)) walk(r, 0);
+    // Only within the drawings that follow the view: a layer elsewhere written is never looked into (nothing would bring
+    // back what was left out of it as the view moves).
+    const drawings = this.roots();
+    for (const r of roots) if (!this.kept.has(r) && drawings.some((d) => d.contains(r))) walk(r, 0);
     performance.measure("map:inview", { start: t });
   }
 
@@ -112,7 +129,8 @@ export class InView {
     const d = this.drawn!;
     const spot = this.spot(el);
     if (spot === null) return false;
-    const reach = ReachPx / d.k;
+    const kind = el.tagName === "path" ? null : (el.getAttribute("class") ?? "").split(" ")[0];
+    const reach = (kind === null ? StrokePx : ReachPx[kind] ?? FarthestPx) / d.k;
     const near = (b: Box): boolean => b.x1 >= d.x0 - reach && b.x0 <= d.x1 + reach && b.y1 >= d.y0 - reach && b.y0 <= d.y1 + reach;
     const out = !near(spot) && (spot.was === null || !near(spot.was)) && !el.classList.contains("marching");
     if (out !== el.hasAttribute("data-out")) el.toggleAttribute("data-out", out);
