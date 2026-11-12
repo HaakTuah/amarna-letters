@@ -32,6 +32,3 @@ Floor: whole. Modules: all.
 | *use-against-ignore measurement* | script games on the same seeds (`scripts/sim.sh`): scripts that use the item's feature where it fits against scripts that ignore it; scripts that always use it are not played yet, queued in `docs/BUILD-PROGRESS.md` |
 | *where the numbers go* | the item's report, and the running table "Use against ignore" in `docs/BUILD-PROGRESS.md` |
 | *where rules are taught* | the rulebook or the seat view |
-
-## Differences
-- `core/modules/game-design.md`, "Using a feature must pay, measured three ways": while the game is not yet feature complete, a feature whose missing piece comes in a later item may go unpaid, the change naming that item; once it is complete, none is left whose users do not come out ahead ("Every item tests them" in `docs/builder-rules.md`; archive item 18). Why: the game is built item by item, and what answers a feature often comes later.
