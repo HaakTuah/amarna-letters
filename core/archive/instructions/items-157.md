@@ -56,3 +56,32 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      Behind the orchestrator's row in `modules/claude.md`: the owner starts it, at the model and effort he chooses;
      Sonnet is enough, since it builds nothing itself (item 27).
+
+161. **12 November 2026** (the core, in the design chat), of a project's own rules beside the core's:
+
+     > Do we allow extensions and overrides of the rules, in any implementing repo, clearly? Should we, in your expert
+     > opinion, expert?
+
+     Told that a project may fill slots, pick modules, add rules of its own and add to the floor, that it may never
+     loosen the floor, and that nothing said which holds where its own rule and one rule of a module disagree; and
+     advised a short list of differences in its manifest, each naming the core's rule, what holds in its place and
+     why, never of the floor or the review guidelines, checked by the pointer check and reported to the core:
+
+     > agreed on everything else, expertly!
+
+     Behind "A project's own rules add to the core's" in `modules/how-to-work.md`, point 7 of "How a project takes
+     the core" in `README.md`, and the step of `core.yml` that fails a difference from the floor or the review
+     guidelines.
+
+162. **12 November 2026** (the core, in the design chat), of the project of item 154, whose Codex usage before it took
+     the core had been almost wholly sessions Claude started; told that the core gave another provider's builder
+     first what a check proves right without judgement, and left the rest with Claude's:
+
+     > I noticed […] setups used only codex subsessions for 94% of codex's usage, prior to incorporating agent-core.
+     > Will his setup now utilize it more fully? I suspect subsessions only were reviews? Your expert take?
+
+     > It was supposed to save on Claude usage by pushing all work suited to any other provider first…
+
+     Behind "Another provider builds first" in `modules/roles.md` (every task or part a brief can carry and a check or
+     its review can judge, where the owner set it up for the project) and the end of "Work continuously, other
+     providers first" in `modules/claude.md`.

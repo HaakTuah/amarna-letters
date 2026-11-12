@@ -15,8 +15,8 @@ rule 8).
 3. **Security:** the *security reviewer* (Codex, or the project's) reviews a PR once, when it is marked ready. A later
    commit that fixes a security finding, or changes what the review is for (input, a workflow, the network, saved files,
    a dependency), gets the fallback reviewer's check of that change; a security review not finished within about 30
-   minutes of the ready mark is done by the fallback reviewer over the whole diff (core archive 47 to 51). A PR that
-   changes what runs by itself or with credentials gets both reviewers', each over the whole diff (floor rule 3).
+   minutes of the ready mark is done by the fallback reviewer over the whole diff (core archive 47 to 51). Floor rule
+   3's two each cover the whole diff.
 4. **The design check:** on the design-checked PRs, once before the merge, a fresh reviewer judges the work against the
    design alone, and its "Readings taken" as the stand-in would (core archive 22).
 5. **When a PR passes:** every blocking point fixed; every other fixed if it lies in the change, otherwise filed as a
