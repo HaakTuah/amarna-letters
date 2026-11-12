@@ -117,6 +117,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
   the people fight back (#832; War, "The people defend their land").
 
+- **A standing reserve for a far province's coffer** (the stand-in's sure yes of 12 November 2026, `core/modules/inbox.md`;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: "A king may
+  automate his own acts with standing and scheduled orders, but the engine never does it for him" ("The game in one
+  page"), and the standing order to pay and feed troops is its precedent (archive item 96). A new order: a new save
+  version, the script kings' use of it where it fits and a row in "Use against ignore".
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
 
