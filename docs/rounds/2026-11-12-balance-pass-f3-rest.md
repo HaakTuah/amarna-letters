@@ -16,14 +16,16 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. The war of choice with a city keeping its peace (938ba68, a trial): `--war-play-half`, seeds 51-100 **running**.
-2. Vassal play (`--vassal-play-half`, on 81c9490), seeds 51-100 **running** (restarted: the machine restarted at about
-   22:40 and stopped both halves); then the demand trial (eeb5dbb), seeds 1-50 and
-   51-100.
-3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
-4. Seeds 101-200 for the close rows and the null split.
+One run at a time from 23:40 (the machine restarted twice with two at once; one run uses all four cores, so the pace is
+about the same).
 
-Nothing heavy (a type check, the tests) runs beside two runs: the restart came when one did.
+1. The demand trial (eeb5dbb, with the city's peace): `--vassal-play-half`, seeds 1-50 **running**, then 51-100.
+2. Vassal play on 81c9490, seeds 51-100 (stopped twice by the restarts).
+3. The war of choice with a city keeping its peace (938ba68), seeds 51-100 (stopped by the second restart).
+4. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
+5. Seeds 101-200 for the close rows and the null split.
+
+Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
 
 ### Finished
 
