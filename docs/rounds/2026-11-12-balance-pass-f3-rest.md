@@ -16,8 +16,7 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. 7a sea play (seeds 51-100 **running**), the war of choice (`--war-play-half`, seeds 1-50 **running**, then 51-100), on
-   the new par.
+1. The war of choice (`--war-play-half`, seeds 1-50 and 51-100 **running**), on the new par.
 2. Vassal play (`--vassal-play-half`, seeds 1-100) with the line of vassals taken by their own overlords; then a trial on
    `tributeReturn` if the Great Kings still lose by it.
 3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
@@ -38,3 +37,4 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 | 7a sea play, seeds 1-50 | `--games 50 --seed 1 --sea-play-half` | 81c9490 | 53 minutes. Growth 0.77 / 0.74, standing 1.028 / 1.003, wins 21 / 26; Great Kings 0.99 / 0.96 (1.072 / 0.968), the rest 0.73 / 0.70 (1.021 / 1.010). Blockades in 30 games (181), landings 3. Against the null's halves: ahead in growth and standing, behind in wins |
 | 8 inventories, seeds 1-50 | `--games 50 --seed 1 --inventory-play-half` | 81c9490 | 52 minutes. Growth 0.78 / 0.78, standing 1.041 / 1.028, wins 27 / 22; level with the null's halves (1.043 / 1.026, 26 / 22). Gold sent without an inventory 6 times in 50 games, each saving the scribe's 20 shekels (`inventoryFee`): too rare to move a game. Seeds 51-100 not run |
 | Coffer, seeds 51-100 | `--games 50 --seed 51 --coffer-play-half` | 81c9490 | 53 minutes. Growth 0.77 / 0.78, standing 1.015 / 1.005, wins 17 / 27; Great Kings 0.96 / 0.97 (1.001 / 0.989), the rest 0.74 / 0.75 (1.018 / 1.008). **Seeds 1-100: growth 0.78 / 0.785, standing 1.035 / 1.020 (the null's 1.035 / 1.017), wins 41 / 52 (the null's 43 / 47); Great Kings' standing 1.024 / 0.969 (the null's 1.006 / 0.987), the rest 1.038 / 1.029 (the null's 1.040 / 1.022).** Even over all; the Great Kings, who hold the far provinces, ahead |
+| 7a sea play, seeds 51-100 | `--games 50 --seed 51 --sea-play-half` | 81c9490 | 51 minutes. Growth 0.78 / 0.73, standing 1.013 / 1.001, wins 23 / 21; Great Kings 0.94 / 0.95 (0.979 / 0.986), the rest 0.75 / 0.70 (1.019 / 1.004). Landings 7, blockades in 30 games (225). **Seeds 1-100: growth 0.775 / 0.735 (the null's 0.775 / 0.78), standing 1.021 / 1.002 (the null's 1.035 / 1.017), wins 44 / 47 (the null's 43 / 47); Great Kings' standing 1.026 / 0.977.** Ahead in growth by more than the null's halves differ; level in standing and wins |
