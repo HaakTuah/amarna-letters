@@ -17,11 +17,7 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   part G measured it, until frames stay under 50 ms on a phone and on desktop at every speed. PR #930
   (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's 1.4% to 0.4%; next, one
   transform a symbol.
-- **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
-  text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
-  or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
-  music turns over calmly (archive items 248 and 249); each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
-  of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
+- **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
@@ -30,8 +26,8 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
   help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
-  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; god view's music
-  and the draw: 19+++c, above).
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`) and war music a share,
+  never the whole (19+++c, #963; report `docs/rounds/2026-11-12-war-music-a-share.md`).
 - **What belongs, here:** graphical glitches and inconsistencies first, as item 19++ asks; light and dark too; the
   rulebook's wording as well as the interface's. Never a request to a model, the save version or the names item 17+ will
   change: those go to their items.
