@@ -3,7 +3,8 @@
 The rules shared by the owner's agent-built projects, written once so a change is made once and every project takes it
 alike (core archive 68). The owner's words behind each rule: `archive/instructions.md`. A project of another owner takes
 the core the same way, its *owner's account* filled in, and in its copy "the owner" is its own (core archive 148), save
-in `archive/`, whose words stay the core's owner's: its stand-in does not search them (`modules/inbox.md`).
+in `archive/`, whose words stay the core's owner's: its stand-in weighs them as his reasoning, after its own owner's
+words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; core archive 166).
 
 ## Two layers
 
@@ -64,34 +65,39 @@ in `archive/`, whose words stay the core's owner's: its stand-in does not search
    `issues: write`: it keeps one issue open for the owner while this repository's `main` is past the project's pin
    (`core/scripts/core-moved.mjs`), and opens no pull request, since one a workflow opens gets no checks. Only a sync PR
    moves those pins, and only when the called workflow changed; `core.yml` fails a call pinned where it differs from the
-   core's pin. Its `.github/dependabot.yml` ignores `HaakTuah/agent-core*`. Every action a workflow uses, GitHub's own
-   included, is pinned to a full commit SHA with its version in a comment after it, which Dependabot keeps current: a
-   security fix in an action reaches a workflow by that weekly update, with no alert of its own, since GitHub alerts
-   only for actions at a version. The owner's setting (below) fails a run that uses one that is not pinned (core archive
-   152). A game served by GitHub Pages publishes main with `site-publish.sh root`, and its pull requests' previews
-   through a `preview.yml` of its own, on `workflow_run` of its build, that calls the core's (the build uploads the
-   artifact `preview`: `pr-number`, and the site in `site/`). A project whose packages come from npm has a
-   `signatures.yml` of its own, on a pull request that changes a package list, a lock file, an `.npmrc` or that
-   workflow, which calls the core's with the folder of its lock file: an install from the registry alone, running no
-   package's install script, then npm's own check of the registry's signature on each installed name and version (floor
-   rule 7). **A private repository** has GitHub's dependency review and CodeQL only with its paid code security, so
-   without it it calls neither `licences.yml` nor `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs`
-   for what no package list holds, and its own check holds its packages to floor rule 10's list. Its Actions settings
-   must allow this repository's workflows, and each check there spends paid minutes, which its owner set aside by making
-   it private (so no step waits for his yes over them: floor rule 14), so each runs only where a change can affect it,
-   and its orchestrator syncs the core once a day at most (`modules/orchestrating.md`). On GitHub's free plan it has
-   neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by hand
-   (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds, the
-   project's own checks do. **A project that is sold** carries its company's name where its buyers and its code need it,
-   and its owner leaves that name off his list of personal terms; a person's name stays out all the same (floor rule
-   11), and where its buyers must see one, its build takes it from outside the repository. The terms it is sold under
-   are the owner's to give (floor rule 10). **The default branch is `main`,** which the hooks read their scripts from,
-   letting every call through where there is none (`core.yml` fails another name). **On Windows** Claude Code runs both
-   hooks in Git Bash, and the second needs Node on the path; where either is missing, the hook stops nothing. The core's
-   own tests run the scripts and both hooks there on every change (`.github/workflows/tests.yml`). **Another tool's
-   session** has neither hook, which are Claude Code's: what holds its work is its reading of `AGENTS.md` and the checks
-   on every pull request. **The copy's own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this
-   repository's, not the project's: its issue templates and settings are its own, written for its *owner's account*.
+   core's pin. A sync changes nothing of the project's own, and the core tested its scripts before the sync brings them:
+   so the project's own suites run on one only for what they take from the copy (all of them where they run on its Node
+   version and `core/.node-version` changed; those that read its scripts for a change under `core/scripts/`), never for
+   the rest of the copy, which `core.yml` checks, nor for a workflow in which only such a pin moved
+   (`modules/how-to-work.md`, "The smallest setup that tests the rule"; core archive 167). Its `.github/dependabot.yml`
+   ignores `HaakTuah/agent-core*`. Every action a workflow uses, GitHub's own included, is pinned to a full commit SHA
+   with its version in a comment after it, which Dependabot keeps current: a security fix in an action reaches a
+   workflow by that weekly update, with no alert of its own, since GitHub alerts only for actions at a version. The
+   owner's setting (below) fails a run that uses one that is not pinned (core archive 152). A game served by GitHub
+   Pages publishes main with `site-publish.sh root`, and its pull requests' previews through a `preview.yml` of its own,
+   on `workflow_run` of its build, that calls the core's (the build uploads the artifact `preview`: `pr-number`, and the
+   site in `site/`). A project whose packages come from npm has a `signatures.yml` of its own, on a pull request that
+   changes a package list, a lock file, an `.npmrc` or that workflow, which calls the core's with the folder of its lock
+   file: an install from the registry alone, running no package's install script, then npm's own check of the registry's
+   signature on each installed name and version (floor rule 7). **A private repository** has GitHub's dependency review
+   and CodeQL only with its paid code security, so without it it calls neither `licences.yml` nor `codeql.yml`: a
+   workflow of its own runs `core/scripts/licences.mjs` for what no package list holds, and its own check holds its
+   packages to floor rule 10's list. Its Actions settings must allow this repository's workflows, and each check there
+   spends paid minutes, which its owner set aside by making it private (so no step waits for his yes over them: floor
+   rule 14), so each runs only where a change can affect it, and its orchestrator syncs the core once a day at most
+   (`modules/orchestrating.md`). On GitHub's free plan it has neither rulesets nor auto-merge: there the sessions alone
+   keep floor rule 12 and merge by hand (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles
+   alone: what another installer holds, the project's own checks do. **A project that is sold** carries its company's
+   name where its buyers and its code need it, and its owner leaves that name off his list of personal terms; a person's
+   name stays out all the same (floor rule 11), and where its buyers must see one, its build takes it from outside the
+   repository. The terms it is sold under are the owner's to give (floor rule 10). **The default branch is `main`,**
+   which the hooks read their scripts from, letting every call through where there is none (`core.yml` fails another
+   name). **On Windows** Claude Code runs both hooks in Git Bash, and the second needs Node on the path; where either is
+   missing, the hook stops nothing. The core's own tests run the scripts and both hooks there on every change
+   (`.github/workflows/tests.yml`). **Another tool's session** has neither hook, which are Claude Code's: what holds its
+   work is its reading of `AGENTS.md` and the checks on every pull request. **The copy's own files** (`core/AGENTS.md`,
+   `core/CLAUDE.md`, `core/.github/`) are this repository's, not the project's: its issue templates and settings are its
+   own, written for its *owner's account*.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
 7. **Where a module's rule does not fit it,** its manifest lists the difference under "Differences" (core archive 161):
