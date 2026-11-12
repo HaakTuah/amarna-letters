@@ -1,7 +1,5 @@
 import type { MapScene, SceneBand } from "../map/scene.ts";
-
-/** How old the word of a band is, said as the map's marks say it ("as your people last told of it, 2 seasons ago"). */
-const toldAgo = (age: number): string => `as your people last told of it, ${age} season${age === 1 ? "" : "s"} ago`;
+import { toldAgo } from "../ui/format.ts";
 
 /** One band as the province card tells it: its men, its chief if his name is known, and how old the word is. */
 export const bandLine = (b: SceneBand): string =>

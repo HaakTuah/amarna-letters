@@ -41,6 +41,9 @@ export function counted(n: number, age: number | null): string {
   return `${figures >= 2 ? "about" : "some"} ${about(n, figures)}`;
 }
 
+/** How old the word of a band is, as the map's marks and the province card say it ("as your people last told of it, 2 seasons ago"). */
+export const toldAgo = (age: number): string => `as your people last told of it, ${age} season${age === 1 ? "" : "s"} ago`;
+
 export const cap = (s: string): string => (s.length === 0 ? s : s[0].toUpperCase() + s.slice(1));
 
 /** The same, capitalised to open a sentence or a heading. */
