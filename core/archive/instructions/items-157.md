@@ -238,3 +238,23 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      Behind "every idea that lacks one" in `modules/orchestrating.md`: a week's wait still starts the sweep, and once it
      runs it takes every open idea without a verdict, so none is left for a call of its own.
+
+171. **12 November 2026** (the core, in the design chat), after the change of item 169 was merged with the ways of
+     handing work over in order, but nothing on which provider builds where more than one can:
+
+     > Also, are all other providers also treated like codex? How does it select if it both has codex and something
+     > else?
+
+     Told that every other provider's builder follows the same rules and only Codex has a part in the core; that nothing
+     chose between two that could both build; offered: the project's order if it names one, otherwise Codex first, a
+     task one failed at twice going to the next and Claude's last; told what Codex first costs (work Codex built cannot
+     have Codex's code review, and its security review fell to Claude's fallback reviewer, which spends Claude's usage),
+     and that the rule needed room the cap did not have: 47 KB, or cuts.
+
+     > Maybe codex still can be used for security.
+     >
+     > But yeah, fine how you've laid it out. Yes to everything, now and before, expertly.
+
+     Behind "Where more than one can build" in `modules/roles.md`, "The builders", and the *other builders* slot; behind
+     the *security reviewer* slot's default, Codex of what its own provider built too, floor rule 3's two reviews
+     standing; and behind the cap of item 164 at 47 KB.
