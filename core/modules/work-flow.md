@@ -1,6 +1,6 @@
 # How work flows
 
-How a builder goes on without waiting, and how lanes run beside the main lane. Read at the start of every task.
+Read at the start of every task.
 
 1. **Review in the background.** When the work is done, read the task's spec again: build what changed, or queue it if
    large. Mark the draft PR ready and ask for its reviews (`modules/reviews.md`). Fix every review's findings together.
