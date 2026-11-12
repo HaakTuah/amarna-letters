@@ -91,9 +91,16 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   letters or from the economy around them.
 
 - **Use against ignore, the third group** (the core's `modules/game-design.md`, "Using a feature must pay"): scripts
-  that always use the item's feature, played beside those that use it where it fits and those that ignore it, with
-  the threshold for "by more than chance" listed as a first guess; by way of the design session, as the core's
-  `reports/2026-11-10-step-3-now.md` ("What each game does not yet do") says, with the rest of that list.
+  that always use the item's feature, played beside those that use it where it fits and those that ignore it, with the
+  threshold for "by more than chance" listed as a first guess; by way of the design session. With it, the rest of the
+  core's game rules this game does not meet yet (from "What each game does not yet do" in
+  `reports/2026-11-10-step-3-now.md` of the core's own repository, which no copy holds), each by way of the design
+  session too: a check that the computer players' timing gives no person away ("The computer players never know who is a
+  person"); whatever the game shows from the past, such as a last-known position or an old report, showing its age ("No
+  rule untaught"); a replay from the log of every input and every model answer, the model and its prompts counted in the
+  version ("Same seed, same game"); and `src/web/src/ui/update.ts` carries a held game into a new version at its next
+  season, one that changes play too, where the core has such a version wait until the game in play ends, a saved game
+  opened later carrying on in the newer rules with its log marking where ("Players always play the newest version").
 
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (2) The
   code-scanning alert open on `main` gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
