@@ -83,7 +83,8 @@ export function crossPlan(heard: Mood | null, mood: Mood, moment: boolean, turn:
  * Where in a piece a change crosses, in seconds into it: the start of the crossing, or null to let the piece play to its
  * end. `phrases` are the piece's phrase ends, `now` the time into it, `lead` the crossing's lead before a phrase end, and
  * `left` the piece's length (null: not known yet). A rise takes the next phrase end within `wait`, and crosses at once
- * where none comes that soon; a late change takes the last one within `wait`, and none where the piece ends in time.
+ * where none comes that soon; a late change takes the last one within `wait` (at `wait` where none falls within it), and
+ * none where the piece ends in time.
  */
 export function crossAt(plan: Plan, phrases: readonly number[], now: number, lead: number, left: number | null): number | null {
   const ahead = phrases.filter((p) => p > now + lead + 0.2);
@@ -93,7 +94,8 @@ export function crossAt(plan: Plan, phrases: readonly number[], now: number, lea
   }
   if (left !== null && left - now <= plan.wait) return null;
   const within = ahead.filter((p) => p - now <= plan.wait);
-  return within.length > 0 ? within[within.length - 1] - lead : now;
+  // No phrase end in reach: the piece plays on to the 45 s, and crosses there.
+  return within.length > 0 ? within[within.length - 1] - lead : now + plan.wait;
 }
 
 /** The fallback's pass under way: its score, the mood it plays and the stretches left of it. */

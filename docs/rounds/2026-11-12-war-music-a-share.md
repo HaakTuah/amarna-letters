@@ -32,7 +32,7 @@ changes, so seeds replay as before, the benchmarks cannot move and the save vers
 Seeds 1 to 3 (103, 115 and 26 seasons), all seven Great Kings script kings, paces as in the 19+++b report. The draw and the
 rests are played through each mood timeline with the manifest's piece lengths. "War pieces" is the share of the music's time
 in the war family's pieces (chariots, siege, battle). First guesses: under a third of god view, and under half of a seat's
-play while it is at war. Rows for Fast and Simulate last under two minutes, one piece, and show the game's opening only.
+play while it is at war. Fast and Simulate (a whole game under two minutes, one piece) are in the script's output and show the opening only.
 
 | Who, pace | mood changes a minute | time in the war moods | heard as | war pieces | war pieces while the mood is war | silence | pieces a minute |
 | --- | --- | --- | --- | --- | --- | --- | --- |

@@ -59,6 +59,20 @@ describe("AudioListeningTests", () => {
     Assert.equal(0, characterSignal(hidden, 1, "Hatti", "c1").heat);
   });
 
+  test("A seat's own governor is its realm's whatever his true employer, which it may not know has changed", () => {
+    const gov = (employer: Power): Partial<SeasonFrame> => ({
+      people: new Map([["c1", envoy(employer, null as unknown as Power)]]),
+      governedKnown: new Map([["Egypt" as Power, new Map([["gaza", { character: "c1", seat: "gaza" }]])]]),
+      units: [{ id: "u", power: "Egypt" as Power, kind: "Army" as const, province: "gaza", men: 100 }],
+      sight: new Map([["Egypt" as Power, new Set(["gaza"])]]),
+    } as unknown as Partial<SeasonFrame>);
+    const signal = (employer: Power) => JSON.stringify(characterSignal([frame(0, gov(employer)), frame(1, gov(employer))], 1, "Egypt", "c1"));
+    // He turned to Hatti and word has not reached the seat: nothing it hears changes, and its own troops are not foreign.
+    Assert.equal(signal("Egypt"), signal("Hatti"));
+    Assert.equal(0, characterSignal([frame(0, gov("Hatti")), frame(1, gov("Hatti"))], 1, "Egypt", "c1").heat);
+    Assert.equal("Egypt", realmOfCharacter(frame(1, gov("Hatti")), "Egypt", "c1"));
+  });
+
   test("Drifting, the music of the realm doing the most, kept until another clearly does more", () => {
     const struck = (i: number, who: Power, target: string, owner: Power): Partial<SeasonFrame> => ({ moves: [attack(who, target, owner), attack(who, target, owner, "y")] });
     const owner = new Map<string, Power | null>([["a", "Egypt"], ["b", "Hatti"], ["c", "Mitanni"]]);

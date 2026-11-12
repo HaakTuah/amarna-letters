@@ -11,7 +11,7 @@ import { isGreatKing, type Power } from "@amarna/engine";
 import { peopleOf, stepAt } from "../map/scene.ts";
 import type { SeasonFrame } from "../session/frames.ts";
 import type { Ears } from "./crossing.ts";
-import { Drag, Heat, Skirmish, quietSignal, raiseSignal, signalAt, siegeHeat, sizeable, type Signal } from "./mood.ts";
+import { Drag, Heat, Skirmish, quietSignal, raiseSignal, siegeHeat, sizeable, type Signal } from "./mood.ts";
 import { capitals, hostile, owners, seen, sightOf } from "./situation.ts";
 
 /** Whose ears: a player's own seat; else the character he follows, the realm he watches, or the world he drifts over. */
@@ -24,9 +24,11 @@ export function earsOf(viewer: Power | null, playing: boolean, following: boolea
 /** The realm a followed character serves, as the viewer knows it (null: not known). */
 export function realmOfCharacter(f: SeasonFrame, viewer: Power | null, id: string): Power | null {
   if (viewer === null) return f.people.get(id)?.employer ?? null;
+  // A seat knows only what it believes: the marker's owner; else its own servant, where it places him (at its court, or
+  // governing where it believes), never his true employer, which it may not yet know has changed.
   const marker = peopleOf(f, viewer)[1].find((p) => p.id === id);
   if (marker !== undefined) return marker.owner;
-  return f.people.get(id)?.employer === viewer ? viewer : null;
+  return stepAt(f, f.index, viewer, id) !== null ? viewer : null;
 }
 
 /**
@@ -66,9 +68,6 @@ export function characterSignal(frames: readonly SeasonFrame[], index: number, v
   if (f.units.some((u) => u.province === place && u.power !== realm && (sight === null || sight.has(place)))) raiseSignal(out, Heat.unease);
   return out;
 }
-
-/** What the world's own heat reads, for a spectator drifting over it (god view): the true map's, as the music has it for god view. */
-export const worldSignal = (frames: readonly SeasonFrame[], index: number): Signal => signalAt(frames, index, null);
 
 /** How many seasons of a realm's doings the world's music counts, and how fast they fade. */
 const Doing = { seasons: 6, fade: 0.6 } as const;

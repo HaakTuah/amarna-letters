@@ -93,7 +93,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
   capital newly attacked, a fight or a siege where the character stands; kept clear for 12 s so the rise can cross), and
   the world's own heat changes the music only at a piece's end. A change of what he watches (realm, character, god view)
   never cuts a piece: it plays on to its end, or, if it would play longer than 45 s (`Ease`), crosses at the last phrase
-  end within 45 s of the change, to a piece drawn for what he now watches; a fresh start is not an event, so no
+  end within 45 s of the change (at the 45 s where none falls within them), to a piece drawn for what he now watches; a fresh start is not an event, so no
   rise is clear then. The fallback ends its pass under way at a phrase end once 45 s have passed since the change, where the new view asks for a mood of another height; its court changes with a new pass. A change of eyes that asked nothing of the piece, or went 60 s unanswered, is forgotten. A player keeps 19+++b's clearer triggers.
 - **It rises fast and falls slow** (`crossing.ts`): each file carries its phrase ends (seconds); a rise starts 0.4 s before the next one
   within 8 s and crosses over 3 s, or at once where none comes that soon. A piece stands for the higher of its own mood

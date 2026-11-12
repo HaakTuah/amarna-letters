@@ -73,6 +73,8 @@ class Player {
   private playingMoment = false;
   /** A change asked for, waiting for its phrase end (seconds into the live deck). */
   private switchAt: number | null = null;
+  /** The change waited for is a spectator's late one, which a rise he is to hear at once may overtake. */
+  private switchLate = false;
   /** The latest page time the change waits to (a stalled stream still changes). */
   private askedAt: number | null = null;
   private retried = 0;
@@ -425,10 +427,12 @@ class Player {
       return;
     }
     const now = d.el.currentTime;
+    if (this.switchAt !== null && this.switchLate && !plan.late) this.switchAt = null;
     if (this.switchAt === null) {
       const at = crossAt(plan, d.phrases, now, Lead, Number.isFinite(d.el.duration) ? d.el.duration : null);
       if (at === null) return;
       this.switchAt = at;
+      this.switchLate = plan.late;
       // By the page's clock too, so a stream that stalls still changes.
       this.askedAt = performance.now() + (this.switchAt - now) * 1000 + 2000;
     }
@@ -504,11 +508,13 @@ class Player {
     const turn = this.turn();
     // A change of eyes ends the pass under way within 45 s, at a phrase end, where the new view asks for another height.
     if (this.pass !== null && this.pass.left > 0 && turn.eyes !== null && turn.eyes >= Ease && crossPlan(heardMood(this.passPiece, this.pass.mood), this.mood, false, turn) !== null) this.pass = { ...this.pass, left: 0 };
-    const mood = passMood(this.pass, this.mood, turn.ears === "own" || turn.clear);
+    // The pass stands for the higher of its piece's own mood and the one it was drawn for, as in the orchestra.
+    const stands = this.pass !== null && this.passPiece !== null ? heardMood(this.passPiece, this.pass.mood) : (this.pass?.mood ?? null);
+    const mood = passMood(this.pass === null ? null : { ...this.pass, mood: stands! }, this.mood, turn.ears === "own" || turn.clear);
     let piece = this.passPiece;
-    if (this.pass === null || this.pass.left <= 0 || mood !== this.pass.mood || piece === null) {
-      const rose = this.pass !== null && mood !== this.pass.mood && this.pass.left > 0;
-      const heard = this.pass !== null ? heardMood(this.passPiece, this.pass.mood) : this.restFrom;
+    if (this.pass === null || this.pass.left <= 0 || mood !== stands || piece === null) {
+      const rose = this.pass !== null && mood !== stands && this.pass.left > 0;
+      const heard = this.pass !== null ? stands : this.restFrom;
       const rise = heard !== null && riseNow(heard, mood, turn);
       this.restFrom = null;
       if (this.pass !== null && this.pass.left <= 0 && !rise) {

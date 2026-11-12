@@ -73,6 +73,8 @@ describe("AudioCrossingTests", () => {
     Assert.equal(49.6, crossAt(late, phrases, 20, 0.4, 120));
     // The piece ends within the 45 s: it plays on to its end.
     Assert.null(crossAt(late, phrases, 90, 0.4, 120));
+    // No phrase end within the wait: the piece plays on to the 45 s and crosses there.
+    Assert.equal(65, crossAt(late, [10], 20, 0.4, 200));
     // Its length not known yet: a phrase end within the wait is still the last one.
     Assert.equal(49.6, crossAt(late, phrases, 20, 0.4, null));
   });
