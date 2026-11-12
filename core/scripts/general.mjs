@@ -16,6 +16,7 @@ const files = config.paths
   .flatMap(dir => fs.readdirSync(dir).filter(f => f.endsWith(".md")).map(f => path.posix.join(dir, f)))
   .filter(f => !exempt.has(f))
   .sort();
+if (!files.length) { console.log("no file of the floor or the modules was read: the check would pass anything"); process.exit(1); }
 
 let found = 0;
 for (const file of files) {

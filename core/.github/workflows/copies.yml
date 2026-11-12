@@ -2,11 +2,12 @@
 # a new copy of code, or of the rule files' prose, fails; the old ones its baseline lists are removed over time, and
 # against the branch a PR merges into the baseline may only shrink. With it, the pointer check (every pointer in the
 # rule files leads somewhere) and the reading-size check (the files every session reads keep to their marks, and a file
-# past the split mark is split before it is changed), with the marks the project names. A project calls it
+# past the split mark is split before it is changed), with the marks the project names; and a check that needs no
+# config, the workflow check (floor rule 2: no workflow names the trigger it forbids). A project calls it
 # (workflow_call) on every pull request and push to main, docs-only changes included, since the rule files are what it
 # guards most, pinned to a full commit SHA ("How a project takes the core" in README.md, point 5). It runs the project's
-# own core/scripts/copies.mjs, pointers.mjs and reading-size.mjs with the configs the project names, on the core's one
-# exact Node; Node's own modules only, no package installed. Read-only, with no secret.
+# own core/scripts/copies.mjs, pointers.mjs, reading-size.mjs and workflows.mjs, with the configs the project names, on
+# the core's one exact Node; Node's own modules only, no package installed. Read-only, with no secret.
 name: copies
 
 on:
@@ -54,3 +55,6 @@ jobs:
           SIZES_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
           SIZES: ${{ inputs.sizes }}
         run: node core/scripts/reading-size.mjs "$SIZES"
+      - name: No workflow names the forbidden trigger
+        if: ${{ !cancelled() }}
+        run: node core/scripts/workflows.mjs
