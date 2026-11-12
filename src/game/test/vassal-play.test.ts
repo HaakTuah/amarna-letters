@@ -20,7 +20,7 @@ describe("Script players and vassalage (item 11+)", () => {
     Assert.equal(15, d!.gold);
   });
 
-  test("Every court knows the opening bonds; an overlord does not make war on a vassal that pays", () => {
+  test("Every court knows the opening bonds; an overlord weighs a war on a vassal that pays as on any king, and welcomes one on a vassal in arrears", () => {
     const s = newGame(1);
     const view = Views.for(s, "Egypt");
     const b = new Board(view);
@@ -28,7 +28,10 @@ describe("Script players and vassalage (item 11+)", () => {
     brain.learn(view, b);
     brain.bonds = knownBonds(b);
     Assert.true(brain.bonds.some((x) => x.vassal === "Byblos" && x.overlord === "Egypt"));
-    Assert.true(bondWar(b, brain, "Byblos") < 0);
+    Assert.equal(0, bondWar(b, brain, "Byblos"));
+    // No tribute for longer than a year and the road's grace.
+    brain.tributeIn.set("Byblos", view.turn - 10);
+    Assert.true(bondWar(b, brain, "Byblos") > 0);
   });
 
   test("A strong king takes a vassal whose tablet names real tribute", () => {

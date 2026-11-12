@@ -12,15 +12,21 @@ import { Board } from "./board.ts";
  * (`--no-sea-play`): then a convoy needs one fleet touching both coasts, as before item 7a, and no blockade or guard is
  * planned.
  */
-export const SeaPlay: { on: boolean } = { on: true };
+export const SeaPlay: { on: boolean; only: ReadonlySet<string> | null; for: (me: string) => boolean } = {
+  on: true,
+  only: null,
+  for(me: string): boolean {
+    return this.on || (this.only !== null && !this.only.has(me));
+  },
+};
 
 /**
  * The sea zones from the waters of `from` (a coast) to every zone reachable through zones that `through` allows, each with
  * the chain of zones that leads there (the first is `from`'s waters), breadth first and in id order, up to `depth` zones.
  */
-export function seaChains(from: string, through: (zone: string) => boolean, depth = 3, sail: WorldMap = Board.Sail): Map<string, string[]> {
+export function seaChains(me: string, from: string, through: (zone: string) => boolean, depth = 3, sail: WorldMap = Board.Sail): Map<string, string[]> {
   const out = new Map<string, string[]>();
-  if (!SeaPlay.on) depth = 1;
+  if (!SeaPlay.for(me)) depth = 1;
   const start = Board.Map.get(from).waters;
   if (start === null || !through(start)) return out;
   out.set(start, [start]);
@@ -73,7 +79,7 @@ export function stepToward(from: string, to: string, through: (zone: string) => 
 export function nearestHarbour(me: string, to: string, ours: (province: string) => boolean, through: (zone: string) => boolean): string | null {
   let best: [string | null, number] = [null, 99];
   for (const p of Board.Map.landProvinces.filter((x) => x.home === me && x.waters !== null && ours(x.id)).sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    const chains = seaChains(p.id, (z) => z === to || through(z), 5);
+    const chains = seaChains(me, p.id, (z) => z === to || through(z), 5);
     const c = chains.get(to);
     if (c !== undefined && c.length < best[1]) best = [p.id, c.length];
   }
@@ -122,7 +128,7 @@ export function chooseLanding(
     const there = b.unitAt.tryGet(from);
     const armyThere = there !== undefined && there.power === b.me && there.kind === "Army";
     if (!armyThere && (there !== undefined || !b.isMine(from) || !armyCanCome(from))) continue;
-    for (const [zone, chain] of seaChains(from, open, depth)) {
+    for (const [zone, chain] of seaChains(b.me, from, open, depth)) {
       // A court more than a fleet short of the chain would spend seasons and gold it does not have before it sails.
       if (chain.length - fleets > 1) continue;
       for (const target of landingsFrom(zone)) {

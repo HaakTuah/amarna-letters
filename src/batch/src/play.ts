@@ -99,6 +99,10 @@ export interface BatchOptions {
   planAhead: boolean;
   /** Script kings play the finer seas well (item 7a); off only to measure it (`--no-sea-play`). */
   seaPlay: boolean;
+  /** Half the script kings play the finer seas, alternating by seed (`--sea-play-half`). */
+  seaPlayHalf: boolean;
+  /** The halves with nothing switched off (`--null-half`): what the seeds alone give each side. */
+  nullHalf: boolean;
   /** Script kings close their roads to their foes (item 7b); off only to measure it (`--no-road-play`). */
   roadPlay: boolean;
   /** Only half the kings plan ahead, alternating by seed (the others are the comparison); they are reported as the current side. */
@@ -213,6 +217,8 @@ export interface BatchOptions {
   clausePlayHalf: boolean;
   /** Script kings send gold without an inventory by envoys they trust (item 8); off only to measure it (`--no-inventory-play`). */
   inventoryPlay: boolean;
+  /** Half the script kings send gold without an inventory, alternating by seed (`--inventory-play-half`). */
+  inventoryPlayHalf: boolean;
   simulateApi: boolean;
   /** Providers other than Anthropic (--provider ID=URL), each with its key in <ID>_API_KEY. */
   providers: ProviderSetting[];
@@ -284,16 +290,18 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   setNameClaims([], []);
   const choices = choicesOf(o);
   PlanAhead.on = o.planAhead;
-  SeaPlay.on = o.seaPlay;
+  SeaPlay.on = o.seaPlay && !o.seaPlayHalf;
   RoadPlay.on = o.roadPlay;
   WinterStrokes.on = o.winterPlay;
   AuthorityPlay.on = o.authorityPlay;
   ClausePlay.on = o.clausePlay;
-  InventoryPlay.on = o.inventoryPlay;
+  InventoryPlay.on = o.inventoryPlay && !o.inventoryPlayHalf;
   let last: GameRunner | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.cofferPlayHalf || o.giftPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.raiderPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.kingPlayHalf || o.fieldPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.takeUpPlayHalf || o.regionPlayHalf || o.auditPlayHalf || o.spyCheckPlayHalf || o.talkPlayHalf || o.occupyPlayHalf || o.warPlayHalf || o.tidingsPlayHalf || o.ridePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.nullHalf || o.seaPlayHalf || o.inventoryPlayHalf || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.cofferPlayHalf || o.giftPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.raiderPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.kingPlayHalf || o.fieldPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.takeUpPlayHalf || o.regionPlayHalf || o.auditPlayHalf || o.spyCheckPlayHalf || o.talkPlayHalf || o.occupyPlayHalf || o.warPlayHalf || o.tidingsPlayHalf || o.ridePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
+  SeaPlay.only = o.seaPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  InventoryPlay.only = o.inventoryPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
   AuthorityPlay.only = o.authorityPlayHalf ? current : null;

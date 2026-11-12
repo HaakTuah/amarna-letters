@@ -112,7 +112,8 @@ local play, and a screen for a human seat's standing answers. The report is `doc
   it, and a support promised to us makes the move an `attack` worth taking. A support given that keeps a promise made in a
   letter's clauses, or a request accepted at the supporter's own court, is an event (`support-kept`).
 - **Measuring** (`ClausePlay`, `InventoryPlay`): `--no-clause-play` and `--clause-play-half` (half the kings, alternating
-  by seed) turn off acting on what they read; `--no-inventory-play` keeps every gold with its inventory.
+  by seed) turn off acting on what they read; `--no-inventory-play` keeps every gold with its inventory, and
+  `--inventory-play-half` half the kings' (item 18, part F3).
 
 ### Gold without an inventory
 

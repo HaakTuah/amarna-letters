@@ -2,16 +2,14 @@
  * A script king's economy at home (build order item 9+a, "Building it": "selling surplus, supplying armies and stocking
  * depots"). Each season, before the treasury's other choices: it keeps in each province's stores what its troops there
  * will eat, and a depot's worth on the frontier where its armies stand; sends caravans to troops beyond its land whose
- * baggage runs low, and to frontier depots that run short; sells the rest at each market while the price is worth it, and
- * at any price when the treasury needs gold or the grain would be lost for want of room; hands its towns what would still
- * be lost; and buys grain where troops depend on an empty store. Returns the gold its sales should bring.
+ * baggage runs low, and to frontier depots that run short; sells the rest at each market at whatever it pays; hands its
+ * towns what would still be lost; and buys grain where troops depend on an empty store. Returns the gold its sales should bring.
  */
 import { fundedThere, payFor } from "./coffers.ts";
 import { knownWays } from "./works.ts";
 import {
   EconomyData,
   PointsPerDay,
-  bidAt,
   caravan,
   carriedOf,
   cheapestRoute,
@@ -94,7 +92,6 @@ const ForeignDays = 2;
 
 export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: Order[], gold: number, costs: number): { sales: number; abroad: number } {
   const v = b.v;
-  const p = brain.p;
   const ps = new Map(v.provinces.map((x) => [x.province, { ...x } as Mutable<ProvinceEconomyView>] as const));
   if (ps.size === 0) return { sales: 0, abroad: 0 };
   const besieged = new Set(v.sieges.filter((x) => x.holder === b.me).map((x) => x.province));
@@ -178,18 +175,15 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
   // Trade abroad (item 9+b): what pays better at a foreign market goes there before the home markets take the rest.
   const abroad = TradePlay.on(b.me) ? tradeOrders(b, brain, plan, orders, ps, spare, gold, costs) : 0;
 
-  // Sales: while the market pays about what the grain is worth (grain kept loses a twentieth a season to spoiling, so a
-  // little under its reference price still pays), lower when gold is needed; at any price for what the next tax would push
-  // out of the stores.
-  const target = costs * (2 + p.caution);
-  const floor = gold < costs ? (EconomyData.basePrice * 35) / 100 : gold < target ? (EconomyData.basePrice * 6) / 10 : (EconomyData.basePrice * 9) / 10;
+  // Sales: all the grain to spare, at whatever each market pays (item 18, part F3). A sale moves grain from our stores to
+  // our people's market and gold from their purse to the treasury, both counted in our strength, so it costs nothing in the
+  // score at any price; the treasury's gold pays for troops, works and errands where grain in the stores pays for nothing.
+  // Held back for a better price, the grain only spoiled (the whole economy, which lost 0.80 to 0.865 growth to plain selling
+  // while it held grain back, won 0.865 to 0.765 selling it all).
   let expected = 0;
   for (const x of sortBy([...ps.values()], [(x: Mutable<ProvinceEconomyView>) => x.province, cmpStr])) {
     if (besieged.has(x.province)) continue;
-    const s = spare(x);
-    const overflow = Math.max(0, x.stores + x.tax - x.capacity);
-    let n = 0;
-    while (n < s && (bidAt(x.stock + n, x.need) >= floor || n < overflow)) n++;
+    const n = spare(x);
     const r = sellAlongCurve(x.stock, x.need, x.purse, n);
     if (r.taken > 0) {
       orders.push(sell(x.province, r.taken));

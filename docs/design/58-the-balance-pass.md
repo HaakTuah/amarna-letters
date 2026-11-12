@@ -94,3 +94,12 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   and the guard (`KingData`) stay as they are, since holding a king long gains his captor nothing measurable.
 - **The bold and careful lines** count only those who never reigned.
 - Save version 94.
+
+## Part F3: every feature's use against ignore (`versusReport` in `game/src/batch.ts`)
+
+- **Each side's standing against par** is reported beside its mean growth and wins: wins in 100 games carry a noise of
+  about ten either way, and mean growth the outliers of the fast-growing states.
+- **The null split** (`--null-half`): the same halves with nothing switched off, so a feature's numbers are read against
+  what the seeds alone give each side. On seeds 1-100 the powers of one parity win more often on the seeds of the other.
+- Every feature now has its half switch: `--sea-play-half` ([12](12-the-map-and-the-seas.md)) and
+  `--inventory-play-half` ([14](14-structured-press.md)) are new.

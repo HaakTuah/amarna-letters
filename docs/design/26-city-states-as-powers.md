@@ -85,15 +85,18 @@ it knows (the opening bonds, public, and the tablets it holds):
 
 - **As vassal**, it weighs each bond once a year as an investment (item 18 part E; `tributeReturn` in
   `bots/investment.ts`, "tribute buys peace"): it keeps serving while what the tribute buys over the seasons it believes
-  are left returns more than the tribute costs over them. It buys peace with the overlord, who never makes war on a vassal
-  that pays but may, as hostile as it reckons him, on one that does not; and his troops between it and the third king who
+  are left returns more than the tribute costs over them. It buys peace with the overlord, who it reckons spares a vassal
+  that pays (a script overlord weighs the war as any other, with his sealed tablet's price) and may, as hostile as it
+  reckons him, fall on one that does not; and his troops between it and the third king who
   threatens it most, by his troops against that king's; each weighed as a gift's return is (what an attack would take of
   what the king can reach, by his odds). Nothing, if the overlord attacked it within the year. Its honesty is how much it
   believes its sealed word is worth (×0.5 to ×1.5). A bond with no tribute is always kept. While it serves, it sends the tribute its tablet names once a year (a humble letter, the gold,
   `tribute` and `askProtect`), and never makes war on that overlord.
-- **As overlord**, it notes the gold a vassal's envoy brings; a vassal that paid within a year and the road's grace is a
-  friend (`Brain.bondFriends`, counted by `isFriend`), worth more paying than conquered; one in arrears hears a demand
-  (`askTribute`, a threat, a broken oath) and is fair game.
+- **As overlord**, it notes the gold a vassal's envoy brings; a vassal that paid within a year and the road's grace is
+  weighed for war as any king is, with a sealed tablet's price where one binds them (item 18, part F3: its tribute is a
+  share of a season's yield a year, its land the whole yield every season; vassal play, which lost 0.77 to 0.79 growth in
+  100 games while it held paying vassals friends never to be attacked, won 0.765 to 0.745 without it); one in arrears hears a demand
+  (`askTribute`, a threat, a broken oath) and is the more welcome a war (`bondWar`).
 - **Offers**: a king three times a neighbour's strength offers it vassalage (`askTribute`, `protect`, `askServe`) unless
   it serves a king he would rather not cross; a power that a neighbour three times its strength threatens, serving
   nobody, offers itself (`tribute`, `serve`, `askProtect`). `sealBond` seals a vassal tablet by the same sums: as
