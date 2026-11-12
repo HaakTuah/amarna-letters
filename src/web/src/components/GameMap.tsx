@@ -46,7 +46,9 @@ function keep(key: string, v: MapView | null): void {
  * The board, drawn by a renderer outside React: the static geography is written once, each layer above it redraws only
  * when what it shows changes, and pinch, pan and wheel zoom move one layer on the GPU without a render. Overlays (the
  * legend, cards) are children, drawn over the map outside the zoomed layer. `viewKey` names the view (the game and whose
- * eyes): coming back to it returns to where it was left; a view never seen opens at `opening`.
+ * eyes): coming back to it returns to where it was left; a view never seen opens at `opening()`, asked only then (#666: it
+ * reads the window's width, which forces a layout of whatever the page just wrote: asked at every redraw, inside React's
+ * render, 70 ms in 25 s of play on the phone profile).
  */
 export function GameMap({
   input,
@@ -62,7 +64,7 @@ export function GameMap({
 }: {
   input: MapInput;
   viewKey: string;
-  opening: MapView | null;
+  opening: () => MapView | null;
   onProvince: (id: string) => void;
   onPerson: (id: string) => void;
   onMark: (id: string, province: string | null) => void;
@@ -138,7 +140,7 @@ export function GameMap({
   useEffect(() => {
     const r = renderer.current;
     if (r === null) return;
-    const v = kept.get(viewKey) ?? opening;
+    const v = kept.get(viewKey) ?? opening();
     if (v !== null) r.setView(v.at, v.zoom, false);
     setBack(null);
     return () => keep(viewKey, r.getView());

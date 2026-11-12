@@ -72,7 +72,9 @@ export function attach(view, onSettle) {
   view.addEventListener("click", onClick, true);
   view.addEventListener("wheel", onWheel, { passive: false });
   view.addEventListener("dblclick", onDbl);
-  st.ro = new ResizeObserver(() => { clamp(st); apply(st); settle(st, true); });
+  // The view's size, kept as it changes (#666: read at each ask, it forced a style and layout of whatever the page had just
+  // written, 20 to 40 ms on a slow phone, from the sounds' look at the camera after each redraw).
+  st.ro = new ResizeObserver(() => { st.size = { w: view.clientWidth, h: view.clientHeight }; clamp(st); apply(st); settle(st, true); });
   st.ro.observe(view);
   st.detach = () => {
     view.removeEventListener("pointerdown", onDown);
@@ -101,6 +103,7 @@ export function zoomBy(view, factor) {
 export function reset(view) {
   const st = states.get(view);
   if (!st) return;
+  remeasure(st);
   animate(st, () => {
     // As far out as the view may go, centred on the board (where that is past the whole board, clamp alone would pin
     // the board's corner).
@@ -125,6 +128,7 @@ export function getView(view) {
 export function setView(view, mx, my, zoom, animated) {
   const st = states.get(view);
   if (!st) return;
+  remeasure(st);
   const change = () => {
     const g = geometry(st);
     st.s = Math.min(MAX_ZOOM, Math.max(lowest(st), zoom));
@@ -154,6 +158,7 @@ export function panBy(view, dx, dy) {
 export function focus(view, mx, my, minZoom, centre) {
   const st = states.get(view);
   if (!st) return;
+  remeasure(st);
   const r = view.getBoundingClientRect();
   const g = geometry(st);
   animate(st, () => {
@@ -177,8 +182,15 @@ function lowest(st) {
   return Math.max(1, g.w / (g.b * WORLD_W), g.h / (g.b * WORLD_H));
 }
 
+/// The view's size read afresh where the player or an opening sets the view, which is rare: a layout changed in the same
+/// task (a column shown, say) is not yet in what the resize observer kept.
+function remeasure(st) {
+  st.size = null;
+}
+
 function geometry(st) {
-  const w = st.view.clientWidth, h = st.view.clientHeight;
+  st.size ??= { w: st.view.clientWidth, h: st.view.clientHeight };
+  const { w, h } = st.size;
   const b = Math.min(w / MAP_W, h / MAP_H);
   return { w, h, b, ox: (w - MAP_W * b) / 2, oy: (h - MAP_H * b) / 2 };
 }
