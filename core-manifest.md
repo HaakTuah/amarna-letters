@@ -25,7 +25,7 @@ Floor: whole. Modules: all.
 | *planning design* | the script kings' planning |
 | *hard work* | an item's hardest problems, above all the competing approaches judged by measurement |
 | *major version checks* | the smoke test of the built app |
-| *Codex's checks* | `scripts/test.sh`, and `scripts/sim.sh --games 50 --seed 1 --verify-replay` when the engine changed |
+| *other builders' checks* | `scripts/test.sh`, and `scripts/sim.sh --games 50 --seed 1 --verify-replay` when the engine changed |
 | *computer players* | the script kings and script characters, and the model kings and characters |
 | *measured players* | the script kings and script characters |
 | *what they are shown* | the seat view |

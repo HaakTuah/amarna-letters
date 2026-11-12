@@ -7,7 +7,7 @@ What every reviewer judges a change by here, read whole with `core/modules/revie
 **The design checker's brief** adds, when the item adds or changes real-world content, the dossier passages it cites;
 a fact without a source, or against its source, blocks.
 
-**History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event) the
+**History holds,** for every reviewer, blocking: a real-world fact (a person, place, date, name, custom or event) the
 change adds or alters that has no source in `docs/history/`, or contradicts the source it cites. Each real fact in the
 game's data names the dossier line it rests on by that line's anchor, and the line quotes the few words of its source it
 relies on; a test fails when an anchor is missing or its line names someone else (archive item 167). Where no source
@@ -15,7 +15,7 @@ speaks, the game takes the most plausible estimate: published expert estimates, 
 or middle, each cited, graded [G]; a guess made earlier has no standing of its own, and gives way to a better-grounded
 one (archive item 170).
 
-**Hidden information,** for every reviewer: report as P1 any read of the true game state that a seat could not know, in
+**Hidden information,** for every reviewer, blocking: any read of the true game state that a seat could not know, in
 what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the latest
 season, past seasons, replays and the god view. The canary tests (`src/web/test/canary.test.ts` and
 `src/web/test/twin-canary.test.ts`) guard the same from the other

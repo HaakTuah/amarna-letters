@@ -17,10 +17,10 @@ these whole at the start of every task (Claude Code imports them; Codex: read ea
 @core/modules/work-flow.md
 @core/modules/git.md
 
-Codex: read `core/modules/codex.md` at the start of every task. The other files of the core, `core/floor/topics.md`
-and `core/modules/game-design.md` among them, are read when a task needs them; each says when. A safety rule of this
-game's own, which "Principles over rules" (`core/modules/how-to-work.md`) never reaches: no model games until the
-build order is done.
+A builder of another provider (Codex): read `core/modules/other-builders.md` at the start of every task. The other files
+of the core, `core/floor/topics.md` and `core/modules/game-design.md` among them, are read when a task needs them; each
+says when. A safety rule of this game's own, which "Principles over rules" (`core/modules/how-to-work.md`) never
+reaches: no model games until the build order is done.
 
 ## Where things are
 
