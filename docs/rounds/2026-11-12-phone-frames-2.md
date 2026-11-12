@@ -38,7 +38,8 @@ season 17, the trace starting). The first report had 0.39 to 0.41% on its branch
 
 **The scrub bench** (`src/web/scrub.mjs`, new): seed 1 played to season 30 at Fast, paused, the CPU slowed, then ten seasons
 back and ten on, each traced for 1.5 s. The same seasons are drawn every time, so two builds, or one build with a drawing
-taken away, are set against each other to about 10% (the soak's single run is not good enough for that). Per season shown,
+taken away, are set against each other to about 15% on busy time and layerize, and far worse on a count of long tasks (the
+five `main` runs below show the spread; the soak's single run is not good enough for that). Per season shown,
 means in ms, phone profile:
 
 | Run | busy | layerize | style | layout | paint | commit | script | tasks over 50 ms |
@@ -76,26 +77,28 @@ first row of each series is the same build with nothing hidden, so a series is r
 
 Read together:
 
-- **No one drawing is the cost.** Each drawing taken away alone saves 0 to 18% of the layerization (the cities most) and 5 to
-  32% of the paint (the units most); the pieces together save 18% of the layerization and 60% of the paint, the marks together
-  34% of the layerization. Yet taking away **both** the marks and the pieces leaves layerization at 6 ms from 310, style at 7
-  and paint at 26. So the browser's work follows how much is drawn together, not any one drawing and not the number of
-  transforms: what hiding a whole layer saves is an upper bound on what folding the transforms inside it can save.
+- **No one drawing is the cost.** Each drawing taken away alone moves the layerization by +3% to -18% (the cities most) and
+  the paint by +3% to -32% (the units most; the cities and the life marks even read higher), all against that series' own
+  first row. The pieces' drawings together read about 15% less layerization (against the folded build's 314) and 60% less
+  paint, the marks together a third less layerization (against `main`'s 286 to 325). Yet taking away **both** the marks and
+  the pieces leaves layerization at 6 ms from about 300, style at 7 from about 90 and paint at 26 from about 250. So the
+  browser's work seems to follow how much is drawn together, not any one drawing and not the number of transforms: what
+  hiding a whole layer saves is an upper bound on what folding the transforms inside it can save.
 - **Other levers tried in the bench, with no effect:** `overflow: hidden` on the drawings (busy 1,433, layerize 314), and
   `contain: strict` (1,272 and 303; the same build with nothing was 1,289 and 287). Without `will-change` on the drawings
-  (a forced-layerize probe, one layer's visibility toggled each frame) layerization went from 8 to 14 ms, as the first report
-  found: the composited drawings stay.
+  (a forced-layerize probe, one layer's visibility toggled each frame) layerization went from 8 to 14 ms, the same direction as the first report's finding (+1.4 ms
+  merged, on its own bench): the composited drawings stay.
 - **A forced probe of the floor:** with the whole map drawn, one toggled drawing costs 7 to 8 ms of layerization on the phone
   profile; with one drawing on the page 2.4; with six small ones 3 to 4; with six large ones 6 to 6.6. A season's frames are
   full of this: in a step back, 16 layerizations of 7 ms each.
 
 **What the long frames are made of** (a 25 s trace on the works-folded build, 48 tasks over 50 ms, 3.25 s in all):
 script 0.92 s (the renderer's steps and the page's redraw), paint 0.74 s, layerization 0.61 s, style 0.60 s, layout 0.25 s,
-commit 0.08 s. Five costs of about a fifth each: a lever on one of them cannot take a 70 to 100 ms frame under 50 ms.
+commit 0.08 s. Four costs of about a fifth to a quarter each and layout at a twelfth: a lever on one of them cannot take a 70 to 100 ms frame under 50 ms.
 
 **Where the elements are** (the phone's opening view, season 30, elements whose box meets the screen, of all in the layer):
 works 152/302, the cities 249/493, the works at the cities 304/809, the units 145/469, the bands 86/164, the tints 63/223,
-the memory 57/136, the season's ground 67/166. About half of each drawing lies off the screen.
+the memory 57/136, the season's ground 67/166. At least half of each drawing lies off the screen (48% to 72%).
 
 ## What was not done
 
@@ -108,11 +111,11 @@ the memory 57/136, the season's ground 67/166. About half of each drawing lies o
 Not transforms: layerization, paint and style follow how much is drawn together, in about equal parts with the script that
 writes it, and nothing in one drawing stands out. In the order the evidence points:
 
-1. **Draw only what the view can show** (a design call, for an Opus helper at high): about half of every drawing's elements
+1. **Draw only what the view can show** (a design call, for an Opus helper at high): at least half of every drawing's elements
    lie off a phone's screen, and the browser's layerize, paint and style costs follow the element count in a drawing, as hiding
    the whole of it shows. The marks and pieces would be written for the view and a margin, and the rest when the view moves
    (a pan redraws, a zoom already does). Risks: a redraw on every pan, the names' placement, taps, the followed path.
-2. **The units' paint** (a third of a season's paint on the bench, 85 ms in 20 steps): what repaints a unit while it marches,
+2. **The units' paint** (a third of a season's paint on the bench, 85 ms a season shown, 1.7 s in 20 steps): what repaints a unit while it marches,
    which the compositor should do alone.
 3. **The names in slices across frames** (the first report's list), the step that is still 23 ms.
 4. **A real phone.** All of this is a slowed desktop browser with software raster; a phone's GPU rasterises the layers
@@ -126,7 +129,7 @@ writes it, and nothing in one drawing stands out. In the order the evidence poin
   measure sees a gain, and its look is unproven (no pixel comparison was made once the numbers said it did not pay). A
   fold kept for no gain is a change to the stylesheet's arithmetic that a later reader must trust.
 - **Unsure: hiding a drawing as the upper bound for folding its transforms.** A drawing taken away stands for the most any
-  change inside it could save; it is a proxy, and the bench's runs differ by about 10%, so only the large steps (both layers
+  change inside it could save; it is a proxy, and the bench's runs differ by 15% or more, so only the large steps (both layers
   hidden; the units' paint) are certain.
 - **Unsure: how much is drawn, or how many drawings.** Hiding both sets of drawings also takes away 16 of the 20 composited
   drawings, and the bench does not tell the two apart; the first report found the drawings merged cost more layerization,

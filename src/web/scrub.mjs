@@ -5,7 +5,7 @@
 // 1280x800, not slowed), then steps back --steps seasons and on again, tracing each step for 1.5 s. Prints, per season shown,
 // the mean of the main thread's busy time and of the browser's own steps (layerize, style, layout, paint, commit) and of script,
 // and the tasks over 50 ms. --hide takes layer names (data-layer) or selectors starting with "." whose drawing is taken away
-// (display: none), to find what a drawing costs; --css adds rules. Runs differ by about 10%.
+// (display: none), to find what a drawing costs; --css adds rules. Runs differ by 15% or more: repeat a run before reading a small gap.
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,7 +35,11 @@ await p.click('summary[aria-label="More"]');
 await p.selectOption("select:has(option[value='50'])", "50");
 await p.click('summary[aria-label="More"]');
 await p.click('button[aria-label="Auto-play"]');
-while ((await p.evaluate(() => Number(document.querySelector(".slider")?.max ?? -1))) < target) await p.waitForTimeout(300);
+const wait = Date.now() + 600000;
+while ((await p.evaluate(() => Number(document.querySelector(".slider")?.max ?? -1))) < target) {
+  if (Date.now() > wait) throw new Error(`season ${target} not reached in ten minutes`);
+  await p.waitForTimeout(300);
+}
 await p.click('button[aria-label="Pause"]');
 await p.waitForTimeout(3000);
 if (!desktop) await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
@@ -54,11 +58,10 @@ for (const label of labels) {
   const done = new Promise((r) => cdp.once("Tracing.tracingComplete", r));
   await cdp.send("Tracing.end");
   await done;
-  // The main thread is the one with the most task time.
-  const byThread = new Map();
-  for (const e of events) if (e.ph === "X" && e.name === "RunTask") byThread.set(`${e.pid}:${e.tid}`, (byThread.get(`${e.pid}:${e.tid}`) ?? 0) + e.dur);
-  const main = [...byThread.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  const mine = events.filter((e) => e.ph === "X" && `${e.pid}:${e.tid}` === main);
+  // The page's main thread, as soak.mjs finds it.
+  const thread = events.find((e) => e.name === "thread_name" && e.args?.name === "CrRendererMain");
+  if (thread === undefined) throw new Error("no CrRendererMain thread in the trace");
+  const mine = events.filter((e) => e.ph === "X" && e.pid === thread.pid && e.tid === thread.tid);
   const ms = (...names) => mine.filter((e) => names.includes(e.name)).reduce((a, e) => a + e.dur, 0) / 1000;
   const tasks = mine.filter((e) => e.name === "RunTask" && e.dur > 1000);
   rows.push({

@@ -28,6 +28,7 @@ the phone profile was made of, and what changed:
 
 What is left is the browser's own layerization, paint and style (each about a fifth of a long frame, with the script that
 writes the map) and the steps that still take 10 to 30 ms on the phone (the names, the tints, the works, the units). One
-transform a symbol was tried and did not pay: the browser's work follows how much is drawn together, not the transforms
+transform a symbol was tried and did not pay: the browser's work seems to follow how much is drawn together (or how many drawings; the bench does not
+tell the two apart), not the transforms
 (`docs/rounds/2026-11-12-phone-frames-2.md`, which also names the next lever, drawing only what the view shows;
 `src/web/scrub.mjs` is the bench that sets two builds against each other).
