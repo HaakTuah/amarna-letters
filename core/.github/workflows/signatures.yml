@@ -1,0 +1,45 @@
+# The signature check (floor rule 7: "the registry's signature verified"), for a project whose packages come from npm:
+# it installs from the lock file, from npm's registry alone and running no package's install script, and then runs
+# npm's own `npm audit signatures`, which fails where the registry's copy of an installed name and version has no valid
+# signature, or a provenance that does not hold. npm's own tool on npm's own data: nothing here reads a lock file
+# itself. The install refuses a package from git, from a web address or from a tarball file, which the signature check
+# would pass over in silence (npm 11.20, which the core's Node brings, knows these settings; given on the command line,
+# they overrule an `.npmrc`). An `.npmrc` that names another registry, or sets anything else that changes where npm
+# fetches from, already fails the licence check (scripts/licences.mjs), which is why no registry is named here.
+# What it does not hold: that a lock entry which names one registry package resolves to that package and not another
+# of the registry's, and the rest of rule 7's source check (the same publisher and repository, a provenance kept where
+# the old version had one, the diff read against the release notes): those stay with the reviews, which read the lock
+# file's diff. A project calls it (workflow_call) from a workflow of its own of the same name, on a pull request that
+# changes a package list, a lock file, an `.npmrc` or that workflow, pinned to a full commit SHA ("How a project takes
+# the core" in README.md, point 5). Read-only, with no secret.
+name: signatures
+
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: The folder that holds package-lock.json, from the repository's root. Left out, the root itself.
+        required: false
+        type: string
+        default: "."
+
+permissions:
+  contents: read
+
+jobs:
+  signatures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false # nothing after the checkout needs the token
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+      - name: Install from the lock file, from the registry alone, running no package's install script
+        working-directory: ${{ inputs.directory }}
+        run: npm ci --ignore-scripts --no-audit --no-fund --allow-git=none --allow-remote=none --allow-file=none
+      - name: The registry's signature on each installed name and version
+        working-directory: ${{ inputs.directory }}
+        run: npm audit signatures

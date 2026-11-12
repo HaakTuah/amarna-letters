@@ -272,3 +272,15 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > opinion.
 
      > Yes, do everything you recommend on this, expertly, expert!
+
+153. **11 November 2026** (the core, in the design chat), shown six rules held only by discipline, each of which a
+     check could hold, the sixth being that every PR says what the owner can try and what readings it took, which the
+     advice at first left out as rarely broken; a count then showed about three in four merged PRs without the first:
+
+     > Yes, expertly to all! But i think mechanical enforcement of rules like code size checks and just stuff the
+     > agents get wrong in following the rules, is good to run everytime, like we do, to ensure nothing not allowed
+     > goes in, or not, expert?
+
+     > Are all 6 added now, expert?
+
+     > Why should we leave out 6, expert? Did you advice only 1-5, why, expert?

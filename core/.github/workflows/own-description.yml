@@ -1,0 +1,33 @@
+# The description check on this repository's own pull requests: the same script projects run from their copy
+# (scripts/pr-description.mjs), here from its source. A description put right is checked again by itself (the type
+# "edited"). This repository only; no project calls it. Reads only, with no secret: the description reaches the script
+# through env and is never written into a run line (floor rule 2).
+name: own-description
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: own-description-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  own-description:
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.user.login != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
+      - name: The description has its parts
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/pr-description.mjs
