@@ -14,6 +14,10 @@
 // and its points.
 //
 //   node core/scripts/pointers.mjs
+//
+// In the core's own repository, `node scripts/pointers.mjs --core` checks its floor and modules the same way (its
+// tests workflow runs it): there a path under `core/` is the core's own, read without that folder, and what only a
+// project has (`.claude/`, the cloud proxy's `ccr/` routes) is not looked for.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { posix } from "node:path";
@@ -24,7 +28,8 @@ const git = args => execFileSync("git", args, { encoding: "utf8", stdio: ["ignor
 process.chdir(fileURLToPath(new URL(".", import.meta.url)));
 process.chdir(git(["rev-parse", "--show-toplevel"]).trim());
 const tracked = git(['ls-files', '-z']).split('\0').filter(Boolean);
-const RULES = ruleFiles();
+const CORE = process.argv.includes("--core");
+const RULES = CORE ? tracked.filter(f => /^(floor|modules)\/[^/]+\.md$/.test(f)) : ruleFiles();
 for (const rf of RULES.filter(f => !tracked.includes(f))) { console.error(`FAIL: the rule file ${rf} is no tracked file`); process.exitCode = 1; }
 if (process.exitCode) process.exit(1);
 const files = new Set(tracked), dirs = new Set(tracked.flatMap(f => f.split('/').slice(0, -1).map((_, i, p) => p.slice(0, i + 1).join('/') + '/')));
@@ -115,6 +120,13 @@ for (const rf of RULES) {
       if (f) {
         count++;
         let p = f.file.replace(/\/$/, '');
+        if (CORE) {
+          if (/^(\.claude(\/|$)|ccr$)/.test(p)) continue;
+          p = p.replace(/^core(\/|$)/, '');
+          if (!p) continue;
+          // (no project's copy holds the core's reports: .gitattributes)
+          if (/^reports(\/|$)/.test(p)) { broken.push(`${where}: \`${f.file}\` is in no project's copy of the core`); continue; }
+        }
         if (!files.has(p) && !dirs.has(p + '/')) {
           const same = !p.includes('/') ? tracked.filter(t => t.endsWith('/' + p)) : [];
           if (same.length === 1) p = same[0];

@@ -6,14 +6,15 @@
 // It reads the branch's head commit, not the working tree, and passes only when, against the project's main, the diff
 // touches only core/, core-manifest.md and .github/workflows/*.yml; outside core/, each changed line differs from the
 // one it replaces only in the manifest's pin or a call's to a core workflow, each moved to the new pin; the new pin is
-// a commit of the core's main at or past the old one; core/ is the core's tree at that pin exactly; and every call to a
-// core workflow is pinned to a commit of the core's main. It prints the head it checked, for the merge call's `sha`
-// (`modules/github-calls.md`), so nothing pushed after the check can merge. Git and Node's own modules only; it changes
-// nothing.
+// a commit of the core's main at or past the old one; core/ is the core's tree at that pin exactly, without the folder
+// the core keeps to itself (copy-tree.mjs); and every call to a core workflow is pinned to a commit of the core's main.
+// It prints the head it checked, for the merge call's `sha` (`modules/github-calls.md`), so nothing pushed after the
+// check can merge. Git and Node's own modules only; it changes nothing.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { copyTree } from "./copy-tree.mjs";
 
 const CORE = "https://github.com/HaakTuah/agent-core.git";
 const raw = (args, cwd) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 1 << 26 });
@@ -74,7 +75,7 @@ try {
   git(["fetch", "-q", "--no-tags", CORE, "refs/heads/main"], dir);
   for (const sha of pins) if (!ok(["merge-base", "--is-ancestor", sha, "FETCH_HEAD"], dir)) fail.push(`${sha} is not a commit of the core's main`);
   if (oldPin && pin && !ok(["merge-base", "--is-ancestor", oldPin, pin], dir)) fail.push(`the pin goes back: ${pin} is not past ${oldPin}`);
-  if (pin && ok(["cat-file", "-e", `${pin}^{commit}`], dir) && git(["rev-parse", `${pin}^{tree}`], dir) !== git(["rev-parse", `${head}:core`])) {
+  if (pin && ok(["cat-file", "-e", `${pin}^{commit}`], dir) && copyTree(pin, dir) !== git(["rev-parse", `${head}:core`])) {
     fail.push(`core/ is not the core's tree at ${pin}`);
   }
 } finally {

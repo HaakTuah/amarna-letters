@@ -59,6 +59,12 @@ jobs:
       - name: The core-moved check
         if: ${{ !cancelled() }}
         run: node scripts/core-moved-test.mjs
+      - name: The tree a copy must be
+        if: ${{ !cancelled() }}
+        run: node scripts/copy-tree-test.mjs
+      - name: The pointers in the core's own floor and modules lead somewhere
+        if: ${{ !cancelled() }}
+        run: node scripts/pointers.mjs --core
       - name: None of the core's own workflows names the forbidden trigger
         if: ${{ !cancelled() }}
         run: node scripts/workflows.mjs

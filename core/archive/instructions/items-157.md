@@ -116,3 +116,18 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      "Work from main" in `modules/git.md` with `scripts/session-cost.mjs`, and his yes, now said, to floor rule 11's
      second exception.
 
+165. **12 November 2026** (the core, in the design chat), asked whether the core should be a package a project
+     installs and whether anything more would make it better. Advised: no package, since every reader of the rules
+     (Claude Code's imports, another provider's reviewer on GitHub, another tool) reads the repository's own files and
+     installs nothing, and the hooks run the copy that was reviewed; instead a slimmer copy that leaves the dated
+     reports in the core alone, syncs made once for several changes, a trimming pass over the modules since the cap
+     was full, and the day's small leftovers (a clause in floor rule 14 for rule 3's case of a project with no trusted
+     builder, "where one answers", a pointer check on the core's own files); NuGet in the licence check and the
+     queued checks left until a project's real use reports back.
+
+     > Please do all of it expertly, if you so advice, expert!
+
+     Behind `/reports export-ignore` in `.gitattributes` with `core.yml` and `scripts/pure-sync.mjs` comparing a copy
+     without that folder, the trims of the same pull request, "or leaves to him" in floor rule 14, and
+     `scripts/pointers.mjs --core` in the tests workflow.
+

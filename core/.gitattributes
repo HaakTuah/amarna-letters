@@ -1,3 +1,7 @@
 # The core is copied byte for byte under each project's core/ (core.yml compares the two), so no line ending is ever
 # converted, here or there: this file travels with the copy.
 * -text
+# What stays in this repository alone: `git archive`, which makes each project's copy (scripts/sync.mjs), leaves it
+# out, and core.yml and scripts/copy-tree.mjs compare a copy with the core without it. Both read this one line, spelled
+# exactly so: another folder kept here needs both changed first, or every project's check of its copy fails.
+/reports export-ignore

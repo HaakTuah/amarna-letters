@@ -79,6 +79,8 @@ jobs:
         run: |
           set -euo pipefail
           bad=0
+          # (what the core keeps to itself is no part of a copy: its own .gitattributes says which folder)
+          if grep -q -s -x '/reports export-ignore' .core-at-pin/.gitattributes; then rm -rf .core-at-pin/reports; fi
           if ! diff -r -q --exclude=.git .core-at-pin core; then echo "core/ differs from the core at its pin (above)"; bad=1; fi
           if ! git -C .core-at-pin fetch -q --no-tags origin refs/heads/main \
             || ! git -C .core-at-pin merge-base --is-ancestor "$PIN" FETCH_HEAD; then
