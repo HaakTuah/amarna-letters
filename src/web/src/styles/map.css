@@ -7,6 +7,8 @@
 .mapzoom.glide { transition: transform .25s ease-out; }
 svg.map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; will-change: opacity; }
 svg.map-upper, svg.map-ground, svg.map-realms, svg.map-relief, svg.map-marks { pointer-events: none; }
+/* A mark or piece far off the view is not drawn at all (#666, map/in-view.ts). */
+.map [data-out] { display: none; }
 /* Taps reach the provinces' tints, the cities and the marks in their own layers; the sea's hit areas stay in the land's. */
 .map-realms [data-province], .map-marks [data-province], .map-marks [data-mark], .map-marks .tap-hit { pointer-events: auto; }
 /* The relief blends in soft light with the land and its colours below it, as a layer of its own. */

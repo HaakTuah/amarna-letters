@@ -2,7 +2,8 @@
  * A layer written as a patch (item 17+++, part G): the new markup is parsed off the page, and only the elements and
  * attributes that differ from what stands are changed, so a season that changes a few provinces' colours restyles and
  * repaints those few, not the whole layer. On a slow phone a layer written whole cost its style recalculation, layerization
- * and repaint, 60 ms and more after the draw itself. What stands afterwards is the markup given, element for element.
+ * and repaint, 60 ms and more after the draw itself. What stands afterwards is the markup given, element for element
+ * (and whether each is drawn, `data-out`, as the renderer last set it).
  */
 
 /** Patches `live`'s children to be `html`'s, parsed in `live`'s own namespace. */
@@ -12,7 +13,7 @@ export function patch(live: Element, html: string): void {
   patchChildren(live, next);
 }
 
-/** Makes `live`'s attributes those of `next`. */
+/** Makes `live`'s attributes those of `next`, keeping whether it is drawn (`data-out`, set by the renderer: map/in-view.ts). */
 function attributes(live: Element, next: Element): void {
   const want = next.attributes;
   for (let i = 0; i < want.length; i++) {
@@ -21,7 +22,10 @@ function attributes(live: Element, next: Element): void {
   }
   const have = live.attributes;
   if (have.length === want.length) return;
-  for (let i = have.length - 1; i >= 0; i--) if (!next.hasAttribute(have[i].name)) live.removeAttribute(have[i].name);
+  for (let i = have.length - 1; i >= 0; i--) {
+    const name = have[i].name;
+    if (name !== "data-out" && !next.hasAttribute(name)) live.removeAttribute(name);
+  }
 }
 
 /** An element's `nodeType` (`Node.ELEMENT_NODE`). */

@@ -12,10 +12,10 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 ## The polish lane
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
-- **A bug beside it, now:** #666, a phone at Fast still drops frames past 50 ms, mostly the browser's own layering and
-  painting of the map's SVG; measured as item 17+++ part G did, until frames stay under 50 ms on phone and on
-  desktop at every speed. PR #930 (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's
-  1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); next: draw what is in view.
+- **A bug beside it, now:** #666, a phone at Fast still drops frames past 50 ms; measured as item 17+++ part G did,
+  until frames stay under 50 ms on phone and on desktop at every speed. PR #930 (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's
+  1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); only what is in view is
+  drawn (`docs/rounds/2026-11-12-phone-frames-3.md`); next: the units' paint.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Queued ideas** (stand-in's sure yeses, 12 November 2026), in order:
@@ -77,7 +77,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **The code files near the split line** (the same review): 17 code files are past 40 KB. Each is split where it holds
   two things, in a PR of its own when no open lane touches it, behaviour proven unchanged; generated data and the
   files judged one thing above stay whole. The list and what waits: `docs/rounds/2026-11-12-split-the-big-files.md`.
-  Split so far: `turn/plans.ts` (standing orders to `standing.ts`).
+  Split so far: `turn/plans.ts` (standing orders to `standing.ts`), `turn/intel.ts` (captives, assays).
 
 ## Follow-ups
 
