@@ -2,7 +2,8 @@
 
 The rules shared by the owner's agent-built projects, written once so a change is made once and every project takes it
 alike (core archive 68). The owner's words behind each rule: `archive/instructions.md`. A project of another owner takes
-the core the same way, its *owner's account* filled in, and in its copy "the owner" is its own (core archive 148).
+the core the same way, its *owner's account* filled in, and in its copy "the owner" is its own (core archive 148), save
+in `archive/`, whose words stay the core's owner's: its stand-in does not search them (`modules/inbox.md`).
 
 ## Two layers
 
@@ -20,17 +21,18 @@ the core the same way, its *owner's account* filled in, and in its copy "the own
 
 ## How a project takes the core
 
-1. **An exact copy under `core/`,** pinned to one commit of this repository and never edited by hand. A change reaches a
-   project only through a sync PR there, made by `core/scripts/sync.mjs`. A pure sync (only the copy and its pins, as
-   `scripts/pure-sync.mjs` proves, run from a checkout of this repository's `main` and never from the PR's own copy)
-   gets no review of its own, since the core's PR reviewed what it carries (floor rule 8), and is merged by hand at the
-   head that script names, never by auto-merge; one that also fixes the project's pointers into core files the sync
-   moved or removed is reviewed like any PR. Where a change to the core asks something of the project itself (a row of
-   its manifest, a line of a rule file, a workflow), `setup/sync-notes.md` says so, the sync script prints the entries a
-   sync brings, and each is done in a PR of its own once the sync is merged. The
-   core's `core.yml`, which the project calls on every PR as a required check, fails one whose `core/` differs from the
-   core at its pin. The first copy is the sync script's too, run from a clone of this repository once the manifest is
-   written (the script's header says how); the copy's own `.gitattributes` keeps every line ending as it is.
+1. **An exact copy under `core/`,** pinned to one commit of this repository and never edited by hand: everything but
+   `reports/`, the dated reports of this repository's own changes, which stay here alone (`.gitattributes`; core archive
+   165). A change reaches a project only through a sync PR there, made by `core/scripts/sync.mjs`. A pure sync (only the
+   copy and its pins, as `scripts/pure-sync.mjs` proves, run from a checkout of this repository's `main` and never from
+   the PR's own copy) gets no review of its own, since the core's PR reviewed what it carries (floor rule 8), and is
+   merged by hand at the head that script names, never by auto-merge; one that also fixes the project's pointers into
+   core files the sync moved or removed is reviewed like any PR. Where a change to the core asks something of the
+   project itself (a row of its manifest, a line of a rule file, a workflow), `setup/sync-notes.md` says so, the sync
+   script prints the entries a sync brings, and each is done in a PR of its own once the sync is merged. The core's
+   `core.yml`, which the project calls on every PR as a required check, fails one whose `core/` differs from the core at
+   its pin. The first copy is the sync script's too, run from a clone of this repository once the manifest is written
+   (the script's header says how); the copy's own `.gitattributes` keeps every line ending as it is.
 2. **A manifest,** `core-manifest.md` at its root (format below): the pin, the modules it takes, its names for the
    core's words, and what fills each slot. Every session reads it at the start.
 3. **Pointer lines:** its `AGENTS.md` names the manifest and every file read at the start of every task, each on a line
@@ -139,7 +141,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 # Core manifest
 
 Core: HaakTuah/agent-core at <full commit SHA>, copied whole under core/ (never edited here).
-Paths: in the core's files, one into floor/, modules/, scripts/, setup/, archive/ or reports/ is under core/; any other is ours.
+Paths: in the core's files, one into floor/, modules/, scripts/, setup/ or archive/ is under core/; any other is ours.
 Floor: whole. Modules: <all, or the list of those taken>.
 
 ## Names
@@ -184,7 +186,7 @@ is public, and so is every word of an issue, so a report holds only what the lig
   past a check, a hook or a rule.
 - **A weakness is never an issue.** It goes to the Security tab's "Report a vulnerability", which only the owner sees
   ("Reporting a weakness" in `floor/topics.md`). An agent that finds one in the core files it there by that reporting's
-  own call alone, with no secret or personal detail and nothing of its project in it and where the call fails tells its
+  own call alone, with no secret or personal detail and nothing of its project in it, and where the call fails tells its
   own owner in its session's last message, who reports it (floor rule 9).
 - **An agent that files** says it is an agent and ends with its tool's attribution line (floor rule 4). It searches
   first and never files twice.

@@ -54,10 +54,11 @@ only by a merged pull request, brought up to date with `main` and its checks pas
 **13. Each project's files stay in its own repository,** never written into another's (core archive 4).
 
 **14. Nothing waits for the owner but the yeses the floor names** (core archive 76 and 134): a step that cannot be
-undone or spends money beyond what he himself set aside (never a new purchase), the changes rule 3 asks his yes for, and
-rule 10's licence exception. Only that step waits; the rest goes on. Everything else is done on the best reading, said
-in the PR, and stays correctable. A failing check that guards against harm (agents' isolation, `main`, keys, spending)
-stops its step, and the owner is told; a failing test is fixed, or its task marked blocked, and the work goes on.
+undone or spends money beyond what he himself set aside (never a new purchase), the changes rule 3 asks his yes for or
+leaves to him, and rule 10's licence exception. Only that step waits; the rest goes on. Everything else is done on the
+best reading, said in the PR, and stays correctable. A failing check that guards against harm (agents' isolation,
+`main`, keys, spending) stops its step, and the owner is told; a failing test is fixed, or its task marked blocked, and
+the work goes on.
 
 **18. Where agents hold sign-ins** (core archive 118 to 120, 122, 127 and 149): how a machine is set up for agents is
 the owner's to decide, and no rule refuses work over it. What holds on every one: nothing runs there but what he starts

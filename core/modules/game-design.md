@@ -1,8 +1,7 @@
 # Game design
 
 The principles every game taking the core shares, read before a task changes a rule, a feature or how the computer
-players play, and before a polish-lane task; each game's own add to them. A feature is any move, rule or power a player
-can choose to use.
+players play, and before a polish-lane task. A feature is any move, rule or power a player can choose to use.
 
 - **The computer players never know who is a person** (core archive 87). Nothing in the logic of the *computer players*,
   nor in *what they are shown*, says whether another player is a person; they judge every player by behaviour alone, so
@@ -50,8 +49,8 @@ can choose to use.
 - **Levers, not luck** (core archive 110 and 111). Where chance enters, players have levers to prepare for it or answer
   it, so no outcome is decided by chance alone.
 - **Different data, same rules** (core archive 105). No rule checks which player, faction or character it is: what sets
-  one apart lives in its data and starting conditions, which every rule reads alike, never in a rule that names it; only
-  presentation and voice may name one.
+  one apart lives in its data and starting conditions, which every rule reads alike; only presentation and voice may
+  name one.
 - **The order of resolution never decides** (core archive 105). When two act at the same moment, the outcome does not
   depend on which the game settles first: they share, or a seeded draw decides.
 - **Everything new belongs** (core archive 105). Every new feature feels balanced, cohesive and purposeful, and fits the

@@ -1,6 +1,6 @@
 # Claude's part: models, effort and usage
 
-Claude Code's model and effort for each role, and its usage. Read by Claude at the start of every task.
+Read by Claude at the start of every task.
 
 | Who | Model | Effort |
 | --- | --- | --- |
@@ -17,8 +17,8 @@ Claude Code's model and effort for each role, and its usage. Read by Claude at t
 - **Fable's usage runs out first:** it gets only planning design, the last escalation step and work the owner gives it
   by name, and only what needs judgement. If it is unavailable, its call goes to Opus at high.
 - **Who to call** (core archive 70 and 71): a helper for judgement only when it ranks above you (models: Haiku, Sonnet,
-  Opus, Fable; then effort; yours: your system prompt and `$CLAUDE_EFFORT`, unset meaning medium), else do it
-  yourself; a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your
-  level. A Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core
-  archive 73).
+  Opus, Fable; then effort; yours: your system prompt and `$CLAUDE_EFFORT`, unset meaning medium), else do it yourself;
+  a fresh eye (reviewer, design check, stand-in) and a helper for cost (search, routine parts) whatever your level. A
+  Sonnet builder hands what needs judgement to Opus at high, and its PR's first line says Sonnet built it (core archive
+  73).
 - **Other providers first** (`modules/roles.md`, "The builders"): Claude's usage is also the owner's own.

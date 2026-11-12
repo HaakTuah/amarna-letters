@@ -9,7 +9,7 @@ The roles and escalation. Read when a task needs one.
   check or its review can judge, each in its own working tree and PR. Claude's keep what no brief carries (a design
   reading, the owner's past words) and what the other cannot take or failed at twice. This bars no tool from work the
   owner gives it or Claude's cannot take.
-- **One code review, by another provider than the builder's** (the *code reviewers*; core archive 18
+- **One code review, by another provider than the builder's where one answers** (the *code reviewers*; core archive 18
   and 154): unless the project names its order, Codex's of Claude's work and the fallback reviewer's, Claude's, of
   another's.
 - **The design checker, the stand-in and planning design** are Claude's, at the models `modules/claude.md` gives:
