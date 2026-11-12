@@ -491,8 +491,5 @@ export function obeyedIn(s: GameState, province: string): number {
   return s.obeyed.getOrDefault(province, 1000) / 1000;
 }
 
-/** The notice that someone at court was paid the back pay owed, or could not be paid it all. */
-export const BackPayTitle = "Back pay";
-
 /** The notice to the power that took a king's capital, and with it his kingdom. */
 export const KingdomFallsTitle = "A kingdom falls to you";

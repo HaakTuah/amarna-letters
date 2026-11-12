@@ -230,14 +230,6 @@ function clip(poly: Pt[], a: Pt, b: Pt): Pt[] {
   return output;
 }
 
-export function hash01(n: number): number {
-  let x = Math.imul(n, 2654435761 | 0) >>> 0;
-  x = (x ^ (x >>> 13)) >>> 0;
-  x = Math.imul(x, 0x5bd1e995) >>> 0;
-  x = (x ^ (x >>> 15)) >>> 0;
-  return (x & 0xffff) / 65535.0;
-}
-
 // ---------------------------------------------------------------- province shapes
 
 /** The sea zones' waters: each zone is shaped only with the others on the same waters, within them. */
@@ -542,22 +534,3 @@ export function between(pts: readonly Pt[], a: number, b: number): Pt[] {
   return out;
 }
 
-/** A gentle curve between two points (arrows, routes), bowed to one side so opposite moves do not overlap. */
-export function arc(a: Pt, b: Pt, bow = 0.12): string {
-  const c = add(mul(add(a, b), 0.5), mul(normal(sub(b, a)), bow));
-  return `M${F(a.x)},${F(a.y)}Q${F(c.x)},${F(c.y)} ${F(b.x)},${F(b.y)}`;
-}
-
-/** Peaks along a range: small hachured triangles every few units. */
-export function peaks(line: readonly Pt[], spacing = 15, size = 7): string {
-  let sb = "";
-  let total = 0.0;
-  for (let i = 1; i < line.length; i++) total += len(sub(line[i], line[i - 1]));
-  const count = Math.max(1, Math.trunc(total / spacing));
-  for (let k = 0; k <= count; k++) {
-    const p = along(line, count === 0 ? 0 : k / count);
-    const s = size * (0.8 + 0.4 * hash01(k * 7 + Math.trunc(p.x)));
-    sb += `M${F(p.x - s)},${F(p.y + s * 0.45)}L${F(p.x)},${F(p.y - s * 0.75)}L${F(p.x + s)},${F(p.y + s * 0.45)}`;
-  }
-  return sb;
-}

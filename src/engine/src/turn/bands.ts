@@ -543,8 +543,6 @@ P.bandsSeason = function () {
   return lines;
 };
 
-export const BandsTitle = "Bands";
-
 declare module "./core.ts" {
   interface TurnEngine {
     /** Each season: the people standing where plague or famine strikes may die of it ("Natural losses"). */

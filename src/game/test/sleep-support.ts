@@ -18,7 +18,6 @@ import {
   newGame,
   newGameConfig,
   newHostReply,
-  newId,
   newPlannedOrder,
   newScheduledOrders,
   newSleepSpell,
@@ -26,7 +25,6 @@ import {
   newStandingOrder,
   newStandingRequest,
   newTurnSubmission,
-  newUnit,
   unitAt,
   unitOf,
 } from "@amarna/engine";
@@ -191,13 +189,6 @@ export function noticeOf(s: GameState, p: Power, title: string): InboxItem {
 // <summary>Babylon's army in Durkurigalzu is gone, so that an Assyrian army from Ekallate can contest the province.</summary>
 export function emptyDurkurigalzu(s: GameState): void {
   removeAll(s.units, (u) => u.province === "durkurigalzu");
-}
-
-// <summary>An Assyrian army in Susa, which Babylon can see from its homeland; the city is Assyria's, its walls gone.</summary>
-export function assyriaInSusa(s: GameState): void {
-  s.walls.delete("susa");
-  s.owner.set("susa", "Assyria");
-  s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "susa" }));
 }
 
 // <summary>A standing order of Babylon's waiting for Assyria to enter Arrapha, bound to its units.</summary>

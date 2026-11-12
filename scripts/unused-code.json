@@ -1,0 +1,9 @@
+{
+  "files": {
+    "src/batch/src/main.ts": "The batch runner, started by scripts/sim.sh (`node src/batch/src/main.ts`).",
+    "src/batch/src/measure.ts": "The measuring tool the design notes name (`node src/batch/src/measure.ts`), started by hand.",
+    "src/web/src/main.tsx": "The web app's entry, named by a script tag in src/web/index.html.",
+    "src/web/test/probe-run.ts": "The speed probe the design notes name (`vite-node src/web/test/probe-run.ts`), started by hand."
+  },
+  "exports": {}
+}

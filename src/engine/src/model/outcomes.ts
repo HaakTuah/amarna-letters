@@ -1,4 +1,4 @@
-import { B, I, type ObjSchema, S, computed, obj, opt, raw } from "../core/json.ts";
+import { B, type ObjSchema, S, obj, opt } from "../core/json.ts";
 import type { Ground } from "./geography.ts";
 import type { UnitKind } from "./map.ts";
 import type { Power } from "./power.ts";
@@ -7,15 +7,6 @@ export interface MoveResult {
   from: string;
   to: string;
   succeeded: boolean;
-}
-
-export function newMoveResult(init: Partial<MoveResult> = {}): MoveResult {
-  return {
-    from: "",
-    to: "",
-    succeeded: false,
-    ...init,
-  };
 }
 
 /** What stopped a move, in the order the adjudicator checks. */
@@ -58,35 +49,6 @@ export interface MoveFailure {
   people: number;
 }
 
-export function newMoveFailure(init: Partial<MoveFailure> = {}): MoveFailure {
-  return {
-    stop: "NoConvoy",
-    province: "",
-    power: null,
-    kind: "Army",
-    movingTo: null,
-    strength: 0,
-    against: 0,
-    ground: null,
-    groundBonus: 0,
-    people: 0,
-    ...init,
-  };
-}
-
-export const MoveFailureSchema: ObjSchema<MoveFailure> = obj("MoveFailure", newMoveFailure, {
-  stop: S,
-  province: S,
-  power: opt(S),
-  kind: S,
-  movingTo: S,
-  strength: I,
-  against: I,
-  ground: raw,
-  groundBonus: I,
-  people: I,
-});
-
 /**
  * One line of a battle report: the unit's province, its power, the order as resolved, for a move its target
  * and why it failed, and for a support or convoy that matched nothing why it was void.
@@ -108,21 +70,6 @@ export interface ReportLine {
    * For a move that got into a walled province its mover does not hold: whether it stormed the walls, and the strengths.
    */
   assault: Assault | null;
-}
-
-export function newReportLine(init: Partial<ReportLine> = {}): ReportLine {
-  return {
-    province: "",
-    power: null,
-    text: "",
-    ok: false,
-    target: null,
-    failure: null,
-    void: null,
-    cut: null,
-    assault: null,
-    ...init,
-  };
 }
 
 /**
@@ -150,38 +97,6 @@ export interface Assault {
   groundBonus: number;
 }
 
-export function newAssault(init: Partial<Assault> = {}): Assault {
-  return {
-    province: "",
-    power: "Egypt",
-    kind: "Army",
-    from: "",
-    owner: null,
-    strength: 0,
-    walls: 0,
-    defenders: 0,
-    people: 0,
-    ground: null,
-    groundBonus: 0,
-    ...init,
-  };
-}
-
-export const AssaultSchema: ObjSchema<Assault> = obj("Assault", newAssault, {
-  province: S,
-  power: S,
-  kind: S,
-  from: S,
-  owner: opt(S),
-  strength: I,
-  walls: I,
-  defenders: I,
-  people: I,
-  stormed: computed(B, (o: Assault) => stormed(o)),
-  ground: raw,
-  groundBonus: I,
-});
-
 /**
  * A move on a unit that stood its ground with the ground's help (Build order item 5, terrain): where from and to, who
  * attacked and who stood, the ground, the strengths compared, and whether the move got in (the defender destroyed). Recorded
@@ -201,22 +116,6 @@ export interface GroundFight {
    * The move failed only because of the ground: the unit there held it off, and the move beat the hold without the ground.
    */
   decided: boolean;
-}
-
-export function newGroundFight(init: Partial<GroundFight> = {}): GroundFight {
-  return {
-    from: "",
-    to: "",
-    attacker: "Egypt",
-    defender: "Egypt",
-    defenderKind: "Army",
-    ground: null!,
-    strength: 0,
-    against: 0,
-    won: false,
-    decided: false,
-    ...init,
-  };
 }
 
 /** One order as it resolved: who, where, what, and whether it worked. */
