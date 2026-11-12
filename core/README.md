@@ -15,9 +15,9 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
 - **The modules** (`modules/`): everything else the projects share, one file per thing a reader looks up, each saying at
   its top when it is read. At the start of every task: `how-to-work.md`, `inbox.md`, `work-flow.md`, `git.md`, and each
   builder's own (`claude.md`, or `other-builders.md`). When needed: `roles.md`, `helpers.md`, `reviews.md`,
-  `review-guidelines.md`, `codex.md`, `orchestrating.md`, `github-calls.md` and `updates.md`; and, for games only,
-  `game-design.md`.
-- **The cap:** the floor and the modules together stay under 45 KB (core archive 164), checked on every PR here
+  `review-guidelines.md`, `codex.md`, `copilot.md`, `orchestrating.md`, `github-calls.md` and `updates.md`; and, for
+  games only, `game-design.md`.
+- **The cap:** the floor and the modules together stay within 46 KB (core archive 164 and 169), checked on every PR here
   (`scripts/size.mjs`), so a new rule replaces text rather than adding to it (core archive 134).
 
 ## How a project takes the core
@@ -137,7 +137,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 | *hard work* | what counts as the hard work |
 | *major version checks* | the extra checks a new major version gets |
 | *other builders' checks* | what a builder of another provider runs before it finishes (`modules/other-builders.md`); a row still named *Codex's checks* is this one, renamed at the project's next sync |
-| *code reviewers* | who reviews whose work, in order, with the fallback reviewer last, how each one that is not Codex is asked, and which of its findings block where it marks none so; left out, the core's own (`modules/roles.md`) |
+| *code reviewers* | who reviews whose work, in order, with the fallback reviewer last, how each one the core has no part for is asked (it has Codex's and Copilot's, `modules/`), and which of its findings block where it marks none so; left out, the core's own (`modules/roles.md`) |
 | *security reviewer* | who gives each PR its security review, how it is asked, and who gives it where that reviewer's own provider built the PR; left out, Codex, and the fallback reviewer of what Codex built (`modules/reviews.md`, point 3) |
 | *computer players*, *measured players*, *what they are shown*, *use-against-ignore measurement*, *where the numbers go*, *where rules are taught* | a game's names for what `game-design.md` speaks of |
 
@@ -175,6 +175,13 @@ Floor: whole. Modules: <all, or the list of those taken>.
   SHA", turned on once its own workflows, the core's it calls and the actions those use are pinned so, since from then
   on a run that uses an action at a tag fails. GitHub reads the workflow there as it runs it, which no check of ours can
   (core archive 152).
+- Where another provider is to build, any one of: the tool that runs the agents side by side (below); its plug-in in
+  Claude Code, installed and signed in on the machine the sessions run on (for Codex, `/codex:setup` says whether it
+  is); or another way, which the project's rules name in a line each (how the tool is handed a task, and how it is
+  asked for a review) and the project tells the core ("Reporting to the core"), so that the tool gains a part here.
+  Nothing more is asked of him: the sessions hand over by the first way they find, and with none Claude's build
+  (`modules/roles.md`, "The builders"; core archive 169). A tool that pushes its own branch gets a sign-in that cannot
+  change a workflow (as `setup/server.md`, point 5), or its workflows wait for an approval before they run.
 - The machine where agents run side by side (floor rule 18): `setup/server.md`, read only when setting it up.
 
 ## Reporting to the core
