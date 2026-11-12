@@ -77,7 +77,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **The code files near the split line** (the same review): 17 code files are past 40 KB. Each is split where it holds
   two things, in a PR of its own when no open lane touches it, behaviour proven unchanged; generated data and the
   files judged one thing above stay whole. The list and what waits: `docs/rounds/2026-11-12-split-the-big-files.md`.
-  Split so far: `turn/plans.ts` (standing orders to `standing.ts`).
+  Split so far: `turn/plans.ts` (standing orders to `standing.ts`), `turn/intel.ts` (captives, assays).
 
 ## Follow-ups
 
