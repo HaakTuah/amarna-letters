@@ -81,25 +81,35 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
    every pull request, which calls the core's with the folder of its lock file: where the pull request changes a package
    list, a lock file, an `.npmrc`, the Node version or that workflow, an install from the registry alone, running no
    package's install script, then npm's own check of the registry's signature on each installed name and version (floor
-   rule 7); where it changes none, the check passes, so a ruleset can require it. **A private repository** has GitHub's
-   dependency review and CodeQL only with its paid code security, so without it it calls neither `licences.yml` nor
-   `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs` for what no package list holds and
-   `core/scripts/exact-versions.mjs` for its lockfiles, and its own check holds its packages to floor rule 10's list.
-   Its Actions settings must allow this repository's workflows, and each check there spends paid minutes, which its
-   owner set aside by making it private (so no step waits for his yes over them: floor rule 14), so each runs only where
-   a change can affect it, and its orchestrator syncs the core once a day at most (`modules/orchestrating.md`). On
-   GitHub's free plan it has neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by
-   hand (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds,
-   the project's own checks do. **A project that is sold** carries its company's name where its buyers and its code need
-   it, and its owner leaves that name off his list of personal terms; a person's name stays out all the same (floor rule
-   11), and where its buyers must see one, its build takes it from outside the repository. The terms it is sold under
-   are the owner's to give (floor rule 10). **The default branch is `main`,** which the hooks read their scripts from,
-   letting every call through where there is none (`core.yml` fails another name). **On Windows** Claude Code runs both
-   hooks in Git Bash, and the second needs Node on the path; where either is missing, the hook stops nothing. The core's
-   own tests run the scripts and both hooks there on every change (`.github/workflows/tests.yml`). **Another tool's
-   session** has neither hook, which are Claude Code's: what holds its work is its reading of `AGENTS.md` and the checks
-   on every pull request. **The copy's own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this
-   repository's, not the project's: its issue templates and settings are its own, written for its *owner's account*.
+   rule 7); where it changes none, the check passes, so a ruleset can require it. A project has a `security-review.yml`
+   of its own, on `pull_request` with the types opened, reopened, synchronize and ready_for_review and on
+   `issue_comment` with the types created and edited, in a job that grants `contents: read`, `pull-requests: read` and
+   `statuses: write`: the core's gives each open pull request's head commit the status `security-review`, which says
+   whether its security review has run (floor rule 8), by the summary Codex's own app keeps on the pull request or by a
+   comment that opens "Security review:" from the owner, a member or a collaborator (`modules/reviews.md`, point 3), the
+   second alone where Codex marks a finding of its review open, posted after it. It is advisory until the core says
+   otherwise: the status always passes and says what the check would have done; before that changes, a pure sync gets a
+   way through of its own. It runs a short job at each push and each such comment, a dozen or so a pull request, which a
+   private repository pays for like its other checks, so it has the check unless its owner says otherwise. **A private
+   repository** has GitHub's dependency review and CodeQL only with its paid code security, so without it it calls
+   neither `licences.yml` nor `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs` for what no package
+   list holds and `core/scripts/exact-versions.mjs` for its lockfiles, and its own check holds its packages to floor
+   rule 10's list. Its Actions settings must allow this repository's workflows, and each check there spends paid
+   minutes, which its owner set aside by making it private (so no step waits for his yes over them: floor rule 14), so
+   each runs only where a change can affect it, and its orchestrator syncs the core once a day at most
+   (`modules/orchestrating.md`). On GitHub's free plan it has neither rulesets nor auto-merge: there the sessions alone
+   keep floor rule 12 and merge by hand (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles
+   alone: what another installer holds, the project's own checks do. **A project that is sold** carries its company's
+   name where its buyers and its code need it, and its owner leaves that name off his list of personal terms; a person's
+   name stays out all the same (floor rule 11), and where its buyers must see one, its build takes it from outside the
+   repository. The terms it is sold under are the owner's to give (floor rule 10). **The default branch is `main`,**
+   which the hooks read their scripts from, letting every call through where there is none (`core.yml` fails another
+   name). **On Windows** Claude Code runs both hooks in Git Bash, and the second needs Node on the path; where either is
+   missing, the hook stops nothing. The core's own tests run the scripts and both hooks there on every change
+   (`.github/workflows/tests.yml`). **Another tool's session** has neither hook, which are Claude Code's: what holds its
+   work is its reading of `AGENTS.md` and the checks on every pull request. **The copy's own files** (`core/AGENTS.md`,
+   `core/CLAUDE.md`, `core/.github/`) are this repository's, not the project's: its issue templates and settings are its
+   own, written for its *owner's account*.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
 7. **Where a module's rule does not fit it,** its manifest lists the difference under "Differences" (core archive 161):

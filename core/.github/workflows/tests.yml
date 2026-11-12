@@ -56,6 +56,9 @@ jobs:
       - name: The description check
         if: ${{ !cancelled() }}
         run: node scripts/pr-description-test.mjs
+      - name: The security-review check
+        if: ${{ !cancelled() }}
+        run: node scripts/security-review-test.mjs
       - name: The workflow check
         if: ${{ !cancelled() }}
         run: node scripts/workflows-test.mjs
