@@ -768,33 +768,30 @@ export interface PathStep {
 export function pathOf(frames: readonly SeasonFrame[], index: number, viewer: Power | null, id: string): PathStep[] {
   const path: PathStep[] = [];
   for (let j = 0; j <= Math.min(index, frames.length - 1); j++) {
-    const f = frames[j];
-    const c = f.people.get(id);
-    if (c === undefined) continue;
-    const [travellers, people] = viewer !== null ? seatPeople(f, viewer) : godPeople(f);
-    const t = travellers.find((x) => x.characterId === id && x.kind !== "Gold");
-    if (t !== undefined) {
-      path.push({ index: j, at: along(route(t.fromProvince, t.toProvince), t.progress), where: "on the road", on: { from: t.fromProvince, to: t.toProvince, progress: t.progress } });
-      continue;
-    }
-    const s = people.find((x) => x.id === id);
-    if (s !== undefined) {
-      path.push({ index: j, at: city(s.province), where: s.title, on: { province: s.province } });
-      continue;
-    }
-    // At a court: god view knows everyone's place; a court knows its own people at home.
-    const known = viewer === null || (c.employer === viewer && coverOf(c, viewer) === null && c.at === viewer);
-    if (known && c.at !== null && c.status !== "Dead") path.push({ index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}`, on: { province: Map_.capital(c.at).id } });
-    // At his seat: a court's own governor where it believes he sits (the frame's `governedKnown`, by `seatKnown`); god
-    // view, where he truly sits. Keyed on that belief alone, never his true employer, cover, duty or life, which would
-    // end the line before word of a moved seat, a death, a turning or a rising reached his king.
-    else {
-      const held = viewer === null ? f.governed : f.governedKnown.get(viewer);
-      const seat = [...(held?.values() ?? [])].find((g) => g.character === id)?.seat;
-      if (seat !== undefined) path.push({ index: j, at: city(seat), where: `governing from ${provinceName(seat)}`, on: { province: seat } });
-    }
+    const step = stepAt(frames[j], j, viewer, id);
+    if (step !== null) path.push(step);
   }
   return path;
+}
+
+/** Where a character stood at one season's end, as the viewer knows it (`pathOf`'s step), or null where it knows nothing of him. */
+export function stepAt(f: SeasonFrame, j: number, viewer: Power | null, id: string): PathStep | null {
+  const c = f.people.get(id);
+  if (c === undefined) return null;
+  const [travellers, people] = viewer !== null ? seatPeople(f, viewer) : godPeople(f);
+  const t = travellers.find((x) => x.characterId === id && x.kind !== "Gold");
+  if (t !== undefined) return { index: j, at: along(route(t.fromProvince, t.toProvince), t.progress), where: "on the road", on: { from: t.fromProvince, to: t.toProvince, progress: t.progress } };
+  const s = people.find((x) => x.id === id);
+  if (s !== undefined) return { index: j, at: city(s.province), where: s.title, on: { province: s.province } };
+  // At a court: god view knows everyone's place; a court knows its own people at home.
+  const known = viewer === null || (c.employer === viewer && coverOf(c, viewer) === null && c.at === viewer);
+  if (known && c.at !== null && c.status !== "Dead") return { index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}`, on: { province: Map_.capital(c.at).id } };
+  // At his seat: a court's own governor where it believes he sits (the frame's `governedKnown`, by `seatKnown`); god
+  // view, where he truly sits. Keyed on that belief alone, never his true employer, cover, duty or life, which would
+  // end the line before word of a moved seat, a death, a turning or a rising reached his king.
+  const held = viewer === null ? f.governed : f.governedKnown.get(viewer);
+  const seat = [...(held?.values() ?? [])].find((g) => g.character === id)?.seat;
+  return seat !== undefined ? { index: j, at: city(seat), where: `governing from ${provinceName(seat)}`, on: { province: seat } } : null;
 }
 
 /**

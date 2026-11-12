@@ -63,8 +63,10 @@ export function Listen() {
       <h1>The music</h1>
       <p>
         Fourteen pieces, each with its own mood and moment: the melodies are the Hurrian Hymn of Ugarit's and new themes in
-        the Babylonian tunings. Each has three variations; the game picks the piece by the situation, changes at the end of a
-        phrase, and never plays the same variation twice running. Rendered from free (CC0) orchestral samples.
+        the Babylonian tunings. Each has three variations. The game draws each next piece by chance, weighted toward the
+        situation's own, so the music is mostly its calm and its age and war is a share of it, with a rest of silence between
+        pieces; a rise crosses at the end of a phrase, and a spectator hears the realm or the character he watches, or the
+        world's heat. Never the same variation twice running. Rendered from free (CC0) orchestral samples.
       </p>
       <div className="listen-switches">
         <AudioSwitches />
