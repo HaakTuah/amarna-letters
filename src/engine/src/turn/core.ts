@@ -33,7 +33,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
 import type { PlannedOrder } from "../model/sleep.ts";
 import { wordSeasons } from "../model/travel.ts";
-import type { Firing } from "./plans.ts";
+import type { Firing } from "./standing.ts";
 import { recordReports } from "../rules/province-reports.ts";
 
 export class TurnEngine {
