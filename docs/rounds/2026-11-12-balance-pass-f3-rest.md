@@ -16,8 +16,8 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. The war of choice (`--war-play-half`, seeds 1-50 and 51-100 **running**), on the new par.
-2. Vassal play (`--vassal-play-half`, seeds 1-100) with the line of vassals taken by their own overlords; then a trial on
+1. The war of choice (`--war-play-half`, seeds 51-100 **running**), on the new par.
+2. Vassal play (`--vassal-play-half`, seeds 1-50 **running**, then 51-100) with the line of vassals taken by their own overlords; then a trial on
    `tributeReturn` if the Great Kings still lose by it.
 3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
 4. Seeds 101-200 for the close rows and the null split, the rows named once 1 is in.
@@ -38,3 +38,4 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 | 8 inventories, seeds 1-50 | `--games 50 --seed 1 --inventory-play-half` | 81c9490 | 52 minutes. Growth 0.78 / 0.78, standing 1.041 / 1.028, wins 27 / 22; level with the null's halves (1.043 / 1.026, 26 / 22). Gold sent without an inventory 6 times in 50 games, each saving the scribe's 20 shekels (`inventoryFee`): too rare to move a game. Seeds 51-100 not run |
 | Coffer, seeds 51-100 | `--games 50 --seed 51 --coffer-play-half` | 81c9490 | 53 minutes. Growth 0.77 / 0.78, standing 1.015 / 1.005, wins 17 / 27; Great Kings 0.96 / 0.97 (1.001 / 0.989), the rest 0.74 / 0.75 (1.018 / 1.008). **Seeds 1-100: growth 0.78 / 0.785, standing 1.035 / 1.020 (the null's 1.035 / 1.017), wins 41 / 52 (the null's 43 / 47); Great Kings' standing 1.024 / 0.969 (the null's 1.006 / 0.987), the rest 1.038 / 1.029 (the null's 1.040 / 1.022).** Even over all; the Great Kings, who hold the far provinces, ahead |
 | 7a sea play, seeds 51-100 | `--games 50 --seed 51 --sea-play-half` | 81c9490 | 51 minutes. Growth 0.78 / 0.73, standing 1.013 / 1.001, wins 23 / 21; Great Kings 0.94 / 0.95 (0.979 / 0.986), the rest 0.75 / 0.70 (1.019 / 1.004). Landings 7, blockades in 30 games (225). **Seeds 1-100: growth 0.775 / 0.735 (the null's 0.775 / 0.78), standing 1.021 / 1.002 (the null's 1.035 / 1.017), wins 44 / 47 (the null's 43 / 47); Great Kings' standing 1.026 / 0.977.** Ahead in growth by more than the null's halves differ; level in standing and wins |
+| 17++a the war of choice, seeds 1-50 | `--games 50 --seed 1 --war-play-half` | 81c9490 | 48 minutes. Growth 0.80 / 0.80, standing 1.056 / 1.062, wins 25 / 25; **Great Kings 1.03 / 0.96 (standing 1.126 / 0.940), the rest 0.76 / 0.77 (1.044 / 1.083)**. Against the null's halves (1.043 / 1.026; Great Kings 1.012 / 0.958, the rest 1.048 / 1.038): the Great Kings far ahead, the rest behind. Captive kings: 116 held long, their realms at 1.05 against par and their captors at 1.20; held less long and free again, 154, their realms at 0.87 and their captors at 1.23; every realm 1.04 |
