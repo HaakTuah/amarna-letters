@@ -16,15 +16,17 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 
 ### Still to do, in order
 
-1. Par, seeds 101-150 and 151-200 (`--games 50 --seed 101 --par-out`, `--seed 151`), on dde658d: **running**.
-2. The null split on the new par (`--null-half`), seeds 1-50 and 51-100.
+2. The null split on the new par (`--null-half`), seeds 1-50 and 51-100: 1-50 **running**.
 3. The tidings, the ride, the coffer, 7a sea play, 8 inventories, the war of choice: each `--*-play-half`, seeds 1-50
    and 51-100, on the new par.
 4. The vassal line (paying vassals taken by their own overlords) and the trial on `tributeReturn`, seeds 1-100.
-5. Benchmarks before (`--versus solo`, seeds 1-2 and 3-4, on dde658d) and after (on the branch's last patch).
+5. Benchmarks before (`--versus solo`, seeds 1-2 and 3-4, on dde658d; 1-2 **running**) and after (on the branch's last
+   patch).
 6. Seeds 101-200 for the close rows and the null split, the rows named once 2 and 3 are in.
 
 ### Finished
 
 | Run | Command (`scripts/sim.sh ...`) | Commit | Result |
 |---|---|---|---|
+| Par, seeds 101-150 | `--games 50 --seed 101 --par-out <file>` | dde658d | 61 minutes beside another run. Median age 79 seasons. Growth (old par's standing): Egypt 1.14 (0.95), Hatti 1.53 (1.19), Babylonia 1.29 (1.08), Mitanni 0.74 (1.08), Assyria 0.39 (0.98), Arzawa 0.78 (0.95), Alashiya 0.94 (1.34); wins 1, 3, 3, 2, 3, 0, 0 |
+| Par, seeds 151-200 | `--games 50 --seed 151 --par-out <file>` | dde658d | 61 minutes. Median age 91. Egypt 1.16 (1.01), Hatti 1.61 (1.16), Babylonia 1.26 (0.97), Mitanni 0.67 (1.05), Assyria 0.34 (1.02), Arzawa 0.81 (0.84), Alashiya 0.93 (1.30); wins 1, 9, 3, 0, 0, 1, 2. The two halves merged (each power's results pooled and sorted, the characters' likewise) into `rules/par-results.ts`, 100 games |
