@@ -38,18 +38,19 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
    its pin. The first copy is the sync script's too, run from a clone of this repository once the manifest is written
    (the script's header says how); the copy's own `.gitattributes` keeps every line ending as it is.
 
-   **What a project follows:** the core's `main`, or its releases (core archive 195). A release is a tag `release-N` on
-   a commit of `main`, cut on the owner's word (`AGENTS.md`, "A release is cut on the owner's word";
-   `scripts/release.mjs`). A project whose *owner's account* is not the account the core is under follows the releases,
-   unless its manifest's *follows* row says `main`; the projects of the core's own owner follow `main`, unless theirs
-   says `releases` (`scripts/releases.mjs`). Following the releases, the sync script takes the newest release past the
-   project's pin and nothing in between, and wherever this README or a script says the core has moved, it has moved
-   only when such a release is cut; a full SHA still takes any commit of `main`. Why: a pure sync brings scripts, hooks
-   and workflows that no review in the project reads (floor rule 8), so what another owner's project runs was reviewed
-   in the core alone, and its owner takes only what the core's owner chose to hand on. So that nothing of the core's
-   newer than a release runs in such a project's sessions either, its merger runs `scripts/pure-sync.mjs` from a
-   checkout of the release the sync moves to, itself a commit of `main` (floor rule 8), and its first copy is made
-   from a clone at a release.
+   **What a project follows:** the core's `main`, or its releases (core archive 195). A release is a tag `release-N`
+   on a commit of `main`, cut on the owner's word by this repository's `release` workflow, only where that commit's
+   checks have passed (`AGENTS.md`, "A release is cut on the owner's word"; `scripts/release.mjs`). A project whose
+   *owner's account* is not the account the core is under follows the releases, unless its manifest's *follows* row
+   says `main`; the projects of the core's own owner follow `main`, unless theirs says `releases`
+   (`scripts/releases.mjs`). Following the releases, the sync script takes the newest release past the project's pin
+   and nothing in between, and wherever this README or a script says the core has moved, it has moved only when such a
+   release is cut; a full SHA still takes any commit of `main`. Why: a pure sync brings scripts, hooks and workflows
+   that no review in the project reads (floor rule 8), so what another owner's project runs was reviewed in the core
+   alone, and its owner takes only what the core's owner chose to hand on. So that nothing of the core's newer than a
+   release runs in such a project's sessions either, its merger runs `scripts/pure-sync.mjs` from a checkout of the
+   release the sync moves to, itself a commit of `main` (floor rule 8), and its first copy is made from a clone at a
+   release.
 2. **A manifest,** `core-manifest.md` at its root (format below): the pin, the modules it takes, its names for the
    core's words, and what fills each slot. Every session reads it at the start. A list of modules does not grow by
    itself: when the core gains a module, a note says so (`setup/sync-notes.md`), and the list is read against
@@ -115,6 +116,17 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
      `.npmrc`, the Node version or that workflow, an install from the registry alone, running no package's install
      script, then npm's own check of the registry's signature on each installed name and version (floor rule 7); where
      it changes none, the check passes, so a ruleset can require it.
+   - **A project whose packages come from NuGet** has a `nuget.yml` of its own, on every pull request, which calls the
+     core's with the licence check's config: a restore of each project file git knows from its lock file alone
+     (`dotnet restore --locked-mode`, floor rule 15), then `nuget.mjs`, which holds every package in those lock files
+     to one exact version (floor rule 7) and to its licence list (floor rule 10), each licence read from the manifest
+     of the package the restore brought; what the restore brought that no lock file names is held to the list for what
+     ships too. It needs lock files turned on (`RestorePackagesWithLockFile`) and committed, each named in the
+     config's "nuget" as one whose packages ship or one of tools that only run. A package whose manifest names no
+     licence a machine can read is recorded by hand in the audit as `<Id>@<version>`, of "kind": "nuget"; one off its
+     list that the owner wants anyway is named in "nuget.accepted" with the owner's words, and there alone. It starts
+     advisory, saying what it would fail and passing, and a private repository calls it like any other: it needs
+     nothing of GitHub's paid code security.
    - **The security-review check:** a project has a `security-review.yml` of its own, with the triggers and the three
      permissions its template has: the core's gives each open pull request's head commit the status `security-review`,
      which says whether its security review has run (floor rule 8), by the summary Codex's own app keeps on the pull
@@ -133,8 +145,8 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
      over them: floor rule 14), so each runs only where a change can affect it, and the core is synced once a day at
      most, a sync PR opened that day being the day's ("Sessions" in `modules/work-flow.md`). On GitHub's free plan it
      has neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by hand
-     (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds,
-     the project's own checks do.
+     (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles and NuGet's: what another installer
+     holds, the project's own checks do.
    - **A project that is sold** carries its company's name where its buyers and its code need it, and its owner leaves
      that name off the list of personal terms; a person's name stays out all the same (floor rule 11), and where its
      buyers must see one, its build takes it from outside the repository. The terms it is sold under are the owner's
@@ -229,6 +241,14 @@ Floor: whole. Modules: <all, or the list of those taken>.
   SHA", turned on once its own workflows, the core's it calls and the actions those use are pinned so, since from then
   on a run that uses an action at a tag fails. GitHub reads the workflow there as it runs it, which no check of ours can
   (core archive 152).
+- Each repository's secret scanning with push protection (Settings, Advanced Security), where the repository has it:
+  GitHub then refuses a push that holds a key of a kind it knows, before the key reaches the history, which no check
+  on a pull request can (floor rule 1).
+- The owner's GitHub profile: GitHub writes the profile's name and the account's address as the author of every merge
+  it makes, into the history of every repository the account merges in, and no check of ours sees a merge before it is
+  made. An owner who wants neither there leaves the name empty, so that GitHub writes the login, and turns on "Keep my
+  email addresses private" (Settings, Emails), so that it writes an address of its own that holds only the login. One
+  who keeps a name on the profile has it in every merge, which the floor leaves to that owner (floor rule 11).
 - Where another provider is to build, any one of: the tool that runs the agents side by side (below); its plug-in in
   Claude Code, installed and signed in on the machine the sessions run on (for Codex, `/codex:setup` says whether it
   is); or another way, which the project's rules name in a line each (how the tool is handed a task, and how it is asked

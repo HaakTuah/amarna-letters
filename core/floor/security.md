@@ -50,8 +50,10 @@ key. **Test data is never real:** fake keys built from pieces when the test runs
 personal information about the owner or anyone in their life: no names (only "the owner"), profession, employer or
 workplace, family, home, age, health, memberships or money, nor anything else about the owner's life outside the
 project; nor does any prompt or brief given to an agent. The owner's archived words leave such details out as "[…]".
-Excepted: the GitHub account in the repository's own address, and the company name a project is sold under, naming no
-person. The check `personal-terms.yml` fails a PR holding a term from the Actions secret `PERSONAL_TERMS`.
+Excepted: the GitHub account in the repository's own address; the name and address GitHub itself writes as the author of
+a merge, from the profile of the account that merges, where its owner keeps them there; and the company name a project
+is sold under, naming no person. The check `personal-terms.yml` fails a PR holding a term from the Actions secret
+`PERSONAL_TERMS`.
 
 **12. `main` is the owner's** and what its users get is built from it: never pushed to, never force-pushed. It changes
 only by a merged pull request, brought up to date with `main` and its checks passed (core archive 113).

@@ -24,7 +24,8 @@
 // .npmrc files that must keep packages' own install scripts off (floor rule 15); and "scan", which folders reach users,
 // for the scan that nothing used is left out of the audit (licence-scan.mjs, beside this file, which says what it
 // finds). Every .npmrc in the project may hold only settings that leave where npm fetches from alone, since a data or
-// font package is known by its registry address.
+// font package is known by its registry address. A project whose packages come from NuGet names its lock files under
+// "nuget", which the NuGet check reads (nuget.mjs, beside this file) with this file's lists and the same audit.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
@@ -64,7 +65,7 @@ const GITHUB_SERVICES = new Set(["CodeQL CLI"]);
 const GITHUB_TERMS = "LicenseRef-GitHub-Terms";
 const OWNER = "LicenseRef-Owner";
 // What the floor never allows on either list, and copyleft, never in what ships: a guard on the lists themselves.
-const NEVER = /(^|-)(NC|ND)(-|$)|BUSL|SSPL|Elastic|Commons-Clause/iu;
+export const NEVER = /(^|-)(NC|ND)(-|$)|BUSL|SSPL|Elastic|Commons-Clause/iu;
 const COPYLEFT = /GPL|MPL|EPL|CDDL|-SA(-|$)/iu;
 
 /** Floor rule 10's list for what ships, read from its own words: { any, data, fonts, publicDomain }. */
@@ -231,7 +232,8 @@ export function loadConfig(path) {
   try { config = JSON.parse(readFileSync(path, "utf8")); } catch { throw new Error(`cannot read the config ${path} as JSON`); }
   if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error("the config is not a JSON object");
   const lists = ["lockfiles", "ships", "data", "fonts", "ignoreScriptsIn"];
-  const unknown = Object.keys(config).filter((k) => !lists.includes(k) && !["audit", "notices", "scan"].includes(k));
+  // ("nuget" is the NuGet check's own, which reads and checks it: nuget.mjs, beside this file)
+  const unknown = Object.keys(config).filter((k) => !lists.includes(k) && !["audit", "notices", "scan", "nuget"].includes(k));
   if (unknown.length) throw new Error(`the config holds keys it does not know: ${unknown.join(", ")}`);
   for (const key of lists) {
     const v = config[key];

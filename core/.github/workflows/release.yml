@@ -1,0 +1,53 @@
+# Cuts a release of the core (AGENTS.md, "A release is cut on the owner's word"; README.md, "How a project takes the
+# core", point 1): the tag `release-N` on main's newest commit, which the owner never pushes by hand. It runs only when
+# started by hand, which takes write access to this repository: the owner, or a session the owner told to and whose own
+# limits let it, starts it on main (its page under Actions has the button). On any other branch it fails before
+# anything is read. It cuts only where every check the push of that commit to main started has finished and passed, and
+# where main has not moved on since the run began (scripts/release.mjs, which also numbers the release and never moves
+# a tag that exists); otherwise it fails, says which check holds it, and is started again later. This repository only;
+# no project calls it. It may write this repository's contents, which the tag needs, and read its Actions runs; the
+# token reaches the one step that cuts, through git's own credential helper, and is never written into a command or a
+# file. It takes no input: a run's inputs are shown to anyone who can read the repository before any step could check
+# them, so the owner's word for a release is not written here (floor rule 11), and no text of anyone's reaches a step.
+name: release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # the tag; the steps below write nothing else
+      actions: read # the runs on main's newest commit
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Only on main
+        run: |
+          [ "$GITHUB_REF" = refs/heads/main ] || { echo "::error::a release is cut on main alone, and this run was started on another branch or a tag"; exit 1; }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false # the cut below takes its token from GH_TOKEN, nothing from the checkout
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
+      - name: The release, cut where every check on main's newest commit has passed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          runs=$(mktemp)
+          gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs" -f head_sha="$GITHUB_SHA" -f branch=main -f event=push -F per_page=100 > "$runs"
+          # (git asks this helper for the push's password; it answers from the step's own environment)
+          git config --global credential.https://github.com.helper \
+            '!f() { test "$1" = get && printf "username=x-access-token\npassword=%s\n" "$GH_TOKEN"; }; f'
+          node scripts/release.mjs --cut --at "$GITHUB_SHA" --runs "$runs" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

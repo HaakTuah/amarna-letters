@@ -1,0 +1,13 @@
+  # The NuGet packages of the solution or project files under {{nuget}}/, each update's licence and version read from
+  # the lock files by the NuGet check.
+  - package-ecosystem: "nuget"
+    directory: "/{{nuget}}"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    groups:
+      nuget-packages:
+        patterns: ["*"]
+        update-types: ["minor", "patch"] # a new major is its own PR (core/modules/updates.md)

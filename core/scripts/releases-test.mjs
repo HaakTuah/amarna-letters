@@ -4,12 +4,13 @@
 // Linux and on Windows. Git and Node's own modules only.
 //
 //   node scripts/releases-test.mjs
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { CORE, OWNER } from "./core-address.mjs";
-import { inTheCore, next } from "./release.mjs";
+import { OWN, held, inTheCore, next } from "./release.mjs";
 import { NOTES, RELEASE, asksBetween, elsewhere, fetchCore, followsOf, namedReleases, newestRelease, ownerOf, past, releasesIn } from "./releases.mjs";
 
 let failed = 0, count = 0;
@@ -92,6 +93,27 @@ let refused = false;
 try { next(fetched()); } catch { refused = true; }
 ok(refused, "a tag numbered so high that the next would be no release's name stops the cut, and says so");
 git(core, "tag", "-d", "release-999999999");
+dir = fetched();
+const tip = git(core, "rev-parse", "main");
+let moved = "";
+try { next(dir, c4); } catch (e) { moved = e.message; }
+ok(next(dir, tip).sha === tip && moved.includes("main has moved on"), "asked for one commit, the cut is refused where main's newest commit is another");
+
+// the checks on the commit a release would stand on
+const run = (name, status, conclusion, path = `.github/workflows/${name}.yml`) => ({ name, path, status, conclusion });
+const list = (...runs) => ({ total_count: runs.length, workflow_runs: runs });
+ok(held(list(run("tests", "completed", "success"), run("size", "completed", "success"))).length === 0, "a commit whose every check has passed may carry a release");
+ok(held(list(run("tests", "completed", "success"), run("size", "completed", "skipped"), run("other", "completed", "neutral"))).length === 0, "a check that was skipped holds nothing where another passed");
+ok(held(list(run("tests", "in_progress", null), run("size", "completed", "success"))).join() === "tests: in_progress" && held(list(run("tests", "queued", null))).join() === "tests: queued", "a check still going holds it");
+ok(held(list(run("tests", "completed", "failure"), run("size", "completed", "cancelled"), run("x", "completed", "timed_out"))).join() === "tests: failure,size: cancelled,x: timed_out", "so does each that failed, was cancelled or ran out of time");
+ok(held(list()).join() === "no check has passed on it yet" && held(list(run("size", "completed", "skipped"))).join() === "no check has passed on it yet", "so does a commit no check has run on yet, or on which every check only skipped");
+ok(held(list(run("release", "completed", "failure", OWN), run("tests", "completed", "success"))).length === 0 && held(list(run("release", "in_progress", null, OWN))).join() === "no check has passed on it yet", "the release workflow's own runs, an earlier try that failed too, are no check of the commit");
+ok(held({ total_count: 3, workflow_runs: [run("tests", "completed", "success")] }).join().includes("3 runs stand on it and 1 were read"), "a list read only in part holds it");
+ok([null, undefined, {}, [], "text", { workflow_runs: [] }, { total_count: "1", workflow_runs: [run("tests", "completed", "success")] }, { total_count: 1, workflow_runs: {} }].every(l => held(l).join() === "the list of the checks on it could not be read"), "so does a list in any other form");
+// (asked of the script itself, in this repository: each stops before anything is fetched or pushed)
+const cutting = (...args) => { const r = spawnSync(process.execPath, [fileURLToPath(new URL("./release.mjs", import.meta.url)), "--cut", ...args], { encoding: "utf8" }); return r.status === 1 && /--cut needs --at <sha> and --runs <file>|needs a value/.test(r.stderr) && !r.stdout; };
+ok(cutting() && cutting("--at", "a".repeat(40)) && cutting("--runs", "runs.json") && cutting("--runs", "runs.json", "--at"), "a cut asked for without the commit it is for, or without the checks on it, is refused before anything is fetched");
+ok(held({ total_count: 2, workflow_runs: [null, run("tests", "completed", "success")] }).join() === "a check: unreadable" && held(list({ name: "tests", path: "p" })).join() === "tests: unreadable", "and a run in it that cannot be read");
 
 // git's own variables that point elsewhere: a project's repository is never touched, and the guard is not fooled
 const victim = path.join(tmp, "victim");
