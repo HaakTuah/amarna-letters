@@ -8,6 +8,40 @@ the close rows, the caretaker's realm against the war of choice, and the Great K
 **The check for changes:** the live design document answered at the start: no change since the copy's revisions (Build
 order 377; Land, people and economy 35; Victory and the ending 28).
 
+## What was found
+
+Use against ignore on seeds 1-100, users / ignorers, judged against the null split on the same seeds and the new par
+(standing 1.035 / 1.017, wins 43 / 47, the Great Kings 1.006 / 0.987): a side about 0.02 ahead in standing and a few wins
+either way is level. Every figure is in "Finished", below.
+
+| Feature (switch) | Standing | Wins | Verdict |
+|---|---|---|---|
+| 17++a the war of choice (`--war-play-half`), before the patch | 1.049 / 1.061 | 47 / 49 | the Great Kings far ahead (1.085 / 0.975), the cities behind (0.05 against the null) |
+| the same, **a city keeping its peace** (patched) | 1.083 / 1.063 | 49 / 43 | **pays**: the Great Kings ahead, the cities level |
+| 7a sea play (`--sea-play-half`) | 1.021 / 1.002 | 44 / 47 | pays in growth (0.775 / 0.735); level in standing and wins |
+| the coffer (`--coffer-play-half`) | 1.035 / 1.020 | 41 / 52 | even; the Great Kings, who hold the far provinces, ahead (1.024 / 0.969) |
+| 17 and 17++ A, buying food and stirring (`--freedom-play-half`) | 1.049 / 1.046 | 40 / 46 | even; food bought in 15 unit-seasons of 7,878 |
+| 17++ D, talk of a province's leaning (`--talk-play-half`) | 1.043 / 1.029 | 40 / 42 | even, the Great Kings a little ahead; a carrier caught with an offer read once in 50 games |
+| 11+ vassal play (`--vassal-play-half`), on the patched play | 1.030 / 1.039 | 37 / 57 | **behind**, the Great Kings most (1.023 / 1.070); two patches tried, neither helped (below) |
+| the tidings (`--tidings-play-half`), seeds 1-50 | the null's, line for line | | **never comes into play** (#980) |
+| the ride (`--ride-play-half`), seeds 1-50 | 1.045 / 1.025 | 27 / 22 | too rare to move a game: riders hired twice (#980) |
+| 8 inventories (`--inventory-play-half`), seeds 1-50 | 1.041 / 1.028 | 27 / 22 | too rare: gold without an inventory 6 times (#980) |
+
+- **Par** measured again on F3's patched play (seeds 101-200, 100 games): `rules/par-results.ts`.
+- **The caretaker's realm against the war of choice** (F2's hand-off): a king held long leaves his realm at par under its
+  caretaker (1.05 and 1.00 against par in the two halves of the war of choice's run, every realm 1.04), while the war of
+  choice is worth the Great Kings 0.09 of standing beyond the null and, before the patch, cost the cities 0.05. So a
+  caretaker who only holds does as well as most kings who campaign by choice; the Great Kings are the exception, and
+  their own campaigning pays.
+- **The Great Kings' loss by vassal play.** The vassal's belief that a paid overlord spares it (`tributeReturn`) is not
+  the exploit F3 took it for: overlords took 0.1 to 0.4 provinces a game from vassals paying their tribute, against 6 to
+  8 from vassals in arrears (the new line, `bonds-report.ts`). What a check found instead: an overlord of many cities
+  (Egypt) spent most of his letters on demands of arrears (1,594 in two games of 80 seasons), which a script vassal
+  always refuses (2,543 of 2,578 answered). Two patches were measured: one demand while the arrears last (the Great
+  Kings lost 0.11 against the null, worse), and no vassal taken that offers itself while its land could be taken
+  (changed almost nothing); both reverted. F3 had tried four others (its trials A, B, C and G). Vassal play is left
+  behind on the patched play, listed first for the next part.
+
 ## How the runs are kept
 
 Every run is written here, with its command, seeds, commit and result, and pushed as it finishes; a run not in this file
