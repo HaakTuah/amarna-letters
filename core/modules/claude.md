@@ -12,8 +12,9 @@ Read by Claude at the start of every task.
 | Planning design | Fable | high |
 | Escalation (`modules/roles.md`) | Opus, then Fable | high, or xhigh if you run at high |
 
-- **Pass both model and effort** whenever you start a session or helper (core archive 128). Never above high, but for
-  escalation; never max. Name models by family alone (core archive 80 and 81).
+- **Pass both model and effort** whenever you start a session or helper (core archive 128), save a helper whose
+  definition gives them: one of a type the project defines, or a plug-in's own (`codex:codex-rescue`). Never above high,
+  but for escalation; never max. Name models by family alone (core archive 80 and 81).
 - **Fable's usage runs out first:** it gets only planning design, the last escalation step and work the owner gives it
   by name, and only what needs judgement. If it is unavailable, its call goes to Opus at high.
 - **Who to call** (core archive 70 and 71): a helper for judgement only when it ranks above you (models: Haiku, Sonnet,

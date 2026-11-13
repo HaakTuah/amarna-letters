@@ -1,8 +1,10 @@
 # The core has moved ("How a project takes the core" in README.md, point 5), for a project whose orchestrator does not
-# wake every day: once a day it compares the commit the project's core-manifest.md pins with the newest commit of this
-# repository's main, and keeps one issue open for the owner while they differ, saying what changed and how a session
-# takes it; it closes that issue once the project holds the newest commit again. It opens no pull request and changes no
-# file: a session makes the sync, since a pull request a workflow opens gets no checks without a stored token. A project
+# wake every day: once a day it compares the commit the project's core-manifest.md pins with the newest of what the
+# project follows (this repository's main, or its newest release: README.md, point 1), and keeps one issue open for the
+# owner while the project is behind, saying what changed and how a session takes it; it closes that issue once the
+# project holds it again. It opens no pull request and changes no file: a session makes the sync, since a pull request
+# a workflow opens gets no checks without a stored token. For a project that follows the releases the script fetches
+# this public repository's main and release tags, with no token, into a folder it removes again. A project
 # calls it (workflow_call) from a daily schedule of its own (it runs on a schedule or when started by hand, and on no
 # other event), pinned to a full commit SHA, from a job that grants `contents: read` and `issues: write`. It runs the
 # project's own core/scripts/core-moved.mjs on the core's one exact Node; Node's own modules only, no package installed.

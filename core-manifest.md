@@ -1,6 +1,6 @@
 # Core manifest
 
-Core: HaakTuah/agent-core at 1c4a58ed05535df7e926eba77ae3f7906d7fff25, copied whole under core/ (never edited here).
+Core: HaakTuah/agent-core at 4dd0831b24755bba0175892bd14832600116ba6c, copied whole under core/ (never edited here).
 Paths: in the core's files, one into floor/, modules/, scripts/, setup/ or archive/ is under core/; any other is ours.
 Floor: whole. Modules: all.
 
@@ -12,6 +12,7 @@ Floor: whole. Modules: all.
 | Slot | Here |
 | --- | --- |
 | *owner's account* | `HaakTuah` |
+| *follows* | `releases` |
 | *progress file* | `docs/BUILD-PROGRESS.md` |
 | *report* | `docs/rounds/<date>-<item>.md` (the PR names it) |
 | *settling references* | "The game in one page", which "Starting a task" in `AGENTS.md`, point 3, names, and the item's sections |

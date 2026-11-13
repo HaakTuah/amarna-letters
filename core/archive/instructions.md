@@ -14,4 +14,5 @@ Item N is in the file below whose first number is the highest at or below N. Sea
 - `archive/instructions/items-041.md`: items 41 to 81
 - `archive/instructions/items-082.md`: items 82 to 125
 - `archive/instructions/items-126.md`: items 126 to 156
-- `archive/instructions/items-157.md`: items 157 onward
+- `archive/instructions/items-157.md`: items 157 to 194
+- `archive/instructions/items-195.md`: items 195 onward

@@ -1,0 +1,16 @@
+# The copy of the core (core-manifest.md): fails a change whose core/ is not the core, whole, at the commit the manifest
+# pins, or whose calls to the core's workflows are pinned where they differ from the core's at that pin. On every pull
+# request and push to main, docs-only changes included.
+name: core
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    uses: {{core}}/.github/workflows/core.yml@{{pin}}

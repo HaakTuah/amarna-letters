@@ -11,6 +11,8 @@
 // every session reads", and "What blocks"). The PR's changes are those against SIZES_BASE (set by the copies workflow,
 // .github/workflows/copies.yml, which runs this), else where HEAD left origin/main; in CI that is the base's tip
 // against the PR's merge commit, so a run after the base moves on counts its new changes too. Node's own modules only.
+// A file's size is its bytes without each carriage return before a line feed (file-size.mjs, beside this file), so it
+// is the same on a machine where git converts line endings on checkout as on GitHub.
 // It checks the project it lies in (core/scripts/ there), whatever the directory it is started from; the config's own
 // path is read from that directory.
 //
@@ -18,6 +20,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
+import { sizeOf as size } from "./file-size.mjs";
 
 const git = args => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 const MARKS = process.argv[2];
@@ -35,7 +38,6 @@ process.chdir(fileURLToPath(new URL(".", import.meta.url)));
 process.chdir(git(["rev-parse", "--show-toplevel"]).trim());
 const tracked = new Set(git(["ls-files", "-z"]).split("\0").filter(Boolean));
 const kb = n => (n / 1024).toFixed(1);
-const size = f => fs.existsSync(f) ? fs.statSync(f).size : 0;
 const skip = ["core/", ...(marks.skip ?? [])];
 const fail = [], notes = [];
 
@@ -51,8 +53,9 @@ for (const [f, mark] of Object.entries(marks.read)) {
 if (total > marks.total) fail.push(`the files every session reads total ${total} bytes, past their mark of ${marks.total}: make them smaller; the mark in ${MARKS} rises only as "A mark on what every session reads" in core/modules/review-guidelines.md says`);
 
 // Step 0: files past the split mark that the PR changes
-const big = [...tracked].filter(f => !skip.some(s => f.startsWith(s)) && size(f) > marks.split
-  && !fs.readFileSync(f).subarray(0, 8000).includes(0));
+// (a file is read to be counted only where its bytes on disk are past the mark: counted, it is never larger)
+const big = [...tracked].filter(f => !skip.some(s => f.startsWith(s)) && fs.existsSync(f) && fs.statSync(f).size > marks.split
+  && !fs.readFileSync(f).subarray(0, 8000).includes(0) && size(f) > marks.split);
 let base = process.env.SIZES_BASE;
 if (!base) try { base = git(["merge-base", "origin/main", "HEAD"]).trim(); } catch { base = ""; }
 if (base) {

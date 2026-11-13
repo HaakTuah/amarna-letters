@@ -1,0 +1,19 @@
+# The signature check (floor rule 7, "the registry's signature verified"), on every pull request, Dependabot's
+# included: the core's, in {{npm}}/. It looks itself whether the pull request changes a package list or a lock file, an
+# .npmrc, the Node version or this workflow, and passes at once where it changes none. Otherwise it installs the
+# packages from npm's registry alone, running no package's install script, and runs npm's own check of the registry's
+# signature on each installed package. Read-only, and no secrets. It reports on every pull request, so a ruleset can
+# require it.
+name: signatures
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  signatures:
+    uses: {{core}}/.github/workflows/signatures.yml@{{pin}}
+    with:
+      directory: "{{npm}}" # (in quotes: a folder named true or null is still a folder's name)

@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(//**/.git/**)",
+      "Edit(//**/.git)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:core/scripts/work-saved.sh 2>/dev/null) || { echo \"Not run: the work-saved hook runs only its copy merged into main, and refs/remotes/origin/main has none. Fetch main (git fetch origin main), and it runs from the next reply on.\"; exit 0; }; bash -c \"$f\" work-saved start'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:core/scripts/helper-call.mjs 2>/dev/null) || exit 0; node --input-type=module -e \"$f\"'",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:core/scripts/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved stop'",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

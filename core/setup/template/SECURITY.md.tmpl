@@ -1,0 +1,22 @@
+# Security
+
+The floor's rules hold here whole: `core/floor/security.md` and `core/floor/topics.md`. This file adds, under the
+floor's numbers, what only this project has and what the floor leaves to it; who might attack it is
+`docs/threat-model.md`, with the floor's.
+
+## What this project adds
+
+3. **The protected files,** besides those the floor names:
+   - **the trusted builder:**
+     FILL IN: who may change the protected files: Claude's builder sessions, as the floor has them, or the owner alone.
+   - **the rule files:** `docs/threat-model.md`;
+   - **the checks on the work:** the configs of the core's copies, reading-size and licence checks
+     (`checks/copies.json`, `checks/copies-baseline.json`, `checks/sizes.json` and `checks/licences.json`) and the
+     licence audit (`checks/licences-audit.json`).
+5. **Untrusted input, and its checks:**
+   FILL IN: each input anyone but the user at hand can shape, and what checks it; "None" where the project takes none.
+7. **What ships, and its policy:**
+   FILL IN: what reaches its users' machines, and what holds each package, tool and script to one exact version.
+10. **Licences:** the core's licence check with this project's config (`checks/licences.json`), and its audit of
+    what no lockfile holds (`checks/licences-audit.json`).
+    FILL IN: what ships, and where its third-party notices are kept; "Nothing ships yet" until something does.

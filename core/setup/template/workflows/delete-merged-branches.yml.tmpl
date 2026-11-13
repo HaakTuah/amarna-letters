@@ -1,0 +1,23 @@
+# A button for the owner: Actions, "Delete merged branches", Run workflow. The core's (what it deletes, and what it
+# never touches, are in its own comments).
+name: Delete merged branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list what would be deleted"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  delete:
+    permissions:
+      contents: write
+      pull-requests: read
+    uses: {{core}}/.github/workflows/delete-merged-branches.yml@{{pin}}
+    with:
+      dry_run: ${{ inputs.dry_run }}

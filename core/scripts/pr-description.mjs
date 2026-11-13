@@ -12,9 +12,19 @@
 // (.github/workflows/pr-description.yml).
 //
 //   PR_BODY="$(...)" node core/scripts/pr-description.mjs ["Part one|Part two"]
+//   PR_BODY="$(...)" node core/scripts/pr-description.mjs "+Part three"     the two, and that one as well
 import { started } from "./started.mjs";
 
 export const PARTS = ["What the owner can try", "Readings taken"];
+
+// The parts an argument asks for: its own, separated by |, in place of the two; led by a +, added to the two (so a
+// caller that wants one more never writes the two a second time); empty or left out, the two.
+export function asked(arg) {
+  const text = String(arg ?? "").trim();
+  const own = text.replace(/^\+/u, "").split("|").map(p => p.trim()).filter(Boolean);
+  if (!own.length) return PARTS;
+  return text.startsWith("+") ? [...PARTS, ...own.filter(p => !PARTS.includes(p))] : own;
+}
 
 // The parts, of those asked for, that the description has no heading for.
 export function missing(body, parts = PARTS) {
@@ -25,9 +35,9 @@ export function missing(body, parts = PARTS) {
 }
 
 if (started(import.meta.url)) {
-  const parts = (process.argv[2] ?? "").split("|").map(p => p.trim()).filter(Boolean);
-  const absent = missing(process.env.PR_BODY, parts.length ? parts : PARTS);
+  const parts = asked(process.argv[2]);
+  const absent = missing(process.env.PR_BODY, parts);
   for (const part of absent) console.log(`FAIL the description has no heading "${part}": add "## ${part}" with what belongs under it ("None" where there is nothing; where a report in a file holds it, that file)`);
-  console.log(`${absent.length ? "FAIL" : "ok  "} the description's parts: ${absent.length} of ${(parts.length ? parts : PARTS).length} missing`);
+  console.log(`${absent.length ? "FAIL" : "ok  "} the description's parts: ${absent.length} of ${parts.length} missing`);
   process.exit(absent.length ? 1 : 0);
 }
