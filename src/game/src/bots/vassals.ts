@@ -15,7 +15,7 @@
  *
  * Tribute is wealth crossing a border, so the score needs no rule for it: what leaves the vassal joins the overlord.
  */
-import { HSet, StartVassals, clause, cmpPower, sortBy, tier, vassalTerms, type Clause, type Power, type TabletProposal, type VassalTerms } from "@amarna/engine";
+import { HSet, StartVassals, clause, cmpPower, sortBy, vassalTerms, type Clause, type Power, type TabletProposal, type VassalTerms } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { tributeReturn } from "./investment.ts";
@@ -175,7 +175,7 @@ export function bondLetters(b: Board, brain: Brain): BondLetter[] {
     if (ratio * Overawes <= 1 && (theirs === undefined || !b.alive.has(theirs.overlord) || brain.rel.get(theirs.overlord).hostile))
       out.push({ kind: "offer", to: x, score: 0.35 + 0.35 * p.diplomacy + 0.2 * (1 - p.aggression), amount: askOf(b, x) });
     // A strong neighbour who threatens us, while no overlord stands over us: we offer ourselves.
-    else if (ratio >= Overawes && !mineServed && brain.hostility(x, b) > 0.45 && tier(me) === "City")
+    else if (ratio >= Overawes && !mineServed && brain.hostility(x, b) > 0.45)
       out.push({ kind: "submit", to: x, score: 0.4 + 0.4 * p.caution, amount: askOf(b, me) });
   }
   return out;
@@ -204,9 +204,7 @@ export function sealBond(b: Board, brain: Brain, sender: Power, proposal: Tablet
   const terms = vassalTerms({ id: "", vassal: proposal.vassal, proposedBy: sender, partner: me, clauses: proposal.clauses, sealedTurn: b.v.turn });
   if (terms === null) return false;
   if (terms.overlord === me) return terms.tribute > 0 && !brain.rel.get(sender).hostile;
-  // As the vassal: the price against what the overlord's power over us is worth; a Great King is no one's vassal by his own
-  // seal (item 18, part F3's rest).
-  if (tier(me) !== "City") return false;
+  // As the vassal: the price against what the overlord's power over us is worth.
   const income = Math.max(1, b.v.income);
   const bearable = terms.tribute <= Year * income * (0.25 + 0.2 * brain.p.caution);
   const fear = awe(b, me, terms.overlord) + (brain.hostility(terms.overlord, b) > 0.5 ? 0.2 : 0);
