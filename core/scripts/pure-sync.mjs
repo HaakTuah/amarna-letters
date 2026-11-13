@@ -15,15 +15,16 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { copyTree } from "./copy-tree.mjs";
+import { CORE as ADDRESS, CORE_SOURCE as A } from "./core-address.mjs";
 
-const CORE = "https://github.com/HaakTuah/agent-core.git";
+const CORE = `https://github.com/${ADDRESS}.git`;
 const raw = (args, cwd) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 1 << 26 });
 const git = (args, cwd) => raw(args, cwd).trim();
 const ok = (args, cwd) => { try { git(args, cwd); return true; } catch { return false; } };
-const PIN = /^Core: HaakTuah\/agent-core at ([0-9a-f]{40}), copied whole under core\//mu;
+const PIN = new RegExp(`^Core: ${A} at ([0-9a-f]{40}), copied whole under core\\/`, "mu");
 // the only SHAs a sync may move: the manifest's pin, and a call's to a core workflow (any case, as GitHub reads it)
-const PIN_REF = /^(Core: HaakTuah\/agent-core at )([0-9a-f]{40})(?=, copied whole under core\/)/gu;
-const CALL = /(?<![\w./-])(HaakTuah\/agent-core\/\.github\/workflows\/[\w.-]+@)([0-9a-f]{40})(?![\w./-])/giu;
+const PIN_REF = new RegExp(`^(Core: ${A} at )([0-9a-f]{40})(?=, copied whole under core\\/)`, "gu");
+const CALL = new RegExp(`(?<![\\w./-])(${A}\\/\\.github\\/workflows\\/[\\w.-]+@)([0-9a-f]{40})(?![\\w./-])`, "giu");
 const WORKFLOW = /^\.github\/workflows\/[^/]+\.ya?ml$/u;
 const fail = [];
 
@@ -33,7 +34,7 @@ const base = git(["merge-base", "FETCH_HEAD", head]);
 const show = (rev, file) => { try { return git(["show", `${rev}:${file}`]); } catch { return ""; } };
 const oldPin = show(base, "core-manifest.md").match(PIN)?.[1];
 const pin = show(head, "core-manifest.md").match(PIN)?.[1];
-if (!oldPin || !pin) fail.push("core-manifest.md has no \"Core: HaakTuah/agent-core at <full SHA>, copied whole under core/\" line on both sides");
+if (!oldPin || !pin) fail.push(`core-manifest.md has no "Core: ${ADDRESS} at <full SHA>, copied whole under core/" line on both sides`);
 
 // what the merge would bring: only the copy, the manifest's pin and the workflows' call pins, each moved to the new pin
 // every file as text (a NUL byte can't hide a change as "binary"), with no diff driver of the project's own

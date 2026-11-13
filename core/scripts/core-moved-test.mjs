@@ -8,17 +8,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CORE, CORE_SOURCE } from "./core-address.mjs";
 import { ISSUES, TITLE, body, openIssue, ownerOf, pinOf, plan } from "./core-moved.mjs";
 
 let failed = 0, count = 0;
 const ok = (cond, what) => { count++; if (!cond) { failed++; console.error(`FAIL: ${what}`); } };
 const A = "a".repeat(40), B = "b".repeat(40);
 const manifest = (pin, owner = "| *owner's account* | `someone` |") =>
-  `# Core manifest\n\nCore: HaakTuah/agent-core at ${pin}, copied whole under core/ (never edited here).\n\n| Slot | Here |\n| --- | --- |\n${owner}\n`;
+  `# Core manifest\n\nCore: ${CORE} at ${pin}, copied whole under core/ (never edited here).\n\n| Slot | Here |\n| --- | --- |\n${owner}\n`;
 
 ok(plan(A, A, null) === "nothing" && plan(A, A, "7") === "close" && plan(A, B, null) === "open" && plan(A, B, "7") === "update", "the four cases");
-ok(pinOf(manifest(A)) === A && pinOf("Core: HaakTuah/agent-core at abc, copied whole under core/") === null, "a pin is 40 hex characters");
-ok(pinOf(manifest(A) + manifest(B)) === null && pinOf(`> Core: HaakTuah/agent-core at ${A}, copied whole under core/`) === null, "one line, at a line's start");
+ok(pinOf(manifest(A)) === A && pinOf(`Core: ${CORE} at abc, copied whole under core/`) === null, "a pin is 40 hex characters");
+ok(pinOf(manifest(A) + manifest(B)) === null && pinOf(`> Core: ${CORE} at ${A}, copied whole under core/`) === null, "one line, at a line's start");
 ok(pinOf(`Core: someone/else at ${A}, copied whole under core/`) === null, "only the core's own address");
 ok(ownerOf(manifest(A)) === "someone" && ownerOf(manifest(A, "| *owner's account* | someone |")) === null, "the owner's account, in backticks");
 ok(ownerOf(manifest(A, "| *owner's account* | `a; rm -rf x` |")) === null, "an account is letters, digits and hyphens");
@@ -62,7 +63,7 @@ if (process.platform === "win32") console.log("skip the program whole: its stand
 else {
   let r = program(A, A, "");
   ok(r.status === 0 && r.out.includes("nothing") && !/gh issue/.test(r.calls), "up to date and no issue: nothing is done");
-  ok(/^git ls-remote https:\/\/github\.com\/HaakTuah\/agent-core refs\/heads\/main$/m.test(r.calls), "the core's main is asked for, and nothing else of git");
+  ok(new RegExp(`^git ls-remote https://github\\.com/${CORE_SOURCE} refs/heads/main$`, "m").test(r.calls), "the core's main is asked for, and nothing else of git");
   r = program(A, B, "");
   ok(r.status === 0 && /gh issue create --repo someone\/project --title The core has moved past this project's copy --body-file \S+ --label enhancement --assignee someone/.test(r.calls), "behind and no issue: one is opened for the owner");
   r = program(A, B, line(12, BOT, TITLE));

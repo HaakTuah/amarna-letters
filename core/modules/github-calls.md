@@ -13,5 +13,6 @@ gh api -X PUT repos/<owner>/<repo>/pulls/<n>/ccr/auto_merge  # auto-merge on (DE
 gh api repos/<owner>/<repo>/compare/main...<branch> --jq '.files[].filename'  # the files a branch changes
 gh api repos/<owner>/<repo>/pulls/<n> --jq '{state, merged}'  # was it merged?
 gh api 'repos/<owner>/<repo>/pulls/comments?since=<a week ago>&per_page=100' \
-  --jq '.[] | select(.user.login == "<reviewer>")'  # one reviewer's findings since then, any PR's (more: &page=2)
+  --jq '.[] | select(.user.login == "<reviewer>")'  # one reviewer's findings since then, any PR's (more: &page=2;
+  # those not on a line: issues/comments, the same way)
 ```

@@ -6,7 +6,7 @@
 // "/"). It needs:
 //   - each lockfile the config's "lockfiles" names, and each package.json with dependencies beside one of them or a
 //     workspace of one, so the check reads every package any of them installs;
-//   - an entry for each action a workflow or action file uses (`uses:`), but the owner's own (HaakTuah/, the core's
+//   - an entry for each action a workflow or action file uses (`uses:`), but the owner's own (the account the core is under, the core's
 //     workflows among them) and the project's (./), by its name (owner/repo), at whatever version it is pinned to;
 //   - an entry for each package a command fetches (licence-commands.mjs, beside this file, reads them: npx, npm exec,
 //     npm install, npm link and npm pack, in any workflow, script or tool, a file with no extension read as a shell
@@ -31,9 +31,10 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join, posix } from "node:path";
+import { OWNER } from "./core-address.mjs";
 import { commandLines, commands, fetched, otherFetch } from "./licence-commands.mjs";
 
-const OWN = "HaakTuah/";
+const OWN = `${OWNER}/`;
 const SHELL = /\.(ya?ml|sh|bash|zsh|fish|mk|toml|envrc)$|(^|\/)(Dockerfile[^/]*|Makefile|GNUmakefile|\.envrc)$/iu;
 const JS = /\.([cm]?[jt]sx?)$/iu;
 const WEB = /\.(html?|vue|svelte|astro)$/iu; // (pages and components: the parts that run, executable() below)

@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { CORE } from "./core-address.mjs";
 import { check, loadConfig } from "./licences.mjs";
 
 let failed = 0;
@@ -23,7 +24,7 @@ export const PROJECT = {
   ] }),
   ".github/workflows/ci.yml": [
     "jobs:", "  a:", "    steps:", "      - uses: actions/checkout@v7", "      # - uses: mossgrip/setup-moss@v1, a comment",
-    "  b:", "    uses: HaakTuah/agent-core/.github/workflows/copies.yml@0123456789abcdef0123456789abcdef01234567",
+    "  b:", `    uses: ${CORE}/.github/workflows/copies.yml@0123456789abcdef0123456789abcdef01234567`,
     "  c:", "    uses: ./.github/workflows/local.yml", "",
   ].join("\n"),
   "scripts/setup.sh": "npm install -g mossgrip-cli@1.2.3\nnpx --no-install vitest run\n# npm install mossgrip-widgets, a comment, fetches nothing\nnpm ci\n",

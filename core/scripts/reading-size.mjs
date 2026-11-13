@@ -2,7 +2,7 @@
 // the core, measured on every PR. Its marks are the project's *size marks*, a JSON file (its SECURITY.md names it under
 // rule 3, among the checks on the work), and it fails:
 //   - when a file every session reads ("read") is past its mark (about 20 KB, "each"; one past that has a mark of its
-//     own, its size, which may only shrink: when the file shrinks, the mark comes down with it), or their total is
+//     own, its size: when the file shrinks, the mark comes down with it), or their total is
 //     past "total";
 //   - when the PR changes a file past "split" (about 50 KB: Step 0, split it by meaning first), unless "past" lists it
 //     with a mark at least its size. The copy of the core (core/, changed only by a sync PR), the paths under "skip"

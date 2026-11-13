@@ -1,12 +1,12 @@
-# The security-review check (floor rule 8: "No PR merges before its security review has run, nor with a blocking
-# security finding open"), for every project that takes the core: it gives the head commit of each open pull request
-# that is no draft a commit status, "security-review", that says whether its security review has run. Proof is the
-# summary Codex's own app keeps on the pull request, saying its security review is completed, or a comment that opens
-# "Security review:" from the repository's owner, a member or a collaborator, which is how the fallback reviewer's or
-# another reviewer's is posted (modules/reviews.md, point 3); where Codex marks a finding of its security review open,
-# only such a comment settles it, posted after its newest finding where one is to be found; nothing else counts
-# (scripts/security-review.mjs, whose header says what it does not hold). A project calls it (workflow_call) from a
-# workflow of its own of the same name, on pull_request (the types opened, reopened, synchronize and ready_for_review)
+# The security-review check (floor rule 8: a PR that touches a way in merges only after its security review has run, and
+# none with a blocking security finding open), for every project that takes the core: it gives the head commit of each
+# open pull request that is no draft a commit status, "security-review", that says whether its security review has run.
+# Proof is the summary Codex's own app keeps on the pull request, saying its security review is completed, or a comment
+# that opens "Security review:" from the repository's owner, a member or a collaborator, which is how the fallback
+# reviewer's or another reviewer's is posted (modules/reviews.md, point 3); where Codex marks a finding of its security
+# review open, only such a comment settles it, posted after its newest finding where one is to be found; nothing else
+# counts (scripts/security-review.mjs, whose header says what it does not hold). A project calls it (workflow_call) from
+# a workflow of its own of the same name, on pull_request (the types opened, reopened, synchronize and ready_for_review)
 # and on issue_comment (created and edited), so that the status follows a review the moment its comment arrives and
 # moves with each push, in a job that grants contents: read, pull-requests: read and statuses: write, pinned to a full
 # commit SHA ("How a project takes the core" in README.md, point 5).

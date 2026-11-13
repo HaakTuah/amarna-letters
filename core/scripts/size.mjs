@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CAP = 51 * 1024;
+const CAP = 52 * 1024;
 const files = ["floor", "modules"].flatMap(dir =>
   fs.readdirSync(dir).filter(f => f.endsWith(".md")).map(f => path.join(dir, f)));
 const total = files.reduce((sum, f) => sum + fs.statSync(f).size, 0);
