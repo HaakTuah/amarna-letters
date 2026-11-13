@@ -112,7 +112,7 @@ finishes:
 
 1. The war of choice (`--war-play-half`), seeds 101-150: done.
 2. The null split (`--null-half`), seeds 101-150: done.
-3. The war of choice, seeds 151-200: **running** (started 23:01 UTC on 13 November); then the null split, seeds 151-200.
+3. The war of choice, seeds 151-200: done; the null split, seeds 151-200: **running** (started 23:24 UTC on 13 November).
 4. The benchmarks after (`--versus solo --games 2 --seed 1`, then `--seed 3`).
 5. Par again (`--games 50 --seed 101 --par-out <file>`, then `--seed 151`), merged into `rules/par-results.ts` as before:
    the last runs.
@@ -183,3 +183,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | Par again, seeds 151-200 | `--games 50 --seed 151 --par-out <file>` | 938ba68 | 22 minutes. Median age 91 seasons. Egypt 1.16 (1.06), Hatti 1.54 (0.94), Babylonia 1.21 (0.87), Mitanni 0.77 (1.05), Assyria 0.42 (1.07), Arzawa 0.79 (1.04), Alashiya 0.93 (0.95); wins 0, 5, 1, 2, 2, 1, 1. A Great King's realm fell in 30 of 50 games. **Seeds 101-200 against dde658d's par:** Egypt 1.17 (1.15), Hatti 1.49 (1.57), Babylonia 1.20 (1.28), Mitanni 0.80 (0.71), Assyria 0.45 (0.37), Arzawa 0.71 (0.80), Alashiya 0.94 (0.94): with the city's peace the middle powers grow more and the strong a little less. The two halves merged as before into `rules/par-results.ts`, 100 games |
 | The war of choice, the small king's peace, seeds 101-150 | `--games 50 --seed 101 --war-play-half` | 767cab8 | 22 minutes alone. Growth 0.84 / 0.84, standing 1.055 / 1.063, wins 27 / 19; Great Kings 0.95 / 0.95 (0.992 / 0.973), the rest 0.83 / 0.82 (1.066 / 1.079). Captive kings held long 103, realms 0.98, captors 1.09. On 938ba68 (the city's peace) the same seeds gave 1.072 / 1.079, wins 24 / 22; the null split on 767cab8 runs next |
 | Null split, seeds 101-150 | `--games 50 --seed 101 --null-half` | 767cab8 | 23 minutes. Growth 0.77 / 0.80, standing 1.004 / 1.025, wins 27 / 22; Great Kings 0.92 / 0.98 (0.956 / 1.035), the rest 0.74 / 0.77 (1.012 / 1.024). The war of choice on the same seeds and commit (1.055 / 1.063, 27 / 19; Great Kings 0.992 / 0.973, the rest 1.066 / 1.079) against it: level in standing over all and for the rest, a few wins ahead, the Great Kings 0.10 ahead |
+| The war of choice, the small king's peace, seeds 151-200 | `--games 50 --seed 151 --war-play-half` | 767cab8 | 22 minutes. Growth 0.83 / 0.83, standing 1.035 / 1.044, wins 20 / 28; Great Kings 0.96 / 0.95 (1.024 / 0.972), the rest 0.80 / 0.81 (1.037 / 1.056). On 938ba68 the same seeds gave 1.048 / 1.074, wins 27 / 18; the null split on 767cab8 runs next |
