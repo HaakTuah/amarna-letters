@@ -3,7 +3,8 @@
  * holders as word of them last reached it. Read by the seat's view (Views) and by the order checks, so the two agree.
  */
 import { Dict, HSet } from "../core/collections.ts";
-import { StartWalls, type WorldMap } from "../model/map.ts";
+import { type WorldMap } from "../model/map.ts";
+import { StartWalls } from "../model/start-positions.ts";
 import type { Power } from "../model/power.ts";
 import { newKnown, newSiege, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
 import { seatOf, wordHomeAt } from "./court.ts";
