@@ -16,12 +16,11 @@ PR none at all.
    and the fallback reviewer its security review, over the whole diff.
 3. **Security** (core archive 47 to 51, 174, 177). A *security reviewer* the session calls reviews the finished work
    once, aimed at the ways in it touches, and again only if a later commit touches one. One that starts by itself
-   (Codex's app, when a PR is opened for review or marked ready) is waited for and read as floor rule 8 says; there such
-   a later commit, or a security finding's fix, gets the fallback reviewer's check. One not begun in about 5 minutes or
-   finished in about 30 is the fallback reviewer's, over the whole diff, where the PR needs one; otherwise the wait
-   ends. Floor rule 3's two each cover the whole diff. A session posts one, naming the tool and the commit it read, or
-   that none is needed (the code reviewer checks that), in a comment that opens "Security review:", which the
-   `security-review` check reads.
+   (Codex's app) is waited for and read as floor rule 8 says; there such a later commit, or a security finding's fix,
+   gets the fallback reviewer's check. One not begun in about 5 minutes or finished in about 30 is the fallback
+   reviewer's, over the whole diff, where the PR needs one; otherwise the wait ends. Floor rule 3's two each cover the
+   whole diff. A session posts one, naming the tool and the commit it read, or that none is needed (the code reviewer
+   checks that), in a comment that opens "Security review:", which the `security-review` check reads.
 4. **The design check:** on the design-checked PRs, once before the merge, a fresh reviewer judges the work against the
    design alone, and its "Readings taken" as the stand-in would (core archive 22).
 5. **When a PR passes,** whatever its score: every blocking point fixed; every other fixed if it lies in the change,

@@ -3,9 +3,10 @@
 Read when a task takes an update; its safety rules: floor rules 7, 15 and 17.
 
 **The newest stable version, unless there is a reason** (core archive 65). Updates are upkeep: they wait for no queue
-entry. Dependabot's version updates (weekly, grouped) come as PRs under floor rule 17 (core archive 37); what it cannot
-see, listed where each is written, the core's versions workflow checks monthly, an `enhancement` issue for each one
-behind. A new major version is its own PR, with the *major version checks*. One is held back only for a reason (it
+entry. Dependabot's version updates (weekly, grouped) come as PRs under floor rule 17 (core archive 37), kept up to date
+by its own rebase (a comment `@dependabot rebase`), never by merging `main`, so that every commit stays its own; what it
+cannot see, listed where each is written, the core's versions workflow checks monthly, an `enhancement` issue for each
+one behind. A new major version is its own PR, with the *major version checks*. One is held back only for a reason (it
 breaks something, runs worse, changes its licence, or its project is abandoned or changes hands), written in the closed
 PR and an open issue.
 

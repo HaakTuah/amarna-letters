@@ -76,7 +76,16 @@ async function times(e) {
     if (!res.ok) throw new Error(`${e.name}: PyPI answered ${res.status}`);
     return pypiTimes(await res.json());
   }
-  return JSON.parse(execFileSync("npm", ["view", e.name, "time", "--json"], { encoding: "utf8" }));
+  return JSON.parse(npmView(e.name));
+}
+// npm's answer to what it knows of a package's releases. On Windows npm is a command script, which only the command
+// shell starts, so there the name reaches a shell: it must be a plain word that no program reads as an option, or
+// nothing is started.
+export function npmView(name, platform = process.platform) {
+  if (typeof name !== "string" || !/^[@a-z0-9][\w@./-]*$/i.test(name)) throw new Error(`${name}: no plain word, so it is given to no shell`);
+  return platform === "win32"
+    ? execFileSync("cmd.exe", ["/d", "/s", "/c", `npm view ${name} time --json`], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })
+    : execFileSync("npm", ["view", name, "time", "--json"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 }
 // What an issue says for an entry behind: the Feature request template's headings (.github/ISSUE_TEMPLATE/).
 export const issue = (e, to, config) => ({
