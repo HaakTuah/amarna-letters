@@ -21,13 +21,11 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. 17 and 17++ A, buying food and stirring (`--freedom-play-half`), and 17++ D, talk of a province's leaning and a carrier
-   caught (`--talk-play-half`): seeds 1-50 and 51-100 each, on the patched play: talk 51-100 **running**.
-2. Vassal play on 938ba68, seeds 51-100.
-3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on 938ba68).
-4. Seeds 101-200 on 938ba68: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
+1. Vassal play on 938ba68, seeds 51-100 **running**.
+2. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on 938ba68).
+3. Seeds 101-200 on 938ba68: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
    play, then F3's rows that were even or a little ahead).
-5. Par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
+4. Par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
    0.80): the last runs, so that the standings of the runs before it stay comparable.
 
 Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
@@ -61,3 +59,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | 17 and 17++ A, buying food and stirring, seeds 1-50 | `--games 50 --seed 1 --freedom-play-half` | 938ba68 | 24 minutes. Growth 0.79 / 0.80, standing 1.054 / 1.052, wins 21 / 25; Great Kings 0.95 / 0.96 (1.000 / 0.978), the rest 0.76 / 0.77 (1.064 / 1.065). Words to armies on their food: buy 113, take 0; unit-seasons that bought food 11, that took it 4,122. Spies stirring 118 seasons. A little behind the null's halves |
 | 17 and 17++ A, seeds 51-100 | `--games 50 --seed 51 --freedom-play-half` | 938ba68 | 24 minutes. Growth 0.80 / 0.76, standing 1.043 / 1.039, wins 19 / 21; Great Kings 0.98 / 0.96 (0.996 / 1.006), the rest 0.77 / 0.73 (1.051 / 1.044). Food bought 4 unit-seasons, taken 3,756. **Seeds 1-100: growth 0.795 / 0.78 (the null's 0.775 / 0.78), standing 1.049 / 1.046 (1.035 / 1.017), wins 40 / 46 (43 / 47).** Even: a little ahead in growth, a little behind in standing, within the null's spread. Buying food happens in 15 unit-seasons of 7,878: the markets seldom hold grain beyond their towns' need where armies stand (`supplyOrders` buys only what is there) |
 | 17++ D, talk of a province's leaning and a carrier caught, seeds 1-50 | `--games 50 --seed 1 --talk-play-half` | 938ba68 | 24 minutes. Growth 0.80 / 0.80, standing 1.068 / 1.032, wins 22 / 22; Great Kings 1.00 / 0.96 (1.046 / 0.949), the rest 0.76 / 0.77 (1.072 / 1.046). Talk of offers in 49 games (995), by traders in 48 (470). Ahead of the null's halves in standing |
+| 17++ D, seeds 51-100 | `--games 50 --seed 51 --talk-play-half` | 938ba68 | 25 minutes. Growth 0.76 / 0.76, standing 1.018 / 1.026, wins 18 / 20; Great Kings 0.95 / 0.95 (0.988 / 0.987), the rest 0.72 / 0.73 (1.023 / 1.032). An offer read on a carrier caught: once in 50 games. **Seeds 1-100: standing 1.043 / 1.029 (the null's 1.035 / 1.017), wins 40 / 42 (43 / 47); Great Kings 1.017 / 0.968 (1.006 / 0.987).** Even, the Great Kings a little ahead; a carrier caught with an offer read is too rare to judge (once in 50 games here, once in 50 in item 17++'s run) |
