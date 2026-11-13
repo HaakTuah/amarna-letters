@@ -1,6 +1,6 @@
 # The floor, by topic
 
-The floor's rules for particular work; the rest are in `floor/security.md`.
+The floor's rules for particular work.
 
 ## The rules
 
