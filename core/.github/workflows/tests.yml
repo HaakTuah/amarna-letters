@@ -68,6 +68,12 @@ jobs:
       - name: The tree a copy must be
         if: ${{ !cancelled() }}
         run: node scripts/copy-tree-test.mjs
+      - name: Whether a script was started by itself
+        if: ${{ !cancelled() }}
+        run: node scripts/started-test.mjs
+      - name: The pointer check
+        if: ${{ !cancelled() }}
+        run: node scripts/pointers-test.mjs
       - name: The pointers in the core's own floor and modules lead somewhere
         if: ${{ !cancelled() }}
         run: node scripts/pointers.mjs --core

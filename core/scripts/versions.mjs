@@ -13,7 +13,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { started } from "./started.mjs";
 
 const DAY = 864e5;
 // A stable release: two or three plain numbers (PyPI's "2.0" too), each short enough to compare exactly.
@@ -93,7 +93,7 @@ export const issue = (e, to, config) => ({
   ].join("\n"),
 });
 
-if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {
+if (started(import.meta.url)) {
   const config = process.argv[2];
   if (!config) { console.error("FAIL: name the config: node <core>/scripts/versions.mjs <config> [--issues]"); process.exit(1); }
   const { entries } = JSON.parse(fs.readFileSync(config, "utf8"));

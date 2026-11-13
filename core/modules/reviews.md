@@ -9,18 +9,19 @@ PR none at all.
 
 1. **Ask** the code reviewer (`modules/roles.md`) as its part (`modules/codex.md`, `modules/copilot.md`) or the project
    says.
-2. **No sign within about 5 minutes, or no finished review within about 20, or an answer that is not a review:** the
-   next reviewer, last the fallback reviewer (`modules/claude.md`), takes the PR at once (core archive 19 and 20). A
-   late review is still read. A reviewer, the security reviewer too, that gave the last three PRs it was asked on no
-   review is asked and not waited for, which the PR says: the next takes it at once, and the fallback reviewer its
-   security review, over the whole diff.
-3. **Security** (core archive 47 to 51, 174). A *security reviewer* the session calls reviews the finished work once,
-   aimed at the ways in it touches, and again only if a later commit touches one. One that starts by itself (Codex's
-   app, when a PR is opened for review or marked ready) is waited for and read on every PR, a sync's too; there such a
-   later commit, or a security finding's fix, gets the fallback reviewer's check. One not finished in about 30 minutes
-   is the fallback reviewer's, over the whole diff, where the PR needs one; otherwise the wait ends. Floor rule 3's two
-   each cover the whole diff. A session posts one, or that none is needed (the code reviewer checks that), in a comment
-   that opens "Security review:", which the `security-review` check reads.
+2. **No sign in about 5 minutes, no finished review in about 20, or an answer that is not a review:** the next reviewer,
+   last the fallback reviewer (`modules/claude.md`), takes the PR at once (core archive 19 and 20). A late review is
+   still read. A reviewer, the security reviewer too, that gave the last three PRs it was asked on no review (the
+   project's newest PRs that asked it show) is asked and not waited for, which the PR says: the next takes it at once,
+   and the fallback reviewer its security review, over the whole diff.
+3. **Security** (core archive 47 to 51, 174, 177). A *security reviewer* the session calls reviews the finished work
+   once, aimed at the ways in it touches, and again only if a later commit touches one. One that starts by itself
+   (Codex's app, when a PR is opened for review or marked ready) is waited for and read as floor rule 8 says; there such
+   a later commit, or a security finding's fix, gets the fallback reviewer's check. One not begun in about 5 minutes or
+   finished in about 30 is the fallback reviewer's, over the whole diff, where the PR needs one; otherwise the wait
+   ends. Floor rule 3's two each cover the whole diff. A session posts one, naming the tool and the commit it read, or
+   that none is needed (the code reviewer checks that), in a comment that opens "Security review:", which the
+   `security-review` check reads.
 4. **The design check:** on the design-checked PRs, once before the merge, a fresh reviewer judges the work against the
    design alone, and its "Readings taken" as the stand-in would (core archive 22).
 5. **When a PR passes,** whatever its score: every blocking point fixed; every other fixed if it lies in the change,
