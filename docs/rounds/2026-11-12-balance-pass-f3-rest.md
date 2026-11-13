@@ -112,8 +112,11 @@ finishes:
 
 1. The war of choice (`--war-play-half`), seeds 101-150: done.
 2. The null split (`--null-half`), seeds 101-150: done.
-3. The war of choice, seeds 151-200: done; the null split, seeds 151-200: **running** (started 23:24 UTC on 13 November).
-4. The benchmarks after (`--versus solo --games 2 --seed 1`, then `--seed 3`).
+3. The war of choice and the null split, seeds 151-200: done.
+4. The benchmarks after (`--versus solo --games 2 --seed 1`: **running**, started 23:47 UTC on 13 November; then
+   `--seed 3`).
+4a. Seeds 101-200 on 767cab8 leaned the other way from 938ba68's, within the null's spread: the war of choice and the
+   null split on seeds 1-50, then 51-100, on 767cab8, to settle the verdict on 200 games.
 5. Par again (`--games 50 --seed 101 --par-out <file>`, then `--seed 151`), merged into `rules/par-results.ts` as before:
    the last runs.
 
@@ -184,3 +187,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | The war of choice, the small king's peace, seeds 101-150 | `--games 50 --seed 101 --war-play-half` | 767cab8 | 22 minutes alone. Growth 0.84 / 0.84, standing 1.055 / 1.063, wins 27 / 19; Great Kings 0.95 / 0.95 (0.992 / 0.973), the rest 0.83 / 0.82 (1.066 / 1.079). Captive kings held long 103, realms 0.98, captors 1.09. On 938ba68 (the city's peace) the same seeds gave 1.072 / 1.079, wins 24 / 22; the null split on 767cab8 runs next |
 | Null split, seeds 101-150 | `--games 50 --seed 101 --null-half` | 767cab8 | 23 minutes. Growth 0.77 / 0.80, standing 1.004 / 1.025, wins 27 / 22; Great Kings 0.92 / 0.98 (0.956 / 1.035), the rest 0.74 / 0.77 (1.012 / 1.024). The war of choice on the same seeds and commit (1.055 / 1.063, 27 / 19; Great Kings 0.992 / 0.973, the rest 1.066 / 1.079) against it: level in standing over all and for the rest, a few wins ahead, the Great Kings 0.10 ahead |
 | The war of choice, the small king's peace, seeds 151-200 | `--games 50 --seed 151 --war-play-half` | 767cab8 | 22 minutes. Growth 0.83 / 0.83, standing 1.035 / 1.044, wins 20 / 28; Great Kings 0.96 / 0.95 (1.024 / 0.972), the rest 0.80 / 0.81 (1.037 / 1.056). On 938ba68 the same seeds gave 1.048 / 1.074, wins 27 / 18; the null split on 767cab8 runs next |
+| Null split, seeds 151-200 | `--games 50 --seed 151 --null-half` | 767cab8 | 22 minutes. Growth 0.80 / 0.76, standing 1.019 / 0.976, wins 29 / 19; Great Kings 1.00 / 0.92 (1.031 / 0.962), the rest 0.76 / 0.73 (1.017 / 0.978). **Seeds 101-200 on 767cab8: the null 1.012 / 1.001, wins 56 / 41, Great Kings 0.994 / 0.999, the rest 1.015 / 1.001; the war of choice 1.045 / 1.054, wins 47 / 47, Great Kings 1.008 / 0.973, the rest 1.052 / 1.068.** Against the null's lean: standing 0.02 behind (level), wins 15 behind (the null's own halves lean 15 here, 3 on 938ba68), the Great Kings 0.04 ahead, the rest 0.03 behind. Within the null's spread, the reverse of 938ba68's lean on the same seeds (14 wins ahead); seeds 1-100 on 767cab8 run next to settle it |
