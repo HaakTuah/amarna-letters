@@ -12,7 +12,7 @@
 // (.github/workflows/pr-description.yml).
 //
 //   PR_BODY="$(...)" node core/scripts/pr-description.mjs ["Part one|Part two"]
-import { pathToFileURL } from "node:url";
+import { started } from "./started.mjs";
 
 export const PARTS = ["What the owner can try", "Readings taken"];
 
@@ -24,7 +24,7 @@ export function missing(body, parts = PARTS) {
   return parts.filter(part => { const p = words(part); return !headings.some(h => h === p || h.startsWith(p) && /^[^\p{L}\p{N}]/u.test(h.slice(p.length))); });
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (started(import.meta.url)) {
   const parts = (process.argv[2] ?? "").split("|").map(p => p.trim()).filter(Boolean);
   const absent = missing(process.env.PR_BODY, parts.length ? parts : PARTS);
   for (const part of absent) console.log(`FAIL the description has no heading "${part}": add "## ${part}" with what belongs under it ("None" where there is nothing; where a report in a file holds it, that file)`);

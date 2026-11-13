@@ -21,4 +21,8 @@ Read at the start of every task.
 
 **Sessions:** started task by task, stop when your task is merged, saying in your last message what merged and what is
 next; otherwise carry on with the next task. A long task may end a session at a passed gate, with a commit and a note in
-the *progress file* saying where to pick up (core archive 143).
+the *progress file* saying where to pick up (core archive 143). A session of the trusted builder's (floor rule 3) that
+no orchestrator started, and the orchestrator on every wake, first checks whether the core has moved
+(`core/scripts/core-moved.mjs --dry`) and syncs it if so (`core/scripts/sync.mjs`, its PR never auto-merged: floor rule
+8; then what `setup/sync-notes.md` asks); where checks cost money, not on a day a sync PR was already opened (core
+archive 178). Another builder's session leaves the sync to them.

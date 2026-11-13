@@ -30,6 +30,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scan } from "./licence-scan.mjs";
+import { started } from "./started.mjs";
 
 // Every licence the Open Source Initiative approves, as the SPDX licence list marks them (isOsiApproved, deprecated ids
 // left out; the list of 28 October 2026). Left out: BSD-ask-to-endorse, newer than the SPDX list the pinned dependency
@@ -330,7 +331,7 @@ export function check(config, root) {
   return { failures, summary };
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (started(import.meta.url)) {
   const fail = (msg) => { console.error(`FAIL: ${msg}`); process.exit(1); };
   const configPath = process.argv.slice(2).find((a) => !a.startsWith("--"));
   if (!configPath) fail("name the config: node core/scripts/licences.mjs <config> [--action]");

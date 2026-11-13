@@ -27,7 +27,7 @@
 //           [<its review comments, the same> [<its commits, the same>]]
 //         ADVISORY=false for a status that waits; RUN_URL for the link the status carries.
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { started } from "./started.mjs";
 
 const CODEX = "chatgpt-codex-connector[bot]";
 const DEPENDABOT = "dependabot[bot]";
@@ -88,7 +88,7 @@ export function status(verdict, advisory, url) {
   return { state, description, context: CONTEXT, ...(typeof url === "string" && /^https:\/\/[\w./-]{1,200}$/u.test(url) ? { target_url: url } : {}) };
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (started(import.meta.url)) {
   const [pullFile, commentsFile, reviewCommentsFile, commitsFile] = process.argv.slice(2);
   if (!pullFile || !commentsFile) {
     console.error("usage: node scripts/security-review.mjs <the pull request, as JSON> <its comments, as JSON> [<its review comments, as JSON> [<its commits, as JSON>]]");

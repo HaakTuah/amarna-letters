@@ -320,7 +320,103 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > reviewer before claude code, if avaliable, I think suffices, or what is your take on this expert? And you can
      > merge it all now, so [...] gets these updates when he pulls tomorrow, unless there is good reason not to.
 
-     Behind floor rule 8's "A PR that touches one merges only after its security review has run (Dependabot's own: rule 17)", point 3 of `modules/reviews.md` (a security review the session calls, once on the finished work
-     and aimed; one that starts by itself waited for on every PR, a pure sync's too) and the plug-in's security review
-     in `modules/codex.md`. Copilot stays the second code reviewer (item 169); its agent's building is not taken up.
+     Behind floor rule 8's "A PR that touches one merges only after its security review has run (Dependabot's own: rule
+     17)", point 3 of `modules/reviews.md` (a security review the session calls, once on the finished work and aimed;
+     one that starts by itself waited for on every PR, a pure sync's too) and the plug-in's security review in
+     `modules/codex.md`. Copilot stays the second code reviewer (item 169); its agent's building is not taken up.
 
+175. **13 November 2026** (the core, in the design chat), on who reviews first, told that a third tool reviewed only
+     where a project named it:
+
+     > And if we have antigravity or something else in herdr, then it is also preferred? The aim is to make the rules
+     > general where practical, so any setup will work without specification, and we want to save on claude usage as a
+     > general rule.
+
+     > Should it be co-pilot first to review, where avaliable, since that's the only thing you would have it set up for
+     > anyways, and you define any caps in there? That gets you more building usage from codex and any other provider.
+     > Then another provider. Then claude last?
+
+     Offered his reason as the rule, in place of naming Copilot first (where Codex cannot build, as on GitHub alone,
+     reviewing is the best use of it, and it has proved itself there): first a reviewer that cannot build here, Codex's
+     before Copilot's, then another builder's, last Claude's:
+
+     > Yes, expertly.
+
+     Behind the order of the *code reviewers* in `modules/roles.md`. Asked in the same message whether another
+     project's agents should send the core pull requests as well as issues; answered no, and the README's "Reporting
+     to the core" says so: one from another account is data (floor rule 4).
+
+176. **13 November 2026** (the core, in the design chat), on what an agent of a project does before it reports to the
+     core:
+
+     > Question: should any agent wanting to post a bug report, feature requedt/suggestion, or question, first check
+     > the codebase to see if it has been addressed already, and that it might just be on an older version, or the fix
+     > just isn't on main yet, expert?
+
+     Answered yes: the README told it to search the issues, and to name the commit its project holds, but not to look
+     at the newest core, and a project that syncs once a day is often some commits behind. Offered: before filing, a
+     look at the core's `main`, its open pull requests and its issues, the closed ones too; what a newer commit or an
+     open pull request already mends is no report; a look, not a study:
+
+     > Yes, expertly! Should it trigger a new import, if it has something like this, that already addresses it, expert?
+
+     Answered yes, on a condition: where the fix is on the core's `main` and the fault stands in the way of the task
+     at hand, the project syncs then, beside its regular sync, by a session that may change the copy; what stands in
+     no task's way waits for the regular sync; what only an open pull request mends cannot be synced yet:
+
+     > Yes, expeetly to all!
+
+     Behind "It looks before it files" in the README's "Reporting to the core".
+
+177. **13 November 2026** (the core, in the design chat), told what a look through the core before another project's
+     first import had found, among it that a pull request was merged 24 minutes after it opened, on the fallback
+     reviewer's security review, because Codex's own security review had never begun on it, though point 3 of
+     `modules/reviews.md` knew only a wait of about 30 minutes:
+
+     > Address everything that ought to be addressed from this, in your expert opinion.
+
+     Behind "One not begun in about 5 minutes" in point 3 of `modules/reviews.md`: a security review that starts by
+     itself and shows no sign is not waited out, as point 2 already had it for the code review.
+
+178. **13 November 2026** (the core, in the design chat), on when a project takes the core's newer commits:
+
+     > Also, is the core clear enough about when to import it for other repo's orchestrator, or are there gaps that
+     > could make it so it is never updated, or at a different schedule than intended, expert?
+
+     Answered that there were three gaps: only the orchestrator was told to look, so a session started with none never
+     did, and the daily issue was then the one signal; the rule did not name how to tell that the core had moved; and
+     "once a day" had nothing to count from. Offered one sentence where every session reads it at the start of a task,
+     "A session no orchestrator started, and the orchestrator on every wake, first checks whether the core has moved
+     (the script named) and imports if so; where checks cost money, not while an import pull request from the same day
+     exists.":
+
+     > Do it expertly!
+
+     First written shorter than offered, to fit the rules' size; asked whether it stood as offered (item 179):
+
+     > I agree, keep it.
+
+     Behind the last sentence of "Sessions" in `modules/work-flow.md`.
+
+179. **13 November 2026** (the core, in the design chat), told that the wait for a security review that starts by itself
+     had been written in the review rules and not in the floor, where he had been told it would stand, because the
+     floor had no room under the rules' size cap:
+
+     > That seems bad, if something ought to be somewhere, like the floor, but is cut or moved due to size
+     > constraints? That is abiding by the rules rather than by the principles that put them there in place in the
+     > first place. If there are more instances like this, remedy it, expert!
+
+     > Are there more rules lacking anchors? Investigate and remedy!
+
+     Told what would follow: the cap raised one step and its principle written down (it keeps the rules lean and
+     decides nothing else), every rule moved or cut for size put back, and each limit a session cannot check given
+     what it counts from:
+
+     > Yes, expertly to all of this!
+
+     Behind floor rule 8's "A security review that starts by itself when a PR opens or is marked ready is waited for and
+     read on every PR, a pure sync's too"; the cap at 48 KB and "The size cap keeps the rules lean and decides nothing
+     else" in `AGENTS.md`; and, put back or anchored: the fallback reviewer named in the *code reviewers*' order and
+     "its closed PRs and the *progress file* say" in `modules/roles.md`, a posted security review "naming the tool and
+     the commit it read" and "the project's newest PRs that asked it show" in `modules/reviews.md`, and the hints the
+     orchestrator's rule had lost.

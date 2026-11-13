@@ -15,7 +15,7 @@
 // Usage, from the project's root:  node core/scripts/exact-versions.mjs <the licence check's config>
 import { readFileSync } from "node:fs";
 import { posix } from "node:path";
-import { fileURLToPath } from "node:url";
+import { started } from "./started.mjs";
 
 const KINDS = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"];
 const own = (key) => key === "" || !`/${key}/`.includes("/node_modules/");
@@ -98,7 +98,7 @@ export function check(lockfile, read) {
   return problems;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (started(import.meta.url)) {
   const configPath = process.argv[2];
   if (!configPath) { console.error("usage: node core/scripts/exact-versions.mjs <the licence check's config>"); process.exit(2); }
   let lockfiles;

@@ -29,7 +29,8 @@ process.chdir(fileURLToPath(new URL(".", import.meta.url)));
 process.chdir(git(["rev-parse", "--show-toplevel"]).trim());
 const tracked = git(['ls-files', '-z']).split('\0').filter(Boolean);
 const CORE = process.argv.includes("--core");
-const RULES = CORE ? tracked.filter(f => /^(floor|modules)\/[^/]+\.md$/.test(f)) : ruleFiles();
+let RULES;
+try { RULES = CORE ? tracked.filter(f => /^(floor|modules)\/[^/]+\.md$/.test(f)) : ruleFiles(); } catch (e) { console.error(`FAIL: ${e.message}`); process.exit(1); }
 for (const rf of RULES.filter(f => !tracked.includes(f))) { console.error(`FAIL: the rule file ${rf} is no tracked file`); process.exitCode = 1; }
 if (process.exitCode) process.exit(1);
 const files = new Set(tracked), dirs = new Set(tracked.flatMap(f => f.split('/').slice(0, -1).map((_, i, p) => p.slice(0, i + 1).join('/') + '/')));
@@ -41,7 +42,7 @@ const plain = s => s.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g
 const parsed = new Map();
 function parse(file) {
   if (parsed.has(file)) return parsed.get(file);
-  const lines = fs.readFileSync(file, 'utf8').split('\n'), anchors = [], heads = [];
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/), anchors = [], heads = []; // (a Windows checkout's line endings too)
   lines.forEach((l, i) => {
     const h = /^(#+)\s+(.*)$/.exec(l);
     if (h) { heads.push({ level: h[1].length, i }); anchors.push({ title: plain(h[2]), level: h[1].length, from: i }); }
