@@ -105,9 +105,20 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 One run at a time from 23:40 (the machine restarted twice with two at once; one run uses all four cores, so the pace is
 about the same).
 
-The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
+The branch's play was 938ba68's (ff5c41b reverts the demand trial) until the code review; it is now 767cab8's.
 
-Nothing: every run of this part is finished and below.
+From the code review (the small king, by strength now: 767cab8), on 767cab8, one at a time, each written here as it
+finishes:
+
+1. The war of choice (`--war-play-half`), seeds 101-150: **running** (started 22:15 UTC on 13 November).
+2. The null split (`--null-half`), seeds 101-150.
+3. The war of choice, seeds 151-200; then the null split, seeds 151-200.
+4. The benchmarks after (`--versus solo --games 2 --seed 1`, then `--seed 3`).
+5. Par again (`--games 50 --seed 101 --par-out <file>`, then `--seed 151`), merged into `rules/par-results.ts` as before:
+   the last runs.
+
+A session that ends with a run marked running: start that run again from a worktree of 767cab8 (Node as
+`core/.node-version`), and go on down the list.
 
 Left to the next part (the reading is under "Readings taken"): F3's rows that were measured on the play before its
 patches (walls, raiders, judging people, gifts, hunting bands, borrowing, caravans abroad, holding back pay, languages,
