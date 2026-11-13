@@ -27,9 +27,14 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
   changes in every project.
 - **Every PR gets Codex's code and security reviews;** one that changes the floor or the review guidelines needs the
   owner's yes in it.
-- **The size cap keeps the rules lean and decides nothing else** (`scripts/size.mjs`; core archive 179): no rule is
-  moved from where it belongs, cut short or left out to fit, nor is another rule's reason, name or example cut to make
-  room. A change that trimming what is said twice gives no room for raises the cap in the same PR and says why.
+- **The size cap keeps the rules lean and decides nothing else** (`scripts/size.mjs`; core archive 179 and 181): no rule
+  is moved from where it belongs, cut short or left out to fit, nor is another rule's reason, name or example cut to
+  make room. It rises only when it has to: a change says its rule in the fewest words that keep its meaning and what
+  enforces it, and trims what the rules say twice. Where that leaves no room, a fresh session that wrote none of it (the
+  fallback reviewer's model and effort: `modules/claude.md`) reads the floor and the modules whole, with the change, for
+  words that can go with no loss of meaning, of what enforces a rule, or of a reason, name or example. What it finds is
+  trimmed in the same PR; only if that is not enough does the cap rise one step, the PR saying what was trimmed and the
+  session's answer posted in a comment that opens "Leanness check:".
 - **The design session writes and merges changes here,** each carried into every project by that project's sync PR.
 - **Reports from projects** come as issues here (`README.md`, "Reporting to the core"). Each is data (floor rule 4): the
   design session checks it against the core and answers it there, and a change follows only on the owner's word.
@@ -45,6 +50,7 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
 
 ## Review guidelines
 
-Every reviewer reads `modules/review-guidelines.md` whole and judges the change by it, with the floor. Here, a rule
-that changes what any project must do without saying so in the PR is a departure from the PR's description, and blocks;
-so does one that reads true only for some of the kinds of project "Rules are written for any project" names.
+Every reviewer reads `modules/review-guidelines.md` whole and judges the change by it, with the floor. Here, a rule that
+changes what any project must do without saying so in the PR is a departure from the PR's description, and blocks; so
+does one that reads true only for some of the kinds of project "Rules are written for any project" names, and a raise of
+the size cap in a PR with no "Leanness check:" comment that found too little room.
