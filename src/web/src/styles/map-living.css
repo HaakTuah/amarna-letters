@@ -156,9 +156,12 @@
 .map .moving [data-slot].gone { --lag: calc(1 - var(--r, var(--b, 1))); }
 .map .moving .season-0 :is([data-slot].inundation, [data-slot].inundation + .ripples) { animation: nile-rise calc(var(--move) * .8) ease-out both; }
 @keyframes nile-rise { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
-/* The other rivers' spates come down from their sources the same way, along the side of the board their course runs from:
-   the Tigris and the Euphrates from the Taurus and Zagros in the north, the Jordan from Hermon, the Orontes up from the
-   Lebanon, the Marassantiya up from the south (the clip reaches past the stroke's ends) (docs/history/03-environment-and-seasons.md, #03-tigris-euphrates-floods). */
-.map .moving .spate { --from: 0 0 100% 0; animation: spate-rise calc(var(--move) * .8) ease-out both; }
-.map .moving .spate:is([data-river="orontes"], [data-river="halys"]) { --from: 100% 0 0 0; }
+/* The other rivers' spates come down from their sources the same way: each is revealed from the side of the board its drawn
+   course starts at (the courses are stored from source to mouth): from the north for the Tigris, the Euphrates and the
+   Jordan, from the south for the Orontes, from the east for the Marassantiya. Only the Tigris and the Euphrates have the
+   order from a source (#03-tigris-euphrates-floods: "rise with the snowmelt in the Taurus and Zagros"); the rest is the
+   game's reading. A spate going away (gone) does not rise again; the insets reach past the stroke's round ends. */
+.map .moving .spate:not(.gone) { --from: -12px -12px 100% -12px; animation: spate-rise calc(var(--move) * .8) ease-out both; }
+.map .moving .spate:not(.gone)[data-river="orontes"] { --from: 100% -12px -12px -12px; }
+.map .moving .spate:not(.gone)[data-river="halys"] { --from: -12px -12px -12px 100%; }
 @keyframes spate-rise { from { clip-path: inset(var(--from)); } to { clip-path: inset(-12px); } }
