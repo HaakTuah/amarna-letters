@@ -31,7 +31,9 @@ the 200 games'. Every figure is in "Finished", below.
 | 8 inventories (`--inventory-play-half`), seeds 1-50 | 1.041 / 1.028 | 27 / 22 | too rare: gold without an inventory 6 times (#980) |
 
 - **Par** measured again on F3's patched play (seeds 101-200, 100 games, at dde658d), and once more as the last runs, on
-  the branch's play with the city's peace (938ba68): `rules/par-results.ts` holds the second (PAR_NOTE).
+  the branch's play with the city's peace (938ba68): `rules/par-results.ts` holds the second. With the city's peace, the middle Great Kings grow
+  more (Mitanni 0.71 to 0.80, Assyria 0.37 to 0.45) and the strong a little less (Hatti 1.57 to 1.49, Babylonia 1.28 to
+  1.20).
 - **The caretaker's realm against the war of choice** (F2's hand-off): a king held long leaves his realm at par under its
   caretaker (1.05 and 1.00 against par in the two halves of the war of choice's run, every realm 1.04), while the war of
   choice is worth the Great Kings 0.09 of standing beyond the null and, before the patch, cost the cities 0.05. So a
@@ -95,15 +97,7 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice done; the coffer done; 7a
-   sea play done; 17++ A done; 17++ D done.
-2. **Running:** par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
-   0.80): the last runs, so that the standings of the runs before it stay comparable. Seeds 101-150 done; 151-200 started 21:21 UTC on 13
-   November (`--par-out` to a scratch file); the two halves are then merged into `rules/par-results.ts` as part F3's
-   rest did at dde658d (each power's results pooled and sorted, the characters' likewise).
-
-A session that ends with a run marked running: start that run again from a worktree of 938ba68 (Node as
-`core/.node-version`), its command in "Finished" by its feature's earlier rows.
+Nothing: every run of this part is finished and below.
 
 Left to the next part (the reading is under "Readings taken"): F3's rows that were measured on the play before its
 patches (walls, raiders, judging people, gifts, hunting bands, borrowing, caravans abroad, holding back pay, languages,
@@ -163,3 +157,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | 17++ D, talk of a province's leaning and a carrier caught, seeds 101-150 | `--games 50 --seed 101 --talk-play-half` | 938ba68 | 25 minutes. Growth 0.82 / 0.80, standing 1.035 / 1.036, wins 25 / 23; Great Kings 0.96 / 0.93 (1.008 / 0.976), the rest 0.80 / 0.77 (1.040 / 1.047). Talk of offers in 50 games (1,093), by traders in 48 (516); an offer read on a carrier caught twice. Against the null's halves on the same seeds (1.001 / 1.036, 24 / 23; Great Kings 0.994 / 0.970, the rest 1.003 / 1.047): ahead by about 0.03 of standing, mostly the rest's; wins level |
 | 17++ D, seeds 151-200 | `--games 50 --seed 151 --talk-play-half` | 938ba68 | 23 minutes. Growth 0.75 / 0.78, standing 1.002 / 1.025, wins 23 / 24; Great Kings 1.00 / 0.95 (1.021 / 0.985), the rest 0.71 / 0.75 (0.999 / 1.032). Talk of offers in 48 games (1,239), by traders in 47 (611); an offer read on a carrier caught 5 times. **Seeds 101-200: growth 0.785 / 0.79 (the null's 0.77 / 0.775), standing 1.019 / 1.031 (1.010 / 1.020), wins 48 / 47 (45 / 48); Great Kings 1.015 / 0.981 (1.008 / 0.972), the rest 1.020 / 1.040 (1.011 / 1.028). Seeds 1-200: standing 1.031 / 1.030 (the null's 1.023 / 1.019), wins 88 / 89 (88 / 95).** Even: each half of these seeds leaned a different way by about as much as the null's halves differ. An offer read on a carrier caught 7 times in 100 games: still too rare to move a game |
 | Par again, seeds 101-150 | `--games 50 --seed 101 --par-out <file>` | 938ba68 | 24 minutes alone. Median age 79 seasons. Growth (standing on dde658d's par): Egypt 1.18 (0.99), Hatti 1.43 (0.87), Babylonia 1.18 (0.84), Mitanni 0.83 (1.08), Assyria 0.47 (1.16), Arzawa 0.63 (0.86), Alashiya 0.95 (1.07); wins 5, 2, 2, 4, 0, 3, 4. A Great King's realm fell in 32 of 50 games |
+| Par again, seeds 151-200 | `--games 50 --seed 151 --par-out <file>` | 938ba68 | 22 minutes. Median age 91 seasons. Egypt 1.16 (1.06), Hatti 1.54 (0.94), Babylonia 1.21 (0.87), Mitanni 0.77 (1.05), Assyria 0.42 (1.07), Arzawa 0.79 (1.04), Alashiya 0.93 (0.95); wins 0, 5, 1, 2, 2, 1, 1. A Great King's realm fell in 30 of 50 games. **Seeds 101-200 against dde658d's par:** Egypt 1.17 (1.15), Hatti 1.49 (1.57), Babylonia 1.20 (1.28), Mitanni 0.80 (0.71), Assyria 0.45 (0.37), Arzawa 0.71 (0.80), Alashiya 0.94 (0.94): with the city's peace the middle powers grow more and the strong a little less. The two halves merged as before into `rules/par-results.ts`, 100 games |
