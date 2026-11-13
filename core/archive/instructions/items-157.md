@@ -420,3 +420,12 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      "its closed PRs and the *progress file* say" in `modules/roles.md`, a posted security review "naming the tool and
      the commit it read" and "the project's newest PRs that asked it show" in `modules/reviews.md`, and the hints the
      orchestrator's rule had lost.
+
+180. **13 November 2026** (the core, in the design chat), asked what each provider's tool reads first from a project,
+     and told that the tools take their instructions from more files than floor rule 3 named as rule files. Offered:
+     floor rule 3 names as rule files "any file a tool takes its instructions from, wherever it lies", with those
+     files' names as examples:
+
+     > Approved expertly!
+
+     Behind "and any other file a tool takes its instructions from, wherever it lies" in floor rule 3.

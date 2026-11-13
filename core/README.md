@@ -17,7 +17,7 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
   builder's own (`claude.md`, or `other-builders.md`). When needed: `roles.md`, `helpers.md`, `reviews.md`,
   `review-guidelines.md`, `codex.md`, `copilot.md`, `orchestrating.md`, `github-calls.md` and `updates.md`; and, for
   games only, `game-design.md`.
-- **The cap:** the floor and the modules together stay within 48 KB (core archive 164, 169, 171 and 179), checked on
+- **The cap:** the floor and the modules together stay within 49 KB (core archive 164, 169, 171 and 179), checked on
   every PR here (`scripts/size.mjs`), so a new rule replaces text rather than adding to it (core archive 134). It keeps
   the rules lean and decides nothing else: where a rule belongs and what it must say come first, and a change that
   honest trimming gives no room for raises the cap, saying why (`AGENTS.md`).
@@ -43,9 +43,11 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
    and keeps a "Review guidelines" section pointing to `core/modules/review-guidelines.md` and its own.
 4. **Its own security files:** its `SECURITY.md` says the floor holds whole and adds, under the same numbers, what only
    it has, listing under rule 3 after `**the rule files:**` its rule files besides `AGENTS.md`, `CLAUDE.md`,
-   `SECURITY.md` and `core-manifest.md` (its threat model among them), each path in backticks, the list ended by `;`, as
-   `core/scripts/rule-files.mjs` reads them, and among the checks on the work the configs of its copies, licence and
-   reading-size checks. Its threat model adds to the floor's.
+   `SECURITY.md` and `core-manifest.md` (its threat model among them), each path in backticks, the list ended by `;` (a
+   file a tool takes its instructions from, such as an `AGENTS.md` in a subfolder, is a rule file without being listed,
+   and a project keeps none it does not mean to have: floor rule 3), as `core/scripts/rule-files.mjs` reads them, and
+   among the checks on the work the configs of its copies, licence and reading-size checks. Its threat model adds to the
+   floor's.
 5. **The shared scripts and workflows,** run from its `core/` copy: `work-saved.sh` as its work-saved hook and
    `helper-call.mjs` as its hook on the Agent tool (it refuses a call that names no model or no effort, until the call
    is made again with the same prompt, and the effort max on every call but a fork's; a helper of a type the project
