@@ -55,7 +55,7 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice done; the coffer (151-200 **running**), then 7a sea play, 17++ A and 17++ D.
+1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice done; the coffer done; 7a sea play (101-150 **running**), then 17++ A and 17++ D.
 2. Par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
    0.80): the last runs, so that the standings of the runs before it stay comparable.
 
@@ -108,3 +108,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | The war of choice, a city keeping its peace, seeds 101-150 | `--games 50 --seed 101 --war-play-half` | 938ba68 | 31 minutes. Growth 0.83 / 0.84, standing 1.072 / 1.079, wins 24 / 22; Great Kings 0.99 / 0.94 (1.005 / 0.955), the rest 0.81 / 0.82 (1.084 / 1.101). Against the null's halves on the same seeds (1.001 / 1.036, 24 / 23; Great Kings 0.994 / 0.970, the rest 1.003 / 1.047): ahead over all and for the Great Kings, the rest ahead too |
 | The war of choice, a city keeping its peace, seeds 151-200 | `--games 50 --seed 151 --war-play-half` | 938ba68 | 28 minutes. Growth 0.83 / 0.84, standing 1.048 / 1.074, wins 27 / 18; Great Kings 1.00 / 0.94 (1.034 / 0.965), the rest 0.80 / 0.82 (1.051 / 1.093). **Seeds 101-200: standing 1.060 / 1.077 (the null's 1.010 / 1.020), wins 51 / 40 (45 / 48); Great Kings 1.020 / 0.960 (1.008 / 0.972), the rest 1.068 / 1.097 (1.011 / 1.028).** As on seeds 1-100: ahead in wins (by 14 beyond the null), level in standing, the Great Kings ahead, the rest about level. The patch holds |
 | Coffer, seeds 101-150 | `--games 50 --seed 101 --coffer-play-half` | 938ba68 | 32 minutes. Growth 0.76 / 0.78, standing 0.997 / 1.026, wins 21 / 23; Great Kings 0.98 / 0.97 (1.004 / 1.014), the rest 0.72 / 0.75 (0.996 / 1.028). The null's halves on the same seeds: 1.001 / 1.036, 24 / 23; Great Kings 0.994 / 0.970 |
+| Coffer, seeds 151-200 | `--games 50 --seed 151 --coffer-play-half` | 938ba68 | 29 minutes. Growth 0.75 / 0.80, standing 1.013 / 1.028, wins 18 / 26; Great Kings 0.98 / 0.94 (1.014 / 0.963), the rest 0.71 / 0.78 (1.013 / 1.039). **Seeds 101-200: growth 0.755 / 0.79 (the null's 0.77 / 0.775), standing 1.005 / 1.027 (1.010 / 1.020), wins 39 / 49 (45 / 48); Great Kings 1.009 / 0.989 (1.008 / 0.972), the rest 1.005 / 1.034 (1.011 / 1.028).** A little behind here (growth 0.03, standing 0.01, wins 9 against the null), even on seeds 1-100; over 200 games within the null's spread in standing, behind in wins |
