@@ -26,15 +26,17 @@ untrue); content put where its readers must read past it; a pointer no reader ne
 again, filler, hedging, clichés, voices alike, the same joke twice). Only a 10 passes; where a PR shows lines before and
 after, the owner's read is final. The project's guidelines add its own tells.
 
-**A mark on what every session reads** (the *size marks*; core archive 182 and 184) rises only when it has to. First the
-text is trimmed, and what no session needs at every start moves to a file read when needed. Then a fresh session that
-wrote none of it reads the project's own such files whole, with the change, for more to trim; that is trimmed, and only
-what is still over moves the mark. **A trim is valid** only if a reader who has the trimmed text, and what that reader
-has read by then, acts the same in every case. It keeps who a rule binds and when, what it asks or forbids, every limit
-and exception, what checks or enforces it, its reason, and each name and example; it removes only a second statement of
-what that reader has already read, or words that carry none of these. In doubt the words stay. Blocking: a trim that
-fails this; and a raise with no "Leanness check:" comment in the PR giving that session's answer, save for growth a sync
-of the core brought.
+**A mark on what every session reads** (the *size marks*; core archive 182, 184 and 188) rises only when it has to.
+First the text is trimmed, and what no session needs at every start moves to a file read when needed. Then a fresh
+session that wrote none of it reads the project's own such files whole, with the change, for more to trim; that is
+trimmed, and only what is still over moves the mark. **A trim is valid** only if a reader who has the trimmed text, and
+what that reader has read by then, acts the same in every case. It keeps who a rule binds and when, what it asks or
+forbids, every limit and exception, what checks or enforces it, its reason, and each name and example; it removes only a
+second statement of what that reader has already read, one that covers every case the removed words do, with the same
+force, or words that carry none of these. Whoever proposes a trim names that other statement and what it covers. In
+doubt the words stay. It holds for every trim of a rule file, whatever its purpose. Blocking: a trim that fails this;
+and a raise with no "Leanness check:" comment in the PR giving that session's answer, save for growth a sync of the core
+brought.
 
 **A rule file changed:** blocking for a rule that departs from the owner's archived words it cites; and a finding for a
 rule that adds text without replacing any, or makes anyone wait for the owner beyond floor rules 3 and 14 (core archive

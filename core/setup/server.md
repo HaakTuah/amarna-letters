@@ -1,7 +1,6 @@
 # Setting up the machine where agents run side by side
 
-Read only by whoever sets up the owner's machine for floor rule 18 (the owner, or a session he starts for it), once; no
-other session reads it.
+Read only by whoever sets up the owner's machine for floor rule 18 (the owner, or a session he starts for it), once.
 
 ## The owner's checklist
 
