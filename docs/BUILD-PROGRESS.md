@@ -21,8 +21,8 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
 - **Queued ideas,** in order:
   [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681)
   once the bug above ends (keeps gains from creeping back; archive item 97; the stand-in's sure yes, 12 November 2026);
-  then two looks, the owner's yes of 13 November 2026, with pictures before and after:
-  [rivers in spate rising from their sources](https://github.com/HaakTuah/amarna-letters/issues/679) and
+  then two looks, the owner's yes of 13 November 2026 (pictures, before and after):
+  ~~[rivers in spate rising from their sources](https://github.com/HaakTuah/amarna-letters/issues/679)~~ (done) and
   ~~[realm bands firmer as the wash thins](https://github.com/HaakTuah/amarna-letters/issues/636)~~ (done). The other sure yeses
   of 12 November are done (#647, #631).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
