@@ -290,3 +290,37 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      features), with item 89's limit that the computer players' bad play is never what waits.
 
      Behind the third outcome in "Using a feature must pay, measured three ways" (`modules/game-design.md`).
+
+174. **13 November 2026** (the core, in the design chat), shown that the core's "every PR gets
+     its security review, once, when it opens" was what GitHub's trigger can do, written as if it were the rule; that a
+     security review of a sync had found what the core's own had passed; and that one of Dependabot's updates had merged
+     with none:
+
+     > I suggest the agent-core projects only states the ideal narrower use, for when you yourself control through
+     > plug-in or herdr, or something of the like, but maybe still wait for it if it triggers anyhow, like it will for
+     > github triggers?
+
+     On widening Codex's automatic security review to every pull request so that Dependabot's were covered:
+
+     > Wait, thinking about it, does doing it on all add anything, why review dependabot change, expert?
+
+     Told that it adds next to nothing there (the diff is version numbers and checksums; floor rules 17 and 7 and the
+     checks are what guard an update), and that running it with every code review costs more than it finds:
+
+     > Okay, back to just team prs and on open prs. The rules stay that for github triggers it waits for what is
+     > triggered, while manually triggered tests it only does it where it adds something worthwhile, or? What is your
+     > take, expert? [...] setup with the codex plug-in should utilize reveiws and security reviews optimally, not
+     > limited to what my github triggers can acheive, no?
+
+     Offered that as the floor's line and the review rule, with a few plain lines for an owner on what setting a
+     machine up for agents buys him (item 149 left the setup to him), and asked whether Copilot's agent should be
+     turned on for a trial of its building:
+
+     > Yes, to your expert recommededation on 1 and 2. On 3, maybe we ought not to? Having it defined as preferred
+     > reviewer before claude code, if avaliable, I think suffices, or what is your take on this expert? And you can
+     > merge it all now, so [...] gets these updates when he pulls tomorrow, unless there is good reason not to.
+
+     Behind floor rule 8's "A PR that touches one merges only after its security review has run (Dependabot's own: rule 17)", point 3 of `modules/reviews.md` (a security review the session calls, once on the finished work
+     and aimed; one that starts by itself waited for on every PR, a pure sync's too) and the plug-in's security review
+     in `modules/codex.md`. Copilot stays the second code reviewer (item 169); its agent's building is not taken up.
+
