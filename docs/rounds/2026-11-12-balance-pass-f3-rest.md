@@ -55,7 +55,7 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice, 151-200 **running**; then the coffer, 7a sea play, 17++ A and 17++ D.
+1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice done; the coffer (101-150 **running**), then 7a sea play, 17++ A and 17++ D.
 2. Par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
    0.80): the last runs, so that the standings of the runs before it stay comparable.
 
