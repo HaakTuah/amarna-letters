@@ -156,8 +156,8 @@
 .map .moving [data-slot].gone { --lag: calc(1 - var(--r, var(--b, 1))); }
 .map .moving .season-0 :is([data-slot].inundation, [data-slot].inundation + .ripples) { animation: nile-rise calc(var(--move) * .8) ease-out both; }
 @keyframes nile-rise { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
-/* The other rivers' spates come down from their sources the same way: each is revealed from the side of the board its drawn
-   course starts at (the courses are stored from source to mouth): from the north for the Tigris, the Euphrates and the
+/* The other rivers' spates come down from their sources the same way: each is revealed from the side of the board its source
+   lies at on the drawn course: from the north for the Tigris, the Euphrates and the
    Jordan, from the south for the Orontes, from the east for the Marassantiya. Only the Tigris and the Euphrates have the
    order from a source (#03-tigris-euphrates-floods: "rise with the snowmelt in the Taurus and Zagros"); the rest is the
    game's reading. A spate going away (gone) does not rise again; the insets reach past the stroke's round ends. */
