@@ -110,6 +110,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - On a phone close up the map drew every mark and piece of the board, two thirds of them off the screen; it now draws only those near the view, bringing each back as the view comes near it (#666, `docs/rounds/2026-11-12-phone-frames-3.md`).
 - The marchers' dust and the fleets' heel were played on the page's main thread, a whole frame of the map for every frame of every march; they now run on the compositor, with the same look (#666, `docs/rounds/2026-11-13-phone-frames-4.md`).
 - The other rivers in spate (the Tigris, the Euphrates, the Marassantiya, the Orontes, the Jordan) came up all at once, though the Nile's flood has risen up its valley since item 17+++ part D; each now comes down from its source (the Tigris and the Euphrates from the Taurus and Zagros in the north, the Jordan from Hermon, the Orontes and the Marassantiya from the south), over the same part of the season's playout (`spate-rise` in `map-living.css`; #679). The stroke is faint under the realms' wash, so the look is subtle.
+- Zoomed right in, the realms' colours thin to almost nothing and the bands between powers kept their weight, so a frontier read more faintly than the realm had zoomed out; the stretch of a band against another power's land now thickens, up to half as thick again, as the wash thins below 1 (its own path, `band firm`, and one rule in `map.css`, from the same `--wash`; #636).
 
 ## Finds not yet fixed
 

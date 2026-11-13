@@ -128,14 +128,19 @@ export function bands(s: MapScene): { clip: string; parts: string[] }[] {
       const kept = BandsDrawn.get(p.id);
       if (kept !== undefined && kept.key === key) return kept.markup;
       let markup = "";
-      const other = (q: string): boolean => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o;
+      const holder = (q: string): Power | null => (q === "~" ? null : (s.owner.get(q) ?? null));
+      const other = (q: string): boolean => holder(q) !== o;
+      // Where another power holds what lies across: its own stretch, which grows firmer as the realms' colours thin.
+      const power = (q: string): boolean => holder(q) !== null && holder(q) !== o;
       // A frontier where armies of two powers stand face to face, one on each side: a wider, fainter stroke under the band.
       if (faced.length > 0) {
         const c = frontierPath(p.id, (across) => across.some((q) => faced.includes(q)));
         if (c !== "") markup += `<path class="band contested b-${glyphId(o)}" d="${c}" clip-path="url(#cl-${p.id})"/>`;
       }
-      const d = frontierPath(p.id, (across) => across.length === 0 || across.some(other));
-      if (d !== "") markup += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+      const rim = frontierPath(p.id, (across) => (across.length === 0 || across.some(other)) && !across.some(power));
+      if (rim !== "") markup += `<path class="band b-${glyphId(o)}" d="${rim}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+      const firm = frontierPath(p.id, (across) => across.some(power));
+      if (firm !== "") markup += `<path class="band firm b-${glyphId(o)}" d="${firm}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
       if (markup !== "") markup = `<g>${markup}</g>`;
       BandsDrawn.set(p.id, { key, markup });
       return markup;

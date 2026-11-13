@@ -74,6 +74,10 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .zb.on { outline: 2px solid var(--peak); }
 .map .bands, .map .fog, .map .labels, .map .roads, .map .moves { pointer-events: none; }
 .map .band { fill: none; stroke-width: calc(7px * var(--k)); stroke-linejoin: round; stroke-opacity: .95; }
+/* A band's firm stretch, where another power holds what lies across (the rest runs along a coast or no one's land), grows
+   with the realms' colours thinning below their full strength (--wash, 1 and under), to half as thick again at their least,
+   so a frontier between powers zoomed right in reads as firmly as the realm's colour did zoomed out. */
+.map .band.firm { stroke-width: calc(7px * var(--k) * (1 + .625 * (1 - min(var(--wash, 1), 1)))); }
 /* A frontier where the seat sees two powers' armies face to face: a wider, faint stroke of the realm's colour under its band. */
 .map .band.contested { stroke-width: calc(16px * var(--k)); stroke-linecap: round; stroke-opacity: .35; }
 .b-egypt { stroke: var(--egypt); } .b-hatti { stroke: var(--hatti); } .b-babylonia { stroke: var(--babylonia); }

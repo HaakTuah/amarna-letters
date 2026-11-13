@@ -51,9 +51,8 @@ describe("RealmBorders", () => {
     // Only the stretch they face each other across: Sapinuwa's frontier with Hattusa, not its border with no one's land.
     const drawn = bands(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")]));
     const accent = pathOf(drawn, "band contested b-egypt");
-    const band = pathOf(drawn, "band b-egypt");
     expect(accent).not.toBe("");
-    expect(accent.length).toBeLessThan(band.length);
+    expect(accent.length).toBeLessThan(frontierPath("sapinuwa", () => true).length);
     // Fleets do not face each other across a land frontier.
     expect(contested([army("Egypt", "sapinuwa"), { ...army("Hatti", "hattusa"), kind: "Fleet" }])).toBe(0);
     // The province's card lists the same provinces across (#586): the glow's own test, from the armies seen now only.
@@ -61,6 +60,19 @@ describe("RealmBorders", () => {
     expect(facedAcross(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa", true)]), "sapinuwa")).toEqual([]);
     expect(facedAcross(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")], "Egypt"), "sapinuwa")).toEqual([]);
     expect(facedAcross(scene([army("Hatti", "hattusa")]), "sapinuwa")).toEqual([]);
+  });
+
+  test("Only the stretch against another power's land is marked firm, to grow firmer as the realms' colours thin", () => {
+    const scene = (hattusa: Power | null): MapScene => ({ owner: new Map<string, Power | null>([["sapinuwa", "Egypt"], ["hattusa", hattusa]]), units: [] }) as unknown as MapScene;
+    const pathOf = (markup: string, cls: string): string => markup.match(new RegExp(`class="${cls}" d="([^"]*)"`))?.[1] ?? "";
+    const rim = (hattusa: Power | null): string => pathOf(bands(scene(hattusa)), "band b-egypt");
+    const firm = (hattusa: Power | null): string => pathOf(bands(scene(hattusa)), "band firm b-egypt");
+    // Against another power's land: the stretch along Hattusa is firm, the rest of the frontier (no one's land) is not.
+    expect(firm("Hatti")).toBe(frontierPath("sapinuwa", (across) => across.includes("hattusa")));
+    expect(rim("Hatti")).not.toBe("");
+    // Against no one's land, or inside one realm, none is firm.
+    expect(firm(null)).toBe("");
+    expect(firm("Egypt")).toBe("");
   });
 
   test("A band kept from an earlier season is the band traced afresh (part G)", () => {
