@@ -55,7 +55,7 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. Seeds 101-200 on 938ba68 (the branch's play; e8f2a83 reverts the overlord trial): the null split (101-150 **running**),
+1. Seeds 101-200 on 938ba68 (the branch's play; e8f2a83 reverts the overlord trial): the null split (151-200 **running**),
    then the close rows (vassal play, the war of choice, the coffer, 7a sea
    play, then F3's rows that were even or a little ahead).
 2. Par once more on the branch's last play (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
@@ -97,3 +97,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | Benchmarks before, seeds 3-4 | `--versus solo --games 2 --seed 3` | dde658d | 10 minutes alone. Egypt 1.37 / 0.93, Hatti 1.46 / 0.86, Babylonia 1.41 / 0.66, Mitanni 1.30 / 0.91, Assyria 1.95 / 0.92, Arzawa 0.90 / 0.68, Alashiya 1.05 / 0.76; all kings 1.71 / 1.06, wins alone 14% / 2%. **Seeds 1-4 (F3's patches, before this part's): growth alone / all-baseline Egypt 1.39 / 0.89, Hatti 1.39 / 0.93, Babylonia 1.44 / 0.63, Mitanni 2.33 / 0.82, Assyria 1.89 / 0.88, Arzawa 1.14 / 0.76, Alashiya 1.22 / 0.74; all kings 2.33 / 1.06, wins 22% / 2%** (F2's after: all kings 2.24 / 1.06, 22% / 2%) |
 | Overlord trial, seeds 1-50 | `--games 50 --seed 1 --vassal-play-half` | 3efc553 | 23 minutes. Growth 0.80 / 0.75, standing 1.056 / 1.036, wins 23 / 24; Great Kings 1.074 / 1.053; every Great King's growth as in the run without it (Egypt 1.25 / 1.25, Hatti 1.35 / 1.53). Vassal tablets sealed 221 (67 offered by the vassal). **Changes almost nothing**: a king strong enough to take a city is seldom offered its vassalage. Seeds 51-100 stopped; reverted (e8f2a83) |
 | Benchmarks after, seeds 1-2 and 3-4 | `--versus solo --games 2 --seed 1`, `--seed 3` | 938ba68 | 21 and 11 minutes. **Seeds 1-4: Egypt 1.39 / 0.89, Hatti 1.39 / 0.93, Babylonia 1.44 / 0.63, Mitanni 2.37 / 0.82, Assyria 2.00 / 0.88, Arzawa 1.14 / 0.76, Alashiya 1.22 / 0.74; all kings 2.29 / 1.06, wins alone 20% / 1%.** Against before: the same for every Great King but Mitanni (2.33 to 2.37) and Assyria (1.89 to 2.00); all kings 2.33 to 2.29, the cities alone now keeping their peace. No regression |
+| Null split, seeds 101-150 | `--games 50 --seed 101 --null-half` | 938ba68 | 26 minutes. Growth 0.77 / 0.79, standing 1.001 / 1.036, wins 24 / 23; Great Kings 0.98 / 0.93 (0.994 / 0.970), the rest 0.73 / 0.76 (1.003 / 1.047) |
