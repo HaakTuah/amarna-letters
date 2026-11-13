@@ -15,7 +15,7 @@
  * The season is the land's own state beneath the realms (item 17+++, part D): the layer lies under the realms' colours, which
  * wash over it, and the change from one season to the next moves as the season plays out (map-living.css, `--move`): snow
  * creeps down from the heights and melts from below, the Nile rises from the south (docs/history/03-environment-and-seasons.md,
- * #03-nile-rise-north), green spreads inland from the coast with the rains, and the land browns from its inland edges.
+ * #03-nile-rise-north) and the other rivers in spate from their sources (#03-tigris-euphrates-floods), green spreads inland from the coast with the rains, and the land browns from its inland edges.
  */
 import { WinterSeason, WorldMap, climateOf, floodSeasonOf, reapSeasonOf, seasonName, seasonOfTurn } from "@amarna/engine";
 import { F, Fields, Rivers, Shapes, arcNeighbours, city, landClipOf } from "./art.ts";

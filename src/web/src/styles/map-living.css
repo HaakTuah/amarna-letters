@@ -139,7 +139,7 @@
    motion, the land changes at once, with no transition to resolve). Each slot comes and goes over the last 0.4 of --move,
    after a lag of up to 0.6 by its place in the spreading (--lag, from 0 the first to 1 the last): the green from the coast
    inland (--r, how far inland a province lies), the brown from the inland edges, the snow from the heights down (--b, its
-   band) and melting from below. The Nile's flood rises from the south up its valley. */
+   band) and melting from below. The Nile's flood rises from the south up its valley, and the other rivers' spates come down from their sources (below). */
 .map .moving [data-slot] {
   --lag: 0;
   transition-property: opacity, fill, fill-opacity, display;
@@ -156,3 +156,9 @@
 .map .moving [data-slot].gone { --lag: calc(1 - var(--r, var(--b, 1))); }
 .map .moving .season-0 :is([data-slot].inundation, [data-slot].inundation + .ripples) { animation: nile-rise calc(var(--move) * .8) ease-out both; }
 @keyframes nile-rise { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+/* The other rivers' spates come down from their sources the same way, along the side of the board their course runs from:
+   the Tigris and the Euphrates from the Taurus and Zagros in the north, the Jordan from Hermon, the Orontes up from the
+   Lebanon, the Marassantiya up from the south (the clip reaches past the stroke's ends) (docs/history/03-environment-and-seasons.md, #03-tigris-euphrates-floods). */
+.map .moving .spate { --from: 0 0 100% 0; animation: spate-rise calc(var(--move) * .8) ease-out both; }
+.map .moving .spate:is([data-river="orontes"], [data-river="halys"]) { --from: 100% 0 0 0; }
+@keyframes spate-rise { from { clip-path: inset(var(--from)); } to { clip-path: inset(-12px); } }

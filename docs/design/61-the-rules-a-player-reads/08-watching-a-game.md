@@ -33,7 +33,7 @@ masters, their missions, what they said and reported. Zoomed in, the colours thi
 through.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
-gold in Shemu, rivers in spate and storms at sea. The snow creeps down and melts, the Nile rises from the south, the
+gold in Shemu, rivers in spate and storms at sea. The snow creeps down and melts, the Nile rises from the south and the other rivers in spate from their sources, the
 green spreads inland with the rains. A battlefield keeps its stele, and a sacked city lies in ruins until its people
 come back. Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
