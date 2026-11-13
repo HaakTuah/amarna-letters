@@ -12,7 +12,7 @@
 
 - he has fallen, or is a bond the king keeps: an ally who broke no oath to him, or his overlord (a plain peace is no bar,
   only a price, below: item 17++a; nor, since item 18's part F3, is a vassal who pays); for a city (its rank in the
-  starting data), any king at peace with it (item 18, part F3's rest: cities that broke a peace for a war of their choice
+  starting data), any king at peace with it whom it still trusts (`isFriend`: no broken oath, trust above -0.2; item 18, part F3's rest: cities that broke a peace for a war of their choice
   fell behind those that kept it, 0.05 of standing in 100 games, while the Great Kings gained by it);
 - the prize is 0;
 - more than eight seasons have passed since he was chosen;

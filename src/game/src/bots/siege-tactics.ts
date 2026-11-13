@@ -103,7 +103,7 @@ export function willing(b: Board, brain: Brain, owner: Power, leader: Power | nu
  * Script kings wage the war they choose (item 17++a, "something happens every season"). A plain peace is a price the choice
  * of a war weighs (`strategy`: its worth to an honest king, and the trust it carries), not a bar: a king fights the war he
  * chose on a king at peace with him, breaking the peace. An ally who broke no oath and his overlord are kept whatever a war
- * would win, and are never the war; so, for a city (its rank in the starting data), is a king at peace with it (item 18,
+ * would win, and are never the war; so, for a city (its rank in the starting data), is a king at peace with it whom it still trusts (`isFriend`; item 18,
  * part F3's rest: cities that broke a peace for a war of choice fell behind those that kept it, while the Great Kings
  * gained by it). Before, a king named a war on a king at peace with him, his choice
  * weighed and made, and then never fought it, while the war he would fight waited. `--no-war-play` and `--war-play-half`

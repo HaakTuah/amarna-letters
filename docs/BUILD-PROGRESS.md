@@ -175,7 +175,7 @@ Every item adds its numbers here ("Every item tests them" in the builder rules; 
 The rows of done items (6c to 17b) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
 17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check";
 17b on 13 November);
-new rows are added here. Where they stand (F3: item 18 F3; F3r: its rest, on 200 games):
+new rows are added here. Where they stand (F3: item 18 F3, on its unpatched play unless marked; F3r: its rest, 200 games):
 **pays** 6c planning ahead, 7b roads, 9 authority (F3), 9+a the economy (F3, patched), 9+b trade, 10+a land play (F3),
 10+b borders, 11a and 11a+ money and seasons (a little), 13 command (a little), 15 works (growth), 16 the council, 17++
 (occupying, the census, governors' regions and grants, the spy's check, remnants), 17++a the war of choice (F3r, patched:
@@ -201,7 +201,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's rest done (par again on 938ba68, the features left, 17++ A and D, seeds 101-200 for the close rows; a city keeps a plain peace as a bar to its war of choice; vassal play still behind); next, by the F3 report's "Split, and where to pick up" and the F3 rest report's "Left to the next part": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
+| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's rest done (save version 95; par again on 938ba68, the features left, 17++ A and D, seeds 101-200 for the close rows; a city keeps a plain peace as a bar to its war of choice; vassal play still behind); next, by the F3 report's "Split, and where to pick up" and the F3 rest report's "Left to the next part": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |

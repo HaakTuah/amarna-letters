@@ -110,7 +110,10 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   and standing, current against baseline, since a feature can help one and cost the other (the war of choice did).
 - **Vassals taken by their own overlords** (`BondWatch`, `bondReport`): the provinces overlords take from vassals paying
   their tribute, and from vassals in arrears, by side in a half-switch run. Overlords take about 0.3 provinces a game
-  from paying vassals and some 8 from those in arrears, so a paid overlord sparing his vassal holds.
+  from paying vassals (0.1 to 0.4 in each run) and 6 to 8 from those in arrears, so a paid overlord sparing his vassal
+  holds.
 - **A city keeps a plain peace** as a bar to its war of choice ([05](07-script-kings/05-choosing-a-war.md)).
 - **Par refreshed** from 100 games (seeds 101-200) with the city's peace in play, measured after every feature's run so
   that their standings, all read on the par before it, stay comparable.
+- Save version 95: par refreshed, so a game's final scores and winner, and the script kings' play that ranks rivals by
+  standing, differ from version 94's (as at part B's version 88).

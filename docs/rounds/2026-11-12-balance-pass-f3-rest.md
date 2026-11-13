@@ -53,8 +53,9 @@ the 200 games'. Every figure is in "Finished", below.
   alone, now that the cities alone keep their peace.
 - **What changed in play:** one patch, kept: a city (its rank in the starting data) keeps a plain peace as a bar to its
   war of choice, as it keeps an ally (`keptBond`, `bots/siege-tactics.ts`; design note
-  `docs/design/07-script-kings/05-choosing-a-war.md`). Every other trial was measured and reverted. No rule changed, so
-  no new save version.
+  `docs/design/07-script-kings/05-choosing-a-war.md`). Every other trial was measured and reverted. **Save version 95,**
+  for the par refresh, which changes a game's final scores and winner and the script kings' ranking of rivals (as part
+  B's par refresh made version 88); the script patch alone would need none.
 
 ## Readings taken
 
@@ -68,11 +69,17 @@ Unsure first.
 - **Unsure: vassal play is left behind on the patched play**, not patched in this part, though the builder rules ask
   every weakness found to be patched in the item at hand. Four trials in this part (the demand, the overlord, the third
   king's restraint, the proud king) and F3's four each lost or changed nothing; item 18 goes on in
-  parts, and the F3 report's split puts the next lever in the next part, so it is listed first there.
-- **The rows F3 measured on the play before its patches** (walls, raiders, judging people, gifts, hunting bands,
-  borrowing, caravans abroad, holding back pay, languages, winter strokes) are left to the next part: F3's split gave
-  this part its point 1 (par, the benchmarks, the features not yet measured, 17++ A and D, seeds 101-200 for the close
-  rows), and each of those rows was even or ahead on the old play.
+  parts, and the F3 report's split puts the next lever in the next part, so it is listed first there, for escalation
+  ("don't loop" in `core/modules/how-to-work.md`) rather than a ninth trial of the same kind. The lever no trial
+  touched: a script vassal refuses every demand of its overlord (2,543 of 2,578), however strong he is, so an
+  overlord's demands keep failing.
+- **Unsure: the rows F3 measured on the play before its patches** (walls, raiders, judging people, gifts, hunting
+  bands, borrowing, caravans abroad, holding back pay, languages, winter strokes) are left to the next part, though F3's
+  split asked seeds 101-200 for the close rows and these even rows are close: they were read on the old play, so they
+  need seeds 1-100 on the patched play before 101-200 means anything, and F3 itself warned they may move. Their verdicts
+  in the progress file are marked as read on the old play.
+- **The new par is not yet played:** every run here was on 938ba68, under dde658d's par, and par steers the script
+  kings' ranking of rivals; the next part's first runs are the first on it, and its null split is measured again.
 - **17++ A was played on seeds 151-200** as well as 101-150 ("then the rest of its seed set if close"): on 101-150 it led
   where 1-100 had been even, which is close enough to need the second half. 17++ D, even on 1-100, was played on both.
 - **Runs lost with a container were run again, unchanged:** the earlier session's 17++ A run of seeds 101-150 was never
@@ -101,8 +108,10 @@ Nothing: every run of this part is finished and below.
 
 Left to the next part (the reading is under "Readings taken"): F3's rows that were measured on the play before its
 patches (walls, raiders, judging people, gifts, hunting bands, borrowing, caravans abroad, holding back pay, languages,
-winter strokes), first on seeds 1-100 of the patched play, then 101-200 where close; vassal play's loss; and the
-coffer's wins (a little behind over 200 games).
+winter strokes), first on seeds 1-100 of the patched play, then 101-200 where close; vassal play's loss, by
+escalation, its untried lever whether a script vassal ever yields to a strong overlord's demand; and the coffer's wins (a
+little behind over 200 games). Item 18 closes only when every feature passes use against ignore, or its scripts or the
+feature are changed until it does.
 
 Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
 
