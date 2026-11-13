@@ -56,7 +56,7 @@ about the same).
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
 1. Seeds 101-200 on 938ba68 (the branch's play; e8f2a83 reverts the overlord trial): the null split (done),
-   then the close rows (vassal play: 101-150 **running**; the war of choice, the coffer, 7a sea
+   then the close rows (vassal play: 151-200 **running**; then the third-king trial (below), seeds 101-150 and 51-100; the war of choice, the coffer, 7a sea
    play, then F3's rows that were even or a little ahead).
 2. Par once more on the branch's last play (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
    0.80): the last runs, so that the standings of the runs before it stay comparable.
@@ -99,3 +99,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | Benchmarks after, seeds 1-2 and 3-4 | `--versus solo --games 2 --seed 1`, `--seed 3` | 938ba68 | 21 and 11 minutes. **Seeds 1-4: Egypt 1.39 / 0.89, Hatti 1.39 / 0.93, Babylonia 1.44 / 0.63, Mitanni 2.37 / 0.82, Assyria 2.00 / 0.88, Arzawa 1.14 / 0.76, Alashiya 1.22 / 0.74; all kings 2.29 / 1.06, wins alone 20% / 1%.** Against before: the same for every Great King but Mitanni (2.33 to 2.37) and Assyria (1.89 to 2.00); all kings 2.33 to 2.29, the cities alone now keeping their peace. No regression |
 | Null split, seeds 101-150 | `--games 50 --seed 101 --null-half` | 938ba68 | 26 minutes. Growth 0.77 / 0.79, standing 1.001 / 1.036, wins 24 / 23; Great Kings 0.98 / 0.93 (0.994 / 0.970), the rest 0.73 / 0.76 (1.003 / 1.047) |
 | Null split, seeds 151-200 | `--games 50 --seed 151 --null-half` | 938ba68 | 25 minutes. Growth 0.77 / 0.76, standing 1.019 / 1.003, wins 21 / 25; Great Kings 1.00 / 0.95 (1.022 / 0.974), the rest 0.73 / 0.73 (1.018 / 1.008). **Seeds 101-200: growth 0.77 / 0.775, standing 1.010 / 1.020, wins 45 / 48; Great Kings 1.008 / 0.972, the rest 1.011 / 1.028** (on seeds 1-100, before the city's peace: 1.035 / 1.017, 43 / 47) |
+| Vassal play, seeds 101-150 | `--games 50 --seed 101 --vassal-play-half` | 938ba68 | 26 minutes. Growth 0.77 / 0.77, standing 1.009 / 1.035, wins 14 / 33; **Great Kings 0.93 / 1.08 (0.984 / 1.133)**, the rest 0.74 / 0.71 (1.014 / 1.017). Against the null's halves on the same seeds (1.001 / 1.036, 24 / 23; Great Kings 0.994 / 0.970): the Great Kings far behind. The one difference left untried on this play: a third king holds back from a vassal for its overlord's sake (`bondWar`), and most of the cities between Egypt and Hatti are someone's vassal. F3's trial B removed it on the play before its own patch; tried again (trial, below) |
