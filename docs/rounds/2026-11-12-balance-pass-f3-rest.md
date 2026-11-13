@@ -55,9 +55,15 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice done; the coffer done; 7a sea play done; 17++ A (101-150 **running**), then 17++ D.
+1. Seeds 101-200 on 938ba68 (the branch's play; the trials are reverted): the war of choice done; the coffer done; 7a
+   sea play done; 17++ A: 101-150 **running** (started 19:20 UTC on 13 November, a fresh session; the earlier session's
+   run of the same seeds was lost with its container, unrecorded), then 151-200 if close; then 17++ D, 101-150 and
+   151-200.
 2. Par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
    0.80): the last runs, so that the standings of the runs before it stay comparable.
+
+A session that ends with a run marked running: start that run again from a worktree of 938ba68 (Node as
+`core/.node-version`), its command in "Finished" by its feature's earlier rows.
 
 Left to the next part (the reading is under "Readings taken"): F3's rows that were measured on the play before its
 patches (walls, raiders, judging people, gifts, hunting bands, borrowing, caravans abroad, holding back pay, languages,
