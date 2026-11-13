@@ -21,12 +21,11 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. The overlord trial (3efc553: no vassal taken that offers itself while its land could be taken), `--vassal-play-half`,
-   seeds 1-50 **running**, then 51-100.
-2. Benchmarks after (seeds 1-2 and 3-4, on the branch's last play).
-3. Seeds 101-200 on the branch's last play: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
+1. Benchmarks after (seeds 1-2 **running** and 3-4, on 938ba68's play, which the branch's is again: e8f2a83 reverts the
+   overlord trial).
+2. Seeds 101-200 on the branch's last play: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
    play, then F3's rows that were even or a little ahead).
-4. Par once more on the branch's last play (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
+3. Par once more on the branch's last play (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
    0.80): the last runs, so that the standings of the runs before it stay comparable.
 
 Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
@@ -63,3 +62,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | 17++ D, seeds 51-100 | `--games 50 --seed 51 --talk-play-half` | 938ba68 | 25 minutes. Growth 0.76 / 0.76, standing 1.018 / 1.026, wins 18 / 20; Great Kings 0.95 / 0.95 (0.988 / 0.987), the rest 0.72 / 0.73 (1.023 / 1.032). An offer read on a carrier caught: once in 50 games. **Seeds 1-100: standing 1.043 / 1.029 (the null's 1.035 / 1.017), wins 40 / 42 (43 / 47); Great Kings 1.017 / 0.968 (1.006 / 0.987).** Even, the Great Kings a little ahead; a carrier caught with an offer read is too rare to judge (once in 50 games here, once in 50 in item 17++'s run) |
 | Vassal play, the city's peace, seeds 51-100 | `--games 50 --seed 51 --vassal-play-half` | 938ba68 | 23 minutes. Growth 0.74 / 0.77, standing 1.005 / 1.040, wins 14 / 33; Great Kings 0.92 / 1.03 (0.971 / 1.087), the rest 0.71 / 0.72 (1.011 / 1.032). Paying vassals' provinces taken by their overlords 4. **Seeds 1-100: standing 1.030 / 1.039 (the null's 1.035 / 1.017), wins 37 / 57 (43 / 47); Great Kings 1.023 / 1.070 (1.006 / 0.987), the rest 1.032 / 1.033 (1.040 / 1.022). Behind**, the Great Kings most: against the null's halves, Egypt and Hatti, the overlords of the most cities, lose most on seeds 1-50 (0.20 and 0.21 of growth) |
 | Benchmarks before, seeds 3-4 | `--versus solo --games 2 --seed 3` | dde658d | 10 minutes alone. Egypt 1.37 / 0.93, Hatti 1.46 / 0.86, Babylonia 1.41 / 0.66, Mitanni 1.30 / 0.91, Assyria 1.95 / 0.92, Arzawa 0.90 / 0.68, Alashiya 1.05 / 0.76; all kings 1.71 / 1.06, wins alone 14% / 2%. **Seeds 1-4 (F3's patches, before this part's): growth alone / all-baseline Egypt 1.39 / 0.89, Hatti 1.39 / 0.93, Babylonia 1.44 / 0.63, Mitanni 2.33 / 0.82, Assyria 1.89 / 0.88, Arzawa 1.14 / 0.76, Alashiya 1.22 / 0.74; all kings 2.33 / 1.06, wins 22% / 2%** (F2's after: all kings 2.24 / 1.06, 22% / 2%) |
+| Overlord trial, seeds 1-50 | `--games 50 --seed 1 --vassal-play-half` | 3efc553 | 23 minutes. Growth 0.80 / 0.75, standing 1.056 / 1.036, wins 23 / 24; Great Kings 1.074 / 1.053; every Great King's growth as in the run without it (Egypt 1.25 / 1.25, Hatti 1.35 / 1.53). Vassal tablets sealed 221 (67 offered by the vassal). **Changes almost nothing**: a king strong enough to take a city is seldom offered its vassalage. Seeds 51-100 stopped; reverted (e8f2a83) |
