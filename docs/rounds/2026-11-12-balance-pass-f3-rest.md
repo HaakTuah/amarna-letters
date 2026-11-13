@@ -21,13 +21,14 @@ about the same).
 
 The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
 
-1. The war of choice with a city keeping its peace, seeds 51-100 **running**.
-2. 17 and 17++ A, buying food and stirring (`--freedom-play-half`), and 17++ D, talk of a province's leaning and a carrier
-   caught (`--talk-play-half`): seeds 1-50 and 51-100 each, on the patched play.
-3. Vassal play on 938ba68, seeds 51-100.
-4. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on 938ba68).
-5. Seeds 101-200 on 938ba68: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
+1. 17 and 17++ A, buying food and stirring (`--freedom-play-half`), and 17++ D, talk of a province's leaning and a carrier
+   caught (`--talk-play-half`): seeds 1-50 and 51-100 each, on the patched play: freedom 1-50 **running**.
+2. Vassal play on 938ba68, seeds 51-100.
+3. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on 938ba68).
+4. Seeds 101-200 on 938ba68: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
    play, then F3's rows that were even or a little ahead).
+5. Par once more on 938ba68 (seeds 101-150 and 151-200), since the city's peace raises every side's growth (0.82 against
+   0.80): the last runs, so that the standings of the runs before it stay comparable.
 
 Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
 
@@ -56,3 +57,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | Demand trial, seeds 1-50 | `--games 50 --seed 1 --vassal-play-half` | eeb5dbb | 24 minutes alone. Growth 0.77 / 0.77, standing 1.033 / 1.049, wins 18 / 30; Great Kings 0.96 / 1.04 (1.049 / 1.106), the rest 0.74 / 0.72 (1.030 / 1.039). askTribute written 1,608 (2,975 before), accepted 62, refused 1,333; brokenOath 1,575 (3,494). Egypt 1.28 / 1.25 (before 1.21 / 1.25); Mitanni 0.70 / 0.82, Assyria 0.30 / 0.78. Behind the null's halves, the Great Kings more than before the trial; the city's peace (938ba68) is in this run and not in the one before it, so the two are not yet told apart |
 | Demand trial, seeds 51-100 | `--games 50 --seed 51 --vassal-play-half` | eeb5dbb | 24 minutes. Growth 0.73 / 0.79, standing 0.995 / 1.042, wins 20 / 28; Great Kings 0.93 / 1.06 (0.974 / 1.101), the rest 0.69 / 0.74 (0.999 / 1.031). **Seeds 1-100: standing 1.014 / 1.046 (the null's 1.035 / 1.017), wins 38 / 58 (43 / 47); Great Kings 1.012 / 1.104 (1.006 / 0.987), the rest 1.015 / 1.035 (1.040 / 1.022): behind** |
 | Vassal play, the city's peace alone, seeds 1-50 | `--games 50 --seed 1 --vassal-play-half` | 938ba68 | 24 minutes. Growth 0.79 / 0.75, standing 1.055 / 1.037, wins 23 / 24; Great Kings 0.96 / 0.98 (1.075 / 1.053), the rest 0.77 / 0.71 (1.052 / 1.034). askTribute 2,970, brokenOath 3,166. Level with the null's halves over all, the rest a little ahead, the Great Kings a little behind (0.03, within 50 games' noise: the null's own Great Kings' gap was +0.054 on seeds 1-50 and -0.015 on 51-100). Against the demand trial on the same seeds (1.033 / 1.049; Great Kings 1.049 / 1.106): **the trial lost**, and is reverted (ff5c41b). Why is not plain from these runs; the demands a script vassal always refuses stay as a finding, not patched |
+| The war of choice, a city keeping its peace, seeds 51-100 | `--games 50 --seed 51 --war-play-half` | 938ba68 | 25 minutes. Growth 0.83 / 0.82, standing 1.080 / 1.057, wins 25 / 19; Great Kings 0.97 / 0.94 (1.041 / 0.926), the rest 0.81 / 0.79 (1.087 / 1.080). Captive kings held long 103, realms 1.00, captors 1.25; less long 194, realms 0.86, captors 1.08. **Seeds 1-100: standing 1.083 / 1.063 (the null's 1.035 / 1.017), wins 49 / 43 (43 / 47); Great Kings 1.053 / 0.940 (1.006 / 0.987), the rest 1.088 / 1.085 (1.040 / 1.022).** Pays: ahead in wins by ten beyond the null, level in standing, the Great Kings well ahead and the rest level (behind by 0.05 before the patch). **Kept** |
