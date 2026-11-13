@@ -582,3 +582,24 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > Agreed, expertly!
 
      Behind "one that covers every case the removed words do, with the same force" in `modules/review-guidelines.md`.
+
+189. **13 November 2026** (the core, in the design chat):
+
+     > Just one last thing! I see the owner is referred to as "him", "he" and "his" everywhere. That makes the repos
+     > less general purpose. The last thing I'll note tonight, that would benefit from being changed to something that
+     > could work for any owner.
+
+     > And one more question: how does my game repos know that the archive is my decisions, while […] repo will know
+     > it is not […] archive, when the stand-in uses it to make calls?
+
+     Told: every such word in the core's rules would be reworded to fit any owner ("the owner", or "they" where no one
+     else could be meant), the floor's among them on these words, and the words added to the check that fails what
+     fits only some projects; this archive stays as written, a dated record. And told that a project tells whose words
+     the core's archive holds by two accounts in its manifest, the one in the core's address and its *owner's account*,
+     which the rule would now say:
+
+     > Approved! Do all of this, expertly! […]
+
+     Behind the wording of the owner throughout the floor, the modules, `README.md` and `setup/`; the last pattern in
+     `scripts/general.json`; and "the account in the core's address in the manifest not being the *owner's account*"
+     in `modules/inbox.md`.
