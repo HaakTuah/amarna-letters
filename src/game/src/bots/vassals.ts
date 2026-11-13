@@ -137,10 +137,6 @@ export function bondWar(b: Board, brain: Brain, x: Power): number {
     if (bond.vassal !== x) continue;
     if (bond.overlord === me) {
       if (inArrears(b, brain, bond)) score += 60 + 100 * brain.p.vengeance;
-    } else if (b.alive.has(bond.overlord)) {
-      const o = bond.overlord;
-      const near = b.muster(o, Board.Map.capital(x).id) + (nearLand(b, o, x) ? 1 : 0);
-      score -= near * 60 * (0.5 + brain.p.caution) + (brain.isFriend(o) ? 250 : 0);
     }
   }
   return score;
