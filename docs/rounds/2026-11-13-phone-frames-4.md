@@ -116,3 +116,22 @@ season 15; three pairs, each `main` then the branch):
 
 A fifth to a third less layerization in every pair, paint and style a little less or the same: less work for a phone in
 every march, with the same look. Kept for that.
+
+**Soak, desktop, every speed** (`soak.mjs --speed <speed> --minutes 2`, 1280x800, not slowed; `main` then the branch, one
+run each in turn):
+
+| Speed | `main`: frames over 50 ms | branch | the worst in play (ms), `main` / branch | the browser's long tasks, `main` / branch |
+|---|---|---|---|---|
+| Fast | 17 of 6,867 (0.25%) | 13 of 6,823 (0.19%) | 83 / 67 | 6 / 5 |
+| Normal | 191 of 5,307 (3.60%) | 173 of 5,332 (3.24%) | 200 / 133 | 9 / 11 |
+| Slow | 122 of 6,190 (1.97%) | 103 of 6,233 (1.65%) | 217 / 183 | 9 / 6 |
+
+The opening's first draw is 0.57 to 0.68 s in every run, as before. At Fast desktop stands where it stood. At Normal and
+Slow it is far from the bar, on both builds alike, and differently: the browser counts only 6 to 11 long tasks on the main
+thread in two minutes, while 100 to 190 frames run over 50 ms (most of them 117 to 200 ms, in the first 15 seasons the
+slower paces reach). Those frames are held up off the main thread. Normal and Slow are the paces where the land's change of
+season moves (`--move`, 1 to 5 s a season: the season's ground fading slot by slot, the Nile rising by a clip-path), which
+Fast skips.
+
+**The hole check** of the third report (`scrub.mjs --holes`, and `--desktop`) on the branch: 104 checks on each, none with
+anything left out on the screen.
