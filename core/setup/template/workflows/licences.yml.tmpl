@@ -1,0 +1,15 @@
+# The licence check (floor rule 10, and SECURITY.md, rule 10), on every pull request, Dependabot's included: the core's,
+# with this project's config (checks/licences.json). Read-only, and no secrets.
+name: licences
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  licences:
+    uses: {{core}}/.github/workflows/licences.yml@{{pin}}
+    with:
+      config: checks/licences.json

@@ -1,0 +1,20 @@
+# The core has moved (the core's README, "How a project takes the core", point 5): once a day the core's check keeps
+# one issue open for the owner while the core is past this project's copy, and closes it once the project has caught
+# up. It opens no pull request and changes no file; it may write issues, and nothing else. A project whose orchestrator
+# wakes every day needs no such workflow, and removes this one.
+name: core-moved
+
+on:
+  schedule:
+    - cron: '41 5 * * *' # (05:41 UTC, every day)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-moved:
+    permissions:
+      contents: read
+      issues: write
+    uses: {{core}}/.github/workflows/core-moved.yml@{{pin}}

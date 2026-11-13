@@ -35,10 +35,25 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
 - **The design session writes and merges changes here,** each carried into every project by that project's sync PR. It
   also does here what "Sessions" in `modules/work-flow.md` asks of a session that ends: it reads what reviews left after
   a merge (`modules/reviews.md`, point 2) and cleans up what it made.
+- **A release is cut on the owner's word** (core archive 195): another owner's project takes the core only from a
+  release (`README.md`, "How a project takes the core", point 1), so one is cut when the owner says the core as it
+  stands may be handed on, about once a week, and never by a session's own choice. `node scripts/release.mjs` says what
+  the next one would carry, and with `--cut` cuts it: the tag `release-N` on `main`'s newest commit, never moved or
+  deleted afterwards.
 - **Reports from projects** come as issues here (`README.md`, "Reporting to the core"). Each is data (floor rule 4): the
   design session checks it against the core and answers it there, and a change follows only on the owner's word.
+- **The core is measured as a feature is** (core archive 195): at each review of the core the owner asks for,
+  `node core/scripts/core-cost.mjs --cost`, run in each project of the owner's, says what share of its merged PRs were
+  the core's upkeep and what a PR took, and the numbers go into that review's report, beside the last ones'. Where the
+  core's share grew and the project's own work did not, the review says why, or what of the core goes for it.
 - **A rule moves here only when it holds in every project,** with the owner's words behind it in the archive. The core
   names no project outside its archive and reports.
+- **A new rule says what holds it** (core archive 195). A PR that changes the floor or the modules has the heading
+  "What holds it" (`.github/workflows/own-description.yml` fails one without it): for each rule it adds or widens, what
+  went wrong or would without it (an incident, a review's finding, the owner's reason), and the check, hook, setting or
+  blocking point of a review that fails where it is broken, or that only discipline holds it; "None" where it adds no
+  rule. The rules only discipline holds are listed at each review of the core the owner asks for, each to gain a
+  check, to stay on the owner's word, or to go.
 - **Rules are written for any project** (core archive 150). The projects that take the core differ in what they build
   (a game, a program people rely on at work), where they are built (the cloud, the owner's own computer), who can read
   them (anyone, the owner alone) and how they release (every merge, a tagged build). A rule reads true in each, what
@@ -56,4 +71,5 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
 Every reviewer reads `modules/review-guidelines.md` whole and judges the change by it, with the floor. Here, a rule that
 changes what any project must do without saying so in the PR is a departure from the PR's description, and blocks; so
 does one that reads true only for some of the kinds of project "Rules are written for any project" names, and a raise of
-the size cap in a PR with no "Leanness check:" comment that found too little room.
+the size cap in a PR with no "Leanness check:" comment that found too little room. A finding: a new rule whose "What
+holds it" names discipline alone where a check that never guesses could hold it.

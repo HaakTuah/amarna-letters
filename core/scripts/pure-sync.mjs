@@ -1,7 +1,9 @@
 // Is this sync PR pure (floor rule 8)? Its merger runs it from a checkout of the core's `main`, never from the PR's own
-// copy under core/, which the PR could change, in the project's clone with the sync branch's head checked out:
+// copy under core/, which the PR could change, in the project's clone with the sync branch's head checked out. For a
+// project that follows the core's releases, that checkout is the release the sync moves to, itself a commit of `main`,
+// so that nothing newer than a release runs in its sessions (README.md, "How a project takes the core", point 1):
 //
-//   node <the core's main>/scripts/pure-sync.mjs
+//   node <the core's main, or that release>/scripts/pure-sync.mjs
 //
 // It reads the branch's head commit, not the working tree, and passes only when, against the project's main, the diff
 // touches only core/, core-manifest.md and .github/workflows/*.yml; outside core/, each changed line differs from the

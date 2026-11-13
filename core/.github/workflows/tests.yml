@@ -53,6 +53,9 @@ jobs:
       - name: The session's cost line
         if: ${{ !cancelled() }}
         run: node scripts/session-cost-test.mjs
+      - name: The core's own measurement
+        if: ${{ !cancelled() }}
+        run: node scripts/core-cost-test.mjs
       - name: The description check
         if: ${{ !cancelled() }}
         run: node scripts/pr-description-test.mjs
@@ -65,6 +68,9 @@ jobs:
       - name: The core-moved check
         if: ${{ !cancelled() }}
         run: node scripts/core-moved-test.mjs
+      - name: The core's releases, what a project follows, and cutting one
+        if: ${{ !cancelled() }}
+        run: node scripts/releases-test.mjs
       - name: The core's address stands in one place, and is this repository's
         if: ${{ !cancelled() }}
         run: node scripts/core-address-test.mjs
@@ -74,6 +80,9 @@ jobs:
       - name: Whether a script was started by itself
         if: ${{ !cancelled() }}
         run: node scripts/started-test.mjs
+      - name: The starter kit, and the core's own checks on a project it writes
+        if: ${{ !cancelled() }}
+        run: node scripts/init-test.mjs
       - name: The pointer check
         if: ${{ !cancelled() }}
         run: node scripts/pointers-test.mjs

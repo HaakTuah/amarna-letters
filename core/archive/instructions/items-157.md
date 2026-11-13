@@ -1,4 +1,4 @@
-# The owner's words behind the core: items 157 onward
+# The owner's words behind the core: items 157 to 194
 
 How they are kept, and where each item lives: `archive/instructions.md`.
 

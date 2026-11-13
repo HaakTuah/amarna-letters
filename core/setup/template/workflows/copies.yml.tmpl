@@ -1,0 +1,20 @@
+# The copies, pointer, reading-size and workflow checks (one fact, one place; read little: the core's
+# modules/how-to-work.md), the core's, with this project's config (checks/copies.json) and marks (checks/sizes.json),
+# on every pull request and push to main, docs-only changes included, since the rule files are what they guard most.
+# Read-only.
+name: copies
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  copies:
+    uses: {{core}}/.github/workflows/copies.yml@{{pin}}
+    with:
+      config: checks/copies.json
+      sizes: checks/sizes.json

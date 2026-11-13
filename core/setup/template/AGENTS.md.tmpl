@@ -1,0 +1,44 @@
+# {{project}}
+
+FILL IN: what this project is, in two or three lines: what it does, who uses it and what it is built in.
+
+The owner decides; builders like you build it. A builder of another provider: read `core/modules/other-builders.md` at
+the start of every task.
+
+## The core
+
+This project takes the shared rules in `core/` by `core-manifest.md`, whose slots and names fill the core's words. Read
+these whole at the start of every task (Claude Code imports them; any other builder: read each file named):
+
+@core-manifest.md
+@core/floor/security.md
+@core/modules/how-to-work.md
+@core/modules/inbox.md
+@core/modules/work-flow.md
+@core/modules/git.md
+
+The other files of the core are read when a task needs them, each module saying when, among them `core/floor/topics.md`
+(when: the floor's opening says).
+
+## Where things are
+
+| What | Where |
+| --- | --- |
+| What is done and the queue, in order | `docs/PROGRESS.md` |
+| Security: what this project adds to the floor; who might attack it | `SECURITY.md`, `docs/threat-model.md` |
+
+## Starting a task
+
+A builder of another provider starts from its brief instead (`core/modules/other-builders.md`).
+
+1. Take the main lane's next entry in `docs/PROGRESS.md`. Its text there is the spec.
+2. Read only what that entry names.
+
+## Commands
+
+FILL IN: the commands that set the project up, run its tests and build it, each with a word on what it prints.
+
+## Review guidelines
+
+Every reviewer, the code reviewers and the security reviewer included, reads `core/modules/review-guidelines.md` whole
+and judges the change by it, with `SECURITY.md` and the floor.

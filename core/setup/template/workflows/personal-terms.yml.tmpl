@@ -1,0 +1,19 @@
+# Nothing personal, ever (floor rule 11): the core's check, called with the one secret it needs, PERSONAL_TERMS, which
+# the owner sets in the repository's Actions secrets.
+name: Personal terms
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    uses: {{core}}/.github/workflows/personal-terms.yml@{{pin}}
+    secrets:
+      PERSONAL_TERMS: ${{ secrets.PERSONAL_TERMS }}

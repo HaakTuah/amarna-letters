@@ -37,6 +37,19 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
    `core.yml`, which the project calls on every PR as a required check, fails one whose `core/` differs from the core at
    its pin. The first copy is the sync script's too, run from a clone of this repository once the manifest is written
    (the script's header says how); the copy's own `.gitattributes` keeps every line ending as it is.
+
+   **What a project follows:** the core's `main`, or its releases (core archive 195). A release is a tag `release-N` on
+   a commit of `main`, cut on the owner's word (`AGENTS.md`, "A release is cut on the owner's word";
+   `scripts/release.mjs`). A project whose *owner's account* is not the account the core is under follows the releases,
+   unless its manifest's *follows* row says `main`; the projects of the core's own owner follow `main`, unless theirs
+   says `releases` (`scripts/releases.mjs`). Following the releases, the sync script takes the newest release past the
+   project's pin and nothing in between, and wherever this README or a script says the core has moved, it has moved
+   only when such a release is cut; a full SHA still takes any commit of `main`. Why: a pure sync brings scripts, hooks
+   and workflows that no review in the project reads (floor rule 8), so what another owner's project runs was reviewed
+   in the core alone, and its owner takes only what the core's owner chose to hand on. So that nothing of the core's
+   newer than a release runs in such a project's sessions either, its merger runs `scripts/pure-sync.mjs` from a
+   checkout of the release the sync moves to, itself a commit of `main` (floor rule 8), and its first copy is made
+   from a clone at a release.
 2. **A manifest,** `core-manifest.md` at its root (format below): the pin, the modules it takes, its names for the
    core's words, and what fills each slot. Every session reads it at the start. A list of modules does not grow by
    itself: when the core gains a module, a note says so (`setup/sync-notes.md`), and the list is read against
@@ -51,75 +64,90 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
    and a project keeps none it does not mean to have: floor rule 3), as `core/scripts/rule-files.mjs` reads them, and
    among the checks on the work the configs of its copies, licence and reading-size checks. Its threat model adds to the
    floor's.
-5. **The shared scripts and workflows,** run from its `core/` copy: `work-saved.sh` as its work-saved hook and
-   `helper-call.mjs` as its hook on the Agent tool (it refuses a call that names no model or no effort, until the call
-   is made again with the same prompt, and the effort max on every call but a fork's; a helper of a type the project
-   defines, a file `.claude/agents/<name>.md` holding its model and effort, goes on without the two, and so does a
-   helper of a plug-in's own type), `copies.mjs` and `licences.mjs` as its copies and licence checks with configs of its
-   own (the *copies check*; the licence check's with its audit of what no lockfile holds, which `licence-scan.mjs` holds
-   whole, every action, fetched package, asset and copied-in code it uses, and each entry that ships with its notice;
-   beside it `exact-versions.mjs`, which reads the same config's lockfiles and fails a dependency that is not, letter
-   for letter, the one version its lockfile installs: floor rule 7), and with the copies check `pointers.mjs` and
-   `reading-size.mjs`, the pointer check and the reading-size check, the second with marks of its own (the *size
-   marks*), and `workflows.mjs`, which needs no config and fails a workflow that names `pull_request_target` (floor rule
-   2); and `pr-description.mjs`, which fails a pull request, once it is no draft, whose description lacks one of the
-   headings `modules/git.md` names (or those the project gives it); and `session-cost.mjs`, which prints the line a
-   description ends with, what the session has spent so far, where Claude Code's own record of it can be read, and
-   nothing where it cannot. Its own `core.yml`, `personal-terms.yml`, `copies.yml`, `licences.yml`, `codeql.yml`,
-   `delete-merged-branches.yml`, `pr-description.yml` (on `pull_request` with the types opened, edited, reopened,
-   synchronize and ready_for_review) and, if it has versions Dependabot cannot see, `versions.yml` keep their triggers
-   and call the core's of the same name (`uses: HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>`). A
-   project whose orchestrator does not wake every day also has a `core-moved.yml` of its own, on a daily schedule, in a
-   job that grants `contents: read` and `issues: write`: it keeps one issue open for the owner while this repository's
-   `main` is past the project's pin (`core/scripts/core-moved.mjs`), and opens no pull request, since one a workflow
-   opens gets no checks. A session of the trusted builder's (floor rule 3) started with no orchestrator asks the same at
-   its start (`core/scripts/core-moved.mjs`, with `--dry`) and syncs first where the core has moved ("Sessions" in
-   `modules/work-flow.md`), so that issue is the backstop for the days no session starts. Only a sync PR moves those
-   pins, and only when the called workflow changed; `core.yml` fails a call pinned where it differs from the core's pin.
-   A sync changes nothing of the project's own, and the core tested its scripts before the sync brings them: so the
-   project's own suites run on one only for what they take from the copy (all of them where they run on its Node version
-   and `core/.node-version` changed; those that read its scripts for a change under `core/scripts/`), never for the rest
-   of the copy, which `core.yml` checks, nor for a workflow in which only such a pin moved (`modules/how-to-work.md`,
-   "The smallest setup that tests the rule"; core archive 167). Its `.github/dependabot.yml` ignores
-   `HaakTuah/agent-core*`. Every action a workflow uses, GitHub's own included, is pinned to a full commit SHA with its
-   version in a comment after it, which Dependabot keeps current: a security fix in an action reaches a workflow by that
-   weekly update, with no alert of its own, since GitHub alerts only for actions at a version. The owner's setting
-   (below) fails a run that uses one that is not pinned (core archive 152). A game served by GitHub Pages publishes main
-   with `site-publish.sh root`, and its pull requests' previews through a `preview.yml` of its own, on `workflow_run` of
-   its build, that calls the core's (the build uploads the artifact `preview`: `pr-number`, and the site in `site/`). A
-   project whose packages come from npm has a `signatures.yml` of its own, on every pull request, which calls the core's
-   with the folder of its lock file: where the pull request changes a package list, a lock file, an `.npmrc`, the Node
-   version or that workflow, an install from the registry alone, running no package's install script, then npm's own
-   check of the registry's signature on each installed name and version (floor rule 7); where it changes none, the check
-   passes, so a ruleset can require it. A project has a `security-review.yml` of its own, on `pull_request` with the
-   types opened, reopened, synchronize and ready_for_review and on `issue_comment` with the types created and edited, in
-   a job that grants `contents: read`, `pull-requests: read` and `statuses: write`: the core's gives each open pull
-   request's head commit the status `security-review`, which says whether its security review has run (floor rule 8), by
-   the summary Codex's own app keeps on the pull request or by a comment that opens "Security review:" from the owner, a
-   member or a collaborator (`modules/reviews.md`, point 3), the second alone where Codex marks a finding of its review
-   open, posted after it. It is advisory until the core says otherwise: the status always passes and says what the check
-   would have done. Dependabot's own pull request passes it (floor rule 17); one that needs no security review and gets
-   none by itself (floor rule 8) says so in such a comment. It runs a short job at each push and each such comment, a
-   dozen or so a pull request, which a private repository pays for like its other checks, so it has the check unless its
-   owner says otherwise. **A private repository** has GitHub's dependency review and CodeQL only with its paid code
-   security, so without it it calls neither `licences.yml` nor `codeql.yml`: a workflow of its own runs
-   `core/scripts/licences.mjs` for what no package list holds and `core/scripts/exact-versions.mjs` for its lockfiles,
-   and its own check holds its packages to floor rule 10's list. Its Actions settings must allow this repository's
-   workflows, and each check there spends paid minutes, which its owner set aside by making it private (so no step waits
-   for the owner's yes over them: floor rule 14), so each runs only where a change can affect it, and the core is synced
-   once a day at most, a sync PR opened that day being the day's ("Sessions" in `modules/work-flow.md`). On GitHub's
-   free plan it has neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by hand
-   (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds, the
-   project's own checks do. **A project that is sold** carries its company's name where its buyers and its code need it,
-   and its owner leaves that name off the list of personal terms; a person's name stays out all the same (floor rule
-   11), and where its buyers must see one, its build takes it from outside the repository. The terms it is sold under
-   are the owner's to give (floor rule 10). **The default branch is `main`,** which the hooks read their scripts from,
-   letting every call through where there is none (`core.yml` fails another name). **On Windows** Claude Code runs both
-   hooks in Git Bash, and the second needs Node on the path; where either is missing, the hook stops nothing. The core's
-   own tests run the scripts and both hooks there on every change (`.github/workflows/tests.yml`). **Another tool's
-   session** has neither hook, which are Claude Code's: what holds its work is its reading of `AGENTS.md` and the checks
-   on every pull request. **The copy's own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this
-   repository's, not the project's: its issue templates and settings are its own, written for its *owner's account*.
+5. **The shared scripts and workflows,** run from its `core/` copy. A new project gets its part of all this from the
+   starter kit (`setup/starter-kit.md`; core archive 195); what each part is:
+   - **The hooks:** `work-saved.sh` as its work-saved hook and `helper-call.mjs` as its hook on the Agent tool (it
+     refuses a call that names no model or no effort, until the call is made again with the same prompt, and the
+     effort max on every call but a fork's; a helper of a type the project defines, a file `.claude/agents/<name>.md`
+     holding its model and effort, goes on without the two, and so does a helper of a plug-in's own type).
+   - **The copies and licence checks:** `copies.mjs` and `licences.mjs` as its copies and licence checks with configs
+     of its own (the *copies check*; the licence check's with its audit of what no lockfile holds, which
+     `licence-scan.mjs` holds whole, every action, fetched package, asset and copied-in code it uses, and each entry
+     that ships with its notice; beside it `exact-versions.mjs`, which reads the same config's lockfiles and fails a
+     dependency that is not, letter for letter, the one version its lockfile installs: floor rule 7).
+   - **With the copies check,** `pointers.mjs` and `reading-size.mjs`, the pointer check and the reading-size check,
+     the second with marks of its own (the *size marks*), and `workflows.mjs`, which needs no config and fails a
+     workflow that names `pull_request_target` (floor rule 2).
+   - **The description check:** `pr-description.mjs`, which fails a pull request, once it is no draft, whose
+     description lacks one of the headings `modules/git.md` names (or those the project gives it).
+   - **The session's cost:** `session-cost.mjs`, which prints the line a description ends with, what the session has
+     spent so far, where Claude Code's own record of it can be read, and nothing where it cannot.
+   - **Its calls to the core's workflows:** its own `core.yml`, `personal-terms.yml`, `copies.yml`, `licences.yml`,
+     `codeql.yml`, `delete-merged-branches.yml`, `pr-description.yml` and, if it has versions Dependabot cannot see,
+     `versions.yml` keep their triggers and call the core's of the same name
+     (`uses: HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>`), each with the triggers, the
+     permissions and the inputs its template has (`setup/template/workflows/`, which `scripts/init-test.mjs` holds to
+     the core's workflows; `versions.yml` has none yet).
+   - **A project whose orchestrator does not wake every day** also has a `core-moved.yml` of its own, as its template
+     has it (a daily schedule or a start by hand, and a job that may read the repository and write issues): it keeps
+     one issue open for the owner while this repository's `main` is past the project's pin
+     (`core/scripts/core-moved.mjs`), and opens no pull request, since one a workflow opens gets no checks. A session
+     of the trusted builder's (floor rule 3) started with no orchestrator asks the same at its start
+     (`core/scripts/core-moved.mjs`, with `--dry`) and syncs first where the core has moved ("Sessions" in
+     `modules/work-flow.md`), so that issue is the backstop for the days no session starts.
+   - **Only a sync PR moves those pins,** and only when the called workflow changed; `core.yml` fails a call pinned
+     where it differs from the core's pin.
+   - **A sync changes nothing of the project's own,** and the core tested its scripts before the sync brings them: so
+     the project's own suites run on one only for what they take from the copy (all of them where they run on its Node
+     version and `core/.node-version` changed; those that read its scripts for a change under `core/scripts/`), never
+     for the rest of the copy, which `core.yml` checks, nor for a workflow in which only such a pin moved
+     (`modules/how-to-work.md`, "The smallest setup that tests the rule"; core archive 167).
+   - **Dependabot:** its `.github/dependabot.yml` ignores `HaakTuah/agent-core*`.
+   - **Every action a workflow uses,** GitHub's own included, is pinned to a full commit SHA with its version in a
+     comment after it, which Dependabot keeps current: a security fix in an action reaches a workflow by that weekly
+     update, with no alert of its own, since GitHub alerts only for actions at a version. The owner's setting (below)
+     fails a run that uses one that is not pinned (core archive 152).
+   - **A game served by GitHub Pages** publishes main with `site-publish.sh root`, and its pull requests' previews
+     through a `preview.yml` of its own, on `workflow_run` of its build, that calls the core's (the build uploads the
+     artifact `preview`: `pr-number`, and the site in `site/`).
+   - **A project whose packages come from npm** has a `signatures.yml` of its own, on every pull request, which calls
+     the core's with the folder of its lock file: where the pull request changes a package list, a lock file, an
+     `.npmrc`, the Node version or that workflow, an install from the registry alone, running no package's install
+     script, then npm's own check of the registry's signature on each installed name and version (floor rule 7); where
+     it changes none, the check passes, so a ruleset can require it.
+   - **The security-review check:** a project has a `security-review.yml` of its own, with the triggers and the three
+     permissions its template has: the core's gives each open pull request's head commit the status `security-review`,
+     which says whether its security review has run (floor rule 8), by the summary Codex's own app keeps on the pull
+     request or by a comment that opens "Security review:" from the owner, a member or a collaborator
+     (`modules/reviews.md`, point 3), the second alone where Codex marks a finding of its review open, posted after
+     it. It is advisory until the core says otherwise: the status always passes and says what the check would have
+     done. Dependabot's own pull request passes it (floor rule 17); one that needs no security review and gets none by
+     itself (floor rule 8) says so in such a comment. It runs a short job at each push and each such comment, a dozen
+     or so a pull request, which a private repository pays for like its other checks, so it has the check unless its
+     owner says otherwise.
+   - **A private repository** has GitHub's dependency review and CodeQL only with its paid code security, so without
+     it it calls neither `licences.yml` nor `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs` for
+     what no package list holds and `core/scripts/exact-versions.mjs` for its lockfiles, and its own check holds its
+     packages to floor rule 10's list. Its Actions settings must allow this repository's workflows, and each check
+     there spends paid minutes, which its owner set aside by making it private (so no step waits for the owner's yes
+     over them: floor rule 14), so each runs only where a change can affect it, and the core is synced once a day at
+     most, a sync PR opened that day being the day's ("Sessions" in `modules/work-flow.md`). On GitHub's free plan it
+     has neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by hand
+     (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds,
+     the project's own checks do.
+   - **A project that is sold** carries its company's name where its buyers and its code need it, and its owner leaves
+     that name off the list of personal terms; a person's name stays out all the same (floor rule 11), and where its
+     buyers must see one, its build takes it from outside the repository. The terms it is sold under are the owner's
+     to give (floor rule 10).
+   - **The default branch is `main`,** which the hooks read their scripts from, letting every call through where there
+     is none (`core.yml` fails another name).
+   - **On Windows** Claude Code runs both hooks in Git Bash, and the second needs Node on the path; where either is
+     missing, the hook stops nothing. The core's own tests run the scripts and both hooks there on every change
+     (`.github/workflows/tests.yml`).
+   - **Another tool's session** has neither hook, which are Claude Code's: what holds its work is its reading of
+     `AGENTS.md` and the checks on every pull request.
+   - **The copy's own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this repository's, not the
+     project's: its issue templates and settings are its own, written for its *owner's account*.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
 7. **Where a module's rule does not fit it,** its manifest lists the difference under "Differences" (core archive 161):
@@ -145,6 +173,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 | Slot | What the project fills in |
 | --- | --- |
 | *owner's account* | the owner's GitHub login, in backticks (`core.yml` fails a manifest without it): the owner's word (floor rule 4) and inbox (`modules/inbox.md`) |
+| *follows* | `main` or `releases`, in backticks: where its syncs take the core from ("How a project takes the core", point 1); left out, the releases where the core's owner is another, `main` otherwise |
 | *progress file* | the file that holds the queue and what is done |
 | *report* | where a task's report, with its "Readings taken", goes |
 | *settling references* | what open points are settled against, with the owner's past words |
@@ -190,6 +219,8 @@ Floor: whole. Modules: <all, or the list of those taken>.
 - Where Codex reviews: its GitHub app on the owner's repositories, its own automatic code review off (core archive 18);
   its security review on, for team PRs (Dependabot's own need none: floor rule 8), on PR open, reporting Medium and
   above, reading the project's threat model and `SECURITY.md` with the floor (core archive 51).
+- This repository's tags: a ruleset on `release-*` that blocks a tag's update and its deletion, so a release stays on
+  the commit it was cut on (core archive 195).
 - Each project's ruleset on its default branch: deletions restricted, force pushes blocked; a pull request required, no
   approvals; status checks required (the project's CI and `core / core`), branches up to date; where the repository has
   them, code scanning results required from CodeQL, blocking on security alerts High or higher and alerts Errors, code

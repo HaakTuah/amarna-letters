@@ -1,0 +1,12 @@
+  # The packages of {{npm}}/package.json, each update's licence read from the lock by the licence check.
+  - package-ecosystem: "npm"
+    directory: "/{{npm}}"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    groups:
+      packages:
+        patterns: ["*"]
+        update-types: ["minor", "patch"] # a new major is its own PR (core/modules/updates.md)
