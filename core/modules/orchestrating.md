@@ -9,11 +9,10 @@ sessions does it say so and stop.
 
 - **On every wake,** the hourly check included (on the owner's computer only one he set up: floor rule 8; core archive
   42, 44 and 124): pull `main`; if a rule file changed, re-read it and pass what touches them to the running builders in
-  one message; if `setup/sync-notes.md` gained entries, a lane does what they ask; if the core's `main` is past the
-  project's pin, start a routine lane (once a day where checks cost money) that runs `core/scripts/sync.mjs` and opens
-  the sync PR (never auto-merged: floor rule 8); turn back on any scheduled workflow GitHub switched off (`gh workflow
-  enable`); act on what is new in the *progress file*; once an open idea has waited a week with no verdict of the
-  stand-in's, have it judge every idea that lacks one, in one call (`modules/inbox.md`).
+  one message; if `setup/sync-notes.md` gained entries, a lane does what they ask; sync the core where it has moved, in
+  a routine lane ("Sessions" in `modules/work-flow.md`); turn back on any scheduled workflow GitHub switched off for
+  want of activity (`gh workflow enable`); act on what is new in the *progress file*; once an open idea has waited a
+  week with no verdict of the stand-in's, have it judge every idea that lacks one, in one call (`modules/inbox.md`).
 - **Hand over at once:** start the next session as soon as a task merges. One session per task, continued for its review
   fixes while its context is under an hour old and small; otherwise a fresh one (core archive 10).
 - **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`.

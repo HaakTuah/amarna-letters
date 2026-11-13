@@ -64,6 +64,17 @@ ok(is(judge(pull, [summary(open), said("Security review: the fix checked", "OWNE
 ok(is(judge(pull, [summary(open), said("Security review: the fix checked")], [{ ...finding("x"), created_at: null }]), false, "no review posted after it"), "a finding with no time to it is taken as the newest");
 ok(is(judge(pull, [summary(open), said("Security review: the fix checked")]), true, "after its newest finding"), "marked open with no finding to be found: a posted review settles it");
 
+// Dependabot's own pull request.
+const bump = { ...pull, user: { login: "dependabot[bot]", type: "Bot" }, head: { sha: HEAD, repo: { full_name: "o/r" } }, base: { repo: { full_name: "o/r" } } };
+const by = (sha, author = { login: "dependabot[bot]", type: "Bot" }, committer = { login: "web-flow", type: "User" }, verified = true) => ({ sha, author, committer, commit: { verification: { verified } } });
+const its = [[by("c".repeat(40))], [by(HEAD)]];
+ok(is(judge(bump, [], [], its), true, "floor rule 17") && is(judge(bump, [said("thanks")], [], its), true, "floor rule 17") && is(judge(bump, [summary({ ...done, status: null })], [], its), true, "floor rule 17"), "Dependabot's own pull request, with no review begun on it, passes: the floor holds it another way");
+ok(is(judge({ ...bump, user: { login: "dependabot[bot]", type: "User" } }, [], [], its), false, "no security review") && is(judge({ ...bump, user: { login: "dependabot", type: "Bot" } }, [], [], its), false, "no security review") && is(judge({ ...bump, head: { sha: HEAD, repo: { full_name: "x/r" } } }, [], [], its), false, "no security review") && is(judge({ ...bump, head: { sha: HEAD, repo: null } }, [], [], its), false, "no security review") && is(judge({ ...bump, base: null }, [], [], its), false, "no security review"), "a look-alike of it, or one from another repository, does not");
+const someone = { login: "someone", type: "User" };
+ok([[by(HEAD, someone)], [by("c".repeat(40)), by(HEAD, someone, someone)], [by(HEAD, undefined, someone)], [by(HEAD, undefined, undefined, false)], [by(HEAD, { login: "dependabot[bot]", type: "User" })], [by(HEAD, null)], [{ sha: HEAD }], [by("c".repeat(40))], [], null, undefined].every((commits) => is(judge(bump, [], [], commits), false, "no security review")), "nor one that holds a commit somebody else wrote or committed, or one GitHub did not sign, or whose commits are not known up to the head");
+ok(is(judge(bump, [], [], [by("c".repeat(40)), { ...by(HEAD, someone), parents: [{}, {}] }]), false, "no security review"), "a merge that brings it up to date is somebody else's commit too");
+ok(is(judge(bump, [summary(running)], [], its), false, "no security review") && is(judge(bump, [summary({ ...done, status: "queued" })], [], its), false, "no security review") && is(judge(bump, [summary(open)], [finding("2026-11-12T10:30:00Z")], its), false, "no review posted after it") && is(judge(bump, [summary(done)], [], its), true, "Codex's security review has run") && is(judge(bump, [said("Security review: read against the release notes")], [], [by(HEAD, someone)]), true, "is posted"), "a review of Codex's that began on it is waited for and read like any other, and a posted review counts on it as on any");
+
 // The status.
 const wait = judge(pull, []);
 const pass = judge(pull, [summary(done)]);
@@ -76,11 +87,12 @@ ok(status(pass, true, "https://github.com/o/r/actions/runs/1").target_url === "h
 const dir = mkdtempSync(join(tmpdir(), "security-review-"));
 try {
   const script = join(dirname(fileURLToPath(import.meta.url)), "security-review.mjs");
-  const run = (p, c, env = {}, r = undefined) => {
+  const run = (p, c, env = {}, r = undefined, k = undefined) => {
     writeFileSync(join(dir, "pull.json"), JSON.stringify(p));
     writeFileSync(join(dir, "comments.json"), JSON.stringify(c));
     if (r !== undefined) writeFileSync(join(dir, "review-comments.json"), JSON.stringify(r));
-    const files = [join(dir, "pull.json"), join(dir, "comments.json"), ...(r === undefined ? [] : [join(dir, "review-comments.json")])];
+    if (k !== undefined) writeFileSync(join(dir, "commits.json"), JSON.stringify(k));
+    const files = [join(dir, "pull.json"), join(dir, "comments.json"), ...(r === undefined ? [] : [join(dir, "review-comments.json")]), ...(k === undefined ? [] : [join(dir, "commits.json")])];
     return JSON.parse(execFileSync(process.execPath, [script, ...files], { encoding: "utf8", env: { ...process.env, ADVISORY: "", RUN_URL: "", ...env } }));
   };
   const advisory = run(pull, [[summary(running)]]);
@@ -88,6 +100,7 @@ try {
   const strict = run(pull, [[summary(running)]], { ADVISORY: "false", RUN_URL: "https://github.com/o/r/actions/runs/7" });
   ok(strict.status.state === "pending" && strict.status.target_url.endsWith("/runs/7") && run(pull, [[summary(done)]], { ADVISORY: "false" }).status.state === "success", "told it is not advisory, it waits until the review has run");
   ok(run(pull, [[summary(open), said("Security review: checked", "OWNER", "2026-11-12T11:00:00Z")]], { ADVISORY: "false" }, [[finding("2026-11-12T12:00:00Z")]]).status.state === "pending" && run(pull, [[summary(open), said("Security review: checked", "OWNER", "2026-11-12T13:00:00Z")]], { ADVISORY: "false" }, [[finding("2026-11-12T12:00:00Z")]]).status.state === "success", "given the review comments too, it weighs a finding against a posted review");
+  ok(run(bump, [], { ADVISORY: "false" }, [], its).status.state === "success" && run(bump, [], { ADVISORY: "false" }, []).status.state === "pending", "given the commits too, it passes Dependabot's own, and without them it does not");
   ok(JSON.stringify(run({ ...pull, draft: true }, [])) === "{}", "a draft prints nothing to mark");
   let usage = 0;
   try { execFileSync(process.execPath, [script], { stdio: "ignore" }); } catch (e) { usage = e.status; }

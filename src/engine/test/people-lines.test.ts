@@ -73,7 +73,7 @@ describe("PeopleLineTests", () => {
     const king = s.characters.find((x) => x.id === s.reigns.get("Byblos").character)!;
     const origin = king.facts.find((f) => f.tag === "origin" && f.text.startsWith("Rules "))!;
     const rules = origin.text;
-    // Gubla falls (as `fall` in turn/resolve.ts writes it); Egypt has not heard.
+    // Gubla falls (as `fall` in turn/falls.ts writes it); Egypt has not heard.
     s.eliminated.push("Byblos");
     origin.text = `Ruled ${rules.slice("Rules ".length)}`;
     Assert.contains(Views.character(s, king, "Egypt").knownFacts, (f) => f === rules);
