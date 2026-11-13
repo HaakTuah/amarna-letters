@@ -51,9 +51,12 @@ the 200 games'. Every figure is in "Finished", below.
 - **The benchmarks** (seeds 1-4, each Great King alone among baseline kings and all baseline): no regression from this
   part's patch; every Great King as before but Mitanni (2.33 to 2.37) and Assyria (1.89 to 2.00), all kings 2.33 to 2.29
   alone, now that the cities alone keep their peace.
-- **What changed in play:** one patch, kept: a city (its rank in the starting data) keeps a plain peace as a bar to its
-  war of choice, as it keeps an ally (`keptBond`, `bots/siege-tactics.ts`; design note
-  `docs/design/07-script-kings/05-choosing-a-war.md`). Every other trial was measured and reverted. **Save version 95,**
+- **What changed in play:** one patch, kept: a small king keeps a plain peace as a bar to his war of choice, as he keeps
+  an ally (`keptBond`, `small`, `bots/siege-tactics.ts`; design note `docs/design/07-script-kings/05-choosing-a-war.md`).
+  Measured on 938ba68 as a city (its rank in the starting data); the code review held that against "Different data, same
+  rules" (a power that rises is treated as an equal), so it became a king weaker now than every Great King was at the
+  start, which every city is at the start and no Great King is, and the war of choice, the null split and par were
+  measured again on it (below). Every other trial was measured and reverted. **Save version 95,**
   for the par refresh, which changes a game's final scores and winner and the script kings' ranking of rivals (as part
   B's par refresh made version 88); the script patch alone would need none.
 

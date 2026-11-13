@@ -11,9 +11,11 @@
 **Keeping a war.** The current target is dropped when any of these holds:
 
 - he has fallen, or is a bond the king keeps: an ally who broke no oath to him, or his overlord (a plain peace is no bar,
-  only a price, below: item 17++a; nor, since item 18's part F3, is a vassal who pays); for a city (its rank in the
-  starting data), any king at peace with it whom it still trusts (`isFriend`: no broken oath, trust above -0.2; item 18, part F3's rest: cities that broke a peace for a war of their choice
-  fell behind those that kept it, 0.05 of standing in 100 games, while the Great Kings gained by it);
+  only a price, below: item 17++a; nor, since item 18's part F3, is a vassal who pays); for a small king (`small`:
+  weaker now than every Great King was at the start, as every city begins; by strength now, not rank, so a city grown
+  great chooses as a Great King and a Great King brought low as a city), any king at peace with him whom he still trusts
+  (`isFriend`: no broken oath, trust above -0.2; item 18, part F3's rest: cities that broke a peace for a war of their
+  choice fell behind those that kept it, 0.05 of standing in 100 games, while the Great Kings gained by it);
 - the prize is 0;
 - more than eight seasons have passed since he was chosen;
 - he has more than one troop more than we do, has not attacked us in the last three seasons (this season or the two before), and is not a sworn foe;
