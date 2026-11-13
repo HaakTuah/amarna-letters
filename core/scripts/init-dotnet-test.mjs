@@ -8,8 +8,10 @@
 // solution builds with the kit in it, and what the build leaves behind disturbs no check; and the NuGet check
 // (nuget.mjs) on real packages: the SDK's project takes two from nuget.org with lock files on, a restore from the lock
 // files alone fills a folder, and the check reads the real lock files and the real packages' manifests there, passes
-// them, fails a package under the GPL that is then added, and the restore refuses a lock file gone stale. On Linux
-// and on Windows.
+// them, fails a package under the GPL that is then added, and the restore refuses a lock file gone stale; and where
+// packages come from: the restore takes them from the sources the workflow gives it, whatever a NuGet.Config names,
+// and the check fails a package that a source a build file added gave, by NuGet's own record of where it took it
+// from. On Linux and on Windows.
 // Git, tar, Node's own modules, and the .NET SDK where there is one, which writes its own settings and caches into the
 // test's scratch folder.
 //
@@ -128,17 +130,56 @@ if (kit.status === 0) {
     ok(lockFiles.length === 2, "with lock files on, the SDK wrote one beside each project, and git knows both", lockFiles.join());
     // (as the workflow does it: each project file the script lists, from its own lock file)
     const listedProjects = check(converted, ["core/scripts/nuget.mjs", "--projects"]).out.split("\n").filter(Boolean);
-    const locked = listedProjects.map(project => sdkIn(converted, "restore", "--locked-mode", `-p:RestorePackagesPath=${restored}`, "-p:NuGetLockFilePath=", `./${project}`));
-    ok(listedProjects.length === 2 && locked.every(r => r.status === 0) && fs.existsSync(path.join(restored, "newtonsoft.json", "13.0.3", "newtonsoft.json.nuspec")), "the script lists both project files, a restore of each from its lock file alone passes in the converted clone, and brings each package's manifest", `${listedProjects.join()}\n     ${locked.map(r => r.out.slice(-400)).join("\n     ")}`);
+    const from = check(converted, ["core/scripts/nuget.mjs", "checks/licences.json", "--sources"]).out.split("\n").filter(Boolean).flatMap(source => ["--source", source]);
+    const locked = listedProjects.map(project => sdkIn(converted, "restore", "--locked-mode", ...from, `-p:RestorePackagesPath=${restored}`, "-p:NuGetLockFilePath=", `./${project}`));
+    ok(listedProjects.length === 2 && from.join() === "--source,https://api.nuget.org/v3/index.json" && locked.every(r => r.status === 0) && fs.existsSync(path.join(restored, "newtonsoft.json", "13.0.3", "newtonsoft.json.nuspec")), "the script lists both project files and the registry as their one source, a restore of each from its lock file alone passes in the converted clone, and brings each package's manifest", `${listedProjects.join()}\n     ${locked.map(r => r.out.slice(-400)).join("\n     ")}`);
     const real = nuget(converted), counted = Number(/^(\d+) NuGet packages in 2 lock files checked/m.exec(real.out)?.[1]);
     ok(real.status === 0 && counted >= 2, "the NuGet check reads the real lock files and the real manifests, and passes two packages under MIT and Apache-2.0", real.out.slice(0, 1200));
     const gpl = sdkIn(plain, "add", "src/App", "package", "MySql.Data", "--version", "8.0.33");
     const refused = nuget(plain), advised = nuget(plain, "--advisory");
-    ok(gpl.status === 0 && refused.status === 1 && /^FAIL: MySql\.Data@8\.0\.33 \(src\/App\/packages\.lock\.json\): (.* is off the list for what ships|its manifest names (a licence file|an address|nothing))/m.test(refused.out), "a package under the GPL, added to what ships, fails it by name, for its licence as its real manifest gives it", `${gpl.out.slice(-400)}\n     ${refused.out.slice(0, 1500)}`);
+    ok(gpl.status === 0 && refused.status === 1 && /^FAIL: MySql\.Data@8\.0\.33 \(src\/App\/packages\.lock\.json\): (.* is off the list for what ships|it ships, and its manifest names (a licence file|an address|nothing))/m.test(refused.out), "a package under the GPL, added to what ships, fails it by name, for its licence as its real manifest gives it", `${gpl.out.slice(-400)}\n     ${refused.out.slice(0, 1500)}`);
     ok(advised.status === 0 && /^WOULD FAIL: MySql\.Data@8\.0\.33 /m.test(advised.out), "advisory, the same run says so and passes");
     git(plain, "checkout", "-q", "--", ...lockFiles);
     const stale = sdkIn(plain, "restore", "--locked-mode", `-p:RestorePackagesPath=${restored}`, "-p:NuGetLockFilePath=", "./src/App");
     ok(stale.status !== 0, "with the project asking for a package its lock file does not hold, the restore from the lock files refuses", stale.out.slice(-600));
+
+    // where packages come from: what the restore is given, whatever a NuGet.Config names
+    git(plain, "checkout", "-q", "--", ".");
+    fs.mkdirSync(path.join(plain, "empty-feed"));
+    fs.writeFileSync(path.join(plain, "NuGet.Config"), `<?xml version="1.0" encoding="utf-8"?>\n<configuration><packageSources><clear /><add key="elsewhere" value="./empty-feed" /></packageSources></configuration>\n`);
+    const fresh = (name, ...sources) => {
+      for (const project of ["src/App", "src/Lib"]) fs.rmSync(path.join(plain, project, "obj"), { recursive: true, force: true });
+      const r = spawnSync("dotnet", ["restore", "--locked-mode", ...sources, `-p:RestorePackagesPath=${kept(name)}`, "-p:NuGetLockFilePath=", "./src/App"], { cwd: plain, env: { ...sdkEnv, NUGET_PACKAGES: kept(name), NUGET_HTTP_CACHE_PATH: kept(`${name}-cache`) }, encoding: "utf8" });
+      return { status: r.status, out: `${r.stdout ?? ""}${r.stderr ?? ""}`, brought: fs.existsSync(path.join(kept(name), "newtonsoft.json", "13.0.3", "newtonsoft.json.nuspec")) };
+    };
+    const itsOwn = fresh("from-its-config"), given = fresh("from-the-registry", ...from);
+    ok(itsOwn.status !== 0 && !itsOwn.brought && given.status === 0 && given.brought, "a NuGet.Config that names another source alone would restore from there and finds nothing; given its sources as the workflow gives them, the same restore takes every package from the registry", `${itsOwn.status} ${itsOwn.out.slice(-500)}\n     ${given.status} ${given.out.slice(-800)}`);
+    fs.rmSync(path.join(plain, "NuGet.Config"));
+    // a file the build reads beside the project file adds a source to what the restore was given, and the project takes
+    // a package only that source holds: NuGet's own record beside the package says where it was taken from, and the
+    // check reads it there
+    const checked = name => check(plain, ["core/scripts/nuget.mjs", "checks/licences.json", "--packages", kept(name)]);
+    const clean = checked("from-the-registry"), only = "AgentCoreTrial.OnlyHere";
+    const made = [["new", "classlib", "--output", kept("only-here")], ["pack", kept("only-here"), "--output", path.join(plain, "extra-feed"), `-p:PackageId=${only}`, "-p:PackageVersion=1.0.0"]]
+      .map(args => [args[0], dotnet(tmp, ...args)]).filter(([, r]) => r.status !== 0);
+    fs.writeFileSync(path.join(plain, "src/App/App.csproj.user"), "<Project><PropertyGroup><RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)../../extra-feed</RestoreAdditionalProjectSources></PropertyGroup></Project>\n");
+    const taken = dotnet(plain, "add", "src/App", "package", only, "--version", "1.0.0");
+    const added = fresh("with-a-source-added", ...from), caught = checked("with-a-source-added");
+    ok(clean.status === 0 && made.length === 0 && taken.status === 0 && added.status === 0 && caught.status === 1 && new RegExp(`^FAIL: ${only.replace(".", "\\.")}@1\\.0\\.0 \\(src/App/packages\\.lock\\.json\\): the restore took it from .*extra-feed`, "m").test(caught.out),
+      "restored from the registry alone the check passes; with a file beside the project file adding a source and a package only it holds, the restore passes and the check fails that package, naming where it was taken from",
+      `${clean.status} ${clean.out.slice(0, 600)}\n     ${made.map(([what, r]) => `dotnet ${what}: ${r.out.slice(-400)}`).join("\n     ")}\n     ${taken.status} ${taken.out.slice(-400)}\n     ${added.status} ${added.out.slice(-400)}\n     ${caught.status} ${caught.out.slice(0, 900)}`);
+    fs.rmSync(path.join(plain, "src/App/App.csproj.user")); fs.rmSync(path.join(plain, "extra-feed"), { recursive: true });
+    git(plain, "checkout", "-q", "--", ".");
+    // a folder of the project's own as a source: named in the config, given to the restore by its whole path
+    fs.mkdirSync(path.join(plain, "vendor/packages"), { recursive: true });
+    fs.copyFileSync(path.join(kept("from-the-registry"), "newtonsoft.json", "13.0.3", "newtonsoft.json.13.0.3.nupkg"), path.join(plain, "vendor/packages/newtonsoft.json.13.0.3.nupkg"));
+    git(plain, "add", "-f", "vendor/packages/newtonsoft.json.13.0.3.nupkg");
+    const configFile = path.join(plain, "checks/licences.json"), config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+    fs.writeFileSync(configFile, JSON.stringify({ ...config, nuget: { ...config.nuget, sources: ["vendor/packages/"] } }));
+    const both = check(plain, ["core/scripts/nuget.mjs", "checks/licences.json", "--sources"]).out.split("\n").filter(Boolean);
+    const withFolder = fresh("with-a-folder", ...both.flatMap(source => ["--source", source])), folderChecked = checked("with-a-folder");
+    ok(both.length === 2 && path.isAbsolute(both[1]) && withFolder.status === 0 && folderChecked.status === 0, "a folder the config names is given to the restore by its whole path, the restore takes it beside the registry, and the check knows it as the source it named",
+      `${both.join()}\n     ${withFolder.status} ${withFolder.out.slice(-500)}\n     ${folderChecked.status} ${folderChecked.out.slice(0, 900)}`);
   }
 }
 

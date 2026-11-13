@@ -10,9 +10,10 @@
 // and the lines of its own work that changed. With --split it prints the same for all before a day and all from it
 // on, as for the day the project took the core. Weeks and days are UTC's. With --cost it also reads each pull request's description (gh, page by
 // page) for the line session-cost.mjs prints, and says what a pull request took: the answers and output tokens a
-// session's line rose by since that session's pull request before it. That line is no steady count (a session's
-// record can lose answers, and the line then drops), so a pull request is priced only where its session's line rose in
-// every part, the rest are counted as not priced, and what is printed is a floor. It reads; it writes nothing and
+// session's line rose by since that session's pull request before it. That line was no steady count before
+// session-cost.mjs kept a tally of its own (a session's record can lose answers, and the line then dropped), and
+// drops still where a tally is lost, so a pull request is priced only where its session's line rose in every part,
+// the rest are counted as not priced, and what is printed is a floor. It reads; it writes nothing and
 // changes nothing. Git, gh for --cost, and Node's own modules.
 //
 //   node core/scripts/core-cost.mjs [--since YYYY-MM-DD] [--split YYYY-MM-DD] [--cost]

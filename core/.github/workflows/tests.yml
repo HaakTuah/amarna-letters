@@ -43,6 +43,9 @@ jobs:
       - name: The licence scan on every form of a fetch
         if: ${{ !cancelled() }}
         run: node scripts/licence-fetch-test.mjs
+      - name: The licences read back from the installed packages
+        if: ${{ !cancelled() }}
+        run: node scripts/licence-installed-test.mjs
       - name: The NuGet check
         if: ${{ !cancelled() }}
         run: node scripts/nuget-test.mjs

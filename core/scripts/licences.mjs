@@ -24,13 +24,16 @@
 // .npmrc files that must keep packages' own install scripts off (floor rule 15); and "scan", which folders reach users,
 // for the scan that nothing used is left out of the audit (licence-scan.mjs, beside this file, which says what it
 // finds). Every .npmrc in the project may hold only settings that leave where npm fetches from alone, since a data or
-// font package is known by its registry address. A project whose packages come from NuGet names its lock files under
-// "nuget", which the NuGet check reads (nuget.mjs, beside this file) with this file's lists and the same audit.
+// font package is known by its registry address. "accepted" holds what is off its list and the owner wants anyway,
+// each with the owner's yes (licence-yes.mjs, beside this file, says how one is written and what it never takes in).
+// A project whose packages come from NuGet names its lock files under "nuget", which the NuGet check reads (nuget.mjs,
+// beside this file) with this file's lists, the same audit and an "accepted" of its own.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scan } from "./licence-scan.mjs";
+import { acceptedList, yesFaults } from "./licence-yes.mjs";
 import { started } from "./started.mjs";
 
 // Every licence the Open Source Initiative approves, as the SPDX licence list marks them (isOsiApproved, deprecated ids
@@ -64,8 +67,13 @@ const PUBLIC_DOMAIN = { any: ["Public Domain"], data: ["PDDL-1.0"] };
 const GITHUB_SERVICES = new Set(["CodeQL CLI"]);
 const GITHUB_TERMS = "LicenseRef-GitHub-Terms";
 const OWNER = "LicenseRef-Owner";
-// What the floor never allows on either list, and copyleft, never in what ships: a guard on the lists themselves.
-export const NEVER = /(^|-)(NC|ND)(-|$)|BUSL|SSPL|Elastic|Commons-Clause/iu;
+// What the floor never allows on either list or by any yes (non-commercial, no-derivatives and source-available
+// terms, by the ids and the words they go by), and copyleft, never in what ships: a guard on the lists themselves.
+const NEVER = new RegExp([
+  "(^|[^a-z])(NC|ND|FSL)([^a-z]|$)", "non[-_ ]?commercial", "no[-_ ]?deriv", "BUSL", "business[-_ ]?source", "SSPL", "server[-_ ]?side",
+  "(^|[^a-z])BSL(?![-_ ]?1\\.0)", // (the floor's "BSL", as the Business Source License is also written; BSL-1.0 is Boost's, on the list)
+  "elastic", "commons[-_ ]?clause", "polyform", "functional[-_ ]?source", "source[-_ ]?available",
+].join("|"), "iu");
 const COPYLEFT = /GPL|MPL|EPL|CDDL|-SA(-|$)/iu;
 
 /** Floor rule 10's list for what ships, read from its own words: { any, data, fonts, publicDomain }. */
@@ -91,7 +99,8 @@ export function floorList(file = new URL("../floor/topics.md", import.meta.url))
 /**
  * The two lists by what reaches users, each widened for what is named as data or assets (CC-BY) or fonts (OFL), never
  * across: `allowedFor(name, shipped, kind)`, where `kind` ("data", "asset", "font") is an audit entry's, and a package
- * counts as data or a font only when the config names it. `tools` is the tools' list, for the dependency review.
+ * counts as data or a font only when the config names it. `tools` is the tools' list, for the dependency review;
+ * `never`, what no list and no yes takes in.
  */
 export function policy(config = {}) {
   const floor = floorList();
@@ -117,6 +126,7 @@ export function policy(config = {}) {
       return set.any;
     },
     tools: [...tools].filter((id) => !pd.any.includes(id)).sort(),
+    never: NEVER,
   };
 }
 
@@ -165,12 +175,22 @@ export function registryName(resolved) {
   return match?.[1];
 }
 
+/** The version a registry tarball address names (`.../-/<name>-<version>.tgz`, the name without its scope), or undefined. */
+export function registryVersion(resolved) {
+  const name = registryName(resolved);
+  if (name === undefined) return undefined;
+  const file = resolved.slice(resolved.lastIndexOf("/") + 1, -4), base = name.slice(name.indexOf("/") + 1);
+  return file.startsWith(`${base}-`) ? file.slice(base.length + 1) : undefined;
+}
+
 /**
  * The lockfile paths of everything a package.json's runtime dependencies, and its workspaces', pull in, worked out from
  * the package.json files (`manifest(dir)`, dir "" for its own), not the lockfile's `dev` flags; each name resolved as
  * Node resolves it, from the nearest node_modules folder up. Peer and optional dependencies count, since they may be
  * bundled. Each package's own `dependencies` and `license` are the lockfile's, as npm wrote them: npm checks a
- * package's bytes against the lockfile, never those fields, so a hand edit to them is a review finding.
+ * package's bytes against the lockfile, never those fields. Where the signatures workflow installs from a lockfile,
+ * licence-installed.mjs, beside this file, reads each `license` back from the installed package; a hand edit to the
+ * `dependencies` is a review finding.
  */
 export function shippedPaths(packages, workspaces, manifest) {
   const deps = (m) => Object.keys({ ...m.dependencies, ...m.optionalDependencies, ...m.peerDependencies });
@@ -226,6 +246,9 @@ function normalised(config) {
   return out;
 }
 
+// An npm package and its one exact version, as "accepted" names it: "<name>@<version>", a scope before the name or none.
+const ACCEPTED_NPM = /^(?:@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*@[0-9][0-9A-Za-z.+-]*$/u;
+
 /** The config, read and checked: a key it does not know, or one of the wrong shape, would check less without a word. */
 export function loadConfig(path) {
   let config;
@@ -233,7 +256,7 @@ export function loadConfig(path) {
   if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error("the config is not a JSON object");
   const lists = ["lockfiles", "ships", "data", "fonts", "ignoreScriptsIn"];
   // ("nuget" is the NuGet check's own, which reads and checks it: nuget.mjs, beside this file)
-  const unknown = Object.keys(config).filter((k) => !lists.includes(k) && !["audit", "notices", "scan", "nuget"].includes(k));
+  const unknown = Object.keys(config).filter((k) => !lists.includes(k) && !["audit", "notices", "scan", "nuget", "accepted"].includes(k));
   if (unknown.length) throw new Error(`the config holds keys it does not know: ${unknown.join(", ")}`);
   for (const key of lists) {
     const v = config[key];
@@ -264,7 +287,41 @@ export function loadConfig(path) {
   const npmName = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/u;
   const odd = [...(config.data ?? []), ...(config.fonts ?? [])].filter((n) => !npmName.test(n));
   if (odd.length) throw new Error(`"data" or "fonts" names what is no npm package name: ${odd.join(", ")}`);
+  acceptedList(config.accepted, "accepted", ACCEPTED_NPM, "<name>@<version>", { entries: true });
+  if ((config.accepted ?? []).some((a) => a.entry !== undefined) && !config.audit) throw new Error('the config\'s "accepted" names an audit entry, and the config names no "audit"');
   return config;
+}
+
+/** Whether a lock file names an entry as npm writes one: "" for the project itself, else folders joined by "/", none
+ *  of them empty, "." or "..", and no backslash. A key of any other form is read one way here and perhaps another by
+ *  an install, so a lock file that holds one is refused whole. */
+export const lockPathOk = (path) => path === "" || (!path.includes("\\") && path.split("/").every((part) => part !== "" && part !== "." && part !== ".."));
+
+/** Whether a lock entry is a package an install puts into a folder: the one test for every reader of a lock file. */
+export const lockInstalled = (path) => path.includes("node_modules/");
+
+/** A project's workspaces, by the paths its package.json (`pkg`, read; `where`, its name in a message) names: each by
+ *  its path, never a pattern, so every reader of the lock file takes the same ones as the project's own. */
+export function workspacesIn(pkg, where) {
+  const named = pkg?.workspaces ?? [];
+  if (!Array.isArray(named) || named.some((w) => typeof w !== "string" || /[*?[{]/u.test(w))) throw new Error(`${where}: name each workspace by its path`);
+  return named.map((w) => posix.normalize(w));
+}
+
+/**
+ * The packages of a lock file that every reader holds to a licence, as { path, at, entry }: each entry an install puts
+ * into a folder, but a link to a workspace, which is the project's own. A link to any other folder (a dependency
+ * written "file:"), the install puts in place as that folder stands: its `entry` is that folder's, and `at` the folder
+ * its own files stand in, null where the link names no folder the lock file holds.
+ */
+export function lockRead(packages, workspaces) {
+  return Object.entries(packages)
+    .filter(([path, entry]) => lockInstalled(path) && !(entry.link && workspaces.includes(entry.resolved)))
+    .map(([path, entry]) => {
+      if (!entry.link) return { path, at: path, entry };
+      const at = typeof entry.resolved === "string" && entry.resolved !== "" && lockPathOk(entry.resolved) && Object.hasOwn(packages, entry.resolved) ? entry.resolved : null;
+      return { path, at, entry: at === null ? {} : packages[at] };
+    });
 }
 
 /** Every package each lockfile installs, with its licence, whether it ships, and the name its registry address gives. */
@@ -272,28 +329,41 @@ function lockfilePackages(root, lockPath, ships) {
   const base = posix.dirname(lockPath) === "." ? "" : posix.dirname(lockPath);
   const read = (p) => JSON.parse(readFileSync(join(root, base, p), "utf8"));
   const lock = read(posix.basename(lockPath));
-  if (!lock.packages || typeof lock.packages !== "object") throw new Error(`${lockPath} has no "packages" (npm's lockfile version 2 or 3)`);
-  const named = read("package.json").workspaces ?? [];
-  if (!Array.isArray(named) || named.some((w) => typeof w !== "string" || /[*?[{]/u.test(w))) throw new Error(`${posix.join(base, "package.json")}: name each workspace by its path`);
-  const workspaces = named.map((w) => posix.normalize(w));
+  if (!lock.packages || typeof lock.packages !== "object" || Array.isArray(lock.packages)) throw new Error(`${lockPath} has no "packages" (npm's lockfile version 2 or 3)`);
+  const odd = Object.entries(lock.packages).find(([path, entry]) => !lockPathOk(path) || !entry || typeof entry !== "object" || Array.isArray(entry));
+  if (odd) throw new Error(`${lockPath} holds an entry at ${JSON.stringify(odd[0]).slice(0, 200)} that is not written as npm writes one`);
+  const workspaces = workspacesIn(read("package.json"), posix.join(base, "package.json"));
   const shipped = ships ? shippedPaths(lock.packages, workspaces, (dir) => read(posix.join(dir, "package.json"))) : new Set();
-  return Object.entries(lock.packages)
-    .filter(([path, entry]) => path.includes("node_modules/") && !(entry.link && workspaces.includes(entry.resolved)))
-    .map(([path, entry]) => {
-      const target = entry.link ? lock.packages[entry.resolved] ?? {} : entry;
+  return lockRead(lock.packages, workspaces)
+    .map(({ path, entry: target }) => {
+      const entry = lock.packages[path];
       const name = path.slice(path.lastIndexOf("node_modules/") + 13);
-      return { name, version: target.version, license: target.license, registryName: entry.link ? undefined : registryName(entry.resolved), shipped: shipped.has(path), lockPath };
+      return { name, version: target.version, license: target.license, registryName: entry.link ? undefined : registryName(entry.resolved), registryVersion: entry.link ? undefined : registryVersion(entry.resolved), shipped: shipped.has(path), lockPath };
     });
 }
 
 /** The check, on the project at `root`: { failures, summary }. */
 export function check(config, root) {
   config = normalised(config);
-  const { allowedFor } = policy(config);
+  const lists = policy(config), { allowedFor } = lists;
   const failures = [];
+  // (the owner's yeses, by what each names; `needed`: those something off its list stood on, `onList`: those nothing did)
+  const accepted = config.accepted ?? [], needed = new Set(), onList = new Set();
+  const yesFor = (kind, name) => accepted.find((a) => a[kind] === name);
   const packages = (config.lockfiles ?? []).flatMap((f) => lockfilePackages(root, f, config.ships.includes(posix.join(posix.dirname(f), "package.json"))));
+  // (npm installs from a shrinkwrap file where one stands, whatever lock file a config names: only one of the two may)
+  for (const f of config.lockfiles ?? []) {
+    const other = posix.join(posix.dirname(f), posix.basename(f) === "npm-shrinkwrap.json" ? "package-lock.json" : "npm-shrinkwrap.json");
+    if (existsSync(join(root, other))) failures.push(`${f}: ${other} stands beside it, and an install reads the shrinkwrap file of the two: keep one`);
+  }
   for (const p of packages) {
-    if (!licenceOk(p.license, allowedFor(p.registryName ?? "", p.shipped))) failures.push(`off the ${p.shipped ? "list for what ships" : "tools' list"}: ${p.name}@${p.version} (${p.license ?? "no licence"}), in ${p.lockPath}`);
+    // (a yes names a package and its version as the registry's address does, like "data" and "fonts": never by a
+    // name or a version a lockfile could be given beside it)
+    const a = p.registryName === undefined || p.registryVersion !== p.version ? undefined : yesFor("package", `${p.registryName}@${p.version}`);
+    if (licenceOk(p.license, allowedFor(p.registryName ?? "", p.shipped))) { if (a) onList.add(a); continue; }
+    if (a) { needed.add(a); failures.push(...yesFaults(a.package, a, p.shipped, [p.license], lists, '"accepted"')); continue; }
+    const never = p.license !== undefined && NEVER.test(typeof p.license === "string" ? p.license : JSON.stringify(p.license));
+    failures.push(`off the ${p.shipped ? "list for what ships" : "tools' list"}: ${p.name}@${p.version} (${p.license === undefined ? "no licence" : typeof p.license === "string" ? p.license : JSON.stringify(p.license)}), in ${p.lockPath}${never ? "" : `; one the owner wants anyway is named in the config's "accepted", with the owner's words (floor rule 10)`}`);
   }
   let entries = [];
   if (config.audit) {
@@ -312,11 +382,25 @@ export function check(config, root) {
         if (e.kind !== "own" || e.licence !== OWNER) failures.push(`${config.audit}: ${e.name}: the owner's own work is "kind": "own" with ${OWNER}, and only it`);
         continue;
       }
-      if (!licenceOk(e.licence, allowedFor(e.name, e.ships === true, e.kind ?? null))) failures.push(`${config.audit}: ${e.name}: ${e.licence} is not on the list for ${e.ships === true ? "what ships" : "tools that only run"}`);
+      // (a yes names an entry with its version, where it has one: a new version is a new entry to it)
+      const a = accepted.find((y) => y.entry === e.name && y.version === e.version);
+      if (licenceOk(e.licence, allowedFor(e.name, e.ships === true, e.kind ?? null))) { if (a) onList.add(a); }
+      // (a NuGet package's yes stands in "nuget.accepted" alone, where the NuGet check holds it to its exact version)
+      else if (a && e.kind === "nuget") { needed.add(a); failures.push(`${config.audit}: ${e.name}: a NuGet package's yes stands in "nuget.accepted", never in "accepted"`); }
+      else if (a) {
+        needed.add(a);
+        // (the audit's own words for the licence are the yes's, letter for letter, readable or not)
+        if (a.licence !== e.licence) failures.push(`${config.audit}: ${e.name}: accepted under ${a.licence}, and recorded as under ${e.licence}: another licence is another yes`);
+        failures.push(...yesFaults(`${config.audit}: ${e.name}`, a, e.ships === true, [e.licence], lists, null));
+      }
+      else failures.push(`${config.audit}: ${e.name}: ${e.licence} is not on the list for ${e.ships === true ? "what ships" : "tools that only run"}`);
       if (e.ships === true && notices !== null && !(notices === undefined ? typeof e.notice === "string" && e.notice.trim() : notices.includes(e.name))) {
         failures.push(`${config.audit}: ${e.name}: it ships, so its notice ships too (floor rule 10): ${notices === undefined ? 'its "notice", for the notices the project builds' : `its name in ${config.notices}`}`);
       }
     }
+  }
+  for (const a of accepted) {
+    if (!needed.has(a)) failures.push(`"accepted" names ${a.package ?? `the audit entry ${a.entry}${a.version === undefined ? "" : ` at version ${a.version}`}`}, which ${onList.has(a) ? "is on its list and needs no yes" : a.package ? "nothing installs" : "the audit does not hold"}: remove it`);
   }
   const scanned = config.scan ? scan(config.scan, root, entries, config.audit, config.lockfiles ?? []) : undefined;
   if (scanned) failures.push(...scanned.failures);
@@ -326,11 +410,25 @@ export function check(config, root) {
   for (const f of config.ignoreScriptsIn ?? []) {
     if (!existsSync(join(root, f)) || !scriptsOff(readFileSync(join(root, f), "utf8"))) failures.push(`${f} must set ignore-scripts=true (floor rule 15)`);
   }
+  const all = [...new Set(failures)]; // (a package a lockfile holds twice fails once)
   const shippedCount = packages.filter((p) => p.shipped).length;
   const summary = `${packages.length} packages checked (${shippedCount} shipped or may be, ${packages.length - shippedCount} tools that only run)` +
     `${config.audit ? `, ${entries.length} audit entries` : ""}${scanned ? `, ${scanned.scanned} files scanned for what the audit must hold` : ""}; ` +
-    `${failures.length} failing (floor rule 10)`;
-  return { failures, summary };
+    `${needed.size ? `${needed.size} accepted on the owner's yes; ` : ""}${all.length} failing (floor rule 10)`;
+  return { failures: all, summary };
+}
+
+/**
+ * The dependency review's lists, as lines for $GITHUB_OUTPUT. It holds every package it sees to the tools' list (it
+ * cannot tell what ships), and lets the named data and font packages through to this check, which holds each to its
+ * own list; and, of those the owner accepted, the ones whose accepted licence the tools' list would refuse, which this
+ * check holds to its yes for that exact version (the review knows a package by its name alone, so it reads no version
+ * of such a one).
+ */
+export function actionLists(config) {
+  const lists = policy(config), tools = new Set(lists.tools);
+  const yeses = (config.accepted ?? []).filter((a) => a.package !== undefined && !licenceOk(a.licence, tools)).map((a) => a.package.slice(0, a.package.lastIndexOf("@")));
+  return [`allow-licenses=${lists.tools.join(",")}`, `allow-dependencies-licenses=${[...new Set([...(config.data ?? []), ...(config.fonts ?? []), ...yeses])].map((n) => `pkg:npm/${n}`).join(",")}`];
 }
 
 if (started(import.meta.url)) {
@@ -343,10 +441,7 @@ if (started(import.meta.url)) {
     root = execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: fileURLToPath(new URL(".", import.meta.url)), encoding: "utf8" }).trim();
   } catch (e) { fail(e.message); }
   if (process.argv.includes("--action")) {
-    // The dependency review holds every package it sees to the tools' list (it cannot tell what ships), and lets the
-    // named data and font packages through to this check, which holds each to its own list.
-    console.log(`allow-licenses=${policy(config).tools.join(",")}`);
-    console.log(`allow-dependencies-licenses=${[...(config.data ?? []), ...(config.fonts ?? [])].map((n) => `pkg:npm/${n}`).join(",")}`);
+    for (const line of actionLists(config)) console.log(line);
   } else {
     let result;
     try { result = check(config, root); } catch (e) { fail(e.message); }

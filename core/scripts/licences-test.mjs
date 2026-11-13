@@ -4,7 +4,8 @@
 // (.github/workflows/tests.yml).
 //
 //   node scripts/licences-test.mjs
-import { licenceOk, policy, registryName, registryOverrides, scriptsOff } from "./licences.mjs";
+import { readable } from "./licence-yes.mjs";
+import { actionLists, licenceOk, policy, registryName, registryOverrides, registryVersion, scriptsOff } from "./licences.mjs";
 
 let failed = 0;
 const ok = (cond, what, more = "") => { console.log(`${cond ? "ok  " : "FAIL"} ${what}`); if (!cond) { failed++; if (more) console.log(more); } };
@@ -24,6 +25,20 @@ ok(all(["BUSL-1.1", "SSPL-1.0", "Elastic-2.0", "CC-BY-NC-4.0", "CC-BY-ND-4.0", u
 ok(registryName("https://registry.npmjs.org/mossgrip-data/-/mossgrip-data-1.0.0.tgz") === "mossgrip-data" && registryName("https://registry.npmjs.org/@moss/grip/-/grip-1.0.0.tgz") === "@moss/grip"
   && [undefined, "file:vendor/mossgrip-data.tgz", "vendor/mossgrip-data", "git+https://mossgrip.example/data.git", "https://mossgrip.example/mossgrip-data/-/mossgrip-data-1.0.0.tgz"].every((r) => registryName(r) === undefined),
   "names a package by its registry address, never by a name the lockfile could be given");
+ok(registryVersion("https://registry.npmjs.org/mossgrip-data/-/mossgrip-data-1.0.0.tgz") === "1.0.0" && registryVersion("https://registry.npmjs.org/@moss/grip/-/grip-2.0.0-beta.1.tgz") === "2.0.0-beta.1"
+  && registryVersion("https://registry.npmjs.org/mossgrip-data/-/lichen-1.0.0.tgz") === undefined && registryVersion("file:vendor/mossgrip-data-1.0.0.tgz") === undefined && registryVersion(undefined) === undefined,
+  "and its version by the same address");
+ok(["BUSL-1.1", "SSPL-1.0", "Elastic-2.0", "CC-BY-NC-4.0", "CC-BY-ND-4.0", "PolyForm-Noncommercial-1.0.0", "PolyForm-Small-Business-1.0.0", "FSL-1.1-MIT", "MIT + Commons Clause", "LicenseRef-NonCommercial",
+  "LicenseRef-Business-Source", "LicenseRef-NoDerivatives", "LicenseRef-Source-Available", "Server Side Public License", '{"type":"BUSL-1.1"}', "non_commercial use only", "BSL-1.1", "BSL 1.1", "BSL", "MIT AND BSL-1.1"].every((l) => lists.never.test(l))
+  && ["MIT", "NCSA", "LicenseRef-Vendor-EULA", "LGPL-3.0-only", "UNLICENSED", "CNRI-Python", "Unicode-DFS-2016", "BSL-1.0", "BSL 1.0", "PostgreSQL", "MS-PL", "Apache-2.0 WITH LLVM-exception"].every((l) => !lists.never.test(l)),
+  "knows the terms no list and no yes takes in by their ids and by the words they go by, and no allowed licence among them");
+const ids = new Set(lists.tools);
+ok(["MIT", "(MIT OR GPL-2.0-only)", "GPL-2.0-only WITH Classpath-exception-2.0", "LicenseRef-A AND (MIT OR LGPL-3.0-only)", "LicenseRef-Vendor-EULA"].every((l) => readable(l, ids))
+  && ["", "AND", "()", "MIT AND", "(MIT", "MIT)", "MIT OR OR MIT", "MIT WITH", "MIT WITH AND", "WITH x", "MIT MIT", "Some-Words", "LicenseRef-", "LicenseRef-.", "LicenseRef--", "MIT WITH -x", `${"(".repeat(60)}MIT${")".repeat(60)}`, `${"(".repeat(200000)}MIT`, undefined, 7].every((l) => !readable(l, ids)),
+  "reads a yes's licence as one whole expression of ids it knows and names the owner gave, and nothing else");
+const lines = actionLists({ ships: [], data: ["mossgrip-data"], accepted: [{ package: "mossgrip-lib@1.0.0", licence: "LGPL-3.0-only", ships: true, yes: "y", notice: "n" }, { package: "@moss/bought@2.1.0", licence: "LicenseRef-Vendor-EULA", ships: false, yes: "y" }, { entry: "Bark pack", licence: "LicenseRef-Vendor-EULA", ships: true, yes: "y" }] });
+ok(lines.length === 2 && lines[0].startsWith("allow-licenses=0BSD,") && lines[1] === "allow-dependencies-licenses=pkg:npm/mossgrip-data,pkg:npm/@moss/bought",
+  "the dependency review is told to let through, of what the owner accepted, only a package under a licence it would refuse", lines[1]);
 const npmrc = ["registry=https://mossgrip.example/", "replace-registry-host=always", "@x:registry = https://mossgrip.example/", '"registry"=https://mossgrip.example/', '"replace-registry-host"=always', "${KEY}=https://mossgrip.example/"];
 ok(JSON.stringify(registryOverrides(npmrc.join("\n"))) === JSON.stringify(npmrc) && registryOverrides("fund=false\naudit=false\n# registry=x\n; registry=x\n").length === 0
   && JSON.stringify(registryOverrides("ignore-scripts=true\nregistry=https://mossgrip.example/\n")) === JSON.stringify(["registry=https://mossgrip.example/"])
