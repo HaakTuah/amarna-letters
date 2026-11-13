@@ -15,7 +15,10 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
 - **A bug beside it, now:** #666, a phone at Fast still drops frames past 50 ms; measured as item 17+++ part G did,
   until frames stay under 50 ms on phone and on desktop at every speed. PR #930 (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's
   1.4% to 0.4%. One transform a symbol did not pay (`docs/rounds/2026-11-12-phone-frames-2.md`); only what is in view is
-  drawn (`docs/rounds/2026-11-12-phone-frames-3.md`); next: the units' paint.
+  drawn (`docs/rounds/2026-11-12-phone-frames-3.md`); the marchers' dust and the fleets' heel on the compositor, a fifth
+  to a third less layerization in play but no fewer long frames, and with nothing moving at all no better than 3 to 3.6%
+  (`docs/rounds/2026-11-13-phone-frames-4.md`); next: the season's single steps (the names in slices, then the tints), then
+  the frames led by a layout, then one measure on a real phone.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Queued ideas** (stand-in's sure yeses, 12 November 2026), in order:
