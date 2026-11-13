@@ -1,18 +1,12 @@
 /**
  * The rulebook a model king reads (and a file seat, and a human at the table): byte-stable for a given configuration, so
- * prompt caching hits across seats and seasons. Split from the prompt text (prompts.ts), since files stay under 50 KB.
+ * prompt caching hits across seats and seasons. Split from the prompt text (prompts.ts), since files stay under 50 KB. How to
+ * win is in rules-winning.ts, what a sleeping king is told in rules-sleeping.ts, conditions and standing answers in
+ * rules-plan.ts.
  */
 import {
   GameConfigSchema,
-  AllPowers,
-  StartVassals,
-  parSummary,
-  MaxAnswers,
-  ageBand,
-  bandWords,
-  MaxConditions,
   MaxScheduledPerSeason,
-  MaxScheduledSeasons,
   MaxStanding,
   StartWalls,
   WorldMap,
@@ -39,6 +33,9 @@ import { worksRules } from "./rules-works.ts";
 import { commandRules } from "./rules-command.ts";
 import { freedomRules } from "./rules-freedom.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
+import { conditionsRules, standingAnswersRules } from "./rules-plan.ts";
+import { sleeping } from "./rules-sleeping.ts";
+import { howYouWin, openingBondsLine } from "./rules-winning.ts";
 const rulesCache = new Map<string, string>();
 
 export function leaderRules(primer: boolean, c: GameConfig): string {
@@ -46,66 +43,6 @@ export function leaderRules(primer: boolean, c: GameConfig): string {
   let text = rulesCache.get(key);
   if (text === undefined) rulesCache.set(key, (text = rules(primer, c)));
   return text;
-}
-
-/**
- * The ending, in words and without numbers (build order item 6a): kings are told the rule, never its chance, median, cap
- * or the drawn season, so no seat can see a last season coming. A table's median moves the words, in bands with no
- * numbers (item 6b, answering 6a's review).
- */
-export function ending(c: GameConfig, omensIn = "in your report"): string {
-  return c.openAge
-    ? `- This is an open age: it has no end. The game goes on season after season until only one kingdom is left or the table stops it, and the winner is whoever has grown most when it stops.`
-    : `- ${bandWords(ageBand(c.endMedian))} Each season your court's diviners read the omens of the end (OMENS ${omensIn}): they darken as the end grows likelier, from quiet to troubled to grave and darker still once the age has run past its usual length, but no sign foretells the season. When the age ends, the record opens: every court may read all that was hidden, who lied, who skimmed, which seals were forged and who served another in secret.`;
-}
-
-/** The opening vassal bonds, by overlord, as every court knows them (item 11+, "Opening relations as they were"). */
-function openingBondsLine(): string {
-  const by = new Map<string, string[]>();
-  for (const b of StartVassals) by.set(b.overlord, [...(by.get(b.overlord) ?? []), `${b.vassal} ${b.tribute}`]);
-  return [...by.entries()].map(([o, vs]) => `${o}'s vassals ${vs.join(", ")}`).join("; ");
-}
-
-/** Par's results for each starting position, as the rulebook gives them (item 11e): how often it fell, and its survivors' quarters. */
-export function parLine(): string {
-  return AllPowers.map((p) => parSummary(p)).join("; ");
-}
-
-/**
- * Who the kings are and how a power wins: the rulebook's opening, read too by the plan's ({@link planRules}), which has no
- * season's steps to point to.
- */
-export function howYouWin(c: GameConfig, fullRulebook: boolean): string {
-  // A house rule: the kings read it only in games that use it.
-  const sharedVictory = c.sharedVictory
-    ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their score together (each partner's, weighed by its starting strength) beats every other living person's, king or character.`
-    : ``;
-  // Item 18: a table that rolled the kings' temperaments tells every king so, since a model knows the kings of history.
-  const rolled = c.rolledTraits
-    ? `\n- The kings' temperaments were drawn for this game: no king, nor any heir after him, is the man the histories describe. Know each by what he does, not by what you have read of him.`
-    : ``;
-  return `You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The rules enforce only movement, combat, production and payment, and the passage and basing a sealed tablet grants. Every treaty, alliance and betrayal is invented by the players. You play one power: a Great King, a city's king or a land's chief. Your goal is to finish as high as you can: there is one winner, the person with the highest score, king or character, but every place counts, so climbing from eighth to fifth is worth the effort.
-
-HOW YOU WIN
-- The final score blends two things, each from 0 to 1. Size: your strength against the largest holding of any living person, which is a realm's. Performance: your strength over your strength when you came to the throne (the opening position's, for the king the game began with), ranked among the results of powers that started where you did (PAR, below): 0.5 at the middle of them and 1 above them all, so a one-city power and an empire perform level. Every person is placed on one scoreboard by his score, kings and characters alike (a character by the gold he holds and what he gained since he came into play, against what the best five characters of each trial game gained), and the highest on it wins, king or character. Your score is measured from your accession: an heir's growth is his realm's strength over what he inherited. If you die, your game is over: you rank below every living person, by what your realm held when you died, and your heir's score is his own. How much each weighs is set for the game; no court can measure where any realm, its own included, stands on either beyond what news, spies and letters bring.
-- Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season, plus the gold in your treasury, the gold in the people's purses of your provinces, the grain in their stores and markets (a shekel a measure) and what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. What your land produces is a season's share of the year's harvest${fullRulebook ? ` (PEOPLE)` : ``} at the reference price of grain, a shekel a measure, and its mines' gold, each province counted as far as it obeys you. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it.
-- PAR: how powers that started where you did fared in the trial games used to measure the game, their growth in each, a fall counted lowest of all, so that surviving where most fall scores in itself. Your result is placed among them, between two of them in proportion. For each starting position, how often it fell, and its survivors' growth at the lower quarter, the middle and the upper quarter: ${parLine()}.
-${ending(c, fullRulebook ? `in your report` : `below`)}${sharedVictory}${rolled}
-- You are a person, like every character: you die only by a cause where you are (put to death by a king who holds you, in a battle your side loses where you stand, in the fall of the city where you are, or on the road), never of age (COMMAND AT A DISTANCE says how likely each is). If another king takes you, by taking the city where you are (storming its walls or by a siege), in a battle or on the road, you are his captive and your fate is his to decide; meanwhile your court, if it was taken with you, loses its treasury to whoever took it and flees by road to the nearest city your realm still holds, ruling in your name from the road ${fullRulebook ? `(step 10 of how a season resolves, below)` : `(as your full rulebook tells)`}. A realm that holds nothing has fallen, and what it owes dies with it; its king, if he lives and did not give it away by sealed tablet, or else his heir, who sets out from where it fell for the court nearest it, is a free man with a claim to its throne that any king may take up by granting him land. If you die, your reign is over: your heir reigns from that season, the next name on your realm's record of the kings who followed, or past it a son or brother, with a third of your standing among your people and soldiers, love and hate alike, and your debts and promises his to honour or not. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it ("I give you the land of ...", or his "Give me the land of ..." sealed by you both), and then your own order to cede it. Your whole kingdom passes with it whole, by agreement (its people's regard for each of you stays as it was); your troops disband unless you give them away that same season; and you lose your seat and live on as a character at your old city, a man without a throne whom your new master may employ or set over it as its governor. Take a rival's capital by force and you hold it and the land your troops stand on; take it by agreement and his whole kingdom is yours.`;
-}
-
-/** What a condition on a standing order, a scheduled entry or a standing answer reads. */
-export function conditionsRules(c: GameConfig): string {
-  return `CONDITIONS
-- ${c.sleepingSeats ? "A scheduled entry or a standing order" : "A standing order"} may carry conditions (at most ${MaxConditions}): it runs only if every "if" holds and no "unless" does when it would run. They are read from what you know when they would run, never from what you cannot see: for orders, once the season's audiences are over (what was given and sealed at them counts); for standing answers, as your court begins; troops_in, troops of a power (or any foreign power's) in a province, where you can see them (troops you cannot see count as not there); treasury_less_than and treasury_at_least, your treasury by your ledger; envoy_back, one of your people back at your court and ready; tablet_sealed, a tablet in your archive sealed by you and a court (or any court); stores_at_least, the stores of a province of yours hold at least that many measures of grain.${c.sleepingSeats ? " Scheduled orders whose conditions do not hold are dropped for that season, which your news tells you and which wakes nobody." : ""} A standing order whose conditions do not hold when its move comes does not fire, and still stands.`;
-}
-
-/** Standing answers, and where a king may give them (`where`: the requests whose reply has the field). */
-export function standingAnswersRules(where: string): string {
-  return `STANDING ANSWERS (standing_answers, ${where})
-- Leave answers in advance for the envoys that come to your court, as an envoy carries your mandate: whose envoys (one court's, or any), what he brings (anything; only words; gold, at least an amount his lord sent with him, as his inventory states it; a tablet to seal), and what you do: seal his tablet or not, send back a share of the gold he brings for his lord (100% is a gift of like value), and the gist of what you say, which your scribes put into words. Conditions may limit one (see CONDITIONS). You may keep at most ${MaxAnswers}; cancel them by their ids (cancel_answers), or "all".
-- An envoy one covers is answered in your name, in one exchange, and wakes nobody: you read in your news what was done. The first answer that covers him, in the order you gave them, is the one used. An envoy who shows tablets as evidence is never covered: you receive him yourself, as you do every envoy no answer covers.
-- Give one only for what you would answer the same way whatever else he says: whatever he says beyond his gifts and his tablet goes unanswered until your next letter.`;
 }
 
 function rules(primer: boolean, c: GameConfig): string
@@ -254,24 +191,3 @@ HOW TO ANSWER
 Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") and of your gold (like "g7") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. ${PeriodShares} Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent under YOUR LETTERS while their envoys are away: in full (message, mandate, tablet and gold) at the next orders after you send them, then by their opening words, and in full once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders: the last season's notes in full, the two before by their opening words (the first 400 characters); older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply. Your thoughts between your orders (what you made of news that reached you while you slept, and counsel you took) are shown with your record and join it with your next orders; a plan you have set down for the seasons ahead is shown above it until you set down another.`);
         return sb.toString();
     }
-
-    /// <summary>
-    /// What a king that sleeps is told, right after how to win: that it sleeps after every set of orders and what wakes
-    /// it, then how to plan ahead. Nothing about the cap on its sleep, which stays hidden so it does not anchor the plan.
-    /// </summary>
-function sleeping(c: GameConfig): string {
-  return `
-YOU SLEEP BETWEEN YOUR ORDERS
-After you give your orders, you sleep. Only these wake you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; a siege of a city of yours begun, or about to make it surrender; land or troops lost; a scheduled or standing order that others foiled; a fee you let fall due unpaid; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.
-
-PLANNING AHEAD (how sleeping works)
-- While you sleep the world goes on, and nobody is told that you sleep. Your units hold unless you scheduled orders for them or a standing order gives them orders.
-- An envoy at your door wakes you for the audience only. You read your realm in brief (your land and troops, foreign troops at or inside your borders, your treasury, your scheduled and standing orders, your people), answer the envoy as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at the end of the season with everyone's orders and are checked like orders you give, before them. A letter sent there costs what it costs in your orders (the gold it carries, the scribe's fee of ${c.tabletFee} for a tablet, one of the ${c.maxDispatchesPerTurn} envoys who may leave your court in a season, and the envoy's time away) and sets out this season; if you send none and let your orders stand, your next letters leave only when you next give orders, which may be many seasons away. Your answer to the envoy before you goes home only as his report of your words; a letter goes with your own envoy, in your words, with a mandate, gold, a tablet to seal or tablets shown as evidence. Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).
-- Foreign troops wake you when they move into your land or against your troops, whether or not the move succeeds, and when they end a move in a province next to a province of your homeland or a walled city you hold, while you hold it (troops there can get into it the next season: take it if it has no walls, or stand within them and besiege it). Troops that only stay where they are do not wake you again, nor do troops raised by a levy. A siege of a city of yours wakes you in the season after it begins, and again when the city would surrender at the end of the season if the besiegers just hold: the last season to break the siege.
-- Scheduled orders (schedule): orders for any later season, named by its turn number. Name your units as in standing orders (STANDING ORDERS). A unit you raise can be given orders ahead too: name it by the province of its levy, in orders for any season after the levy (a levy you order now, or one you schedule). In those seasons that name means the unit the levy raises, even if another of your units stands there now; if the levy raises none, those orders are dropped (your news says so as soon as you learn it raised none: by word from that province, if it failed there; until then they stay in your list, and cannot run). Any other order naming a province where you have no unit is refused. They are secret and are checked when they run, after the orders you give that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders (a renewal is not a task: a renewal and an errand for the same person both run). To change or cancel them, send an entry for that season: the entries you give for a season together replace everything scheduled for it (several entries let orders of one season carry different conditions; see CONDITIONS), and an empty one cancels it. You may schedule at most ${MaxScheduledPerSeason} orders for one season, for at most ${MaxScheduledSeasons} seasons; orders past these limits are refused.
-- A unit's scheduled moves are its march. If a scheduled move is stopped, the unit tries that step again the next season, and each of its later scheduled orders waits a season. If the step is stopped a second time, or a scheduled move is refused, the march ends: the unit's remaining scheduled orders are dropped. When you lose a unit, its scheduled and standing orders are dropped.
-- Standing orders (see STANDING ORDERS) keep answering while you sleep: in the season one fires, its units do its orders instead of their scheduled ones, and its orders are checked before your scheduled orders. A standing order firing does not wake you: you read it in your news. This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell. Unlike a scheduled order, which runs in its season whatever happens, a standing order runs only if the move it waits for comes, and then in that very season.
-- A scheduled or standing order wakes you the next season only if others foil it as its season resolves: a move stopped by foreign troops; a support cut by a foreign attack; a purchase other buyers or foreign troops spoiled; a levy or cession in land you lost that season; a hire another court won; a servant, captive or ransom whose fate others changed that season; gold your treasurers found short when they paid. Your own orders never wake you: an order refused, whether when you give it or when it runs, and one that fails only because of your own orders or strength (a support or convoy that matched no move; a move stopped by your own unit, or for want of a convoy; a levy or cession your own troops stood in the way of; a unit your own orders had moved or given away; a hire or renewal offered below the price asked; a forger without the skill) is told in your news, which you read when something else wakes you. Nor do the orders you give now for this season, an entry for this season in your schedule among them: if one is refused or fails, you read why when you are next woken.
-- Each time you wake, you are told how long you slept and what woke you, then what happened while you slept: first in brief (the troop movements you saw, the reports that came, the orders that failed, the standing orders that fired), then the news of those seasons in full (the routine treasury notices left out).`;
-}
-
