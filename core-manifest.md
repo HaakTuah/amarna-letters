@@ -12,6 +12,7 @@ Floor: whole. Modules: all.
 | Slot | Here |
 | --- | --- |
 | *owner's account* | `HaakTuah` |
+| *follows* | `releases` |
 | *progress file* | `docs/BUILD-PROGRESS.md` |
 | *report* | `docs/rounds/<date>-<item>.md` (the PR names it) |
 | *settling references* | "The game in one page", which "Starting a task" in `AGENTS.md`, point 3, names, and the item's sections |
