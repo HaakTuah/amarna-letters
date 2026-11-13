@@ -162,11 +162,8 @@ export function bondLetters(b: Board, brain: Brain): BondLetter[] {
   const out: BondLetter[] = [];
   if (brain.tributeDue !== null && b.v.gold >= brain.tributeDue[1] + 10) out.push({ kind: "tribute", to: brain.tributeDue[0], score: 0.95, amount: brain.tributeDue[1] });
   const fresh = (x: Power): boolean => b.v.turn - brain.bondAsked.getOrDefault(x, -99) >= 2 * Year;
-  // A demand is made once while the arrears last, the warning before war (item 18, part F3's rest: a demand every two years
-  // took most of the letters of an overlord of many cities, and a vassal pays only of its own accord).
-  const warned = (bond: VassalTerms): boolean => brain.bondAsked.getOrDefault(bond.vassal, -99) > brain.tributeIn.getOrDefault(bond.vassal, bond.sealedTurn);
   for (const bond of brain.bonds) {
-    if (bond.overlord !== me || !inArrears(b, brain, bond) || !fresh(bond.vassal) || warned(bond)) continue;
+    if (bond.overlord !== me || !inArrears(b, brain, bond) || !fresh(bond.vassal)) continue;
     out.push({ kind: "demand", to: bond.vassal, score: 0.5 + 0.3 * p.pride, amount: bond.tribute });
   }
   const mineServed = brain.bonds.some((x) => x.vassal === me && brain.serving.has(x.overlord));
