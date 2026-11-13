@@ -203,7 +203,9 @@ export function sealBond(b: Board, brain: Brain, sender: Power, proposal: Tablet
   const me = b.me;
   const terms = vassalTerms({ id: "", vassal: proposal.vassal, proposedBy: sender, partner: me, clauses: proposal.clauses, sealedTurn: b.v.turn });
   if (terms === null) return false;
-  if (terms.overlord === me) return terms.tribute > 0 && !brain.rel.get(sender).hostile;
+  // As overlord, not a city we could take: its tribute, half a season of its land's yield a year, would bind us by a sealed
+  // tablet from land that yields the whole every season (item 18, part F3's rest).
+  if (terms.overlord === me) return terms.tribute > 0 && !brain.rel.get(sender).hostile && b.strength(sender) * Overawes > b.strength(me);
   // As the vassal: the price against what the overlord's power over us is worth.
   const income = Math.max(1, b.v.income);
   const bearable = terms.tribute <= Year * income * (0.25 + 0.2 * brain.p.caution);
