@@ -19,11 +19,15 @@ on the branch does not exist. Each is half a seed set (50 games) or less, so non
 One run at a time from 23:40 (the machine restarted twice with two at once; one run uses all four cores, so the pace is
 about the same).
 
-1. Vassal play on 938ba68 (the city's peace alone), seeds 1-50 **running**, to tell the two trials apart.
-2. Vassal play on 81c9490, seeds 51-100 (stopped twice by the restarts).
-3. The war of choice with a city keeping its peace (938ba68), seeds 51-100 (stopped by the second restart).
-4. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on the branch's last patch).
-5. Seeds 101-200 for the close rows and the null split.
+The branch's play is 938ba68's (ff5c41b reverts the demand trial); its runs use that commit.
+
+1. The war of choice with a city keeping its peace, seeds 51-100 **running**.
+2. 17 and 17++ A, buying food and stirring (`--freedom-play-half`), and 17++ D, talk of a province's leaning and a carrier
+   caught (`--talk-play-half`): seeds 1-50 and 51-100 each, on the patched play.
+3. Vassal play on 938ba68, seeds 51-100.
+4. Benchmarks before (`--versus solo`, seeds 3-4, on dde658d) and after (seeds 1-2 and 3-4, on 938ba68).
+5. Seeds 101-200 on 938ba68: the null split, then the close rows (vassal play, the war of choice, the coffer, 7a sea
+   play, then F3's rows that were even or a little ahead).
 
 Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
 
@@ -51,3 +55,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | Vassal letters of the Great Kings, a check | 2 games, seed 5, 80 seasons, prints in `bondLetters` and `sealBond` not kept | 938ba68 | Of the vassal letters the Great Kings' sums proposed, Egypt's demands of cities in arrears were 1,594 in 160 seasons, every other kind together 470 (Mitanni's demands 136, the offers 290). The press of vassal play's seeds 1-50: askTribute written 2,975 times, accepted 35, refused 2,543; script kings refuse every demand (`statecraft-clauses.ts`: they pay only of their own accord) and trust the asker 0.05 less. So the overlord of many cities spent his letters on demands that could not work: the Great Kings' loss. Not `tributeReturn`: the paying vassals their own overlords take are few (6 provinces in 50 games), so the vassal's belief holds |
 | Demand trial, seeds 1-50 | `--games 50 --seed 1 --vassal-play-half` | eeb5dbb | 24 minutes alone. Growth 0.77 / 0.77, standing 1.033 / 1.049, wins 18 / 30; Great Kings 0.96 / 1.04 (1.049 / 1.106), the rest 0.74 / 0.72 (1.030 / 1.039). askTribute written 1,608 (2,975 before), accepted 62, refused 1,333; brokenOath 1,575 (3,494). Egypt 1.28 / 1.25 (before 1.21 / 1.25); Mitanni 0.70 / 0.82, Assyria 0.30 / 0.78. Behind the null's halves, the Great Kings more than before the trial; the city's peace (938ba68) is in this run and not in the one before it, so the two are not yet told apart |
 | Demand trial, seeds 51-100 | `--games 50 --seed 51 --vassal-play-half` | eeb5dbb | 24 minutes. Growth 0.73 / 0.79, standing 0.995 / 1.042, wins 20 / 28; Great Kings 0.93 / 1.06 (0.974 / 1.101), the rest 0.69 / 0.74 (0.999 / 1.031). **Seeds 1-100: standing 1.014 / 1.046 (the null's 1.035 / 1.017), wins 38 / 58 (43 / 47); Great Kings 1.012 / 1.104 (1.006 / 0.987), the rest 1.015 / 1.035 (1.040 / 1.022): behind** |
+| Vassal play, the city's peace alone, seeds 1-50 | `--games 50 --seed 1 --vassal-play-half` | 938ba68 | 24 minutes. Growth 0.79 / 0.75, standing 1.055 / 1.037, wins 23 / 24; Great Kings 0.96 / 0.98 (1.075 / 1.053), the rest 0.77 / 0.71 (1.052 / 1.034). askTribute 2,970, brokenOath 3,166. Level with the null's halves over all, the rest a little ahead, the Great Kings a little behind (0.03, within 50 games' noise: the null's own Great Kings' gap was +0.054 on seeds 1-50 and -0.015 on 51-100). Against the demand trial on the same seeds (1.033 / 1.049; Great Kings 1.049 / 1.106): **the trial lost**, and is reverted (ff5c41b). Fewer demands left the overlord fewer letters that warn before war, and the vassal's own reckoning is moved by a threat (`hostility`); the weakness found stays as found |
