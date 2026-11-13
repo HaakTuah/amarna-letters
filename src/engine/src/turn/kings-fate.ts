@@ -16,7 +16,7 @@ import { KingTraitValues, ReignData, RolledRange, type KingTrait, type Reign } f
 import { newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, heirsHeard, king, land, powerName, rulerNamed, rulerStyle, setCrowned, type Power } from "../model/power.ts";
 import { newJourney, type Journey } from "../model/records.ts";
-import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy, type GameState } from "../model/state.ts";
+import { alive, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { styleOf } from "../rules/cast.ts";
 import { crownedIn, fallenRealmOf, kingAfield, kingLossUnheard, kingRoute, realmOfKing, standsAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";

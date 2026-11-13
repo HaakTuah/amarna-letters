@@ -5,7 +5,6 @@
 import { letterHeld, letterOffered } from "../model/held-letters.ts";
 import type { Order } from "../model/orders.ts";
 import { powerName } from "../model/power.ts";
-import { isAlive } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
 
 export function checkLetterOrder(v: Checking, order: Order): string | null | undefined {

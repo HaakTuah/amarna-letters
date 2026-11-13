@@ -151,6 +151,17 @@ describe("A layer patched", () => {
     Assert.equal(4, writes.length);
   });
 
+  test("a mark left out of the drawing stays out when its layer is patched (#666)", () => {
+    const city = (x: string, cls: string): Spec => ["g", { class: cls, transform: `translate(${x},5)` }];
+    const live = build(["g", {}, city("1", "city"), city("2", "city")]);
+    live.kids[0].attrs.set("data-out", "");
+    writes = [];
+    patched(live, build(["g", {}, city("1", "city besieged"), city("3", "city")]));
+    // Whether it is drawn is the renderer's to say (map/in-view.ts), after the layer is written.
+    Assert.equal('<g><g class="city besieged" transform="translate(1,5)" data-out=""></g><g class="city" transform="translate(3,5)"></g></g>', show(live));
+    Assert.equal("set class, set transform", writes.join(", "));
+  });
+
   test("a layer in parts parses only the parts that changed, each in its place", () => {
     const live = new FakeNode(1, "g");
     const was: Parts = { markup: [], nodes: [], tips: [] };

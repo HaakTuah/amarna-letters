@@ -92,7 +92,9 @@ export function firstTry(input, dir = os.tmpdir()) {
 
 // Run as a program (also when node is given this text itself, with no file: the hook runs main's copy that way). The
 // exit code is set rather than exited with, so the reason reaches stderr whole.
-if (!process.argv[1] || import.meta.url === pathToFileURL(process.argv[1]).href) {
+// Asked here as started.mjs asks, since this text imports nothing beside it.
+const direct = () => { try { return !process.argv[1] || [process.argv[1], fs.realpathSync(process.argv[1])].some(p => import.meta.url === pathToFileURL(p).href); } catch { return false; } };
+if (direct()) {
   if (process.argv[2] === "--command") console.log(JSON.stringify(COMMAND));
   else {
     let why = null;

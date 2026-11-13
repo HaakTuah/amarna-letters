@@ -12,6 +12,7 @@ import { choicesOf, newSettings, toConfig, withChoices } from "../src/session/se
  * after every season, and prints what the page and the worker keep as the game goes: the snapshots, the frames, the scenes,
  * and the time each costs.
  */
+// eslint-disable-next-line no-restricted-syntax -- a measurement, not a test of a rule: it runs only when asked (AMARNA_PROBE=1)
 describe.skipIf(!process.env.AMARNA_PROBE)("Probe", () => {
   const gc = (): void => (globalThis as { gc?: () => void }).gc?.();
   const heap = (): number => {

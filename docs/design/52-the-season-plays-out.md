@@ -72,6 +72,8 @@ way, at least 0.7 s a season.
 The closing line (`closingLine`) says what changed, the greatest first: "Sumur fell to Amurru; battles at Gubla and
 Qadesh; an envoy reached Babylon; two columns on the march; word came of plague in Mitanni." A seat's quiet season is
 "A quiet season, as far as word has reached you."
+The Season tab keeps the last five seasons' closing lines, newest first and dated (`closingLedger`), each made once from
+its season's scene as the eyes shown knew it, and kept as words (a scene is megabytes); none for the opening.
 
 ## Threads to watch and the director camera (part F)
 

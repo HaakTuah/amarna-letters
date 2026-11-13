@@ -42,7 +42,6 @@ import {
   type GameConfig,
   type GameState,
   type InboxItem,
-  type PersonScore,
   type Power,
   UnheardOutcome,
   UnheardOnArrival,

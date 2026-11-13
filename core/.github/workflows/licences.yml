@@ -9,7 +9,9 @@
 # data. A project calls it (workflow_call) from its own .github/workflows/licences.yml on every pull request, pinned to
 # a full commit SHA ("How a project takes the core" in README.md, point 5), passing its config's path. Reads only, with
 # no secret: nothing is installed, and besides GitHub's dependency review nothing runs but the caller's own
-# core/scripts/licences.mjs, which core.yml holds to the core pin.
+# core/scripts/licences.mjs and core/scripts/exact-versions.mjs, which core.yml holds to the core pin. The second holds
+# floor rule 7's "one exact version, never a range" for the same lockfiles: each dependency a package list of the
+# project's own asks for is one version as SemVer writes one and, letter for letter, the version its lockfile installs.
 name: licences
 
 on:
@@ -53,3 +55,8 @@ jobs:
         env:
           CONFIG: ${{ inputs.config }}
         run: node core/scripts/licences.mjs "$CONFIG"
+      - name: Every dependency at the one exact version its lock file installs (floor rule 7)
+        if: ${{ !cancelled() }}
+        env:
+          CONFIG: ${{ inputs.config }}
+        run: node core/scripts/exact-versions.mjs "$CONFIG"

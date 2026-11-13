@@ -3,7 +3,7 @@ export * from "./models.ts";
 export { jsonSchema, measure, problems, type JsonObject, type ReplySchema, type SchemaMeasure } from "./schema-tools.ts";
 export { OtherActions } from "./schemas-orders.ts";
 export { ReportText, ReportToSender, type AudienceAsks } from "./schemas-audience.ts";
-export { Schemas, Replies, type LeaderOrdersReply } from "./schemas.ts";
+export { Schemas, Replies } from "./schemas.ts";
 export { Parse } from "./parse.ts";
 export * from "./journal.ts";
 export * from "./prompts.ts";

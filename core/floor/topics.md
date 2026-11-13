@@ -1,6 +1,6 @@
 # The floor, by topic
 
-The floor's rules for particular work, read before a task touches one; the rest are in `floor/security.md`.
+The floor's rules for particular work; the rest are in `floor/security.md`.
 
 ## The rules
 
@@ -29,7 +29,7 @@ against the release notes, naming anything they do not explain. A check that can
 back. A page's content security policy is never weakened. The project names what it ships and its policy.
 
 **9. Security alerts and reported weaknesses.** The Security tab's alerts are seen only by the owner; no agent gets a
-token to read them; he passes on what needs fixing (core archive 35).
+token to read them; the owner passes on what needs fixing (core archive 35).
 - **In a PR's own change:** a blocking finding holds the merge until fixed; any other is fixed in the PR, or filed and
   fixed next if it lies outside the change. A CodeQL false alarm, explained in the PR and confirmed by its security
   reviewer, may merge, with no suppression comment; where the ruleset blocks on it, the owner dismisses it (core archive
@@ -47,17 +47,17 @@ in a third-party notices file that ships. Tools that only run, nothing of which 
 Source Initiative approves; a tool's code never moves into what ships without passing the first list. Never, in either:
 non-commercial or no-derivatives terms, source-available terms (BSL, SSPL, Elastic, Commons Clause), or no licence. A
 check on every PR fails one that adds or updates a package to a licence off its list; one the owner wants anyway waits
-for his yes. The owner's own work carries no licence but the terms he gives it, all rights reserved: never add or change
-them unasked.
+for the owner's yes. The owner's own work carries no licence but the terms the owner gives it, all rights reserved:
+never add or change them unasked.
 
 **15. Dependencies** (core archive 76): installed from the lock file (`npm ci` or its like), except where a PR adds or
 updates a package; never running a package's install scripts; pinned as rule 7 says; a new one only with a reason, from
 a known publisher; findings from CI's audit fixed, not silenced.
 
-**17. Dependabot's own PRs,** the one exception to rule 4, merge only if `dependabot[bot]` opened it from a branch in
-this repository, it changes only the manifests and lock files the project names (or an action's pinned version), and it
-passes the review, the release notes read and rule 7's source check, with the checks green (core archive 34). One that
-fails a condition is closed with the reason, and the update made in a PR of the builder's own.
+**17. Dependabot's own PRs** merge only if `dependabot[bot]` opened it from a branch in this repository, it changes only
+the manifests and lock files the project names (or an action's pinned version), and it passes the review, the release
+notes read and rule 7's source check, with the checks green (core archive 34). One that fails a condition is closed with
+the reason, and the update made in a PR of the builder's own.
 
 ## Reporting a weakness
 

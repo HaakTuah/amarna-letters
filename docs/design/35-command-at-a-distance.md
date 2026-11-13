@@ -6,7 +6,7 @@ Build order item 13 (`docs/intent/build-order/item-13.md`), with "Command at a d
 one", "Scheduled, conditional orders" and "Starting positions come from the sources" (question 7 of the old round report).
 Save version 31. The report, with the readings taken and the measures, is `docs/rounds/2026-10-29-command-at-a-distance.md`.
 
-## Armies and fleets from the sources (`model/map.ts`)
+## Armies and fleets from the sources (`model/start-positions.ts`)
 
 - **The Great Kings** start at the armies dossier's "Start from" men (`docs/history/11-armies-and-fleets.md`): Egypt and Hatti
   15,000, Mitanni, Babylonia and Arzawa 10,000, Assyria 4,000, Alashiya 1,500, split between the cities where each kept its

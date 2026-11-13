@@ -50,7 +50,7 @@ function places(road: Road): Keyframe[] {
 function headings(road: Road, offsets: readonly Keyframe[]): Keyframe[] {
   const out: Keyframe[] = [];
   let last: number | null = null;
-  road.forEach((p, i) => {
+  road.forEach((_p, i) => {
     const a = road[Math.min(i + 1, road.length - 1)];
     const b = road[Math.max(Math.min(i + 1, road.length - 1) - 1, 0)];
     const d = sub(a, b);
@@ -79,7 +79,8 @@ export function trailMarkup(what: "Army" | "Fleet" | "Caravan", men: number, rea
   let sb = `<g class="trail column">`;
   for (let i = 0; i < n; i++) sb += `<circle class="file f-${realm}" cx="${F(-15 - i * 5)}" cy="${i % 2 === 0 ? -1.8 : 1.8}" r="2.3"/>`;
   const tail = -15 - n * 5;
-  for (let i = 0; i < 3; i++) sb += `<circle class="dust" cx="${F(tail - 3 - i * 3)}" cy="${F((i - 1) * 2.4)}" r="${F(2.6 + i * 0.6)}" style="animation-delay:${i * 160}ms"/>`;
+  // Each puff at the origin of a group of its own, so it swells about its centre without a box of its own (#666, playback.css).
+  for (let i = 0; i < 3; i++) sb += `<g transform="translate(${F(tail - 3 - i * 3)},${F((i - 1) * 2.4)})"><circle class="dust" r="${F(2.6 + i * 0.6)}" style="animation-delay:${i * 160}ms"/></g>`;
   return sb + "</g>";
 }
 

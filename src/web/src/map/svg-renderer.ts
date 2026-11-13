@@ -15,7 +15,8 @@ import { Boxes, touch } from "./boxes.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { reseason, seasonLayer } from "./seasons.ts";
 import { type MapScene } from "./scene.ts";
-import { attach, detach, focus, getView, panBy, reset, setView, zoomBy } from "./zoom.ts";
+import { attach, detach, focus, getView, panBy, reset, setView, viewArea, zoomBy } from "./zoom.ts";
+import { InView } from "./in-view.ts";
 import { Land, bands, cities, fog, retint, tints, tintsKey } from "./land-layers.ts";
 import { peopleAtCourts, reconcile, travellerItem, travellerShift, unitItems } from "./tokens.ts";
 import { playRoad, trailMarkup, travellerRoad, unitRoad } from "./marching.ts";
@@ -58,6 +59,10 @@ export class SvgMapRenderer implements MapRenderer {
   private scene: MapScene | null = null;
   private placing = 0;
   private fine = false;
+  /** What is drawn follows the view (#666): the marks and pieces far off it are left out (in-view.ts). */
+  private inView: InView | null = null;
+  /** The layers written since what is drawn was last marked for the view. */
+  private readonly wrote = new Set<Element>();
   /** The finer rivers, once loaded (fine-geo.ts). */
   private fineRivers: ReadonlyMap<string, string> | null = null;
   private readonly onClick = (e: Event): void => {
@@ -91,6 +96,9 @@ export class SvgMapRenderer implements MapRenderer {
     // While a season's results are still to land, the names wait for them (part G: placed once a season, not once for the
     // marching and again for the results); a zoom's glide places them at once.
     if (t.matches(".mapzoom") || (t.matches(".unit, .traveller") && !this.landPending())) this.placeNames();
+    // A piece's slide has ended: it is left out if it stands far off the view. Not when a slide was cut short by another
+    // (a season stepped again mid-slide), which goes on from where the piece stood.
+    if (t.matches(".unit, .traveller") && !t.getAnimations().some((a) => a instanceof CSSTransition && a.transitionProperty === "transform")) this.inView?.arrived(t);
   };
 
   mount(view: HTMLElement, handlers: MapHandlers): void {
@@ -118,19 +126,34 @@ export class SvgMapRenderer implements MapRenderer {
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
+    // The marks and the pieces follow the view; the season's arrows, its scenes and the selection play animations of their own
+    // (drawn again from their start if they were left out and came back), and are few.
+    const kept = new Set(["moves", "scenes", "selection"].map((n) => this.layers.get(n)!));
+    const drawings = [...zoom.querySelectorAll(".map-marks, .map-upper")];
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const inView = (this.inView = new InView(() => drawings, kept, () => !motion.matches));
     zoom.addEventListener("click", this.onClick);
     zoom.addEventListener("transitionend", this.onMoved);
     zoom.addEventListener("transitioncancel", this.onMoved);
-    attach(view, (scale: number) => {
-      this.scale = scale;
-      this.closeUp();
-      if (this.scene !== null) {
-        this.drawUnits(this.scene);
-        this.drawWorks(this.scene);
-      }
-      // Now, and again once the zoom's glide has ended (onMoved).
-      this.placeNames();
-    });
+    attach(
+      view,
+      (scale: number) => {
+        this.scale = scale;
+        this.closeUp();
+        if (this.scene !== null) {
+          this.drawUnits(this.scene);
+          this.drawWorks(this.scene);
+        }
+        // For the view as it settled, and what was just written for it, before the names are measured.
+        this.wrote.clear();
+        const area = viewArea(view);
+        if (area !== null) inView.look(area, true);
+        // Now, and again once the zoom's glide has ended (onMoved).
+        this.placeNames();
+      },
+      // In the frame the view moves, before it is painted: nothing comes into view undrawn.
+      (area: Parameters<InView["look"]>[0], exact: boolean) => inView.look(area, exact),
+    );
   }
 
   /**
@@ -143,7 +166,10 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set(name, key);
     const t = performance.now();
     if (update !== undefined && !first) {
-      if (update(this.layers.get(name)!)) this.changed = true;
+      if (update(this.layers.get(name)!)) {
+        this.changed = true;
+        this.wrote.add(this.layers.get(name)!);
+      }
       performance.measure(`map:${name}`, { start: t });
       return;
     }
@@ -158,6 +184,7 @@ export class SvgMapRenderer implements MapRenderer {
       else patch(this.layers.get(name)!, html);
       this.written.set(name, html);
       this.changed = true;
+      this.wrote.add(this.layers.get(name)!);
     }
     performance.measure(`map:${name}`, { start: t });
   }
@@ -182,7 +209,10 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set("worksat", key);
     const t = performance.now();
     // In parts, a city each: only the cities whose works changed are written (part G), and the tooltips in place (#666).
-    if (patchParts(this.layers.get("worksat")!, this.worksParts, close ? worksAtCities(s) : [])) this.changed = true;
+    if (patchParts(this.layers.get("worksat")!, this.worksParts, close ? worksAtCities(s) : [])) {
+      this.changed = true;
+      this.wrote.add(this.layers.get("worksat")!);
+    }
     performance.measure("map:worksat", { start: t });
   }
   private readonly worksParts: Parts = { markup: [], nodes: [], tips: [] };
@@ -201,6 +231,7 @@ export class SvgMapRenderer implements MapRenderer {
     groups.forEach((b, i) => {
       if (patchParts(layer.children[i], this.bandParts[i], b.parts.map((markup) => ({ markup, tips: [] })))) this.changed = true;
     });
+    this.wrote.add(layer);
     performance.measure("map:bands", { start: t });
   }
   private bandParts: Parts[] = [];
@@ -213,6 +244,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set("units", s);
     this.drawn.set("unitsKey", key);
     this.changed = true;
+    this.wrote.add(this.layers.get("units")!);
     const stood = new Map([...this.units].map(([k, el]) => [k, el.getAttribute("data-province")] as const));
     // A unit gone (destroyed, or out of the viewer's sight) stays until the season's results land (item 17+++).
     const wait = this.landWait(s);
@@ -317,6 +349,7 @@ export class SvgMapRenderer implements MapRenderer {
           this.drawn.set("people", s);
           this.drawn.set("peopleKey", peopleKey);
           this.changed = true;
+          this.wrote.add(this.layers.get("courts")!).add(this.layers.get("travellers")!);
           const courts = peopleAtCourts(input);
           if (this.written.get("courts") !== courts) {
             this.layers.get("courts")!.innerHTML = courts;
@@ -376,11 +409,14 @@ export class SvgMapRenderer implements MapRenderer {
     while (this.steps.length > 0) {
       const step = this.steps.shift()!;
       step();
-      if (this.steps.length > 0 && performance.now() - start > SvgMapRenderer.BudgetMs) {
-        this.stepSoon();
-        return;
-      }
+      if (this.steps.length > 0 && performance.now() - start > SvgMapRenderer.BudgetMs) break;
     }
+    // What was written is left out where it lies far off the view, in the frame it was written.
+    if (this.wrote.size > 0) {
+      this.inView?.pass([...this.wrote]);
+      this.wrote.clear();
+    }
+    if (this.steps.length > 0) this.stepSoon();
   }
 
   /**
@@ -497,7 +533,15 @@ export class SvgMapRenderer implements MapRenderer {
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
       this.marchPlan = { index: s.index, viewer: s.viewer, start: now + t.marchAt - gone, ms: t.marchMs, played: new Set() };
-      this.later("march", () => this.march(null), Math.max(0, t.marchAt + t.marchMs - gone) + 50);
+      this.later(
+        "march",
+        () => {
+          this.march(null);
+          // Each piece has marched to where it stands: left out if that is far off the view.
+          for (const el of [...this.units.values(), ...this.travellers.values()]) this.inView?.arrived(el);
+        },
+        Math.max(0, t.marchAt + t.marchMs - gone) + 50,
+      );
     }
     const markup = t.beats.map((b) => momentMarkup(b.moment, b.at - gone, b.ms)).join("");
     if (markup !== "") {
@@ -740,7 +784,8 @@ export class SvgMapRenderer implements MapRenderer {
         return r;
       };
       const names = NameOrder.map((id) => this.labels.get(id))
-        .filter((g): g is SVGGElement => g !== undefined && g.querySelector("text") !== null)
+        // A name left out of the drawing, far off the view (in-view.ts), is neither placed nor in the way.
+        .filter((g): g is SVGGElement => g !== undefined && !g.hasAttribute("data-out") && g.querySelector("text") !== null)
         .map((g) => {
           const t = g.querySelector("text")!;
           return { t, own: g.getAttribute("data-label"), r: still(t, `${at}|${g.style.getPropertyValue("--ring")}`) };
@@ -805,8 +850,9 @@ export class SvgMapRenderer implements MapRenderer {
         else off.add(e);
       }
       for (const w of writes) w();
+      // What is left out of the drawing keeps its place's last answer until it comes into view and is placed again.
       view.querySelectorAll(".map .off").forEach((e) => {
-        if (!off.delete(e)) e.classList.remove("off");
+        if (!off.delete(e) && e.closest("[data-out]") === null) e.classList.remove("off");
       });
       for (const e of off) e.classList.add("off");
     }

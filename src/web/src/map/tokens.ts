@@ -7,7 +7,7 @@ import { WorldMap, dateLabel, shortDate, type Power } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { F, add, along, city, len, mul, normal, route, sub, unit, unitSpot, type Pt } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
-import { figureOf } from "./figures.ts";
+import { figureOf, heelOrigin } from "./figures.ts";
 import { outerRing, ringOf } from "./markup.ts";
 import type { MapInput } from "./renderer.ts";
 import { unitKindName, type SceneTraveller, type SceneUnit } from "./scene.ts";
@@ -24,13 +24,18 @@ function unitTitle(u: SceneUnit, viewer: Power | null): string {
   );
 }
 
+/** The size a unit's figure is drawn at on its token (in its own units). */
+const Icon = 20;
+
 /** A unit's token: [class, transform style, inner markup]; `dx` sets it beside the others in its province (in its own units). */
 function unitItem(u: SceneUnit, viewer: Power | null, dx: number, text: string, ring: number): Item {
   const at = unitSpot(u.province);
   const id = glyphId(u.power);
   let inner = title(text) + `<g class="sym lift"><g transform="translate(${F(dx)},0)">`;
   inner += u.kind === "Army" ? `<rect class="tok-bg f-${id}" x="-11" y="-11" width="22" height="22" rx="4"/>` : `<circle class="tok-bg f-${id}" r="12"/>`;
-  inner += `<use href="${figureOf(u.power, u.kind)}" class="tok-icon" x="-10" y="-10" width="20" height="20"/>`;
+  // Placed by its transform, which a fleet's heel replaces while it sails (playback.css), turning about its own point.
+  const heel = u.kind === "Fleet" ? ` style="transform-origin:${heelOrigin(u.power, Icon)}"` : "";
+  inner += `<use href="${figureOf(u.power, u.kind)}" class="tok-icon" transform="translate(${-Icon / 2},${-Icon / 2})" width="${Icon}" height="${Icon}"${heel}/>`;
   inner += `<g transform="translate(10,-10)"><circle class="tok-badge" r="5.6"/><use href="#em-${id}" class="tok-em e-${id}" x="-4.3" y="-4.3" width="8.6" height="8.6"/></g>`;
   if (u.count > 1) inner += `<g transform="translate(-10,10)"><circle class="tok-count" r="5.6"/><text class="tok-num" y="2.6">${u.count}</text></g>`;
   if (u.ghost) inner += `<g><text class="seen" y="-15">seen ${esc(shortDate(u.seenAt + 1, viewer))}</text></g>`;

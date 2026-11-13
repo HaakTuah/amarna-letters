@@ -1,7 +1,7 @@
 import { Dict } from "../core/collections.ts";
 import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
-import { type Clause, ClauseSchema } from "./clauses.ts";
+import { type Clause } from "./clauses.ts";
 import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type PayOld, PayOldSchema, type Strategy } from "./money.ts";
 import { type ChiefChoice, ChiefChoiceSchema, type ReportsChoice, ReportsChoiceSchema } from "./life.ts";
 
@@ -513,18 +513,6 @@ export function newRisingView(init: Partial<RisingView> = {}): RisingView {
   return { turn: 0, province: "", name: "", holder: "Egypt", employer: null, governs: false, followers: 0, troops: 0, band: 0, ...init };
 }
 
-export const RisingViewSchema: ObjSchema<RisingView> = obj("RisingView", newRisingView, {
-  turn: I,
-  province: S,
-  name: S,
-  holder: S,
-  employer: opt(S),
-  governs: B,
-  followers: I,
-  troops: I,
-  band: I,
-});
-
 /** His answer: lead them (`rise`) or not, for the province he was asked of, in the season he was asked. */
 export interface RisingChoice {
   turn: number;
@@ -574,16 +562,6 @@ export function newBridgeView(init: Partial<BridgeView> = {}): BridgeView {
   return { turn: 0, envoy: "", from: "Egypt", host: "Egypt", paidBy: [], speech: "", clauses: [], ...init };
 }
 
-export const BridgeViewSchema: ObjSchema<BridgeView> = obj("BridgeView", newBridgeView, {
-  turn: I,
-  envoy: S,
-  from: S,
-  host: S,
-  paidBy: list(S),
-  speech: S,
-  clauses: list(() => ClauseSchema),
-});
-
 /** What an envoy nobody understands is asked (item 12, task "Unheard"): where he stands, how long, and who might carry his words. */
 export interface UnheardView {
   turn: number;
@@ -606,19 +584,6 @@ export interface UnheardView {
 export function newUnheardView(init: Partial<UnheardView> = {}): UnheardView {
   return { turn: 0, host: "Egypt", lord: "Egypt", waited: 0, presented: 0, carried: 0, purse: 0, goBetweens: [], tongues: [], courtTongue: "", ...init };
 }
-
-export const UnheardViewSchema: ObjSchema<UnheardView> = obj("UnheardView", newUnheardView, {
-  turn: I,
-  host: S,
-  lord: S,
-  waited: I,
-  presented: I,
-  carried: I,
-  purse: I,
-  goBetweens: list(() => obj("GoBetweenSeen", () => ({ name: "", price: 0 }), { name: S, price: I })),
-  tongues: list(S),
-  courtTongue: S,
-});
 
 export function newCharacter(init: Partial<Character> = {}): Character {
   return {

@@ -12,17 +12,19 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 ## The polish lane
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
-- **A bug beside it, now:** #666, a phone at Fast still drops frames past 50 ms, mostly the browser's own layering and
-  painting of the map's SVG; its own lane on the map's drawing, which the music does not touch, measured as item 17+++
-  part G measured it, until frames stay under 50 ms on a phone and on desktop at every speed. PR #930
-  (`docs/rounds/2026-11-11-phone-frames.md`): at Fast, the phone's 7.4% to 4%, desktop's 1.4% to 0.4%; next, one
-  transform a symbol.
-- **Next:** first **19+++c, war music a share, never the whole** (the owner, 10 November 2026, archive item 247; its
-  text under Build order in the design document): a spectator hears the realm he watches, the character he follows,
-  or, drifting, the world's heat in the music of the realm doing the most, never the middle of the view, and his
-  music turns over calmly (archive items 248 and 249); each next piece is drawn by chance, weighted toward the mood's own; rests of silence fall between pieces. Then finds
-  of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
+- **A bug beside it, now:** #666, a phone at Fast drops frames past 50 ms (part G's measure), until frames stay under 50 ms
+  on phone and on desktop at every speed; the steps' reports, `docs/rounds/2026-11-13-phone-frames-4.md` the last (with
+  nothing moving at all, still 3 to 3.6%) and the three it follows. Next: the season's single steps (the names in slices,
+  then the tints), the frames led by a layout, one measure on a real phone.
+- **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
+- **Queued ideas** (stand-in's sure yeses, 12 November 2026), in order:
+  [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681)
+  once the bug above ends (keeps gains from creeping back; archive item 97);
+  ~~[The Season tab keeps the closing lines of the last few seasons](https://github.com/HaakTuah/amarna-letters/issues/647)~~
+  done;
+  ~~[The province card lists the bands and pirate crews the seat knows of there](https://github.com/HaakTuah/amarna-letters/issues/631)~~
+  done (a phone has no hover). All small.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
@@ -30,8 +32,8 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
   by wheel and drag (#397), and Follow, travel lines and borders (the lane's report); the Legends tab's powers by their
   shown names (#790) and a city-state's capital said once in the threads to watch (#791), "tap" in the orders tab's
   help as everywhere else (#794), and the Season tab's other lines capitalised and alike ones counted (#795); the music
-  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`; god view's music
-  and the draw: 19+++c, above).
+  follows the state (19+++b, #874; report `docs/rounds/2026-11-10-music-follows-the-state.md`) and war music a share,
+  never the whole (19+++c, #963; report `docs/rounds/2026-11-12-war-music-a-share.md`).
 - **What belongs, here:** graphical glitches and inconsistencies first, as item 19++ asks; light and dark too; the
   rulebook's wording as well as the interface's. Never a request to a model, the save version or the names item 17+ will
   change: those go to their items.
@@ -53,15 +55,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
-  expert?", then "Yes, expertly to all, expert!"). "Keep it lean" forbids leftovers, but no check holds it. (1) Finish
-  `--noUnusedLocals` on `turn/counts.ts`, `turn/couriers.ts`, `turn/economy.ts`, `turn/resolve.ts`, `turn/unrest.ts` and
-  `web/src/map/life.ts`, then turn on `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`, so
-  `scripts/test.sh` fails a leftover. (2) Exports and files nothing imports: one clean-up PR, then a finder in
-  `scripts/test.sh`; a small script on the compiler's own API first, a pinned dev tool (floor rules 7 and 10) only if
-  that falls short; what is reached indirectly is listed with its reason. (3) A lint rule fails a test skipped or
-  narrowed to one (`.skip`, `.only`, `.todo`; the owner, the same day: "Yes, expertly to all!"). The replays prove play
-  unchanged. A routine lane.
+- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
+  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
+  `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
+  imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
+  both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node
+  scripts/unused-code.mjs --all`).
 - ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
   Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
   own (#721) gave way to them.
@@ -73,14 +72,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
   `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx` (the
   start screen; its saved-games card is 2.5 KB).
-- **The README as a front page** (an outside review of the repositories, 11 November 2026: about 7,000 words, rules
-  that read like a legal code, which players will not read): the README keeps what the game is, how to start and how a
-  season goes, in a few hundred words, and points to the rulebook for the rules in full; whatever moves goes to the
-  rulebook or the design notes, nothing a player needs is lost, and the copies check proves nothing is said twice.
-- **The code files near the split line** (the same review): 17 code files are past 40 KB, `turn/plans.ts` within a few
-  hundred bytes of the 50 KB line. Each is checked against "Split by meaning" and split where it holds two things, in a
-  PR of its own when no open lane touches it, behaviour proven unchanged ("Same seed, same game"); generated data and
-  the files already judged one thing above stay whole.
+- ~~**The README as a front page** (an outside review, 11 November 2026: about 7,000 words).~~ Done (12 November 2026): about
+  450 words; the rest is word for word in `docs/design/61-the-rules-a-player-reads/`.
+- **The code files near the split line** (the same review): 17 code files are past 40 KB. Each is split where it holds
+  two things, in a PR of its own when no open lane touches it, behaviour proven unchanged; generated data and the
+  files judged one thing above stay whole. The list and what waits: `docs/rounds/2026-11-12-split-the-big-files.md`.
+  Split so far: `turn/plans.ts`, `turn/intel.ts`, `model/map.ts`, `turn/resolve.ts` (the report has each).
 
 ## Follow-ups
 
@@ -124,6 +121,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   person"; built in #850, report `docs/rounds/2026-11-09-captive-caretaker.md`); the weight of size set by testing (#825; the same section); a resident hires a carrier (#836; Diplomacy,
   "Messengers are errands"); favour is repaid and openings stay (#841, #840; World, "Each court plays differently");
   the people fight back (#832; War, "The people defend their land").
+
+- **A standing reserve for a far province's coffer** (stand-in's sure yes, 12 November 2026;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: the king's own
+  standing order, like paying troops (archive item 96). A new save version, the script kings' use and a measurement.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.

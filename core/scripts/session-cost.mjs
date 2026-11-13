@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { started } from "./started.mjs";
 
 const FIELDS = ["input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens"];
 const FAMILIES = ["fable", "mythos", "opus", "sonnet", "haiku"];
@@ -66,7 +66,7 @@ export function records(home, session) {
   return found;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (started(import.meta.url)) {
   try {
     const home = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
     const out = line(cost(records(home, process.env.CLAUDE_CODE_SESSION_ID)));

@@ -12,9 +12,9 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { CORE } from "./core-address.mjs";
+import { started } from "./started.mjs";
 
-const CORE = "HaakTuah/agent-core";
 const SHA = /^[0-9a-f]{40}$/;
 // The one issue it keeps: found again by this title among the issues the workflow itself opened.
 export const TITLE = "The core has moved past this project's copy";
@@ -98,4 +98,4 @@ function main(dry) {
   run("gh", ["issue", "create", "--repo", repo, "--title", TITLE, "--body-file", file, "--label", "enhancement", "--assignee", owner]);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main(process.argv.includes("--dry"));
+if (started(import.meta.url)) main(process.argv.includes("--dry"));

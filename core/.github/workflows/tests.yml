@@ -41,6 +41,9 @@ jobs:
       - name: The licence scan on every form of a fetch
         if: ${{ !cancelled() }}
         run: node scripts/licence-fetch-test.mjs
+      - name: The exact-versions check
+        if: ${{ !cancelled() }}
+        run: node scripts/exact-versions-test.mjs
       - name: The helper hook
         if: ${{ !cancelled() }}
         run: node scripts/helper-call-test.mjs
@@ -53,15 +56,27 @@ jobs:
       - name: The description check
         if: ${{ !cancelled() }}
         run: node scripts/pr-description-test.mjs
+      - name: The security-review check
+        if: ${{ !cancelled() }}
+        run: node scripts/security-review-test.mjs
       - name: The workflow check
         if: ${{ !cancelled() }}
         run: node scripts/workflows-test.mjs
       - name: The core-moved check
         if: ${{ !cancelled() }}
         run: node scripts/core-moved-test.mjs
+      - name: The core's address stands in one place, and is this repository's
+        if: ${{ !cancelled() }}
+        run: node scripts/core-address-test.mjs
       - name: The tree a copy must be
         if: ${{ !cancelled() }}
         run: node scripts/copy-tree-test.mjs
+      - name: Whether a script was started by itself
+        if: ${{ !cancelled() }}
+        run: node scripts/started-test.mjs
+      - name: The pointer check
+        if: ${{ !cancelled() }}
+        run: node scripts/pointers-test.mjs
       - name: The pointers in the core's own floor and modules lead somewhere
         if: ${{ !cancelled() }}
         run: node scripts/pointers.mjs --core

@@ -4,7 +4,7 @@
 // listing those calls, and prints what the sync asks of the project beyond the copy (the core's setup/sync-notes.md, the
 // entries it gained between the two commits). It commits and pushes nothing: the session that runs it reviews the diff and opens the PR,
 // which, a pure sync, its merger checks with `scripts/pure-sync.mjs` (floor rule 8). Git, tar and Node's own modules
-// only.
+// only; the core's address: core-address.mjs, beside this file.
 //
 //   node core/scripts/sync.mjs              to the core's newest main
 //   node core/scripts/sync.mjs <full SHA>   to that commit of the core
@@ -16,8 +16,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { CORE } from "./core-address.mjs";
 
-const CORE = "HaakTuah/agent-core";
 const NOTES = "setup/sync-notes.md";
 const URL = `https://github.com/${CORE}`;
 const git = (args, cwd) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();

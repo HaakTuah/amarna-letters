@@ -5,6 +5,7 @@
 import fs from "node:fs";
 const FLOOR = ["AGENTS.md", "CLAUDE.md", "SECURITY.md", "core-manifest.md"];
 export function ruleFiles() {
+  if (!fs.existsSync("SECURITY.md")) throw new Error('the project has no SECURITY.md yet: the checks read its rule files there (the core\'s README, "How a project takes the core", point 4)');
   const rule = /\*\*the rule files:\*\*([^;]*);/.exec(fs.readFileSync("SECURITY.md", "utf8"));
   if (!rule) throw new Error('SECURITY.md, rule 3, has no "the rule files:" line: the checks read the project\'s own there');
   return [...new Set(FLOOR.filter(f => fs.existsSync(f)).concat([...rule[1].matchAll(/`([^`]+)`/g)].map(m => m[1])))];

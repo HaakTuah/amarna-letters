@@ -293,19 +293,6 @@ export function newCrownView(init: Partial<CrownView> = {}): CrownView {
   return { crownId: "", turn: 0, from: "Egypt", lands: [], seat: "", governs: false, tribute: 0, price: 0, purse: 0, yearly: 0, ...init };
 }
 
-export const CrownViewSchema: ObjSchema<CrownView> = obj("CrownView", newCrownView, {
-  crownId: S,
-  turn: I,
-  from: S,
-  lands: list(S),
-  seat: S,
-  governs: B,
-  tribute: I,
-  price: I,
-  purse: I,
-  yearly: I,
-});
-
 /** His answer to a grant of kingship: whether he takes it. */
 export interface CrownChoice {
   crownId: string;

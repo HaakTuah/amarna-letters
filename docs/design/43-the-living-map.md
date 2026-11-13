@@ -94,6 +94,8 @@ power risen in play takes the style of the fixed power whose capital is nearest 
   has one, with its men and chief in the tooltip, as the engine's own view of a court shows them (in its sight, or in its
   own land); every one in god view. They give way to more important markers as the others do. A pirate crew is drawn at
   its coastal city like any band, since the engine keeps it on the land province whose coast it works.
+  The province card lists them too (`BandsHere`): each band's men, its chief and how old the word is, freshest first, only
+  the bands the scene holds, since a phone has no hover title to read them in.
 
 **Readings taken.** A battle is drawn only where the viewer saw the troops met (pillar 4): the same test that already
 tells it an attack from a march. The styles follow the item's list of relics; the Levantine cities, the nomads and the

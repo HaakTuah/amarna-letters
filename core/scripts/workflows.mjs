@@ -19,7 +19,8 @@
 //   node core/scripts/workflows.mjs
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { started } from "./started.mjs";
 
 const WORD = "pull_request_target";
 const BREAK = "\\r\\n|[\\r\\n\\u0085\\u2028\\u2029]"; // every line break YAML 1.1 or 1.2 knows
@@ -63,7 +64,7 @@ export const reads = files => files.filter(f => !f.startsWith("core/") && !f.spl
 // What may be no link, of those git tracks: what the check reads, and .github itself with everything in it.
 export const unlinked = files => { const read = new Set(reads(files)); return files.filter(f => read.has(f) || /^\.github(\/|$)/iu.test(f)); };
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (started(import.meta.url)) {
   const git = args => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
   process.chdir(fileURLToPath(new URL(".", import.meta.url)));
   process.chdir(git(["rev-parse", "--show-toplevel"]).trim());

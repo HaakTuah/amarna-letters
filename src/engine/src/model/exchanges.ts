@@ -4,23 +4,20 @@ import { OrderSchema } from "./order-schema.ts";
 import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
-import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
+import { type Exchange, ExchangeSchema, type HomeCargo, type SpyReport, type TabletProposal, TabletProposalSchema } from "./records.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
-import { type CrownChoice, CrownChoiceSchema, type CrownView, CrownViewSchema } from "./command.ts";
-import { type Skills, SkillsSchema, type UnheardChoice, UnheardChoiceSchema, type UnheardView, UnheardViewSchema, type BridgeView, BridgeViewSchema, type RisingView, RisingViewSchema, type RisingChoice, RisingChoiceSchema } from "./people.ts";
+import { type CrownChoice, CrownChoiceSchema, type CrownView } from "./command.ts";
+import { type Skills, SkillsSchema, type UnheardChoice, UnheardChoiceSchema, type UnheardView, type BridgeView, type RisingView, type RisingChoice, RisingChoiceSchema } from "./people.ts";
 import {
   type ChiefChoice,
   ChiefChoiceSchema,
   type ChiefView,
-  ChiefViewSchema,
   type LifeChoice,
   LifeChoiceSchema,
   type LifeView,
-  LifeViewSchema,
   type ReportsChoice,
   ReportsChoiceSchema,
   type ReportsView,
-  ReportsViewSchema,
 } from "./life.ts";
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
@@ -97,29 +94,6 @@ export function newMindRequest(init: Partial<MindRequest> = {}): MindRequest {
     ...init,
   };
 }
-
-export const MindRequestSchema: ObjSchema<MindRequest> = obj("MindRequest", newMindRequest, {
-  id: S,
-  task: S,
-  characterId: S,
-  court: opt(S),
-  trailId: S,
-  taskId: S,
-  cargo: () => HomeCargoSchema,
-  report: () => SpyReportSchema,
-  facts: list(S),
-  aliases: list(S),
-  envoyOf: opt(S),
-  fold: I,
-  life: () => LifeViewSchema,
-  chief: () => ChiefViewSchema,
-  reports: () => ReportsViewSchema,
-  unheard: () => UnheardViewSchema,
-  bridge: () => BridgeViewSchema,
-  rising: () => RisingViewSchema,
-  crown: () => CrownViewSchema,
-  copyIds: list(S),
-});
 
 export interface MindReply {
   text: string;
@@ -335,11 +309,6 @@ export function newAudienceRound(init: Partial<AudienceRound> = {}): AudienceRou
   };
 }
 
-export const AudienceRoundSchema: ObjSchema<AudienceRound> = obj("AudienceRound", newAudienceRound, {
-  host: () => HostReplySchema,
-  envoy: () => EnvoyReactionSchema,
-});
-
 /** A whole audience as it happened, handed back to the engine to apply. */
 export interface AudienceRecord {
   audienceId: string;
@@ -368,15 +337,6 @@ export function newAudienceRecord(init: Partial<AudienceRecord> = {}): AudienceR
     ...init,
   };
 }
-
-export const AudienceRecordSchema: ObjSchema<AudienceRecord> = obj("AudienceRecord", newAudienceRecord, {
-  clauses: list(() => ClauseSchema),
-  audienceId: S,
-  delivered: S,
-  skim: I,
-  swapInventory: B,
-  rounds: list(() => AudienceRoundSchema),
-});
 
 /** What the host sees during an audience. */
 export interface AudienceView {

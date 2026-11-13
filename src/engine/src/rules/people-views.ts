@@ -13,7 +13,7 @@ import { AllPowers, land, powerName, reignKnown, type Power } from "../model/pow
 import { type PendingTask } from "../model/records.ts";
 import { isAlive, type GameState } from "../model/state.ts";
 import { newCharacterView, newNewsOffer, type CharacterView } from "../model/views.ts";
-import { formatMoney, season } from "./calendar.ts";
+import { formatMoney } from "./calendar.ts";
 import { courtOf, kingLossUnheard, realmOfKing } from "./court.ts";
 import { claimKnown } from "./claims.ts";
 import { askingPrice, basePrice, LetterData } from "../turn/turn-engine.ts";
@@ -80,7 +80,7 @@ export function confessedMaster(s: GameState, id: string, court: Power): Power |
 }
 
 /**
- * What `viewer` knows of a person, in words. A king whose realm has fallen "Ruled" it (`fall` in turn/resolve.ts); to a
+ * What `viewer` knows of a person, in words. A king whose realm has fallen "Ruled" it (`fall` in turn/falls.ts); to a
  * court that has not yet heard of the fall (`fallsHeard`), he still "Rules" it (bug #817).
  */
 function factsAsHeard(s: GameState, c: Character, viewer: Power): string[] {

@@ -109,7 +109,7 @@ describe("CourtAsleepTests", () => {
     }
     specs: CallSpec[] = [];
 
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
+    askJson(spec: CallSpec): Promise<JsonObject> {
       this.specs.push(spec);
       // A court reply answers every envoy the request names, by his id.
       if (spec.key.includes("/court/")) {

@@ -15,11 +15,12 @@ const WORLD_H = MAP_H + 2 * Math.min(-ReliefFrame.y, ReliefFrame.y + ReliefFrame
 const reduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /// `onSettle(scale)`: called when a gesture settles, with the screen pixels a map unit now takes (item 11c+: names and
-/// counters are laid out again for it).
-export function attach(view, onSettle) {
+/// counters are laid out again for it). `onView(area, exact)`: called each time the view moves, with the part of the board
+/// it shows (`viewArea`), and with `exact` once a glide has ended (#666: what is drawn follows the view, map/in-view.ts).
+export function attach(view, onSettle, onView) {
   if (!view || states.has(view)) return;
   const layer = view.querySelector(".mapzoom");
-  const st = { onSettle, view, layer, x: 0, y: 0, s: 1, pointers: new Map(), start: null, moved: false, frame: 0, settle: 0, lastTap: null, base: 1 };
+  const st = { onSettle, onView, view, layer, x: 0, y: 0, s: 1, pointers: new Map(), start: null, moved: false, frame: 0, settle: 0, lastTap: null, base: 1 };
   states.set(view, st);
 
   const onDown = e => {
@@ -72,6 +73,9 @@ export function attach(view, onSettle) {
   view.addEventListener("click", onClick, true);
   view.addEventListener("wheel", onWheel, { passive: false });
   view.addEventListener("dblclick", onDbl);
+  const onGlided = e => { if (e.target === layer && e.propertyName === "transform") narrow(st); };
+  layer.addEventListener("transitionend", onGlided);
+  layer.addEventListener("transitioncancel", onGlided);
   // The view's size, kept as it changes (#666: read at each ask, it forced a style and layout of whatever the page had just
   // written, 20 to 40 ms on a slow phone, from the sounds' look at the camera after each redraw).
   st.ro = new ResizeObserver(() => { st.size = { w: view.clientWidth, h: view.clientHeight }; clamp(st); apply(st); settle(st, true); });
@@ -81,6 +85,8 @@ export function attach(view, onSettle) {
     view.removeEventListener("click", onClick, true);
     view.removeEventListener("wheel", onWheel);
     view.removeEventListener("dblclick", onDbl);
+    layer.removeEventListener("transitionend", onGlided);
+    layer.removeEventListener("transitioncancel", onGlided);
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     st.ro.disconnect();
@@ -123,6 +129,22 @@ export function getView(view) {
   const g = geometry(st);
   return { x: ((g.w / 2 - st.x) / st.s - g.ox) / g.b, y: ((g.h / 2 - st.y) / st.s - g.oy) / g.b, zoom: st.s, whole: st.s <= lowest(st) * 1.01 };
 }
+
+/// The part of the board the view shows, in the board's units, with the screen pixels a unit takes (`k`); while a glide
+/// runs, all it crosses (from where it began to where it ends). Null before the view is attached.
+export function viewArea(view) {
+  const st = states.get(view);
+  return st ? st.sweep ?? area(st) : null;
+}
+
+function area(st) {
+  const g = geometry(st);
+  const at = (px, py) => ({ x: ((px - st.x) / st.s - g.ox) / g.b, y: ((py - st.y) / st.s - g.oy) / g.b });
+  const a = at(0, 0), b = at(g.w, g.h);
+  return { x0: a.x, y0: a.y, x1: b.x, y1: b.y, k: g.b * st.s };
+}
+
+const union = (a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1), k: Math.min(a.k, b.k) });
 
 /// Centres the view on a map point at a zoom (a view kept from before, or a view's opening).
 export function setView(view, mx, my, zoom, animated) {
@@ -237,12 +259,29 @@ function zoomAt(st, factor, clientX, clientY, animated) {
 
 function animate(st, change) {
   const smooth = !reduced();
-  if (smooth) st.layer.classList.add("glide");
+  // A glide passes over everything between where it starts and where it ends: a transition of the translate and the scale
+  // moves each edge of the view one way only, so the two views' bounds hold every view between.
+  if (smooth) {
+    st.layer.classList.add("glide");
+    st.sweep ??= area(st);
+  }
   change();
   apply(st);
   clearTimeout(st.glideTimer);
-  st.glideTimer = setTimeout(() => st.layer.classList.remove("glide"), 260);
+  st.glideTimer = setTimeout(() => {
+    st.layer.classList.remove("glide");
+    narrow(st);
+  }, 260);
   settle(st);
+}
+
+/// A glide has ended: what is drawn follows the view where it stopped. Only once the camera's transition has really ended
+/// (`transitionend`, or the timer if none is left running): on a busy phone it starts late, and a timer alone would narrow
+/// what is drawn while the camera is still on its way.
+function narrow(st) {
+  if (!st.sweep || st.layer.getAnimations().some((a) => a.transitionProperty === "transform")) return;
+  st.sweep = null;
+  if (st.onView) st.onView(area(st), true);
 }
 
 // The camera stops at the board's edges, so an edge province can be centred, and never shows past the drawn world
@@ -268,6 +307,8 @@ function schedule(st) {
 
 function apply(st) {
   st.layer.style.transform = `translate3d(${st.x}px, ${st.y}px, 0) scale(${st.s})`;
+  if (st.sweep) st.sweep = union(st.sweep, area(st));
+  if (st.onView) st.onView(st.sweep ?? area(st), false);
 }
 
 // When the gesture settles: let the browser redraw the map crisply, and size symbols and labels for the new scale.
