@@ -109,7 +109,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A player who looked away, or watched at Fast, could not read a season's closing line again once it left the map (#647); the Season tab keeps the last five seasons' lines, newest first, each dated and as the eyes shown knew that season (a seat's say only what word had reached it); made once from each season's scene, kept as words.
 - On a phone close up the map drew every mark and piece of the board, two thirds of them off the screen; it now draws only those near the view, bringing each back as the view comes near it (#666, `docs/rounds/2026-11-12-phone-frames-3.md`).
 - The marchers' dust and the fleets' heel were played on the page's main thread, a whole frame of the map for every frame of every march; they now run on the compositor, with the same look (#666, `docs/rounds/2026-11-13-phone-frames-4.md`).
-- Zoomed right in, the realms' colours thin to almost nothing and the bands between powers kept their weight, so a frontier read more faintly than the realm had zoomed out; a band now thickens, up to half as thick again, as the wash thins below 1 (one rule in `map.css`, from the same `--wash`; #636).
+- Zoomed right in, the realms' colours thin to almost nothing and the bands between powers kept their weight, so a frontier read more faintly than the realm had zoomed out; the stretch of a band against another power's land now thickens, up to half as thick again, as the wash thins below 1 (its own path, `band firm`, and one rule in `map.css`, from the same `--wash`; #636).
 
 ## Finds not yet fixed
 
