@@ -513,3 +513,72 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      > Agreed expertly with all your takes! You can commence now. […]
 
      Behind "A trim is valid" in `modules/review-guidelines.md`.
+
+185. **13 November 2026** (the core, in the design chat):
+
+     > Can we add a rule that makes any session/subsession that is finished, archive? At least have the orchestrator
+     > archive all its subsessions once they are finished? Probably also if you tell them to stop due to usage and push
+     > up all, because then it is better to just have another builder season pick up again, no? Expert? Can they
+     > archive themselves also, and should they? What is your expert take on all of this?
+
+     Told: yes, by the orchestrator and not by the session itself, which is the worst judge of whether it is finished
+     and whose last message must be read first; once its task merged or it stopped with its work pushed and its note
+     left, a stop for usage too, a fresh builder picking up from the branch; its last message read and nothing
+     scheduled bound to it; archived, never deleted; never a session he works in or one waiting only on his yes; a
+     session nobody orchestrates says in its last message that it can be archived; and that whether an agent can
+     archive a session depends on the tool that runs them, which the design session could not confirm for every one:
+
+     > Agreed expertly to all!
+
+     Behind "A finished session is archived" in `modules/orchestrating.md` and "that it can be archived" in "Sessions"
+     in `modules/work-flow.md`.
+
+186. **13 November 2026** (the core, in the design chat):
+
+     > Do we have anything in agent-core about running occasional clean-ups and condensing runs? Agent-core maybe
+     > isn't the place for that? But any job that is scheduled for that in a work queue file, like in our repos, will
+     > it also do the rules files, and use our new criterias, checks, and verifications, etc, expert?
+
+     Told: the core schedules none, rightly, since when to clean up is a project's own queue entry and a file reaching
+     its mark is what forces a condensing; but the test for a valid trim stood inside the rule on raising a mark, so a
+     clean-up that trims a rule file for another reason was not plainly bound by it. Offered: the test holds for every
+     trim of a rule file, whatever it is made for, with no fresh session's read where nothing rises:
+
+     > Agreed, expertly! Do it!
+
+     Behind "It holds for every trim of a rule file, whatever its purpose" in `modules/review-guidelines.md`.
+
+187. **13 November 2026** (the core, in the design chat), on the rule that a finished session is archived:
+
+     > […] What i would however add is that they should also clean up, no? In the cloud, I don't think it matters. The
+     > container is finished when the session is. But locally/server, they have a tendency to leave work trees behind,
+     > scratches, branches, etc, etc. Shouldn't everything important for future work be pushed, and everything not, be
+     > cleaned up? When you archive a sessions seems like a good time to do it? Your expert take?
+
+     Told: yes; the session cleans up what it made before its last message, since it knows what that is, and the
+     orchestrator checks before it archives and does it for a session that could not; only what the session itself
+     made; a worktree, clone or local branch goes only where nothing in it is uncommitted or unpushed, the rest pushed
+     or left and named; what it started is stopped; no other session's folders and no branch on GitHub; nothing to do
+     where the machine ends with the session:
+
+     > Agreed with everything, expert! […]
+
+     Behind "clean up what you made" in "Sessions" in `modules/work-flow.md` and "It first checks that the session
+     cleaned up" in `modules/orchestrating.md`.
+
+188. **13 November 2026** (the core, in the design chat). The audit pass had found one trim in the floor (rule 17's
+     "the release notes read", as held by rule 7's source check) and it had been recommended to him; he said yes. Told
+     before anything was changed that the recommendation was wrong: rule 7's source check covers only what ships and
+     what builds it, so for an update to a tool that only runs, rule 17 alone asks that the release notes be read, and
+     the words stay:
+
+     > Okay, then i withdraw my yes. Should the criterias be made clearer to avoid false positives like this, expert?
+
+     Told: the test already rules that trim out, but "a second statement" did not say what makes two statements the
+     same; offered that a second statement counts only if it covers every case the removed words do, with the same
+     force, and that whoever proposes a trim names the other statement and what it covers; and that the nineteen trims
+     merged that night had been gone over again, scope against scope, and held:
+
+     > Agreed, expertly!
+
+     Behind "one that covers every case the removed words do, with the same force" in `modules/review-guidelines.md`.

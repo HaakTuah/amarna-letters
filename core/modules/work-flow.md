@@ -19,9 +19,12 @@ Read at the start of every task.
    is used at; each is its own small PR, with a before-and-after picture and its behaviour proven unchanged.
 
 **Sessions:** started task by task, stop when your task is merged, saying in your last message what merged and what is
-next; otherwise carry on with the next task. A long task may end a session at a passed gate, with a commit and a note in
-the *progress file* saying where to pick up (core archive 143). A session of the trusted builder's (floor rule 3) that
-no orchestrator started, and the orchestrator on every wake, first checks whether the core has moved
+next (with no orchestrator, also that it can be archived); otherwise carry on with the next task. Before that message,
+on a machine that outlives the session, clean up what you made (core archive 187): what later work needs is pushed, what
+you started is stopped, and your own worktree, scratch files and local branches go, save what holds anything uncommitted
+or unpushed, which you push or leave and name in the message. A long task may end a session at a passed gate, with a
+commit and a note in the *progress file* saying where to pick up (core archive 143). A session of the trusted builder's
+(floor rule 3) that no orchestrator started, and the orchestrator on every wake, first checks whether the core has moved
 (`core/scripts/core-moved.mjs --dry`) and syncs it if so (`core/scripts/sync.mjs`, then what `setup/sync-notes.md`
 asks); where checks cost money, not on a day a sync PR was already opened (core archive 178); then both read what
-reviews left after a merge (`modules/reviews.md`, point 2). Another builder's session leaves the sync to them.
+reviews left after a merge (`modules/reviews.md`, point 2).

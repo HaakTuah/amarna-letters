@@ -15,6 +15,11 @@ sessions does it say so and stop.
   has waited a week with no verdict of the stand-in's, call the stand-in (`modules/inbox.md`).
 - **Hand over at once:** start the next session as soon as a task merges. One session per task, continued for its review
   fixes while its context is under an hour old and small; otherwise a fresh one (core archive 10).
+- **A finished session is archived** by the orchestrator, never by itself, where the tool that runs the sessions can
+  (core archive 185): once its task merged, or it stopped with its work pushed and its note in the *progress file* (for
+  usage too: a fresh builder picks up from the branch), its last message read and nothing scheduled bound to it. It
+  first checks that the session cleaned up ("Sessions" in `modules/work-flow.md`) and does so for one that could not.
+  Never deleted; never one the owner works in or that waits only on his yes.
 - **A lane for every independent entry** (core archive 11), by `modules/work-flow.md`.
 - **A stalled lane** (core archive 133), looked for on every wake: an open PR with no push to its branch for a few
   hours, whose session has ended, cannot be reached (started elsewhere, such as on another account) or sits idle, goes
