@@ -1,7 +1,10 @@
 # The description check on this repository's own pull requests: the same script projects run from their copy
 # (scripts/pr-description.mjs), here from its source. A description put right is checked again by itself (the type
-# "edited"). This repository only; no project calls it. Reads only, with no secret: the description reaches the script
-# through env and is never written into a run line (floor rule 2).
+# "edited"). A pull request that changes the floor or the modules is asked for one heading more, "What holds it"
+# (AGENTS.md, "A new rule says what holds it"): whether it does is read from git alone, the merge commit against its
+# first parent, the base, and nothing of the pull request's own text reaches that step's script. This repository only;
+# no project calls it. Reads only, with no secret: the description reaches the script through env and is never
+# written into a run line (floor rule 2).
 name: own-description
 
 on:
@@ -24,10 +27,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 2 # the merge commit and its parents: what the pull request changes is read against the base
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
-      - name: The description has its parts
+      - name: The description has its parts, and where the rules change, what holds the change
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: node scripts/pr-description.mjs
+        run: |
+          # (a diff that cannot be read counts as a change to the rules: the heading is asked for, never waived)
+          if git diff --quiet HEAD^1 HEAD -- floor modules; then node scripts/pr-description.mjs
+          else node scripts/pr-description.mjs "+What holds it"; fi

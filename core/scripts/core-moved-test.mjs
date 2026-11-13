@@ -9,21 +9,24 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CORE, CORE_SOURCE } from "./core-address.mjs";
-import { ISSUES, TITLE, body, openIssue, ownerOf, pinOf, plan } from "./core-moved.mjs";
+import { ISSUES, TITLE, body, openIssue, pinOf, plan } from "./core-moved.mjs";
+import { ownerOf } from "./releases.mjs";
 
 let failed = 0, count = 0;
 const ok = (cond, what) => { count++; if (!cond) { failed++; console.error(`FAIL: ${what}`); } };
 const A = "a".repeat(40), B = "b".repeat(40);
-const manifest = (pin, owner = "| *owner's account* | `someone` |") =>
-  `# Core manifest\n\nCore: ${CORE} at ${pin}, copied whole under core/ (never edited here).\n\n| Slot | Here |\n| --- | --- |\n${owner}\n`;
+// (the scratch project follows the core's main unless a test says otherwise: what a project follows is releases-test.mjs's)
+const manifest = (pin, owner = "| *owner's account* | `someone` |", follows = "| *follows* | `main` |") =>
+  `# Core manifest\n\nCore: ${CORE} at ${pin}, copied whole under core/ (never edited here).\n\n| Slot | Here |\n| --- | --- |\n${owner}\n${follows}\n`;
 
-ok(plan(A, A, null) === "nothing" && plan(A, A, "7") === "close" && plan(A, B, null) === "open" && plan(A, B, "7") === "update", "the four cases");
+ok(plan(false, null) === "nothing" && plan(false, "7") === "close" && plan(true, null) === "open" && plan(true, "7") === "update", "the four cases");
 ok(pinOf(manifest(A)) === A && pinOf(`Core: ${CORE} at abc, copied whole under core/`) === null, "a pin is 40 hex characters");
 ok(pinOf(manifest(A) + manifest(B)) === null && pinOf(`> Core: ${CORE} at ${A}, copied whole under core/`) === null, "one line, at a line's start");
 ok(pinOf(`Core: someone/else at ${A}, copied whole under core/`) === null, "only the core's own address");
 ok(ownerOf(manifest(A)) === "someone" && ownerOf(manifest(A, "| *owner's account* | someone |")) === null, "the owner's account, in backticks");
 ok(ownerOf(manifest(A, "| *owner's account* | `a; rm -rf x` |")) === null, "an account is letters, digits and hyphens");
-ok(body(A, B).includes(`/compare/${A}...${B}`) && body(A, B).includes("node core/scripts/sync.mjs"), "the issue says what changed and how to take it");
+ok(body(A, B).includes(`/compare/${A}...${B}`) && body(A, B).includes("node core/scripts/sync.mjs") && body(A, B).startsWith("The core's `main` is at"), "the issue says what changed and how to take it");
+ok(body(A, B, "release-4").startsWith("The core's newest release, `release-4`, is at") && body(A, B, "release-4").includes(`/compare/${A}...${B}`) && !body(A, B, "release-4").includes("`main` is at"), "for a project that follows the releases, it names the release");
 const BOT = "github-actions[bot]", line = (...issue) => JSON.stringify(issue) + "\n";
 ok(openIssue(line(3, "someone", TITLE) + line(9, BOT, TITLE)) === "9", "only an issue the workflow opened counts");
 ok(openIssue(line(9, BOT, `${TITLE} too`)) === null && openIssue("") === null, "the whole title, or none");
@@ -43,11 +46,11 @@ ok(jq.status === 0 && jq.stdout.trim().split("\n").length === 2 && openIssue(jq.
 
 // The program whole, in a scratch project, with a git and a gh that answer as told and write down what they were asked.
 const script = fileURLToPath(new URL("./core-moved.mjs", import.meta.url));
-function program(pin, newest, issues, args = []) {
+function program(pin, newest, issues, args = [], follows = undefined) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-moved-test-"));
   const bin = path.join(dir, "bin"), log = path.join(dir, "calls");
   fs.mkdirSync(bin);
-  fs.writeFileSync(path.join(dir, "core-manifest.md"), manifest(pin));
+  fs.writeFileSync(path.join(dir, "core-manifest.md"), manifest(pin, undefined, follows));
   fs.writeFileSync(path.join(bin, "git"), `#!/bin/sh\nprintf 'git %s\\n' "$*" >> "${log}"\nprintf '%s\\trefs/heads/main\\n' "${newest}"\n`, { mode: 0o755 });
   fs.writeFileSync(path.join(dir, "issues"), issues);
   fs.writeFileSync(path.join(bin, "gh"), `#!/bin/sh\nprintf 'gh %s\\n' "$*" >> "${log}"\n[ "$1" = api ] && cat "${path.join(dir, "issues")}"\nexit 0\n`, { mode: 0o755 });
@@ -78,6 +81,16 @@ else {
   ok(r.status === 1 && r.calls === "", "a manifest without its pin fails before anything is asked");
   r = program(A, B, "", ["--dry"]);
   ok(r.status === 0 && r.out.includes("open") && !/gh /.test(r.calls), "--dry says what it would do and calls gh for nothing");
+  // A project that follows the releases: the stand-in git answers every call alike, so the core it shows has no
+  // release, and with none cut there is nothing to take, whatever main holds (the releases themselves: releases-test.mjs).
+  r = program(A, B, "", [], "| *follows* | `releases` |");
+  ok(r.status === 0 && r.out.includes("no release yet: nothing") && !/gh issue/.test(r.calls) && /^git fetch /m.test(r.calls) && !/ls-remote/.test(r.calls), "following the releases, with none cut: nothing is done, and the core is fetched, not only asked for its main");
+  r = program(A, B, line(12, BOT, TITLE), [], "| *follows* | `releases` |");
+  ok(r.status === 0 && /gh issue close 12/.test(r.calls), "following the releases with nothing to take closes an issue left open");
+  r = program(A, B, "", [], "");
+  ok(r.status === 0 && r.out.includes("no release yet"), "with no row, another owner's project follows the releases");
+  r = program(A, B, "", [], "| *follows* | whatever |");
+  ok(r.status === 1 && r.calls === "", "a row that says neither fails before anything is asked");
 }
 
 console.log(failed ? `${failed} of ${count} failed` : `ok   ${count} assertions on the core-moved check`);

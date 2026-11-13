@@ -1,0 +1,18 @@
+# Dependabot version updates (the core's modules/updates.md; floor rule 17), into main. A release is proposed only a
+# week after it came out (cooldown), so a bad release is usually pulled first. The core's workflows are left out: only
+# a sync PR moves their pins.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "{{core}}*"
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"] # a new major is its own PR (core/modules/updates.md)

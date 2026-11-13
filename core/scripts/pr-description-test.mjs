@@ -2,7 +2,7 @@
 // with its words. Run by the core's tests workflow (.github/workflows/tests.yml).
 //
 //   node scripts/pr-description-test.mjs
-import { missing, PARTS } from "./pr-description.mjs";
+import { asked, missing, PARTS } from "./pr-description.mjs";
 
 let failed = 0;
 const ok = (cond, what) => { console.log(`${cond ? "ok  " : "FAIL"} ${what}`); if (!cond) failed++; };
@@ -20,6 +20,10 @@ ok(missing("## Risks\n## Rollback\n", ["Risks", "Rollback", "Test plan"]).join()
 ok(missing("## **What the owner can try**\n## _Readings\u00a0 taken_ \n").length === 0 && missing("## 1. What the owner can try\n## \u2705 Readings taken\n").join() === "What the owner can try", "bold or a sign before the words, and blanks of any kind between them, are read through; a number before them is not");
 ok(missing("## \u0130stanbul notes\n## STRASSE: none\n", ["\u0130stanbul", "Strasse"]).length === 0 && missing("## \u0130stanbuls\n", ["\u0130stanbul"]).length === 1, "a part whose small letters are longer than its capitals is still matched whole");
 ok(missing("```\n## What the owner can try\n```\n<!--\n## Readings taken\n-->\n").length === 0, "it reads no Markdown: a heading line in a code block or a comment counts (stated in the script's header)");
+ok(asked().join() === PARTS.join() && asked("").join() === PARTS.join() && asked(" | ").join() === PARTS.join() && asked("+").join() === PARTS.join(), "no argument, an empty one and one of separators alone each ask for the two");
+ok(asked("Risks| Rollback ").join() === "Risks,Rollback", "a project's own parts stand in place of the two");
+ok(asked("+What holds it").join() === [...PARTS, "What holds it"].join() && asked(" +A|B").join() === [...PARTS, "A", "B"].join() && asked("+Readings taken").join() === PARTS.join(), "parts led by a + are added to the two, none of them twice");
+ok(missing(whole, asked("+What holds it")).join() === "What holds it" && missing(`${whole}## What holds it\n\nNone.\n`, asked("+What holds it")).length === 0, "an added part is asked for, and found");
 const slow = Date.now();
 missing(`${"#".repeat(300000)} x\n${"## ".repeat(100000)}\n${" ".repeat(300000)}# Readings taken\n`.repeat(3));
 ok(Date.now() - slow < 2000, "a long description of signs and spaces is read in no time");

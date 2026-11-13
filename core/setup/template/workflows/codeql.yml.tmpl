@@ -1,0 +1,24 @@
+# CodeQL on every PR into main, every push to it, and weekly ("Updates" in the core's modules/updates.md): the core's,
+# with this project's languages. Findings on a PR show on it as notes.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '23 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: {{core}}/.github/workflows/codeql.yml@{{pin}}
+    with:
+      languages: '["actions"]' # FILL IN: add each language of the project's own that CodeQL analyzes without a build
