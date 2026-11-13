@@ -9,7 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { check, lockPackages, manifestLicence, nugetConfig, projectFiles } from "./nuget.mjs";
+import { REGISTRY, check, lockPackages, manifestLicence, nugetConfig, projectFiles, sourcesOf } from "./nuget.mjs";
 
 let failed = 0, count = 0;
 const ok = (cond, what, detail = "") => { count++; if (cond) console.log(`ok   ${what}`); else { failed++; console.error(`FAIL ${what}${detail && `\n     ${detail}`}`); } };
@@ -24,6 +24,13 @@ ok(throws(() => nugetConfig({ nuget: { ships: [L], tools: [L] } })) && throws(()
 const yes = { package: "Odd.Pkg@1.0.0", licence: "LGPL-3.0-only", ships: false, yes: "the owner, 13 November 2026: take it" };
 ok(nugetConfig({ nuget: { accepted: [yes, { ...yes, package: "Other.Pkg@2.0.0", ships: true, notice: "its notice" }] } }).accepted.length === 2 && [[{ ...yes, yes: "" }], [{ ...yes, package: "Odd.Pkg" }], [{ ...yes, more: 1 }], [{ ...yes, notice: 5 }], [{ ...yes, ships: "no" }], [{ package: "A@1", licence: "x", ships: true }], ["A@1"], {}].every(a => throws(() => nugetConfig({ nuget: { accepted: a } }))),
   "an accepted package names its exact version, what it is under, whether it ships and the owner's words, with its notice or without, and nothing else");
+
+// where packages come from
+ok(sourcesOf({ nuget: {} }, "/project").join() === REGISTRY && sourcesOf({ nuget: { sources: ["https://pkgs.example.com/feed/v3/index.json", "vendor/packages/"] } }, path.resolve("/project")).join() === `${REGISTRY},https://pkgs.example.com/feed/v3/index.json,${path.resolve("/project", "vendor/packages")}`,
+  "a restore takes packages from NuGet's own registry, and from what the config names beside it: an address, a folder of the project's by its whole path");
+ok(["http://pkgs.example.com/", "https://user:word@pkgs.example.com/", "https://pkgs.example.com/v3?key=1", "https://pkgs.example.com/a b", "https://-pkgs.example.com/", "https://169.254.169.254/", "https://localhost/", "https://pkgs..example.com/", "https://pkgs.example.com/a/../b", "../out/", "/abs/", "vendor", "./", "./vendor/", "vendor//x/", "vendor/../x/", ".git/", ".../", "core/", "Core/scripts/", "-x/", "--source/", REGISTRY, REGISTRY.toUpperCase(), 5, "vendor/\n--source\nhttps://pkgs.example.com/"]
+  .every(s => throws(() => nugetConfig({ nuget: { sources: [s] } }))) && throws(() => nugetConfig({ nuget: { sources: "vendor/" } })) && throws(() => nugetConfig({ nuget: { sources: ["vendor/", "vendor/"] } })),
+  "a source is an https address of a named host, with no sign-in or question in it, or a folder inside the project that is not the core's copy or git's own; never the registry again, never one twice, never a word a restore could read as an option");
 
 // a lock file
 const entry = (type, resolved, requested) => ({ type, ...(requested ? { requested } : {}), resolved, contentHash: "h==" });
@@ -86,10 +93,16 @@ const MANIFESTS = {
   "Some.Pack@8.0.0": `<license type="expression">MIT</license>`,
 };
 let folders = 0;
+// (each package as a restore leaves it: its manifest, and beside it NuGet's record of the source it took it from; a
+// name is "<Id>@<version>", or [that, the source] for one taken from elsewhere than the registry)
 const restore = (...names) => {
   const dir = `restored-${++folders}`;
   fs.mkdirSync(path.join(tmp, dir));
-  for (const name of names.filter(n => MANIFESTS[n])) { const [id, version] = name.toLowerCase().split("@"); put(`${dir}/${id}/${version}/${id}.nuspec`, nuspec(MANIFESTS[name])); }
+  for (const [name, source = REGISTRY] of names.map(n => (Array.isArray(n) ? n : [n])).filter(([n]) => MANIFESTS[n])) {
+    const [id, version] = name.toLowerCase().split("@");
+    put(`${dir}/${id}/${version}/${id}.nuspec`, nuspec(MANIFESTS[name]));
+    put(`${dir}/${id}/${version}/.nupkg.metadata`, JSON.stringify({ version: 2, contentHash: "h==", source }));
+  }
   return path.join(tmp, dir);
 };
 const direct = (...pairs) => Object.fromEntries(pairs.map(([id, v]) => [id, entry("Direct", v, `[${v}, )`)]));
@@ -104,24 +117,32 @@ const said = result => result.failures.join("\n");
 const good = project({ ...direct(["Newtonsoft.Json", "13.0.3"], ["Serial.Lib", "3.0.5"]), "Lib.Dep": entry("Transitive", "2.0.0") }, direct(["Test.Tool", "9.0.0"], ["Newtonsoft.Json", "13.0.3"]));
 ok(good.failures.length === 0 && /^4 NuGet packages in 2 lock files checked \(3 in what ships, 1 tools that only run\), 0 accepted/.test(good.summary), "a project whose every package is exact and on its list passes: what ships to the floor's list, a test's tool to the tools'", said(good) + good.summary);
 const bad = project(direct(["Copy.Left", "4.0.0"], ["Test.Tool", "9.0.0"], ["By.File", "1.0.0"]), {});
-ok(bad.failures.length === 3 && /Copy\.Left@4\.0\.0 .*GPL-3\.0-only is off the list for what ships.*nuget\.accepted/.test(said(bad)) && /Test\.Tool@9\.0\.0 .*EPL-2\.0 is off the list for what ships/.test(said(bad)) && /By\.File@1\.0\.0 .*names a licence file.*record it in checks\/audit\.json as "By\.File@1\.0\.0", of "kind": "nuget"/.test(said(bad)),
-  "copyleft in what ships fails, a licence good enough for a tool is not good enough for what ships, and a licence in a file waits to be read by hand", said(bad));
+ok(bad.failures.length === 3 && /Copy\.Left@4\.0\.0 .*GPL-3\.0-only is off the list for what ships.*nuget\.accepted/.test(said(bad)) && /Test\.Tool@9\.0\.0 .*EPL-2\.0 is off the list for what ships/.test(said(bad)) && /By\.File@1\.0\.0 .*it ships, and its manifest names a licence file.*waits for the owner's yes \(floor rule 10\), in the config's "nuget\.accepted"/.test(said(bad)),
+  "copyleft in what ships fails, a licence good enough for a tool is not good enough for what ships, and what ships under a licence in a file waits for the owner's yes", said(bad));
 
-// read by hand: the audit's entry
-const hand = { name: "by.file@1.0.0", kind: "nuget", licence: "MIT", ships: true, notice: "n" };
-ok(project(direct(["By.File", "1.0.0"]), {}, { entries: [hand] }).failures.length === 0, "read by hand and recorded in the audit under its id and version, however cased, it passes");
-ok(/does not say it ships/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, ships: false }] }))) && /GPL-2\.0-only, as checks\/audit\.json records it, is off/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, licence: "GPL-2.0-only" }] })))
-  && /names a licence file/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, name: "By.File@0.9.0" }] }))), "an entry that does not say it ships, one that records a licence off the list, or one for another version does not");
-ok(/names a licence file/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, kind: undefined }] }))) && /names a licence file/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, kind: "data" }] }))), "an entry of the same name that is not a NuGet package's covers none: the audit holds other things under such names");
-ok(project({}, direct(["By.File", "1.0.0"]), { entries: [{ ...hand, ships: false }] }).failures.length === 0, "for a tool that only runs, an entry that does not ship is enough");
-ok(/the entry By\.File@0\.9\.0, of "kind": "nuget", is for no package whose licence had to be read by hand: remove it/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [hand, { ...hand, name: "By.File@0.9.0" }] })))
+// read by hand: a tool's entry in the audit, and the owner's yes for what ships
+const hand = { name: "by.file@1.0.0", kind: "nuget", licence: "MIT" };
+const tool = (entries, nuget = {}) => project({}, direct(["By.File", "1.0.0"]), { entries, nuget });
+ok(/By\.File@1\.0\.0 .*names a licence file.*record it in checks\/audit\.json as "By\.File@1\.0\.0", of "kind": "nuget"/.test(said(tool([]))) && tool([hand]).failures.length === 0,
+  "a tool that only runs, its licence in a file, waits to be read by hand, and passes once the audit records it under its id and version, however cased", said(tool([hand])));
+ok(/LicenseRef-Odd, as checks\/audit\.json records it, is off the tools' list/.test(said(tool([{ ...hand, licence: "LicenseRef-Odd" }]))) && /names no licence/.test(said(tool([{ ...hand, licence: 5 }])))
+  && /names a licence file/.test(said(tool([{ ...hand, name: "By.File@0.9.0" }]))), "an entry that records a licence off the tools' list, none, or another version does not pass it");
+ok(/names a licence file/.test(said(tool([{ ...hand, kind: undefined }]))) && /names a licence file/.test(said(tool([{ ...hand, kind: "data" }]))), "an entry of the same name that is not a NuGet package's covers none: the audit holds other things under such names");
+ok(/the entry By\.File@0\.9\.0, of "kind": "nuget", is for no package whose licence had to be read by hand: remove it/.test(said(tool([hand, { ...hand, name: "By.File@0.9.0" }])))
   && /holds an entry for it, and its manifest names its licence itself \(MIT\): remove the entry/.test(said(project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { entries: [{ ...hand, name: "Newtonsoft.Json@13.0.3" }] }))), "an entry for a version installed no more, or for a package whose manifest speaks for itself, fails: the audit's NuGet entries shrink by themselves");
 ok(/GPL-3\.0-only is off/.test(said(project(direct(["Copy.Left", "4.0.0"]), {}, { entries: [{ ...hand, name: "Copy.Left@4.0.0" }] }))), "what a manifest names itself, no entry written by hand overrules");
+const shippedByHand = project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, ships: true, notice: "n" }] });
+ok(shippedByHand.failures.length === 2 && /it ships, and its manifest names a licence file.*waits for the owner's yes/.test(said(shippedByHand)) && /it ships, so checks\/audit\.json holds no entry for it/.test(said(shippedByHand)),
+  "what ships is never passed by an audit entry, whatever a session read: read as MIT and recorded as shipping, it still waits for the owner's yes", said(shippedByHand));
+ok(/it ships, and its manifest names a licence file/.test(said(project(direct(["By.File", "1.0.0"]), direct(["By.File", "1.0.0"]), { entries: [hand] }))), "nor where the same version is a tool's too: it is held as what ships");
 
 // the owner's yes
 const accepted = (id, v, licence, more = {}) => ({ package: `${id}@${v}`, licence, ships: true, yes: "the owner, 13 November 2026: take it", notice: "its notice", ...more });
 const taken = project(direct(["Weak.Copy", "2.1.0"], ["By.File", "1.0.0"]), {}, { nuget: { accepted: [accepted("weak.copy", "2.1.0", "LGPL-3.0-only"), accepted("By.File", "1.0.0", "LicenseRef-Vendor-EULA")] } });
 ok(taken.failures.length === 0 && /2 accepted on the owner's yes/.test(taken.summary), "a package off its list, or with no licence a machine can read, passes where the config names that version with the owner's words", said(taken));
+ok(project(direct(["By.File", "1.0.0"]), {}, { nuget: { accepted: [accepted("By.File", "1.0.0", "MIT")] } }).failures.length === 0
+  && /it ships, so its notice ships too/.test(said(project(direct(["By.File", "1.0.0"]), {}, { nuget: { accepted: [accepted("By.File", "1.0.0", "MIT", { notice: undefined })] } }))),
+  "what ships under a licence read by hand as one on the list passes by the owner's yes for that reading, with its notice");
 ok(/Weak\.Copy@2\.1\.0 .*off the list/.test(said(project(direct(["Weak.Copy", "2.1.0"]), {}, { nuget: { accepted: [accepted("Weak.Copy", "2.0.0", "LGPL-3.0-only")] } }))), "a yes for one version is no yes for the next");
 ok(/accepted as a tool that only runs .*a yes for a tool is no yes for what ships/.test(said(project(direct(["By.File", "1.0.0"]), direct(["By.File", "1.0.0"]), { nuget: { accepted: [accepted("By.File", "1.0.0", "LicenseRef-Vendor-EULA", { ships: false })] } })))
   && project({}, direct(["By.File", "1.0.0"]), { nuget: { accepted: [accepted("By.File", "1.0.0", "LicenseRef-Vendor-EULA", { ships: false, notice: undefined })] } }).failures.length === 0, "a yes for a tool that only runs is no yes for the same version where it ships; for the tool it is enough, and needs no notice");
@@ -129,7 +150,8 @@ ok(/it ships, so its notice ships too/.test(said(project(direct(["Weak.Copy", "2
 ok([accepted("Non.Commercial", "5.0.0", "CC-BY-NC-4.0"), accepted("Non.Commercial", "5.0.0", "MIT"), accepted("Non.Commercial", "5.0.0", "LicenseRef-Free-For-Any-Use")].every(a => /terms floor rule 10 never allows/.test(said(project(direct(["Non.Commercial", "5.0.0"]), {}, { nuget: { accepted: [a] } }))))
   && /terms floor rule 10 never allows/.test(said(project(direct(["By.File", "1.0.0"]), {}, { nuget: { accepted: [accepted("By.File", "1.0.0", "LicenseRef-BUSL-1.1")] } }))), "no yes takes in terms the floor never allows, whatever the entry calls them: the manifest's own word counts, and the entry's");
 ok(/named in "nuget\.accepted" and in checks\/audit\.json both: an accepted package stands/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, licence: "GPL-3.0-only" }], nuget: { accepted: [accepted("By.File", "1.0.0", "GPL-3.0-only")] } })))
-  && /and the entry is on its list: remove the yes/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [hand], nuget: { accepted: [accepted("By.File", "1.0.0", "MIT")] } }))), "an accepted package with an audit entry too fails: the licence check would hold that entry to the list, and one on the list needs no yes");
+  && /named in "nuget\.accepted" and in checks\/audit\.json both: an accepted package stands/.test(said(project(direct(["By.File", "1.0.0"]), {}, { entries: [{ ...hand, ships: true, notice: "n" }], nuget: { accepted: [accepted("By.File", "1.0.0", "MIT")] } })))
+  && /and the entry is on its list: remove the yes/.test(said(tool([hand], { accepted: [accepted("By.File", "1.0.0", "MIT", { ships: false })] }))), "an accepted package with an audit entry too fails: the licence check would hold that entry to the list, and a tool's entry on the list needs no yes");
 ok(/names Newtonsoft\.Json@13\.0\.3, which is on its list and needs no yes: remove it/.test(said(project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { nuget: { accepted: [accepted("Newtonsoft.Json", "13.0.3", "MIT")] } })))
   && /names Gone@1\.0\.0, which nothing installs: remove it/.test(said(project({}, {}, { nuget: { accepted: [accepted("Gone", "1.0.0", "x")] } }))), "an accepted version that needs no yes, or is installed no more, fails: the list shrinks by itself");
 ok(["Business Source License 1.1", "none given", "the maker's own terms, bought", "MIT or Apache-2.0", "LicenseRef-", "LicenseRef-a b"].every(words => /which no machine can read: name it by an SPDX id/.test(said(project(direct(["By.File", "1.0.0"]), {}, { nuget: { accepted: [accepted("By.File", "1.0.0", words)] } }))))
@@ -143,7 +165,8 @@ const pack = project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { extra: ["Some.
 ok(pack.failures.length === 0 && /^1 NuGet packages in 2 lock files checked \(1 in what ships, 0 tools that only run\), and 1 more that the restore brought and no lock file names/.test(pack.summary), "a package the restore brought that no lock file names, a targeting pack say, is read too, and passes on its list", said(pack) + pack.summary);
 const smuggled = project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { extra: ["Copy.Left@4.0.0", "By.File@1.0.0"] });
 ok(/copy\.left@4\.0\.0 \(brought by the restore, and named in no lock file read here\): GPL-3\.0-only is off the list for what ships/.test(said(smuggled)) && /by\.file@1\.0\.0 \(brought by the restore.*names a licence file/.test(said(smuggled)), "one off the list fails as what ships would, however it came: a lock file under another name, a download a project file asks for", said(smuggled));
-ok(project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { extra: ["By.File@1.0.0"], entries: [hand] }).failures.length === 0, "and passes by the same two ways as any package");
+ok(/by\.file@1\.0\.0: it ships, so checks\/audit\.json holds no entry for it/.test(said(project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { extra: ["By.File@1.0.0"], entries: [hand] })))
+  && project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { extra: ["By.File@1.0.0"], nuget: { accepted: [accepted("By.File", "1.0.0", "MIT")] } }).failures.length === 0, "and one read by hand passes as what ships does: by the owner's yes, never by an audit entry");
 ok(/one exact version/.test(said(project({ A: entry("Direct", "13.0.3", "[13.0.*, )") }, {}))), "a lock file's own faults are the check's");
 ok(project(direct(["Newtonsoft.Json", "13.0.3"]), {}, { config: { data: ["Newtonsoft.Json", "copy.left"], fonts: ["Copy.Left"] } }).failures.length === 0 && /GPL-3\.0-only is off/.test(said(project(direct(["Copy.Left", "4.0.0"]), {}, { config: { data: ["Copy.Left"], fonts: ["Copy.Left"] } }))), "a name the config gives as data or a font, for npm's packages, widens no list for a NuGet package of that name");
 const loud = lockPackages(JSON.stringify({ version: 1, dependencies: { "net10.0\n::error::forged": { "A\n::warning::x": entry("Direct", "1.0.0", "[2.0.0\n::notice::y, )"), B: entry("Direct", "1.0.0", "[9\r\n::stop-commands::z, )") } } }), "p.lock").failures;
@@ -176,6 +199,47 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 fs.mkdirSync(path.join(repo, "core"), { recursive: true });
 fs.cpSync(here, path.join(repo, "core", "scripts"), { recursive: true });
 fs.cpSync(path.join(here, "..", "floor"), path.join(repo, "core", "floor"), { recursive: true });
+// where each package was taken from, as NuGet records it beside the package
+const APP = "src/App/App.csproj", only = [APP, L];
+const takenFrom = (source, nuget = {}, tracked = only, { meta, env } = {}) => {
+  put(L, lock(direct(["Newtonsoft.Json", "13.0.3"])));
+  const dir = restore(["Newtonsoft.Json@13.0.3", source]), record = path.join(dir, "newtonsoft.json", "13.0.3", ".nupkg.metadata");
+  if (meta === null) fs.rmSync(record); else if (meta !== undefined) fs.writeFileSync(record, meta);
+  return check({ ships: [], nuget: { ships: [L], ...nuget } }, tmp, dir, tracked, env).failures.join("\n");
+};
+const named = { sources: ["https://pkgs.example.com/v3/index.json", "vendor/packages/"] }, vendored = [...only, "vendor/packages/Bought.1.0.0.nupkg"];
+ok(takenFrom(REGISTRY) === "" && takenFrom("https://pkgs.example.com/v3/index.json", named, vendored) === ""
+  && takenFrom(path.join(tmp, "vendor", "packages") + path.sep, named, vendored) === "" && takenFrom(path.join(tmp, "vendor", "packages"), named, vendored) === "",
+  "a package taken from the registry, or from a source the config names, an address or a folder however its path ends, passes");
+ok(/Newtonsoft\.Json@13\.0\.3 \(src\/App\/packages\.lock\.json\): the restore took it from https:\/\/pkgs\.example\.com\/v3\/index\.json, which is neither NuGet's own registry nor a source the config's "nuget\.sources" names/.test(takenFrom("https://pkgs.example.com/v3/index.json"))
+  && /the restore took it from .*vendored/.test(takenFrom(path.join(tmp, "vendored"))) && /the restore took it from http:\/\/pkgs\.example\.com/.test(takenFrom("http://pkgs.example.com/v3/index.json", { sources: ["https://pkgs.example.com/v3/index.json"] }))
+  && /the restore took it from https:\/\/API\.nuget\.org/.test(takenFrom("https://API.nuget.org/v3/index.json")), "one taken from anywhere else fails, whatever added the source: an address, a folder, the plain form of a named address, another spelling of the registry's");
+ok([null, "", "not json", "{}", JSON.stringify({ version: 2, source: "" }), JSON.stringify({ source: 7 })].every(meta => /the restore left no record of where it took it from \(\.nupkg\.metadata\)/.test(takenFrom(REGISTRY, {}, only, { meta }))),
+  "a package with no record of where it was taken from, or one that names no source, fails: its source cannot be read");
+const elsewhere = check({ ships: [], nuget: { ships: [L] } }, tmp, restore("Newtonsoft.Json@13.0.3", ["Some.Pack@8.0.0", "https://pkgs.example.com/v3/index.json"]), only).failures.join("\n");
+ok(/some\.pack@8\.0\.0 \(brought by the restore, and named in no lock file read here\): the restore took it from https:\/\/pkgs\.example\.com/.test(elsewhere), "a package the restore brought that no lock file names, for a project of another kind say, is held to the same sources", elsewhere);
+// (the runner's own SDK stands outside the project, as on a runner)
+const sdk = fs.mkdtempSync(path.join(os.tmpdir(), "nuget-test-sdk-")); process.on("exit", () => fs.rmSync(sdk, { recursive: true, force: true }));
+for (const name of ["dotnet", "dotnet.exe"]) fs.writeFileSync(path.join(sdk, name), "");
+const onPath = { env: { PATH: [path.join(tmp, "nowhere"), sdk].join(path.delimiter) } };
+ok(takenFrom(path.join(sdk, "library-packs"), {}, only, onPath) === "" && /the restore took it from .*library-packs/.test(takenFrom(path.join(tmp, "elsewhere", "library-packs"), {}, only, onPath)) && /the restore took it from .*library-packs/.test(takenFrom(path.join(sdk, "library-packs"))),
+  "the SDK's own folder of packages, beside the dotnet the PATH names, is a source every restore has; a folder of that name anywhere else is not, nor that one where no dotnet stands beside it on the PATH");
+put("tools/dotnet", "");
+const relative = path.relative(process.cwd(), path.join(tmp, "tools")), local = (dir) => takenFrom(path.join(tmp, "tools", "library-packs"), {}, only, { env: { PATH: dir } });
+ok(/the restore took it from .*library-packs/.test(local(relative)) && /the restore took it from .*library-packs/.test(local(path.join(tmp, "tools"))) && /the restore took it from .*library-packs/.test(takenFrom(path.join(tmp, "tools", "library-packs"), {}, only, { env: { DOTNET_ROOT: path.join(tmp, "tools") } })),
+  "a dotnet the PATH or DOTNET_ROOT names by a path that is not whole, or one inside the project, brings no folder of packages: it would be one the pull request brought");
+const outside = fs.mkdtempSync(path.join(os.tmpdir(), "nuget-test-path-")); process.on("exit", () => fs.rmSync(outside, { recursive: true, force: true }));
+fs.symlinkSync(path.join(tmp, "tools", "dotnet"), path.join(outside, "dotnet"));
+ok(/the restore took it from .*library-packs/.test(takenFrom(path.join(tmp, "tools", "library-packs"), {}, only, { env: { PATH: outside } })), "nor one whose link, outside the project, leads into it", takenFrom(path.join(tmp, "tools", "library-packs"), {}, only, { env: { PATH: outside } }));
+put("vendor/packages/Bought.1.0.0.nupkg", "");
+const shown = names(["vendor/packages/Bought.1.0.0.nupkg"], { sources: ["vendor/packages/", "https://pkgs.example.com/v3/index.json"] });
+fs.symlinkSync(os.tmpdir(), path.join(tmp, "vendor/packages/elsewhere"));
+ok(/"nuget\.sources" names vendor\/packages\/, a folder that holds no file git knows/.test(names(["vendor/readme.md"], { sources: ["vendor/packages/"] })) && shown === ""
+  && /vendor\/packages\/elsewhere: a link, in a folder the config names as a source/.test(names(["vendor/packages/Bought.1.0.0.nupkg", "vendor/packages/elsewhere"], { sources: ["vendor/packages/"] })),
+  "a folder named as a source holds files git knows, so what it gives stands in the pull request, and no link that leads out of it");
+fs.rmSync(path.join(tmp, "vendor/packages/elsewhere")); put("vendor/packages/deep/Slipped.2.0.0.nupkg", "");
+ok(/vendor\/packages\/deep\/Slipped\.2\.0\.0\.nupkg: a file git does not know, in a folder the config names as a source/.test(names(["vendor/packages/Bought.1.0.0.nupkg"], { sources: ["vendor/packages/"] }))
+  && names(["vendor/packages/Bought.1.0.0.nupkg", "vendor/packages/deep/Slipped.2.0.0.nupkg"], { sources: ["vendor/packages/"] }) === "", "and nothing git does not know, however deep: a restore takes what the pull request shows and nothing beside it");
 const inRepo = (to, text) => { fs.mkdirSync(path.dirname(path.join(repo, to)), { recursive: true }); fs.writeFileSync(path.join(repo, to), text); };
 inRepo("src/App/App.csproj", "<Project />"); inRepo(L, lock(direct(["Copy.Left", "4.0.0"])));
 inRepo("checks/audit.json", JSON.stringify({ entries: [] }));
@@ -189,10 +253,13 @@ ok(strict.status === 1 && /^FAIL: Copy\.Left@4\.0\.0/m.test(strict.out) && /1 fa
 ok(advisory.status === 0 && /^WOULD FAIL: Copy\.Left@4\.0\.0/m.test(advisory.out) && /Advisory: nothing fails for it yet/.test(advisory.out), "advisory, it says what it would fail, and passes", advisory.out);
 ok(run("checks/licences.json").status === 1 && run("--packages", left).status === 1 && run().status === 1 && run("checks/missing.json", "--packages", left, "--advisory").status === 1, "without its config or the restore's folder it fails, advisory or not");
 ok(run("--projects").status === 0 && run("--projects").stdout === "src/App/App.csproj\n", "asked for the project files, it lists what git knows, a line each, for the restore");
+ok(run("checks/licences.json", "--sources").status === 0 && run("checks/licences.json", "--sources").stdout === `${REGISTRY}\n` && run("--sources").status === 1 && run("checks/missing.json", "--sources").status === 1,
+  "asked for the sources, it lists the registry and what the config names, a line each, and fails without a config it can read");
 inRepo(L, lock(direct(["Newtonsoft.Json", "13.0.3"])));
 const fine = run("checks/licences.json", "--packages", path.relative(repo, json));
 ok(fine.status === 0 && /^1 NuGet packages in 1 lock files checked/m.test(fine.out), "a lock file edited and not yet committed is read as it stands, and the folder may be named from where it is started", fine.out);
 inRepo("checks/audit.json", JSON.stringify({ entries: [{ ...hand, name: "By.File@1.0.0" }] })); inRepo(L, lock(direct(["By.File", "1.0.0"])));
+inRepo("checks/licences.json", JSON.stringify({ ships: [], audit: "checks/audit.json", nuget: { tools: [L] } }));
 const licences = spawnSync(process.execPath, [path.join(repo, "core/scripts/licences.mjs"), "checks/licences.json"], { cwd: repo, env, encoding: "utf8" });
 ok(licences.status === 0 && run("checks/licences.json", "--packages", restore("By.File@1.0.0")).status === 0, "the licence check takes the same config and the same audit, holds the NuGet entry to its list, and leaves the rest to this check", licences.stdout + licences.stderr);
 

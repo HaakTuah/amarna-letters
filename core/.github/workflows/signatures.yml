@@ -1,8 +1,10 @@
 # The signature check (floor rule 7: "the registry's signature verified"), for a project whose packages come from npm:
 # it installs from the lock file, from npm's registry alone and running no package's install script, and then runs
 # npm's own `npm audit signatures`, which fails where the registry's copy of an installed name and version has no valid
-# signature, or a provenance that does not hold. npm's own tool on npm's own data: nothing here reads a lock file
-# itself. The install refuses a package from git, from a web address or from a tarball file, which the signature check
+# signature, or a provenance that does not hold. npm's own tool on npm's own data. Then, with the packages installed,
+# the caller's own core/scripts/licence-installed.mjs holds each lock entry's licence and version to what the installed
+# package says of itself (floor rule 10), so that the licence check, which reads the lock file, reads what the
+# packages say; it runs nothing of what it reads. The install refuses a package from git, from a web address or from a tarball file, which the signature check
 # would pass over in silence (npm 11.20, which the core's Node brings, knows these settings; given on the command line,
 # they overrule an `.npmrc`). An `.npmrc` that names another registry, or sets anything else that changes where npm
 # fetches from, already fails the licence check (scripts/licences.mjs), which is why no registry is named here.
@@ -75,3 +77,7 @@ jobs:
         if: steps.what.outputs.run != 'false' # anything but a plain no checks
         working-directory: ${{ inputs.directory }}
         run: npm audit signatures
+      - name: Each lock entry's licence and version, as the installed package says them
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
+        working-directory: ${{ inputs.directory }}
+        run: node "$GITHUB_WORKSPACE/core/scripts/licence-installed.mjs" .

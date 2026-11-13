@@ -6,14 +6,17 @@
 # restore brought, to its licence list, and what a lock file names to one exact version, reading each licence from the
 # manifest of the package the restore brought. What that script holds and does not, it says itself. A project calls
 # this (workflow_call) from a workflow of its own of the same name, on every pull request, pinned to a full commit SHA
-# ("How a project takes the core" in README.md, point 5), passing the licence check's config. While "advisory" (on
-# unless turned off) it says what it would fail and passes, a restore that fails included, so a project's first weeks
-# with it show whether it is right before anything waits for it. A restore runs the pull request's own project files,
-# as its build would, and what they run could change anything in this job, the script and the manifests it reads
+# ("How a project takes the core" in README.md, point 5), passing the licence check's config. It fails from a
+# project's first day (core archive 198). With "advisory" (off unless a project turns it on) it says what it would
+# fail and passes, a restore that fails included: for a project where the check itself is at fault, while that is
+# reported to the core and mended, and never to let a package through. A restore runs the pull request's own project
+# files, as its build would, and what they run could change anything in this job, the script and the manifests it reads
 # included: so this runs with contents: read and no secret, nothing after the checkout holds the token, and what a pull
 # request does to its project files is the reviews' to read, as with every check that builds. Where the packages come
-# from is the project's NuGet.Config's to say and the reviews' to weigh: this check reads what the restore brought. A
-# project for Windows alone restores here all the same (EnableWindowsTargeting); one whose SDK the runner lacks
+# from is this restore's to say (floor rule 7): NuGet's own registry and the sources the config names, given to every
+# restore, which overrules what a NuGet.Config names, and the script then reads, by NuGet's own record beside each
+# package it brought (.nupkg.metadata), that it took none from elsewhere; a source that asks for a sign-in has none
+# here. A project for Windows alone restores here all the same (EnableWindowsTargeting); one whose SDK the runner lacks
 # restores in a workflow of its own, and runs the script there.
 name: nuget
 
@@ -25,10 +28,10 @@ on:
         required: true
         type: string
       advisory:
-        description: Whether it only says what it would fail (true, as it starts) or fails the pull request (false).
+        description: Whether it only says what it would fail (true, while a fault of the check's own is mended) or fails the pull request (false).
         required: false
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read
@@ -46,6 +49,7 @@ jobs:
           node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
       - name: Restore each project file from its lock file alone
         env:
+          CONFIG: ${{ inputs.config }}
           ADVISORY: ${{ inputs.advisory }}
           NUGET_PACKAGES: ${{ runner.temp }}/nuget-packages # a folder of its own: only what this restore brings
           DOTNET_CLI_TELEMETRY_OPTOUT: "1"
@@ -56,14 +60,21 @@ jobs:
           # named from the root, behind "./", so that no name is read as an option)
           node core/scripts/nuget.mjs --projects > "$RUNNER_TEMP/nuget-projects"
           failed=0
-          while IFS= read -r project; do
-            # (the two properties given here overrule a project's own: its packages go to the folder the check reads,
-            # and its lock file is the one beside it; dotnet reads nothing of the list. A fallback folder cannot be
-            # turned off so: the SDK takes the word for a folder's name. The check fails a build file that names one.)
-            dotnet restore --locked-mode "-p:RestorePackagesPath=$NUGET_PACKAGES" -p:NuGetLockFilePath= "./$project" < /dev/null || failed=1
-          done < "$RUNNER_TEMP/nuget-projects"
+          # (where packages come from, a line each as the script lists them, the registry first: given to every
+          # restore, they overrule the sources any NuGet.Config names. Without them nothing is restored.)
+          sources=()
+          if node core/scripts/nuget.mjs "$CONFIG" --sources > "$RUNNER_TEMP/nuget-sources"; then
+            while IFS= read -r source; do sources+=(--source "$source"); done < "$RUNNER_TEMP/nuget-sources"
+            while IFS= read -r project; do
+              # (the two properties given here overrule a project's own: its packages go to the folder the check
+              # reads, and its lock file is the one beside it; dotnet reads nothing of the list. A fallback folder
+              # cannot be turned off so: the SDK takes the word for a folder's name. The check fails a build file
+              # that names one, and reads from what each restore wrote where it took its packages from.)
+              dotnet restore --locked-mode "${sources[@]}" "-p:RestorePackagesPath=$NUGET_PACKAGES" -p:NuGetLockFilePath= "./$project" < /dev/null || failed=1
+            done < "$RUNNER_TEMP/nuget-projects"
+          else failed=1; fi
           if [ "$failed" = 1 ]; then
-            echo "A restore from a lock file failed: the lock file is not what the project file asks for, or a package is not what its lock file names (floor rule 15)."
+            echo "A restore from a lock file failed: the lock file is not what the project file asks for, a package is not what its lock file names or comes from no source named here (floor rules 7 and 15), or the config names its sources wrongly."
             [ "$ADVISORY" = true ] || exit 1
             echo "Advisory: nothing fails for it yet."
           fi

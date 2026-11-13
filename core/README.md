@@ -75,14 +75,19 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
      of its own (the *copies check*; the licence check's with its audit of what no lockfile holds, which
      `licence-scan.mjs` holds whole, every action, fetched package, asset and copied-in code it uses, and each entry
      that ships with its notice; beside it `exact-versions.mjs`, which reads the same config's lockfiles and fails a
-     dependency that is not, letter for letter, the one version its lockfile installs: floor rule 7).
+     dependency that is not, letter for letter, the one version its lockfile installs: floor rule 7). A package or
+     an audit entry off its list that the owner wants anyway is named in the config's "accepted" with the owner's
+     words (`licence-yes.mjs`; floor rule 10), and passes only as it was accepted: that version, that licence, a
+     tool or what ships.
    - **With the copies check,** `pointers.mjs` and `reading-size.mjs`, the pointer check and the reading-size check,
      the second with marks of its own (the *size marks*), and `workflows.mjs`, which needs no config and fails a
      workflow that names `pull_request_target` (floor rule 2).
    - **The description check:** `pr-description.mjs`, which fails a pull request, once it is no draft, whose
      description lacks one of the headings `modules/git.md` names (or those the project gives it).
    - **The session's cost:** `session-cost.mjs`, which prints the line a description ends with, what the session has
-     spent so far, where Claude Code's own record of it can be read, and nothing where it cannot.
+     spent so far, where Claude Code's own record of it can be read, and nothing where it cannot. It keeps a tally of
+     its own beside that record (ids, counts and the models' families), so the line does not drop where the record
+     loses answers.
    - **Its calls to the core's workflows:** its own `core.yml`, `personal-terms.yml`, `copies.yml`, `licences.yml`,
      `codeql.yml`, `delete-merged-branches.yml`, `pr-description.yml` and, if it has versions Dependabot cannot see,
      `versions.yml` keep their triggers and call the core's of the same name
@@ -114,19 +119,24 @@ owner's words, and marks an answer that rests on them alone unsure (`modules/inb
    - **A project whose packages come from npm** has a `signatures.yml` of its own, on every pull request, which calls
      the core's with the folder of its lock file: where the pull request changes a package list, a lock file, an
      `.npmrc`, the Node version or that workflow, an install from the registry alone, running no package's install
-     script, then npm's own check of the registry's signature on each installed name and version (floor rule 7); where
-     it changes none, the check passes, so a ruleset can require it.
+     script, then npm's own check of the registry's signature on each installed name and version (floor rule 7), and
+     `licence-installed.mjs`, which holds each lock entry's licence and version to what the installed package says of
+     itself, so that the licence check's reading of that lock file is a reading of the packages (a project with more
+     than one lock file calls it for each); where it changes none, the check passes, so a ruleset can require it.
    - **A project whose packages come from NuGet** has a `nuget.yml` of its own, on every pull request, which calls the
      core's with the licence check's config: a restore of each project file git knows from its lock file alone
-     (`dotnet restore --locked-mode`, floor rule 15), then `nuget.mjs`, which holds every package in those lock files
-     to one exact version (floor rule 7) and to its licence list (floor rule 10), each licence read from the manifest
-     of the package the restore brought; what the restore brought that no lock file names is held to the list for what
-     ships too. It needs lock files turned on (`RestorePackagesWithLockFile`) and committed, each named in the
-     config's "nuget" as one whose packages ship or one of tools that only run. A package whose manifest names no
-     licence a machine can read is recorded by hand in the audit as `<Id>@<version>`, of "kind": "nuget"; one off its
-     list that the owner wants anyway is named in "nuget.accepted" with the owner's words, and there alone. It starts
-     advisory, saying what it would fail and passing, and a private repository calls it like any other: it needs
-     nothing of GitHub's paid code security.
+     (`dotnet restore --locked-mode`, floor rule 15), taking packages from NuGet's own registry and from what the
+     config's "nuget.sources" names, whatever a NuGet.Config says (floor rule 7), then `nuget.mjs`, which reads from
+     NuGet's own record beside each package that it was taken from nowhere else, and holds every package in those
+     lock files to one exact version (floor rule 7) and to its licence list (floor rule 10), each licence read from
+     the manifest of the package the restore brought; what the restore brought that no lock file names is held to the
+     list for what ships too. It needs lock files turned on (`RestorePackagesWithLockFile`) and committed, each named
+     in the config's "nuget" as one whose packages ship or one of tools that only run. A package whose manifest names no
+     licence a machine can read is read by hand: a tool that only runs is then recorded in the audit as
+     `<Id>@<version>`, of "kind": "nuget", and one that ships waits for the owner's yes. A yes, for that or for one
+     off its list that the owner wants anyway, stands in "nuget.accepted" as `licence-yes.mjs` says, and there alone.
+     It fails from a project's first day ("advisory" is for a fault of the check's own, while it is mended), and a
+     private repository calls it like any other: it needs nothing of GitHub's paid code security.
    - **The security-review check:** a project has a `security-review.yml` of its own, with the triggers and the three
      permissions its template has: the core's gives each open pull request's head commit the status `security-review`,
      which says whether its security review has run (floor rule 8), by the summary Codex's own app keeps on the pull

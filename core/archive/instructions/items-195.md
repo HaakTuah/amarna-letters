@@ -58,3 +58,20 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      Behind the six licences added to floor rule 10's list; the NuGet check built in the core, not in a project
      first; floor rule 11's exception for the name and address GitHub writes into a merge; and "the owner, or a
      session the owner tells" in `AGENTS.md`, "A release is cut on the owner's word".
+
+198. **13 November 2026** (the core, the same chat as item 195). Told how a package gets past the licence check: by
+     a licence on its list that a machine reads from the package itself; by the owner's yes, recorded with the
+     owner's words, for one off its list; and, for a NuGet package whose manifest names no licence a machine can
+     read, by a session reading the licence by hand and recording it in the audit, with nobody asked where what it
+     read was on the list, so that a misreading would put a package into what ships unless a review caught it. And
+     that the NuGet check started advisory in a project, saying what it would fail and passing, until the project
+     turned that off. Put to the owner: whether a licence read by hand for a package that ships should need the owner's
+     yes too, which closes that gap and stops a session more often; and whether the NuGet check should enforce from
+     the first day and not after an advisory week, which this session would have kept.
+
+     > I say yes to both
+
+     Behind "and so does a package that ships under a licence only a reading by hand gives" in floor rule 10, which
+     `scripts/nuget.mjs` holds; and behind the NuGet check failing from a project's first day, "advisory" left as a
+     setting a project turns on while a fault of the check's own is mended. The second yes was read as a yes to
+     the question as put, not to this session's "I would keep the week".
