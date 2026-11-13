@@ -135,3 +135,55 @@ Fast skips.
 
 **The hole check** of the third report (`scrub.mjs --holes`, and `--desktop`) on the branch: 104 checks on each, none with
 anything left out on the screen.
+
+**What holds desktop's frames at Normal** (the branch, the browser's trace for 25 s from season 3, a copy of `soak.mjs`
+that starts it there, kept out of the repository): the main thread is all but idle (2.7 s busy in 25 s, 3 tasks over 50 ms,
+the worst 112 ms), while the raster threads draw 4,610 tiles for 1.76 s, the worst 33 ms. So at Normal and Slow, the frames
+over 50 ms wait for the raster, not for the page: the land's change of season, playing as transitions of fill and opacity
+on the season's ground and a clip-path on the Nile, has large stretches of the map drawn again every frame, and this
+machine draws them in software. A computer with a graphics card draws tiles far faster, so this one needs a measure on a
+real machine before it is read as the game's.
+
+## What is left
+
+The bar is not met: on the phone profile at Fast about one frame in 25 to 30 is still over 50 ms, with motion or without;
+desktop at Fast one in 400 to 500; desktop at Normal one in 30 and at Slow one in 50 to 60. #666 stays open. What the
+evidence points to, in order:
+
+1. **The season's single steps** on the phone (the renderer's own step leads 26 of 44 long frames, 23 to 47 ms in one
+   step, then 30 to 50 ms of the browser's work on that change): the names in slices across frames (19 to 23 ms a season),
+   then the tints (18), the works at the cities, the cities and the steles (11 to 12 each).
+2. **The frames led by a layout** on the phone (10 of 44, 16 to 32 ms of layout): what lays out in a frame of play.
+3. **Desktop at Normal and Slow**: the raster of the land's change of season. First a measure with a graphics card (or the
+   phone soak at Normal), since a software rasterizer may make it what it is not; then, if it holds, the change drawn in
+   fewer, smaller repaints.
+4. **A real phone.** All of this is a slowed desktop browser with software raster.
+
+## Play unchanged
+
+Nothing under `src/engine`, `src/game` or `src/batch` changed, nor the worker's messages, the requests or the save, so a
+seed plays as before and the bot benchmarks cannot move; no save version. `scripts/test.sh` passes (1,870 tests, 1 skipped:
+`main`'s and the two new ones). The engine did not change, so the replays of `scripts/sim.sh` were not run again.
+
+## Readings taken
+
+- **Unsure: the change kept for less work alone.** It brings no frame under 50 ms, but in every one of three pairs of play
+  probes it takes a fifth to a third off the layerization (and some paint and style) of a phone during play, with the look
+  proven the same; a phone's battery and heat are spent on that work. The second report took back a fold for no gain;
+  here the gain is measured, only not on the bar.
+- **Unsure: the heel's turning point** is where Chrome turned the figure when it measured the figure's own box: half across
+  and 85% down the figure's drawn bounds, in the figure's own drawing (not where the x and y of its `<use>` put it). It was
+  found by searching for the point whose picture matched the old one pixel for pixel, then derived from the fleet's own
+  path (`pathBounds`), which reads moves, lines and cubic curves, absolute and relative; a fleet drawn with another
+  command (an arc, a quadratic) stops the app at its first draw, which the test of every power's fleet would catch first.
+- **No second try at the units:** with nothing on the map moving at all, the phone's frames over 50 ms stand where they
+  stand with motion, so the lever this step was given cannot meet the bar however it is pulled. The brief's two tries are
+  for a step that might pay.
+- **The machine:** Chromium's headless shell 153 (the one installed with this container's Playwright build), run through
+  a browsers folder of the session's own, since the Playwright package asks for a later build than the one installed;
+  `main` and the branch ran on the same binary, in turn. Its numbers are set only against each other: `main` here reads
+  3.1 to 4.2% at Fast on the phone, the third report's machine 5.3 to 5.8%.
+- **Single soak runs** at each desktop speed, the phone two each: the soak's spread is about a point, so the soak is read
+  only for "no step", and the probes for the work.
+- **A lane, not an item:** no check of the design document; its brief is #666 and its line in the progress file.
+- **The progress file's line for #666** was shortened to the reports it points to, to keep the file under its size mark.
