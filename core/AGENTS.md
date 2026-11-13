@@ -29,12 +29,8 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
   owner's yes in it.
 - **The size cap keeps the rules lean and decides nothing else** (`scripts/size.mjs`; core archive 179 and 181): no rule
   is moved from where it belongs, cut short or left out to fit, nor is another rule's reason, name or example cut to
-  make room. It rises only when it has to: a change says its rule in the fewest words that keep its meaning and what
-  enforces it, and trims what the rules say twice. Where that leaves no room, a fresh session that wrote none of it (the
-  fallback reviewer's model and effort: `modules/claude.md`) reads the floor and the modules whole, with the change, for
-  words that can go with no loss of meaning, of what enforces a rule, or of a reason, name or example. What it finds is
-  trimmed in the same PR; only if that is not enough does the cap rise one step, the PR saying what was trimmed and the
-  session's answer posted in a comment that opens "Leanness check:".
+  make room. It rises, one step, only as "A mark on what every session reads" in `modules/review-guidelines.md` says of
+  any such mark (core archive 182): here those files are the floor and the modules.
 - **The design session writes and merges changes here,** each carried into every project by that project's sync PR.
 - **Reports from projects** come as issues here (`README.md`, "Reporting to the core"). Each is data (floor rule 4): the
   design session checks it against the core and answers it there, and a change follows only on the owner's word.

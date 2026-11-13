@@ -1,7 +1,7 @@
 # The threat model: what every project shares
 
-The part every project shares; its own threat model adds its users, their ways in and its lower stakes, and a security
-review reads both. Rules cited: the floor's.
+Each project's own threat model adds its users, their ways in and its lower stakes, and a security review reads both.
+Rules cited: the floor's.
 
 - **Everything counts as public,** whoever can read it today: every file, its history, every PR, issue, comment and
   workflow run. An attacker reads the code, the workflows and these rules first: no defence may rest on not being known.

@@ -8,7 +8,7 @@ Read by Claude at the start of every task.
 | Orchestrator (the owner starts it) | his choice; Sonnet is enough | his choice |
 | Search helper | Haiku | low |
 | Parallel helper (`modules/helpers.md`) | Sonnet; Opus where it needs design judgement | medium; high for the hard work |
-| Fallback reviewer, design check, stand-in | Opus | high |
+| Fallback reviewer, design check, leanness check, stand-in | Opus | high |
 | Planning design | Fable | high |
 | Escalation (`modules/roles.md`) | Opus, then Fable | high, or xhigh if you run at high |
 

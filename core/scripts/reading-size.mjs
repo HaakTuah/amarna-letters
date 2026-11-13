@@ -7,11 +7,12 @@
 //   - when the PR changes a file past "split" (about 50 KB: Step 0, split it by meaning first), unless "past" lists it
 //     with a mark at least its size. The copy of the core (core/, changed only by a sync PR), the paths under "skip"
 //     (such as the archive: dated records, added to by every merge) and binary files are not counted.
-// A PR that crosses a mark moves the mark in the config; what else it owes is in modules/review-guidelines.md. The PR's
-// changes are those against SIZES_BASE (set by the copies workflow, .github/workflows/copies.yml, which runs this),
-// else where HEAD left origin/main; in CI that is the base's tip against the PR's merge commit, so a run after the base
-// moves on counts its new changes too. Node's own modules only. It checks the project it lies in (core/scripts/ there),
-// whatever the directory it is started from; the config's own path is read from that directory.
+// A PR that crosses a mark moves the mark in the config only as modules/review-guidelines.md says ("A mark on what
+// every session reads", and "What blocks"). The PR's changes are those against SIZES_BASE (set by the copies workflow,
+// .github/workflows/copies.yml, which runs this), else where HEAD left origin/main; in CI that is the base's tip
+// against the PR's merge commit, so a run after the base moves on counts its new changes too. Node's own modules only.
+// It checks the project it lies in (core/scripts/ there), whatever the directory it is started from; the config's own
+// path is read from that directory.
 //
 //   node core/scripts/reading-size.mjs <config>
 import { execFileSync } from "node:child_process";
@@ -44,10 +45,10 @@ for (const [f, mark] of Object.entries(marks.read)) {
   if (!tracked.has(f)) { fail.push(`${f} is listed under "read" in ${MARKS} but is no tracked file: update ${MARKS}`); continue; }
   const n = size(f);
   total += n;
-  if (n > mark) fail.push(`${f} is ${n} bytes, past its mark of ${mark}: make it smaller, or raise its mark in ${MARKS} and say why in the PR`);
+  if (n > mark) fail.push(`${f} is ${n} bytes, past its mark of ${mark}: make it smaller; its mark in ${MARKS} rises only as "A mark on what every session reads" in core/modules/review-guidelines.md says`);
   else if (mark > marks.each && n < mark) fail.push(`${f} has shrunk to ${n} bytes: lower its mark in ${MARKS} from ${mark} to ${Math.max(n, marks.each)}`);
 }
-if (total > marks.total) fail.push(`the files every session reads total ${total} bytes, past their mark of ${marks.total}: make them smaller, or raise the mark in ${MARKS} and say why in the PR`);
+if (total > marks.total) fail.push(`the files every session reads total ${total} bytes, past their mark of ${marks.total}: make them smaller; the mark in ${MARKS} rises only as "A mark on what every session reads" in core/modules/review-guidelines.md says`);
 
 // Step 0: files past the split mark that the PR changes
 const big = [...tracked].filter(f => !skip.some(s => f.startsWith(s)) && size(f) > marks.split

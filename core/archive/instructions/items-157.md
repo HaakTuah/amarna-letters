@@ -463,3 +463,53 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      `modules/work-flow.md`; "Codex's before Copilot's, where neither builds" in `modules/roles.md`; "Never a pull
      request" in `README.md`; and "It rises only when it has to" and "a raise of the size cap in a PR with no "Leanness
      check:" comment" in `AGENTS.md`.
+
+182. **13 November 2026** (the core, in the design chat), told that the core's cap and its fresh-session check were the
+     core's own, and that a project's marks moved with a reason alone:
+
+     > Why shouldn't a implementing repos size cap work by the same mechanism and rules, expert? Genuine question.
+     > Obviously, the builder shouldn't pursue expanding a cap where it is more sensible to actually have more split
+     > instead, i mean more if it genuinely thinks something should be somewhere in particular? Could be a rule file
+     > the implementing repo has, or whatever, no, expert?
+
+     Told that he was right for one of a project's two kinds of mark: a file past the split mark is split, as before,
+     while a mark on what every session reads at its start should rise as the core's cap does (said shorter, what is
+     said twice trimmed, what no session needs at every start moved to a file read when needed, then a fresh session's
+     read of those files, and only then the mark, a reviewer blocking a raise without that check), growth that a sync
+     of the core brings aside; and that this touches the review guidelines every project takes, so needs his yes:
+
+     > Agreed expertly to all!
+
+     Behind "A mark on what every session reads" in `modules/review-guidelines.md`, which the core's own cap now
+     follows too (`AGENTS.md`).
+
+183. **13 November 2026** (the core, in the design chat), told what a fresh session's read of all the rules for room
+     had found in the floor: six wordings another floor sentence already says. Recommended: yes to three (the opening
+     of `floor/topics.md` drops "read before a task touches one", which `floor/security.md` says; the opening of
+     `floor/threat-model.md` drops "The part every project shares", which its title says; rule 17 drops "the one
+     exception to rule 4", which rule 4 says), and the other three left alone (rule 3's list of files, "he himself" in
+     rule 14, "key or secret" in rule 1):
+
+     > Apply all your recommendations, expertly!
+
+     Behind those three wordings in `floor/topics.md` and `floor/threat-model.md`; no rule's meaning changes.
+
+184. **13 November 2026** (the core, in the design chat), after a fresh session's read of all the rules had found
+     trims and some had been taken and some left by the design session's own judgement:
+
+     > Maybe we need to have clear criterias what must remain in place, for a condensing to be valid, expert? What is
+     > your expert take on this? Otherwise it just becomes a question of taste? Then we could run a full audit on all
+     > rules files of agent-core, condense them as much as possible, and set the cap there? What is your expert take
+     > on this, expert?
+
+     Told: yes to criteria, written into the rule as the test for every trim (a reader with the trimmed text and what
+     that reader has already read acts the same in every case; who a rule binds and when, what it asks, every limit
+     and exception, what enforces it, its reason and each name and example stay; only a second statement of what that
+     reader has already read, or words carrying none of these, may go; in doubt the words stay); yes to one audit
+     pass under them over all the core's rule files, any trim in the floor listed for his yes; and the cap set at the
+     next whole KB above the result, not at it, since a cap with no room makes every one-line mend pay for a read of
+     all the rules:
+
+     > Agreed expertly with all your takes! You can commence now. […]
+
+     Behind "A trim is valid" in `modules/review-guidelines.md`.

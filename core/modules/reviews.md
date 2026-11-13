@@ -4,8 +4,7 @@ Read when a PR is reviewed. What reviewers judge by: `modules/review-guidelines.
 
 **Which:** floor rule 8's security review (point 3); every PR that changes the project, its tests, tools, config or a
 rule file also gets its code review; the *design-checked PRs* also get the design check, and a PR its users will see the
-stand-in's notes (`modules/inbox.md`). Docs alone get no code review unless another provider built them, and a pure sync
-PR none at all.
+stand-in's notes (`modules/inbox.md`). Docs alone get no code review unless another provider built them.
 
 1. **Ask** the code reviewer (`modules/roles.md`) as its part (`modules/codex.md`, `modules/copilot.md`) or the project
    says.
@@ -24,8 +23,8 @@ PR none at all.
    reviewer's, over the whole diff, where the PR needs one; otherwise the wait ends. Floor rule 3's two each cover the
    whole diff. A session posts one, naming the tool and the commit it read, or that none is needed (the code reviewer
    checks that), in a comment that opens "Security review:", which the `security-review` check reads.
-4. **The design check:** on the design-checked PRs, once before the merge, a fresh reviewer judges the work against the
-   design alone, and its "Readings taken" as the stand-in would (core archive 22).
+4. **The design check:** once before the merge, a fresh reviewer judges the work against the design alone, and its
+   "Readings taken" as the stand-in would (core archive 22).
 5. **When a PR passes,** whatever its score: every blocking point fixed; every other fixed if it lies in the change,
    otherwise filed as a follow-up with the reason in the PR, or answered with why it is wrong (a security finding: only
    as floor rule 9 allows). A review from anyone else is advisory (core archive 130).
