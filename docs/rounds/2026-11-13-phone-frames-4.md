@@ -76,3 +76,23 @@ their dust mid-season, frozen at six moments over 1.7 s on both builds and compa
 0.65 s on, 51 and 242 pixels differ, by at most 4 levels of 255; at 0 and 0.3 s, 315 to 337 differ, all but 16 to 54 of them
 by a level or so, and those in a spot 7 by 17 pixels at the window's left edge, off the map. On a page of their own, the
 dust alone differs in 943 of 8,090 inked pixels, by at most 24 levels (the puffs' rims).
+
+## Measured
+
+**Soak, phone, Fast** (`soak.mjs --phone --speed fast --minutes 2`, seed 1; `main` and this branch, one run each in turn):
+
+| Run | frames over 50 ms | the worst in play (ms, after season 0) | the browser's long tasks | seasons reached |
+|---|---|---|---|---|
+| `main` 1 | 180 of 5,751 (3.13%) | 250 | 114 | 69 |
+| the dust and heel 1 | 229 of 5,633 (4.07%) | 200 | 157 | 66 |
+| `main` 2 | 232 of 5,572 (4.16%) | 233 | 183 | 62 |
+| the dust and heel 2 | 229 of 5,597 (4.09%) | 267 | 189 | 62 |
+
+The step does not show in the frames over 50 ms: `main`'s two runs span 3.1 to 4.2% on this machine, and the branch's
+lie inside them. The opening's first draw is 2.8 to 3.2 s and 0.7 to 1.0 s in every run, as before.
+
+**What the long frames hold now** (the branch, `--trace`, 26 s from about season 15, 44 tasks over 50 ms): 26 are led by the
+renderer's own step (`FireAnimationFrame`, 23 to 47 ms: one layer written in one step, past the 4 ms budget), with 12 to 20
+ms of style and 10 to 17 of layerization after it; 10 by a layout of 16 to 32 ms; the rest by style or layerization. So the
+frames over 50 ms are the season's writing and the browser's work on it, not the march's frames in between: taking the
+march's own main-thread frames away removes work (a quarter of the layerization) but no long frame.
