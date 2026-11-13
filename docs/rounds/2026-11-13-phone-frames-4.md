@@ -96,3 +96,23 @@ renderer's own step (`FireAnimationFrame`, 23 to 47 ms: one layer written in one
 ms of style and 10 to 17 of layerization after it; 10 by a layout of 16 to 32 ms; the rest by style or layerization. So the
 frames over 50 ms are the season's writing and the browser's work on it, not the march's frames in between: taking the
 march's own main-thread frames away removes work (a quarter of the layerization) but no long frame.
+
+**The ceiling of the whole lever: nothing moving at all.** The same soak with reduced motion (the browser told the user
+prefers it, so no piece slides or marches and no animation plays on the map; a copy of `soak.mjs` with that one setting,
+kept out of the repository), on the branch: 212 of 5,927 frames over 50 ms (3.58%) and 184 of 6,050 (3.04%), against 3.1 to
+4.2% with motion on either build. So everything the pieces' motion costs is worth at most about half a point of frames
+over 50 ms on this machine, inside the soak's noise: no change to how the units are drawn or moved can bring the phone
+under the bar. That is why there is no second try here (the brief's two tries at a step): the measure says where the
+long frames are not.
+
+**The work it saves, again** (the probe in play: seed 1 at Fast on the phone profile, the browser's trace for 20 s from
+season 15; three pairs, each `main` then the branch):
+
+| Pair | layerization, `main` | layerization, branch | paint, `main` | paint, branch | tasks over 50 ms, `main` | branch |
+|---|---|---|---|---|---|---|
+| 1 | 2,033 | 1,556 | 1,614 | 1,552 | 34 | 36 |
+| 2 | 2,002 | 1,587 | 1,626 | 1,609 | 39 | 29 |
+| 3 | 1,964 | 1,313 | 1,500 | 1,362 | 33 | 17 |
+
+A fifth to a third less layerization in every pair, paint and style a little less or the same: less work for a phone in
+every march, with the same look. Kept for that.
