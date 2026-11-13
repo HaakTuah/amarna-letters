@@ -2,7 +2,7 @@
 
 Asking Codex: for a code review, a comment `@codex review` alone (it answers every mention of itself, even in backticks,
 so other text says "the Codex mention"); its security review runs by itself (`modules/reviews.md`, point 3). On GitHub
-it cannot push, so builds nothing (core archive 169).
+it cannot push, so builds nothing (core archive 169). Its login there is `chatgpt-codex-connector[bot]`.
 
 Through its plug-in in Claude Code (`/codex:setup` says if it is ready; an offer of its to install Codex is the owner's
 to accept: floor rule 18), a session reaches Codex by the subagent `codex:codex-rescue` alone: the plug-in's review
