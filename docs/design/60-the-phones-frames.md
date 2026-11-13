@@ -39,6 +39,14 @@ the phone profile was made of, and what changed:
   quarter, paint by a fifth. `src/web/scrub.mjs --holes` proves nothing left out lies on the screen, at rest and mid-drag,
   mid-zoom and mid-glide.
 
+- **A running animation of a piece makes every frame dear** (`docs/rounds/2026-11-13-phone-frames-4.md`). The pieces'
+  slide and march run on the compositor, but while one runs, each frame the main thread draws re-layerizes the whole map at
+  two to three times the cost (8 to 10 ms on the phone profile). The marchers' dust and the fleets' heel ran on the main
+  thread, so every frame of every march was such a frame: Chrome cannot hand the compositor a transform measured from a
+  shape's own box (`transform-box: fill-box`) or one on a `<use>` placed by `x` and `y`. Each puff now swells about its own
+  group's origin, and a fleet's figure, placed by its transform, turns about the point its own box gave it, derived from its
+  path (`heelOrigin`, `pathBounds` in `map/figures.ts`): the same look.
+
 What is left is the browser's own layerization, paint and style (each about a fifth of a long frame, with the script that
 writes the map) and the steps that still take 10 to 30 ms on the phone (the names, the tints, the works, the units). One
 transform a symbol was tried and did not pay: the browser's work seems to follow how much is drawn together (or how many drawings; the bench does not

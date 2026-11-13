@@ -108,6 +108,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A phone cannot read a campfire's hover title, so the bands and pirate crews on the map were out of its reach, and past three in a province only a "+N" mark told of them (#631); the province card now lists each the seat knows of there, with its men, its chief and how old the word is, freshest first, from the scene's bands (a seat's own sight and land, and nothing else; god view all).
 - A player who looked away, or watched at Fast, could not read a season's closing line again once it left the map (#647); the Season tab keeps the last five seasons' lines, newest first, each dated and as the eyes shown knew that season (a seat's say only what word had reached it); made once from each season's scene, kept as words.
 - On a phone close up the map drew every mark and piece of the board, two thirds of them off the screen; it now draws only those near the view, bringing each back as the view comes near it (#666, `docs/rounds/2026-11-12-phone-frames-3.md`).
+- The marchers' dust and the fleets' heel were played on the page's main thread, a whole frame of the map for every frame of every march; they now run on the compositor, with the same look (#666, `docs/rounds/2026-11-13-phone-frames-4.md`).
 
 ## Finds not yet fixed
 
