@@ -17,11 +17,11 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
   builder's own (`claude.md`, or `other-builders.md`). When needed: `roles.md`, `helpers.md`, `reviews.md`,
   `review-guidelines.md`, `codex.md`, `copilot.md`, `orchestrating.md`, `github-calls.md` and `updates.md`; and, for
   games only, `game-design.md`.
-- **The cap:** the floor and the modules together stay within 49 KB (core archive 164, 169, 171, 179 and 181), checked
-  on every PR here (`scripts/size.mjs`), so a new rule replaces text rather than adding to it (core archive 134). It
-  keeps the rules lean and decides nothing else: where a rule belongs and what it must say come first, and a change that
-  honest trimming gives no room for raises the cap, saying why, once a fresh session has read all the rules for room and
-  found too little (`AGENTS.md`).
+- **The cap:** the floor and the modules together stay within 50 KB (core archive 164, 169, 171, 179, 181 and 182),
+  checked on every PR here (`scripts/size.mjs`), so a new rule replaces text rather than adding to it (core archive
+  134). It keeps the rules lean and decides nothing else: where a rule belongs and what it must say come first, and a
+  change that honest trimming gives no room for raises the cap one step, once a fresh session has read all the rules for
+  room and found too little (`AGENTS.md`).
 
 ## How a project takes the core
 

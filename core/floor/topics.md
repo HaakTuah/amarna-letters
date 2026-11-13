@@ -1,6 +1,6 @@
 # The floor, by topic
 
-The floor's rules for particular work, read before a task touches one; the rest are in `floor/security.md`.
+The floor's rules for particular work; the rest are in `floor/security.md`.
 
 ## The rules
 
@@ -54,10 +54,10 @@ them unasked.
 updates a package; never running a package's install scripts; pinned as rule 7 says; a new one only with a reason, from
 a known publisher; findings from CI's audit fixed, not silenced.
 
-**17. Dependabot's own PRs,** the one exception to rule 4, merge only if `dependabot[bot]` opened it from a branch in
-this repository, it changes only the manifests and lock files the project names (or an action's pinned version), and it
-passes the review, the release notes read and rule 7's source check, with the checks green (core archive 34). One that
-fails a condition is closed with the reason, and the update made in a PR of the builder's own.
+**17. Dependabot's own PRs** merge only if `dependabot[bot]` opened it from a branch in this repository, it changes only
+the manifests and lock files the project names (or an action's pinned version), and it passes the review, the release
+notes read and rule 7's source check, with the checks green (core archive 34). One that fails a condition is closed with
+the reason, and the update made in a PR of the builder's own.
 
 ## Reporting a weakness
 
