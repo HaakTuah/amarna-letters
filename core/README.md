@@ -88,28 +88,28 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
    whether its security review has run (floor rule 8), by the summary Codex's own app keeps on the pull request or by a
    comment that opens "Security review:" from the owner, a member or a collaborator (`modules/reviews.md`, point 3), the
    second alone where Codex marks a finding of its review open, posted after it. It is advisory until the core says
-   otherwise: the status always passes and says what the check would have done; before that changes, a pure sync gets a
-   way through of its own. It runs a short job at each push and each such comment, a dozen or so a pull request, which a
-   private repository pays for like its other checks, so it has the check unless its owner says otherwise. **A private
-   repository** has GitHub's dependency review and CodeQL only with its paid code security, so without it it calls
-   neither `licences.yml` nor `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs` for what no package
-   list holds and `core/scripts/exact-versions.mjs` for its lockfiles, and its own check holds its packages to floor
-   rule 10's list. Its Actions settings must allow this repository's workflows, and each check there spends paid
-   minutes, which its owner set aside by making it private (so no step waits for his yes over them: floor rule 14), so
-   each runs only where a change can affect it, and its orchestrator syncs the core once a day at most
-   (`modules/orchestrating.md`). On GitHub's free plan it has neither rulesets nor auto-merge: there the sessions alone
-   keep floor rule 12 and merge by hand (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles
-   alone: what another installer holds, the project's own checks do. **A project that is sold** carries its company's
-   name where its buyers and its code need it, and its owner leaves that name off his list of personal terms; a person's
-   name stays out all the same (floor rule 11), and where its buyers must see one, its build takes it from outside the
-   repository. The terms it is sold under are the owner's to give (floor rule 10). **The default branch is `main`,**
-   which the hooks read their scripts from, letting every call through where there is none (`core.yml` fails another
-   name). **On Windows** Claude Code runs both hooks in Git Bash, and the second needs Node on the path; where either is
-   missing, the hook stops nothing. The core's own tests run the scripts and both hooks there on every change
-   (`.github/workflows/tests.yml`). **Another tool's session** has neither hook, which are Claude Code's: what holds its
-   work is its reading of `AGENTS.md` and the checks on every pull request. **The copy's own files** (`core/AGENTS.md`,
-   `core/CLAUDE.md`, `core/.github/`) are this repository's, not the project's: its issue templates and settings are its
-   own, written for its *owner's account*.
+   otherwise: the status always passes and says what the check would have done. Dependabot's own pull request passes it
+   (floor rule 17); one that needs no security review and gets none by itself (floor rule 8) says so in such a comment.
+   It runs a short job at each push and each such comment, a dozen or so a pull request, which a private repository pays
+   for like its other checks, so it has the check unless its owner says otherwise. **A private repository** has GitHub's
+   dependency review and CodeQL only with its paid code security, so without it it calls neither `licences.yml` nor
+   `codeql.yml`: a workflow of its own runs `core/scripts/licences.mjs` for what no package list holds and
+   `core/scripts/exact-versions.mjs` for its lockfiles, and its own check holds its packages to floor rule 10's list.
+   Its Actions settings must allow this repository's workflows, and each check there spends paid minutes, which its
+   owner set aside by making it private (so no step waits for his yes over them: floor rule 14), so each runs only where
+   a change can affect it, and its orchestrator syncs the core once a day at most (`modules/orchestrating.md`). On
+   GitHub's free plan it has neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by
+   hand (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds,
+   the project's own checks do. **A project that is sold** carries its company's name where its buyers and its code need
+   it, and its owner leaves that name off his list of personal terms; a person's name stays out all the same (floor rule
+   11), and where its buyers must see one, its build takes it from outside the repository. The terms it is sold under
+   are the owner's to give (floor rule 10). **The default branch is `main`,** which the hooks read their scripts from,
+   letting every call through where there is none (`core.yml` fails another name). **On Windows** Claude Code runs both
+   hooks in Git Bash, and the second needs Node on the path; where either is missing, the hook stops nothing. The core's
+   own tests run the scripts and both hooks there on every change (`.github/workflows/tests.yml`). **Another tool's
+   session** has neither hook, which are Claude Code's: what holds its work is its reading of `AGENTS.md` and the checks
+   on every pull request. **The copy's own files** (`core/AGENTS.md`, `core/CLAUDE.md`, `core/.github/`) are this
+   repository's, not the project's: its issue templates and settings are its own, written for its *owner's account*.
 6. **What only it has** stays in its own rule files: what it is, its commands, its queue, its own rules, with pointers
    into `core/`.
 7. **Where a module's rule does not fit it,** its manifest lists the difference under "Differences" (core archive 161):
@@ -151,7 +151,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 | *other builders' checks* | what a builder of another provider runs before it finishes (`modules/other-builders.md`); a row still named *Codex's checks* is this one, renamed at the project's next sync |
 | *other builders* | which other providers' tools build here, in order, and for each one the core has no part for, how it is handed a task; left out, Codex first, then the others as the project's rules list them (`modules/roles.md`, "The builders") |
 | *code reviewers* | who reviews whose work, in order, with the fallback reviewer last, how each one the core has no part for is asked (it has Codex's and Copilot's, `modules/`), and which of its findings block where it marks none so; left out, the core's own (`modules/roles.md`) |
-| *security reviewer* | who gives each PR its security review and how it is asked; left out, Codex, of what its own provider built too: the code review of that work is another provider's, and floor rule 3's two reviews stand (`modules/reviews.md`, point 3) |
+| *security reviewer* | who gives a PR its security review (floor rule 8) and how it is asked; left out, Codex, of what its own provider built too: the code review of that work is another provider's, and floor rule 3's two reviews stand (`modules/reviews.md`, point 3) |
 | *computer players*, *measured players*, *what they are shown*, *use-against-ignore measurement*, *where the numbers go*, *where rules are taught* | a game's names for what `game-design.md` speaks of |
 
 ## The manifest's format
@@ -177,9 +177,9 @@ Floor: whole. Modules: <all, or the list of those taken>.
 
 ## Setting up (the owner's part)
 
-- Where Codex reviews: its GitHub app on the owner's repositories, its own automatic code review off (core archive
-  18); its security review on, for team PRs, on PR open, reporting Medium and above, reading the project's threat model
-  and `SECURITY.md` with the floor (core archive 51).
+- Where Codex reviews: its GitHub app on the owner's repositories, its own automatic code review off (core archive 18);
+  its security review on, for team PRs (Dependabot's own need none: floor rule 8), on PR open, reporting Medium and
+  above, reading the project's threat model and `SECURITY.md` with the floor (core archive 51).
 - Each project's ruleset on its default branch: deletions restricted, force pushes blocked; a pull request required, no
   approvals; status checks required (the project's CI and `core / core`), branches up to date; where the repository has
   them, code scanning results required from CodeQL, blocking on security alerts High or higher and alerts Errors, code
@@ -196,6 +196,11 @@ Floor: whole. Modules: <all, or the list of those taken>.
   (`modules/roles.md`, "The builders"; core archive 169). A tool that pushes its own branch gets a sign-in that cannot
   change a workflow (as `setup/server.md`, point 5), or its workflows wait for an approval before they run.
 - The machine where agents run side by side (floor rule 18): `setup/server.md`, read only when setting it up.
+- Any other machine the sessions run on is his to set up (floor rule 18), and he chooses knowing what a setup like
+  `setup/server.md`'s buys: an account of their own for the agents and a throwaway box for the project's code mean that
+  an agent fooled by planted text (in a dependency, a web page, an issue) reaches only what that account holds and runs
+  code only inside the box. Without them it reaches all his own account can: his files, his other sign-ins, his keys.
+  What agents keep on every machine are promises (floor rule 18); only the setup limits one that breaks them.
 
 ## Reporting to the core
 

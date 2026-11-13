@@ -30,16 +30,17 @@ which acts on it, passes it on word for word, rule 11's details left out as "[â€
 it where it acts on it (core archive 134). Every agent that posts under his login ends with its tool's attribution line.
 Dependabot's own PRs are the one exception, under rule 17.
 
-**8. Reviews look for breaks of any floor rule** and any new way in (a new input, request, dependency or script, a
-weakened check). No PR merges before its security review has run, nor with a blocking security finding open (core
-archive 21); one that changes a protected file also gets a code review. Neither, nor rule 3's two, falls on a pure sync
-PR (its diff only the core's copy, its pin and the pins of calls to the core's workflows, moved forward to one commit of
-the core's `main`, as the core's `scripts/pure-sync.mjs`, run from the core's `main`, proves; its merger merges only the
-head it checked), whose code both reviews passed in the core's own PR (core archive 139 and 140). **Nothing is reviewed
-twice** (core archive 139): a later commit is reviewed only for what it changes. **Nothing runs on the owner's computer
-unless he starts it:** no poller, scheduled task or service of an agent's making (core archive 52); a session there
-works in a folder of its own, with the sign-ins he gave it and no other key. **Test data is never real:** fake keys
-built from pieces when the test runs, sample names and addresses invented (core archive 29).
+**8. Reviews look for breaks of any floor rule** and any new way in (an input, request, dependency, script, sign-in or
+saved data; a weakened check). A PR that touches one merges only after its security review has run (Dependabot's own:
+rule 17), and none with a blocking security finding open (core archive 21); one that changes a protected file also gets
+a code review. A pure sync PR (its diff only the core's copy, its pin and the pins of calls to the core's workflows,
+moved forward to one commit of the core's `main`, as the core's `scripts/pure-sync.mjs`, run from the core's `main`,
+proves; its merger merges only the head it checked) needs no review of its own, nor rule 3's two: both passed its code
+in the core's own PR (core archive 139 and 140). **Nothing is reviewed twice** (core archive 139): a later commit is
+reviewed only for what it changes. **Nothing runs on the owner's computer unless he starts it:** no poller, scheduled
+task or service of an agent's making (core archive 52); a session there works in a folder of its own, with the sign-ins
+he gave it and no other key. **Test data is never real:** fake keys built from pieces when the test runs, sample names
+and addresses invented (core archive 29).
 
 **11. Nothing personal, ever** (core archive 30 and 43). No file, commit, PR, issue, comment, log or picture holds
 personal information about the owner or anyone in his life: no names (he is "the owner"), profession, employer or
