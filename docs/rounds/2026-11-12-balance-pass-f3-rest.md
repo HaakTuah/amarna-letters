@@ -5,29 +5,33 @@ The remainder of part F3 (`docs/rounds/2026-11-11-balance-pass-f3.md`, "Split, a
 again, the benchmarks, the five features not yet measured and the war of choice, 17++ A and 17++ D, seeds 101-200 for
 the close rows, the caretaker's realm against the war of choice, and the Great Kings' small loss by vassal play.
 
-**The check for changes:** the live design document answered at the start: no change since the copy's revisions (Build
-order 377; Land, people and economy 35; Victory and the ending 28).
+**The check for changes:** the live design document answered at the start, and again at 21:30 UTC on 13 November before
+the pull request was made ready: no change since the copy's revisions (Build order 377; Land, people and economy 35;
+Victory and the ending 28).
 
 ## What was found
 
 Use against ignore on seeds 1-100, users / ignorers, judged against the null split on the same seeds and the new par
 (standing 1.035 / 1.017, wins 43 / 47, the Great Kings 1.006 / 0.987): a side about 0.02 ahead in standing and a few wins
-either way is level. Every figure is in "Finished", below.
+either way is level. The rows close on seeds 1-100 were played again on seeds 101-200 on the branch's play (938ba68),
+against its own null split there (standing 1.010 / 1.020, wins 45 / 48, the Great Kings 1.008 / 0.972); the verdict is
+the 200 games'. Every figure is in "Finished", below.
 
 | Feature (switch) | Standing | Wins | Verdict |
 |---|---|---|---|
 | 17++a the war of choice (`--war-play-half`), before the patch | 1.049 / 1.061 | 47 / 49 | the Great Kings far ahead (1.085 / 0.975), the cities behind (0.05 against the null) |
-| the same, **a city keeping its peace** (patched) | 1.083 / 1.063 | 49 / 43 | **pays**: the Great Kings ahead, the cities level |
-| 7a sea play (`--sea-play-half`) | 1.021 / 1.002 | 44 / 47 | pays in growth (0.775 / 0.735); level in standing and wins |
-| the coffer (`--coffer-play-half`) | 1.035 / 1.020 | 41 / 52 | even; the Great Kings, who hold the far provinces, ahead (1.024 / 0.969) |
-| 17 and 17++ A, buying food and stirring (`--freedom-play-half`) | 1.049 / 1.046 | 40 / 46 | even; food bought in 15 unit-seasons of 7,878 |
-| 17++ D, talk of a province's leaning (`--talk-play-half`) | 1.043 / 1.029 | 40 / 42 | even, the Great Kings a little ahead; a carrier caught with an offer read once in 50 games |
+| the same, **a city keeping its peace** (patched) | 1.083 / 1.063; 101-200: 1.060 / 1.077 | 49 / 43; 101-200: 51 / 40 | **pays**: ahead in wins by about 12 in each hundred beyond the null, the Great Kings ahead, the cities level |
+| 7a sea play (`--sea-play-half`) | 1.021 / 1.002; 101-200: 1.017 / 1.023 | 44 / 47; 101-200: 43 / 50 | **even** over 200 games: ahead in growth on seeds 1-100 (0.775 / 0.735), behind on 101-200 (0.755 / 0.785) |
+| the coffer (`--coffer-play-half`) | 1.035 / 1.020; 101-200: 1.005 / 1.027 | 41 / 52; 101-200: 39 / 49 | **even** in standing, **a little behind in wins** (80 / 101 in 200 games, the null's 88 / 95); the Great Kings, who hold the far provinces, ahead |
+| 17 and 17++ A, buying food and stirring (`--freedom-play-half`) | 1.049 / 1.046; 101-200: 1.023 / 1.030 | 40 / 46; 101-200: 56 / 36 | **a little ahead in wins** (96 / 82 in 200 games, the null's 88 / 95), level in standing; food bought in 24 unit-seasons of about 16,300, so the gain is the tax eased and the stirring |
+| 17++ D, talk of a province's leaning (`--talk-play-half`) | 1.043 / 1.029; 101-200: 1.019 / 1.031 | 40 / 42; 101-200: 48 / 47 | **even** over 200 games; a carrier caught with an offer read 7 times on seeds 101-200, once on 51-100, too rare to move a game |
 | 11+ vassal play (`--vassal-play-half`), on the patched play | 1.030 / 1.039 | 37 / 57 | **behind**, the Great Kings most (1.023 / 1.070); two patches tried, neither helped (below) |
 | the tidings (`--tidings-play-half`), seeds 1-50 | the null's, line for line | | **never comes into play** (#980) |
 | the ride (`--ride-play-half`), seeds 1-50 | 1.045 / 1.025 | 27 / 22 | too rare to move a game: riders hired twice (#980) |
 | 8 inventories (`--inventory-play-half`), seeds 1-50 | 1.041 / 1.028 | 27 / 22 | too rare: gold without an inventory 6 times (#980) |
 
-- **Par** measured again on F3's patched play (seeds 101-200, 100 games): `rules/par-results.ts`.
+- **Par** measured again on F3's patched play (seeds 101-200, 100 games, at dde658d), and once more as the last runs, on
+  the branch's play with the city's peace (938ba68): `rules/par-results.ts` holds the second (PAR_NOTE).
 - **The caretaker's realm against the war of choice** (F2's hand-off): a king held long leaves his realm at par under its
   caretaker (1.05 and 1.00 against par in the two halves of the war of choice's run, every realm 1.04), while the war of
   choice is worth the Great Kings 0.09 of standing beyond the null and, before the patch, cost the cities 0.05. So a
@@ -41,6 +45,42 @@ either way is level. Every figure is in "Finished", below.
   Kings lost 0.11 against the null, worse), and no vassal taken that offers itself while its land could be taken
   (changed almost nothing); both reverted. F3 had tried four others (its trials A, B, C and G). Vassal play is left
   behind on the patched play, listed first for the next part.
+
+- **The benchmarks** (seeds 1-4, each Great King alone among baseline kings and all baseline): no regression from this
+  part's patch; every Great King as before but Mitanni (2.33 to 2.37) and Assyria (1.89 to 2.00), all kings 2.33 to 2.29
+  alone, now that the cities alone keep their peace.
+- **What changed in play:** one patch, kept: a city (its rank in the starting data) keeps a plain peace as a bar to its
+  war of choice, as it keeps an ally (`keptBond`, `bots/siege-tactics.ts`; design note
+  `docs/design/07-script-kings/05-choosing-a-war.md`). Every other trial was measured and reverted. No rule changed, so
+  no new save version.
+
+## Readings taken
+
+Unsure first.
+
+- **Unsure: level, ahead and behind are read by eye against the null split**, as F3 read them (a side about 0.02 ahead in
+  standing and a few wins either way is level; wins in 100 games carry a noise of about ten either way). Over 200 games
+  the coffer is 14 wins behind beyond the null's own lean and 17++ A about 21 ahead; the first is read as "a little
+  behind" and left for the next part's audit with vassal play, not patched here, since its standing is level and the Great
+  Kings who use it most are ahead; the second as "a little ahead".
+- **Unsure: vassal play is left behind on the patched play**, not patched in this part, though the builder rules ask
+  every weakness found to be patched in the item at hand. Four trials in this part (the demand, the overlord, the third
+  king's restraint, the proud king) and F3's four each lost or changed nothing; item 18 goes on in
+  parts, and the F3 report's split puts the next lever in the next part, so it is listed first there.
+- **The rows F3 measured on the play before its patches** (walls, raiders, judging people, gifts, hunting bands,
+  borrowing, caravans abroad, holding back pay, languages, winter strokes) are left to the next part: F3's split gave
+  this part its point 1 (par, the benchmarks, the features not yet measured, 17++ A and D, seeds 101-200 for the close
+  rows), and each of those rows was even or ahead on the old play.
+- **17++ A was played on seeds 151-200** as well as 101-150 ("then the rest of its seed set if close"): on 101-150 it led
+  where 1-100 had been even, which is close enough to need the second half. 17++ D, even on 1-100, was played on both.
+- **Runs lost with a container were run again, unchanged:** the earlier session's 17++ A run of seeds 101-150 was never
+  recorded and was started again from a worktree of 938ba68, with the Node the core names; a seed's game is the same
+  on every run.
+- **The branch was brought up to date with `main`** (core syncs, file splits proven unchanged, the model kings' rules
+  split) before the last runs; the runs stayed on 938ba68, as the report names, so they compare with every run before.
+- **Par last:** par was measured again on 938ba68 after every feature's run, so that the standings in those runs, all read
+  on dde658d's par, stay comparable among themselves; `rules/par-results.ts` now holds the new par, which the next part
+  reads its standings against.
 
 ## How the runs are kept
 
@@ -67,7 +107,8 @@ A session that ends with a run marked running: start that run again from a workt
 
 Left to the next part (the reading is under "Readings taken"): F3's rows that were measured on the play before its
 patches (walls, raiders, judging people, gifts, hunting bands, borrowing, caravans abroad, holding back pay, languages,
-winter strokes), first on seeds 1-100 of the patched play, then 101-200 where close; and vassal play's loss.
+winter strokes), first on seeds 1-100 of the patched play, then 101-200 where close; vassal play's loss; and the
+coffer's wins (a little behind over 200 games).
 
 Nothing heavy (a type check, the tests) runs beside a run: the first restart came when one did.
 
