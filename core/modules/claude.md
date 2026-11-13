@@ -5,7 +5,7 @@ Read by Claude at the start of every task.
 | Who | Model | Effort |
 | --- | --- | --- |
 | Builder | Opus for the main lane, design readings and the *hard work*; Sonnet for routine lanes (polish, docs, splits, tests) | high |
-| Orchestrator (the owner starts it) | his choice; Sonnet is enough | his choice |
+| Orchestrator (the owner starts it) | the owner's choice; Sonnet is enough | the owner's choice |
 | Search helper | Haiku | low |
 | Parallel helper (`modules/helpers.md`) | Sonnet; Opus where it needs design judgement | medium; high for the hard work |
 | Fallback reviewer, design check, leanness check, stand-in | Opus | high |

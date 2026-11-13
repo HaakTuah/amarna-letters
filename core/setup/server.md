@@ -1,23 +1,24 @@
 # Setting up the machine where agents run side by side
 
-Read only by whoever sets up the owner's machine for floor rule 18 (the owner, or a session he starts for it), once.
+Read only by whoever sets up the owner's machine for floor rule 18 (the owner, or a session the owner starts for it),
+once.
 
 ## The owner's checklist
 
-1. **A Linux server of his own,** holding only the projects and what their agents need.
-2. **Login by his SSH key only:** password and root login off, no other port open; the system's automatic security
-   updates on.
+1. **A Linux server of the owner's own,** holding only the projects and what their agents need.
+2. **Login by the owner's SSH key only:** password and root login off, no other port open; the system's automatic
+   security updates on.
 3. **An account for the agents** (such as `agents`), not in the `sudo` group: its one `sudo` rule is the test box's
-   (point 7). Everything below is installed and signed in under it, never under his own.
+   (point 7). Everything below is installed and signed in under it, never under the owner's own.
 4. **Its tools,** each installed as a program of its own, not through npm: Git, Claude Code, and the tool that runs the
    agents side by side (such as Herdr). Node is installed on its own, without npm, and only behind the wrappers of point
    7.
-5. **Its sign-ins, each with a spending limit:** Claude Code on his Claude plan, and a fine-grained GitHub token for the
-   project repositories only, with Contents, Pull requests and Issues set to read and write and nothing else, kept in
-   Git's credential store or `gh`'s login.
-6. **Codex's part** (its command line or Claude Code's Codex plugin, its sign-in on his ChatGPT plan under a system
-   account of its own, its effort) is written here when the machine is set up, after a test (core archive 122). That
-   account gets the same instructions, `node`, `npm` and `npx` wrappers and box rule as the agents' account.
+5. **Its sign-ins, each with a spending limit:** Claude Code on the owner's Claude plan, and a fine-grained GitHub token
+   for the project repositories only, with Contents, Pull requests and Issues set to read and write and nothing else,
+   kept in Git's credential store or `gh`'s login.
+6. **Codex's part** (its command line or Claude Code's Codex plugin, its sign-in on the owner's ChatGPT plan under a
+   system account of its own, its effort) is written here when the machine is set up, after a test (core archive 122).
+   That account gets the same instructions, `node`, `npm` and `npx` wrappers and box rule as the agents' account.
 7. **The projects cloned** under that account, one folder each, and **the test box,** where every command that runs a
    project's code or packages runs (its install, build and tests, script games and simulations, the smoke test, a dev
    server, `npx`); only Git, `gh` and the core's sync script, which uses Node's own modules and Git alone, run outside
@@ -33,7 +34,7 @@ Read only by whoever sets up the owner's machine for floor rule 18 (the owner, o
    the host by mistake and the instructions are not the only guard. Written and tested when the machine is set up.
 8. **The agents' instructions** (below) copied to where each tool reads its own at the start of every session there:
    `~/.claude/CLAUDE.md` for Claude Code, and Codex's (such as `~/.codex/AGENTS.md`) once its part is written.
-9. **Each project's orchestrator** started by him, in the tool, from that project's folder: Claude Code on Sonnet.
+9. **Each project's orchestrator** started by the owner, in the tool, from that project's folder: Claude Code on Sonnet.
 
 ## The agents' instructions
 

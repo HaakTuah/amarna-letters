@@ -8,7 +8,7 @@ and 57).
 
 - **The work never waits** (floor rule 14; core archive 134). Where something is open, take the best reading, build on
   it, say it under "Readings taken" in the *report* with what it rests on (core archive 144), and go on.
-- **A question from the owner is a question:** answer it; act on it when he says so (core archive 25).
+- **A question from the owner is a question:** answer it; act on it when the owner says so (core archive 25).
 - **Match effort to the task:** the cheapest approach that does it well; docs, small fixes and config in one pass.
 - **Read little, print little:** read only what the task names, never a *large file* whole (grep, then read that range);
   scripts print a summary and the failures, never a full log; long runs go in the background, never polled.

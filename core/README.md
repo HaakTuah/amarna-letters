@@ -3,8 +3,8 @@
 The rules shared by the owner's agent-built projects, written once so a change is made once and every project takes it
 alike (core archive 68). The owner's words behind each rule: `archive/instructions.md`. A project of another owner takes
 the core the same way, its *owner's account* filled in, and in its copy "the owner" is its own (core archive 148), save
-in `archive/`, whose words stay the core's owner's: its stand-in weighs them as his reasoning, after its own owner's
-words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; core archive 166).
+in `archive/`, whose words stay the core's owner's: its stand-in weighs them as that owner's reasoning, after its own
+owner's words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; core archive 166).
 
 ## Two layers
 
@@ -104,12 +104,12 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
    `core/scripts/licences.mjs` for what no package list holds and `core/scripts/exact-versions.mjs` for its lockfiles,
    and its own check holds its packages to floor rule 10's list. Its Actions settings must allow this repository's
    workflows, and each check there spends paid minutes, which its owner set aside by making it private (so no step waits
-   for his yes over them: floor rule 14), so each runs only where a change can affect it, and the core is synced once a
-   day at most, a sync PR opened that day being the day's (`modules/orchestrating.md`). On GitHub's free plan it has
-   neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by hand
+   for the owner's yes over them: floor rule 14), so each runs only where a change can affect it, and the core is synced
+   once a day at most, a sync PR opened that day being the day's (`modules/orchestrating.md`). On GitHub's free plan it
+   has neither rulesets nor auto-merge: there the sessions alone keep floor rule 12 and merge by hand
    (`modules/work-flow.md`, point 1). The core's scripts read npm's lockfiles alone: what another installer holds, the
    project's own checks do. **A project that is sold** carries its company's name where its buyers and its code need it,
-   and its owner leaves that name off his list of personal terms; a person's name stays out all the same (floor rule
+   and its owner leaves that name off the list of personal terms; a person's name stays out all the same (floor rule
    11), and where its buyers must see one, its build takes it from outside the repository. The terms it is sold under
    are the owner's to give (floor rule 10). **The default branch is `main`,** which the hooks read their scripts from,
    letting every call through where there is none (`core.yml` fails another name). **On Windows** Claude Code runs both
@@ -125,9 +125,9 @@ words, and marks an answer that rests on them alone unsure (`modules/inbox.md`; 
    its place, and why. Only what is listed there stands in place of the core's words. Every other rule of the project's
    own adds to the core: one that asks for more than a module does (a stricter check, a further review, its safety
    rules) is no difference and needs no line (`modules/how-to-work.md`, "A project's own rules add to the core's"). A
-   difference is the project's owner's to give, his word quoted in the PR that lists it; until he gives it the module's
-   rule holds, and the work goes on by it (or, where its letter would defeat its purpose, by "Principles over rules").
-   None is against the floor, against what a floor rule rests on (who reviews a change and who may merge it, in
+   difference is the project's owner's to give, the owner's word quoted in the PR that lists it; until it is given the
+   module's rule holds, and the work goes on by it (or, where its letter would defeat its purpose, by "Principles over
+   rules"). None is against the floor, against what a floor rule rests on (who reviews a change and who may merge it, in
    `modules/reviews.md`, `modules/roles.md` and `modules/git.md`: no session reviews its own work), or against the
    review guidelines. `core.yml` fails a manifest whose differences name the floor or the review guidelines: a tripwire
    for the plain case, while what holds the rule is the reviews every change to the manifest gets, as a protected file.
@@ -142,7 +142,7 @@ and each manifest says what fills it. A task is a project's unit of work; the ma
 
 | Slot | What the project fills in |
 | --- | --- |
-| *owner's account* | the owner's GitHub login, in backticks (`core.yml` fails a manifest without it): his word (floor rule 4) and his inbox (`modules/inbox.md`) |
+| *owner's account* | the owner's GitHub login, in backticks (`core.yml` fails a manifest without it): the owner's word (floor rule 4) and inbox (`modules/inbox.md`) |
 | *progress file* | the file that holds the queue and what is done |
 | *report* | where a task's report, with its "Readings taken", goes |
 | *settling references* | what open points are settled against, with the owner's past words |
@@ -198,17 +198,17 @@ Floor: whole. Modules: <all, or the list of those taken>.
   (core archive 152).
 - Where another provider is to build, any one of: the tool that runs the agents side by side (below); its plug-in in
   Claude Code, installed and signed in on the machine the sessions run on (for Codex, `/codex:setup` says whether it
-  is); or another way, which the project's rules name in a line each (how the tool is handed a task, and how it is
-  asked for a review) and the project tells the core ("Reporting to the core"), so that the tool gains a part here.
-  Nothing more is asked of him: the sessions hand over by the first way they find, and with none Claude's build
+  is); or another way, which the project's rules name in a line each (how the tool is handed a task, and how it is asked
+  for a review) and the project tells the core ("Reporting to the core"), so that the tool gains a part here. Nothing
+  more is asked of the owner: the sessions hand over by the first way they find, and with none Claude's build
   (`modules/roles.md`, "The builders"; core archive 169). A tool that pushes its own branch gets a sign-in that cannot
   change a workflow (as `setup/server.md`, point 5), or its workflows wait for an approval before they run.
 - The machine where agents run side by side (floor rule 18): `setup/server.md`, read only when setting it up.
-- Any other machine the sessions run on is his to set up (floor rule 18), and he chooses knowing what a setup like
+- Any other machine the sessions run on is the owner's to set up (floor rule 18), who chooses knowing what a setup like
   `setup/server.md`'s buys: an account of their own for the agents and a throwaway box for the project's code mean that
   an agent fooled by planted text (in a dependency, a web page, an issue) reaches only what that account holds and runs
-  code only inside the box. Without them it reaches all his own account can: his files, his other sign-ins, his keys.
-  What agents keep on every machine are promises (floor rule 18); only the setup limits one that breaks them.
+  code only inside the box. Without them it reaches all the owner's own account can: its files, its other sign-ins, its
+  keys. What agents keep on every machine are promises (floor rule 18); only the setup limits one that breaks them.
 
 ## Reporting to the core
 
