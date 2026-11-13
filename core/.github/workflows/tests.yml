@@ -1,7 +1,9 @@
 # The core's scripts' own tests, and its own licence audit, on every pull request here and every push to main, on Linux
 # and on Windows, where a project built there runs the scripts and both hooks (in Git Bash, as Claude Code does). Every
 # suite runs though another failed, so one run shows them all. This repository only; no project calls it. Reads only,
-# with no secret, on the core's one exact Node; nothing is installed.
+# with no secret, on the core's one exact Node; nothing is installed. One suite writes and builds a .NET project with
+# the .NET SDK the runner holds, in a scratch folder, and takes a few packages from nuget.org for it
+# (scripts/init-dotnet-test.mjs).
 name: tests
 
 on:
@@ -41,6 +43,9 @@ jobs:
       - name: The licence scan on every form of a fetch
         if: ${{ !cancelled() }}
         run: node scripts/licence-fetch-test.mjs
+      - name: The NuGet check
+        if: ${{ !cancelled() }}
+        run: node scripts/nuget-test.mjs
       - name: The exact-versions check
         if: ${{ !cancelled() }}
         run: node scripts/exact-versions-test.mjs
@@ -83,6 +88,12 @@ jobs:
       - name: The starter kit, and the core's own checks on a project it writes
         if: ${{ !cancelled() }}
         run: node scripts/init-test.mjs
+      - name: The starter kit on a .NET project, cloned as Windows clones it, and built
+        if: ${{ !cancelled() }}
+        run: node scripts/init-dotnet-test.mjs
+      - name: The cap's own check
+        if: ${{ !cancelled() }}
+        run: node scripts/size-test.mjs
       - name: The pointer check
         if: ${{ !cancelled() }}
         run: node scripts/pointers-test.mjs

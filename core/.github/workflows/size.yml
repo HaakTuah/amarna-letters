@@ -1,7 +1,11 @@
 # The core's own rules, checked on every pull request here: the cap (README.md, "Two layers"; scripts/size.mjs) fails
-# one that grows the floor and the modules past it, and the words check (scripts/general.mjs) one that uses a word
-# true only for some of the projects that take the core. This repository only; no project calls it. Reads only, with no
-# secret.
+# one that grows the floor and the modules past it, and one that raises the cap by more than one step or with no
+# "Leanness check:" comment (a fresh session's answer that it read all the rules for room:
+# modules/review-guidelines.md, "A mark on what every session reads"); and the words check (scripts/general.mjs) fails
+# one that uses a word true only for some of the projects that take the core. This repository only; no project calls
+# it. Reads only, with no secret: the raise is read from git alone, the merge commit against its first parent, the
+# base, and of the pull request's comments only who wrote each and how it opens is used, in a file the script reads;
+# no text of a comment reaches a command.
 name: size
 
 on:
@@ -16,14 +20,32 @@ jobs:
   size:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read # the pull request's comments, for a raise of the cap
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+          fetch-depth: 2 # the merge commit and its parents: a raise of the cap is read against the base
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
       - name: The floor and the modules stay under the cap
         run: node scripts/size.mjs
+      # (two steps, so the token reaches gh alone and never the pull request's own script; a base or a list of
+      # comments that cannot be read fails its step: the check is never waived)
+      - name: The cap at the base, and the pull request's comments
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          mkdir "$RUNNER_TEMP/raise"
+          git show HEAD^1:scripts/size.mjs > "$RUNNER_TEMP/raise/base.mjs"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/issues/$NUMBER/comments?per_page=100" > "$RUNNER_TEMP/raise/comments.json"
+      - name: A raise of the cap is one step, and has its leanness check
+        if: ${{ github.event_name == 'pull_request' }}
+        run: node scripts/size.mjs --raise "$RUNNER_TEMP/raise/base.mjs" "$RUNNER_TEMP/raise/comments.json"
       - name: The floor and the modules fit any project
         run: node scripts/general.mjs scripts/general.json

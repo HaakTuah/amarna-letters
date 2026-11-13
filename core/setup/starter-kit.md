@@ -23,8 +23,11 @@ templates and the copy are then all that release's.
 Every template ends in `.tmpl`, so that no tool takes one for a rule file, a workflow or a config of this repository
 or of a project that holds the copy (floor rule 3), and no check reads one as the real thing. `scripts/init-test.mjs`
 writes a project from them and runs the core's own checks on it, so a template that no longer fits the core fails
-here, not in a project. Which template becomes which file, and when: the list `FILES` in `scripts/init.mjs`.
+here, not in a project; `scripts/init-dotnet-test.mjs` does the same for a .NET project, in a clone made the way
+Windows makes one, with every line ending converted, and builds it where a .NET SDK is installed. Which template
+becomes which file, and when: the list `FILES` in `scripts/init.mjs`.
 
-In a template, `{{owner}}` is the owner's GitHub login, `{{project}}` the project's name, `{{core}}` the core's address,
-`{{pin}}` the commit of the core the project starts from, `{{modules}}` the modules it takes and `{{npm}}` the folder
-of its npm packages. A line that holds `FILL IN:` is the project's own to write; the script lists them when it is done.
+In a template, `{{owner}}` is the owner's GitHub login, `{{project}}` the project's name, `{{core}}` the core's
+address, `{{pin}}` the commit of the core the project starts from, `{{modules}}` the modules it takes, `{{npm}}` the
+folder of its npm packages and `{{nuget}}` the folder of its .NET solution. A line that holds `FILL IN:` is the
+project's own to write; the script lists them when it is done.

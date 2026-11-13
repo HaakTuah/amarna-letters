@@ -9,12 +9,15 @@
 // settings. It commits and pushes nothing. Git, tar and Node's own modules only.
 //
 //   node <the clone>/scripts/init.mjs --owner <login> [--name <the project's name>] [--at <full SHA>]
-//                                     [--npm <the folder of package-lock.json>] [--private] [--game]
+//                                     [--npm <the folder of package-lock.json>] [--nuget <the folder of the solution>]
+//                                     [--private] [--game]
 //
 //   --owner    the owner's GitHub login: the *owner's account* (floor rule 4), the issue forms' assignee
 //   --name     the project's name in its rule files; left out, its folder's
 //   --at       the commit of the core's main the project starts from; left out, the clone's own HEAD
 //   --npm      its packages come from npm: the signature check and Dependabot's npm updates, for that folder
+//   --nuget    its packages come from NuGet (.NET): the NuGet check and Dependabot's NuGet updates, for the folder
+//              that holds its solution or project files (. for the root)
 //   --private  a private repository without GitHub's paid code security: no call to the core's CodeQL and licence
 //              workflows, which need it (README.md, point 5, "A private repository")
 //   --game     a game: the module game-design.md with the others
@@ -23,6 +26,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CORE } from "./core-address.mjs";
+import { sizeOf } from "./file-size.mjs";
 import { plainEnv } from "./releases.mjs";
 import { started } from "./started.mjs";
 
@@ -65,6 +69,7 @@ export const FILES = [
   ["workflows/codeql.yml.tmpl", ".github/workflows/codeql.yml", o => !o.private],
   ["workflows/licences.yml.tmpl", ".github/workflows/licences.yml", o => !o.private],
   ["workflows/signatures.yml.tmpl", ".github/workflows/signatures.yml", o => o.packages !== undefined],
+  ["workflows/nuget.yml.tmpl", ".github/workflows/nuget.yml", o => o.nuget !== undefined],
 ];
 // What the script makes itself, beside the templates' files: none of these may exist either.
 const MADE = ["checks/sizes.json", "checks/licences.json", "checks/copies-baseline.json", "core"];
@@ -105,7 +110,7 @@ export function linked(root, to) {
 // before it reaches a file: a login, a commit, a folder inside the project, a name on one line.
 export function options(argv) {
   const o = {};
-  const VALUE = { "--owner": "owner", "--name": "name", "--npm": "packages", "--at": "at" };
+  const VALUE = { "--owner": "owner", "--name": "name", "--npm": "packages", "--nuget": "nuget", "--at": "at" };
   const FLAG = { "--private": "private", "--game": "game" };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -117,9 +122,10 @@ export function options(argv) {
   if (o.at !== undefined && !/^[0-9a-f]{40}$/.test(o.at)) fail("--at <full SHA>: the core's commit as 40 hex characters");
   if (o.name !== undefined && !named(o.name)) fail(`--name: ${NAME}`);
   o.name = o.name?.normalize("NFC");
-  if (o.packages !== undefined) {
-    o.packages = o.packages.replace(/\\/g, "/").replace(/\/+$/, "") || ".";
-    if (!/^(\.|[A-Za-z0-9_][A-Za-z0-9._-]*(\/[A-Za-z0-9_][A-Za-z0-9._-]*)*)$/.test(o.packages)) fail("--npm <folder>: a folder inside the project, from its root (. for the root itself)");
+  for (const [flag, key] of [["--npm", "packages"], ["--nuget", "nuget"]]) {
+    if (o[key] === undefined) continue;
+    o[key] = o[key].replace(/\\/g, "/").replace(/\/+$/, "") || ".";
+    if (!/^(\.|[A-Za-z0-9_][A-Za-z0-9._-]*(\/[A-Za-z0-9_][A-Za-z0-9._-]*)*)$/.test(o[key])) fail(`${flag} <folder>: a folder inside the project, from its root (. for the root itself)`);
   }
   return o;
 }
@@ -141,10 +147,15 @@ export function fill(text, words) {
 // Every file the kit writes for these options, as [path, text], before the copy of the core: the templates' files.
 // `read` gives a template's text by its name under setup/template/ (the program reads it from the pinned commit).
 export function files(o, pin, moduleNames, read) {
-  const words = { owner: o.owner, project: o.name, core: CORE, pin, npm: o.packages, modules: modules(moduleNames, o.game) };
+  const words = { owner: o.owner, project: o.name, core: CORE, pin, npm: o.packages, nuget: o.nuget, modules: modules(moduleNames, o.game) };
   return FILES.filter(([, , when]) => !when || when(o)).map(([template, to]) => {
     let text = fill(read(template), words);
-    if (to === ".github/dependabot.yml" && o.packages !== undefined) text += fill(read("dependabot-npm.yml.tmpl"), { ...words, npm: o.packages === "." ? "" : o.packages });
+    // (Dependabot's own part for each installer the project named, after the part every project has)
+    if (to === ".github/dependabot.yml") {
+      const folder = at => at === "." ? "" : at;
+      if (o.packages !== undefined) text += fill(read("dependabot-npm.yml.tmpl"), { ...words, npm: folder(o.packages) });
+      if (o.nuget !== undefined) text += fill(read("dependabot-nuget.yml.tmpl"), { ...words, nuget: folder(o.nuget) });
+    }
     return [to, text];
   });
 }
@@ -157,9 +168,10 @@ export function sizes(bytes) {
 }
 
 // The licence check's first config: nothing ships yet, and of npm's files only those that stand today are named,
-// since the check fails on one it cannot read. `has`: whether a path of the project exists.
+// since the check fails on one it cannot read. A project whose packages come from NuGet gets the NuGet check's part,
+// its lock files still to be named. `has`: whether a path of the project exists.
 export function licences(o, has) {
-  const config = { ships: [], audit: "checks/licences-audit.json", scan: { served: [], skip: [] } };
+  const config = { ships: [], audit: "checks/licences-audit.json", scan: { served: [], skip: [] }, ...(o.nuget === undefined ? {} : { nuget: { ships: [], tools: [] } }) };
   if (o.packages === undefined) return config;
   const at = name => o.packages === "." ? name : `${o.packages}/${name}`;
   return { lockfiles: [at("package-lock.json")].filter(has), ...config, ignoreScriptsIn: [at(".npmrc")].filter(has) };
@@ -204,7 +216,7 @@ function init(argv) {
   fs.mkdirSync(path.join(here, "core"));
   // ("-f -": Windows' own tar reads a tape drive unless told to read its input)
   execFileSync("tar", ["-x", "-f", "-", "-C", "core"], { cwd: here, input: execFileSync("git", ["archive", pin], { cwd: ROOT, env: plainEnv(), maxBuffer: 1 << 28 }) });
-  const marks = sizes(Object.fromEntries(READ.map(f => [f, fs.statSync(path.join(here, f)).size])));
+  const marks = sizes(Object.fromEntries(READ.map(f => [f, sizeOf(path.join(here, f))])));
   write("checks/sizes.json", `${JSON.stringify(marks, null, 2)}\n`);
   write("checks/licences.json", `${JSON.stringify(licences(o, f => fs.existsSync(path.join(here, f))), null, 2)}\n`);
   // the copies check's first baseline: the copies that stand today (it reads the files git knows of)
@@ -219,6 +231,7 @@ function init(argv) {
   console.log(`  checks/copies.json: "code", the project's own code as git pathspecs, once it has any`);
   console.log("  checks/licences.json: \"ships\" and \"scan\", once something reaches its users; \"lockfiles\" and \"ignoreScriptsIn\", each npm lock file and .npmrc that did not stand yet");
   console.log("  where it has versions Dependabot cannot see, its versions check: the core's README, point 5");
+  if (o.nuget !== undefined) console.log("  its NuGet packages: lock files turned on (RestorePackagesWithLockFile in its project files or Directory.Build.props) and committed, and each packages.lock.json named in checks/licences.json under \"nuget\", as one whose packages ship or one of tools that only run");
   if (o.private) console.log("  no call to the core's CodeQL and licence workflows was written (--private): a workflow of the project's own runs the licence check, as the core's README, point 5, \"A private repository\", says");
   console.log(`\nLeft for the owner (the core's README, "Setting up"): the ruleset on main, with the checks \`core / core\` and the project's own required;`);
   console.log("  the Actions setting that every action is pinned to a full commit SHA; the Actions secret PERSONAL_TERMS; and the security reviewer's app.");

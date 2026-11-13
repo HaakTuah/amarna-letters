@@ -5,14 +5,14 @@
 // fails here and not in a project. On Linux and on Windows. Git, tar and Node's own modules only.
 //
 //   node scripts/init-test.mjs
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CORE, CORE_SOURCE } from "./core-address.mjs";
 import { COMMAND } from "./helper-call.mjs";
 import { FILES, TEMPLATES, files, fill, filtered, licences, linked, modules, named, options, sizes } from "./init.mjs";
+import { scratch } from "./scratch-core.mjs";
 
 let failed = 0, count = 0;
 const ok = (cond, what, detail = "") => { count++; if (cond) console.log(`ok   ${what}`); else { failed++; console.error(`FAIL ${what}${detail && `\n     ${detail}`}`); } };
@@ -27,6 +27,7 @@ ok(throws(() => options(["--owner", "x", "--force"])) && throws(() => options(["
 ok(options(["--owner", "x", "--at", A]).at === A && throws(() => options(["--owner", "x", "--at", "main"])) && throws(() => options(["--owner", "x", "--at", A.slice(1)])), "a commit is 40 hex characters");
 ok(options(["--owner", "x", "--npm", "tools/"]).packages === "tools" && options(["--owner", "x", "--npm", "."]).packages === "." && options(["--owner", "x", "--npm", "a\\b"]).packages === "a/b", "the npm folder is read from the project's root, either slash");
 ok(throws(() => options(["--owner", "x", "--npm", "../out"])) && throws(() => options(["--owner", "x", "--npm", "/abs"])) && throws(() => options(["--owner", "x", "--npm", "a b"])) && throws(() => options(["--owner", "x", "--npm", "a/../../b"])) && throws(() => options(["--owner", "x", "--npm", "$(x)"])), "a folder outside the project, or one that is more than a path, stops it");
+ok(options(["--owner", "x", "--nuget", "src\\"]).nuget === "src" && options(["--owner", "x", "--nuget", "."]).nuget === "." && options(["--owner", "x", "--npm", "web", "--nuget", "."]).packages === "web" && throws(() => options(["--owner", "x", "--nuget", "../out"])) && throws(() => options(["--owner", "x", "--nuget"])), "the NuGet folder is held to the same form, with the npm folder or without it");
 ok(options(["--owner", "x", "--name", "A fine project"]).name === "A fine project" && named("Bark & Bite (2nd), v1.0!") && named("Tr\u00e6na's tool") && named("x") && named("Snake: the game") && named("C# tools"), "a name is letters, digits and blanks, with the few marks a name uses");
 ok(named("\u0939\u093f\u0928\u094d\u0926\u0940") && named("Cafe\u0301") && options(["--owner", "x", "--name", "Cafe\u0301"]).name === "Caf\u00e9" && !named("\u0301x"), "a script written with marks on its letters is a name too, a letter and its accent are read as the one letter, and a mark alone begins no name");
 ok(filtered("filter.x.clean sh -c evil\nfilter.lfs.required true\nFILTER.Y.process run\nfilter.x.clean again\n").join() === "filter.x.clean,FILTER.Y.process" && filtered("").length === 0, "a project's own filters that run a command are found by name, and one that runs none is not");
@@ -46,7 +47,7 @@ const templates = [];
 const walk = dir => { for (const e of fs.readdirSync(path.join(root, TEMPLATES, dir), { withFileTypes: true })) e.isDirectory() ? walk(path.posix.join(dir, e.name)) : templates.push(path.posix.join(dir, e.name)); };
 walk("");
 ok(templates.every(t => t.endsWith(".tmpl")), "every file of the kit ends in .tmpl, so no tool or check takes one for the real thing", templates.filter(t => !t.endsWith(".tmpl")).join());
-const listed = new Set([...FILES.map(([t]) => t), "dependabot-npm.yml.tmpl"]);
+const listed = new Set([...FILES.map(([t]) => t), "dependabot-npm.yml.tmpl", "dependabot-nuget.yml.tmpl"]);
 ok(templates.every(t => listed.has(t)) && [...listed].every(t => templates.includes(t)), "every template is listed in FILES, and every listed one is there", [...templates.filter(t => !listed.has(t)), ...[...listed].filter(t => !templates.includes(t))].join());
 ok(new Set(FILES.map(([, to]) => to)).size === FILES.length, "no two templates become the same file");
 
@@ -70,35 +71,22 @@ ok(template("security-review.yml.tmpl").includes("on:\n  pull_request:\n    type
 ok(/^on:\n  schedule:\n    - cron: '\d+ \d+ \* \* \*'.*\n  workflow_dispatch:\n/m.test(template("core-moved.yml.tmpl")) && template("core-moved.yml.tmpl").includes("    permissions:\n      contents: read\n      issues: write\n"), "the core-moved check runs daily or by hand, in a job that may read the repository and write issues");
 const fromFolder = name => fs.readFileSync(path.join(root, TEMPLATES, name), "utf8");
 const whole = files({ owner: "someone", name: "P", packages: "tools" }, A, ["git.md"], fromFolder).map(([, text]) => text).join("\n");
+const dependabot = o => files({ owner: "someone", name: "P", ...o }, A, ["git.md"], fromFolder).find(([to]) => to === ".github/dependabot.yml")[1];
+const ecosystems = text => (text.match(/package-ecosystem: "/g) ?? []).length;
+ok(dependabot({ nuget: "." }).includes('package-ecosystem: "nuget"\n    directory: "/"\n') && ecosystems(dependabot({ nuget: "." })) === 2 && dependabot({ nuget: "src" }).includes('directory: "/src"\n') && ecosystems(dependabot({})) === 1 && !dependabot({}).includes("nuget"), "a project whose packages come from NuGet gets Dependabot's updates for them, for its folder, beside the actions' own, and one that named no installer gets the actions' alone");
+const both = dependabot({ packages: "web", nuget: "." });
+ok(ecosystems(both) === 3 && both.indexOf('directory: "/web"') > 0 && both.indexOf('directory: "/web"') < both.indexOf('"nuget"') && (both.match(/^version: 2$/gm) ?? []).length === 1, "a project with both installers gets both, in one config");
 ok(JSON.parse(fromFolder("claude-settings.json.tmpl")).hooks.PreToolUse[0].hooks[0].command === COMMAND, "the helper hook's command in the settings template is, letter for letter, the one helper-call.mjs holds and its test runs");
 ok(!/\{\{[a-z]+\}\}/.test(whole) && whole.includes("${{ secrets.PERSONAL_TERMS }}") && whole.includes(`uses: ${CORE}/.github/workflows/core.yml@${A}`) && whole.includes(`dependency-name: "${CORE}*"`), "filled in, no template word is left and GitHub's own expressions stand as written, each call is to the core's own address at the pin, and Dependabot leaves those calls alone");
 
 // the program whole: a scratch copy of the core as it stands here, and a scratch project
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "init-test-"));
-process.on("exit", () => fs.rmSync(tmp, { recursive: true, force: true }));
-const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !/^GIT_(DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|COMMON_DIR)$/i.test(name)));
-Object.assign(env, { GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@example.invalid", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@example.invalid", GIT_CONFIG_GLOBAL: path.join(tmp, "none"), GIT_CONFIG_NOSYSTEM: "1" });
-const git = (dir, ...args) => execFileSync("git", args, { cwd: dir, env, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
-const run = (dir, ...args) => { const r = spawnSync(process.execPath, args, { cwd: dir, env, encoding: "utf8" }); return { status: r.status, out: r.stdout + r.stderr }; };
-const core = path.join(tmp, "the-core");
-fs.cpSync(root, core, { recursive: true, filter: src => path.basename(src) !== ".git" && path.basename(src) !== "node_modules" });
-git(core, "init", "-q", "-b", "main");
-git(core, "add", "-A");
-git(core, "commit", "-q", "-m", "the core as it stands");
-const pin = git(core, "rev-parse", "HEAD");
-const script = path.join(core, "scripts", "init.mjs");
-const project = (name, ...args) => {
-  const dir = path.join(tmp, name);
-  fs.mkdirSync(dir);
-  git(dir, "init", "-q", "-b", "main");
-  return { dir, ...run(dir, script, ...args) };
-};
+const { tmp, env, git, run, core, pin, script, project } = scratch("init-test-");
 
 const p = project("a-project", "--owner", "someone-else", "--npm", "tools");
 const has = f => fs.existsSync(path.join(p.dir, f)), read = f => fs.readFileSync(path.join(p.dir, f), "utf8");
 ok(p.status === 0 && p.out.includes("The starter kit is written") && p.out.includes("FILL IN"), "it writes a project and says what is left", p.out.slice(0, 600));
 if (p.status === 0) {
-  ok(FILES.every(([, to]) => has(to)) && has("checks/sizes.json") && has("checks/licences.json") && has("checks/copies-baseline.json") && has("core/floor/security.md") && !has("core/reports"), "every file is there, with the copy of the core, without what the core keeps to itself");
+  ok(FILES.every(([, to, when]) => has(to) === (!when || !!when({ packages: "tools" }))) && has("checks/sizes.json") && has("checks/licences.json") && has("checks/copies-baseline.json") && has("core/floor/security.md") && !has("core/reports"), "every file its options ask for is there and no other of the kit's, with the copy of the core, without what the core keeps to itself");
   const manifest = read("core-manifest.md");
   ok(new RegExp(`^Core: ${CORE_SOURCE} at ${pin}, copied whole under core/`, "m").test(manifest) && /^\| \*owner's account\* \| `someone-else` \|$/m.test(manifest), "the manifest pins the commit and names the owner's account, as core.yml reads them");
   ok(read("AGENTS.md").startsWith("# a-project\n") && read(".github/workflows/signatures.yml").includes('directory: "tools"') && read(".github/dependabot.yml").includes('directory: "/tools"') && read(".github/ISSUE_TEMPLATE/bug_report.md").includes("assignees: someone-else"), "the project's name is its folder's, and the npm folder and the owner are where they belong");
@@ -123,6 +111,11 @@ ok(q.status === 0 && !fs.existsSync(path.join(q.dir, ".github/workflows/codeql.y
 if (q.status === 0) ok(/^Floor: whole\. Modules: all\.$/m.test(fs.readFileSync(path.join(q.dir, "core-manifest.md"), "utf8")) && fs.readFileSync(path.join(q.dir, "AGENTS.md"), "utf8").startsWith("# A private game\n"), "a game takes every module, and a name given is the name used");
 const t = project("a-folder-named-true", "--owner", "x", "--npm", "true");
 ok(t.status === 0 && fs.readFileSync(path.join(t.dir, ".github/workflows/signatures.yml"), "utf8").includes('directory: "true"') && fs.readFileSync(path.join(t.dir, ".github/dependabot.yml"), "utf8").includes('directory: "/true"'), "a folder whose name YAML would read as something else is written in quotes, so it stays a name");
+const n = project("a-dotnet-project", "--owner", "x", "--nuget", "src", "--private");
+const nRead = f => fs.readFileSync(path.join(n.dir, f), "utf8");
+ok(n.status === 0 && nRead(".github/workflows/nuget.yml").includes("config: checks/licences.json") && nRead(".github/workflows/nuget.yml").includes("advisory: true") && JSON.stringify(JSON.parse(nRead("checks/licences.json")).nuget) === '{"ships":[],"tools":[]}' && nRead(".github/dependabot.yml").includes('directory: "/src"') && !fs.existsSync(path.join(n.dir, ".github/workflows/signatures.yml")) && n.out.includes("RestorePackagesWithLockFile"),
+  "a project whose packages come from NuGet gets the call to the NuGet check, advisory, the config's part for its lock files, and is told to turn lock files on; a private one too, since that check needs nothing GitHub sells", n.out.slice(0, 400));
+ok(!fs.existsSync(path.join(t.dir, ".github/workflows/nuget.yml")) && JSON.parse(fs.readFileSync(path.join(t.dir, "checks/licences.json"), "utf8")).nuget === undefined, "and one that named no NuGet folder gets neither");
 ok(p.status !== 0 || /\*\*the trusted builder:\*\*\n\s+FILL IN:/.test(read("SECURITY.md")) && p.out.includes("who may change the protected files"), "who may change the protected files is left for the project to say, and listed with what is left");
 // the kit is read from the commit, never from the clone's working folder: an edit not yet committed reaches no project
 const edited = path.join(core, TEMPLATES, "workflows", "core.yml.tmpl");

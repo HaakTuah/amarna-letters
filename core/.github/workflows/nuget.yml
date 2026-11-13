@@ -1,0 +1,77 @@
+# The NuGet check (floor rules 7, 10 and 15), for a project whose packages come from NuGet (.NET): on every pull
+# request, Dependabot's included, it restores each project file git knows from its lock file alone, with the .NET SDK
+# the runner holds (`dotnet restore --locked-mode`, NuGet's own tool, which fails where a lock file is not what the
+# project file asks for, and holds each package to the hash its lock file names), into a folder of its own; and then
+# runs the caller's own core/scripts/nuget.mjs, which holds every package in those lock files, and whatever else the
+# restore brought, to its licence list, and what a lock file names to one exact version, reading each licence from the
+# manifest of the package the restore brought. What that script holds and does not, it says itself. A project calls
+# this (workflow_call) from a workflow of its own of the same name, on every pull request, pinned to a full commit SHA
+# ("How a project takes the core" in README.md, point 5), passing the licence check's config. While "advisory" (on
+# unless turned off) it says what it would fail and passes, a restore that fails included, so a project's first weeks
+# with it show whether it is right before anything waits for it. A restore runs the pull request's own project files,
+# as its build would, and what they run could change anything in this job, the script and the manifests it reads
+# included: so this runs with contents: read and no secret, nothing after the checkout holds the token, and what a pull
+# request does to its project files is the reviews' to read, as with every check that builds. Where the packages come
+# from is the project's NuGet.Config's to say and the reviews' to weigh: this check reads what the restore brought. A
+# project for Windows alone restores here all the same (EnableWindowsTargeting); one whose SDK the runner lacks
+# restores in a workflow of its own, and runs the script there.
+name: nuget
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: The licence check's config, a JSON file in the calling repository, with its "nuget" (core/scripts/nuget.mjs).
+        required: true
+        type: string
+      advisory:
+        description: Whether it only says what it would fail (true, as it starts) or fails the pull request (false).
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  nuget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false # nothing after the checkout needs the token
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+      - name: Restore each project file from its lock file alone
+        env:
+          ADVISORY: ${{ inputs.advisory }}
+          NUGET_PACKAGES: ${{ runner.temp }}/nuget-packages # a folder of its own: only what this restore brings
+          DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+          DOTNET_NOLOGO: "1"
+          EnableWindowsTargeting: "true"
+        run: |
+          # (the project files git knows, a line each, as the script that reads their lock files lists them; each
+          # named from the root, behind "./", so that no name is read as an option)
+          node core/scripts/nuget.mjs --projects > "$RUNNER_TEMP/nuget-projects"
+          failed=0
+          while IFS= read -r project; do
+            # (the two properties given here overrule a project's own: its packages go to the folder the check reads,
+            # and its lock file is the one beside it; dotnet reads nothing of the list. A fallback folder cannot be
+            # turned off so: the SDK takes the word for a folder's name. The check fails a build file that names one.)
+            dotnet restore --locked-mode "-p:RestorePackagesPath=$NUGET_PACKAGES" -p:NuGetLockFilePath= "./$project" < /dev/null || failed=1
+          done < "$RUNNER_TEMP/nuget-projects"
+          if [ "$failed" = 1 ]; then
+            echo "A restore from a lock file failed: the lock file is not what the project file asks for, or a package is not what its lock file names (floor rule 15)."
+            [ "$ADVISORY" = true ] || exit 1
+            echo "Advisory: nothing fails for it yet."
+          fi
+      - name: Every package one exact version, and under a licence on its list
+        env:
+          CONFIG: ${{ inputs.config }}
+          ADVISORY: ${{ inputs.advisory }}
+          NUGET_PACKAGES: ${{ runner.temp }}/nuget-packages
+        run: |
+          if [ "$ADVISORY" = true ]; then node core/scripts/nuget.mjs "$CONFIG" --packages "$NUGET_PACKAGES" --advisory
+          else node core/scripts/nuget.mjs "$CONFIG" --packages "$NUGET_PACKAGES"; fi

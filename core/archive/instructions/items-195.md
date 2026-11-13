@@ -23,3 +23,38 @@ How they are kept, and where each item lives: `archive/instructions.md`.
 
      Behind "A new rule says what holds it" in `AGENTS.md` and the heading its check asks for
      (`.github/workflows/own-description.yml`); and behind the other three, each in a PR of its own.
+
+196. **13 November 2026** (the core, the same chat as item 195). Told that the four improvements were merged, that both
+     games now followed the releases, and that one step was left to the owner, cutting the first release, since the
+     session could push no tag:
+
+     > I need you to do everything, I won't be tagging commits. Also, couldn't you try it on windows with a .net
+     > project? Is there anything else we should do? Are all rules grounded now, or is there anything more we can do?
+     > […]
+
+     Behind "The owner tags nothing by hand" in `AGENTS.md` and the workflow that cuts a release
+     (`.github/workflows/release.yml`); and behind the starter kit's trial on Windows with a .NET project and the
+     further checks for rules only discipline held, each in a PR of its own.
+
+197. **13 November 2026** (the core, the same chat as item 195). Told that the session's own limits had refused it the
+     start of the release workflow, as they had the push of a tag, so that the first release waited for the owner;
+     that GitHub writes the name on the owner's profile into every merge it makes, which only an empty name on the
+     profile ends; that the starter kit now set up Dependabot for a .NET project's packages while the core still had
+     no licence check for them, the owner having said the same day that a project should prove one first (core issue
+     143); and that floor rule 10's list for what ships left out licences a .NET project meets, Microsoft's public
+     licence, PostgreSQL's, Boost's and Unicode's among them, which could be added, while the licences that carry
+     conditions someone should read (LGPL, MPL, Microsoft's own terms, a paid component) stayed with the owner's yes
+     each time:
+
+     > Is there good reason we shouldn't do this in agent-core, expert?
+
+     Told there was none that held: the check could be proven on real packages on GitHub's own machines, and "a
+     project first" would spend another owner's usage on shared tooling.
+
+     > Yes, I'd add all of them, expertly then.
+     >
+     > What steps do I need to do, I don't find them on agent-core github? My name will remain on my profile.
+
+     Behind the six licences added to floor rule 10's list; the NuGet check built in the core, not in a project
+     first; floor rule 11's exception for the name and address GitHub writes into a merge; and "the owner, or a
+     session the owner tells" in `AGENTS.md`, "A release is cut on the owner's word".
