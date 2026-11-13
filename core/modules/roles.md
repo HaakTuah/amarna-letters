@@ -15,8 +15,8 @@ Read when a task needs one.
   reading, the owner's past words) and what none of them can take or each failed at twice. This bars no tool from work
   the owner gives it or Claude's cannot take.
 - **One code review, by another provider than the builder's where one answers** (the *code reviewers*; core archive 18,
-  154, 175): unless the project names its order, first one that cannot build here (Codex's, then Copilot's), then a
-  builder's, last the fallback reviewer's, Claude's (`modules/claude.md`).
+  154, 175): unless the project names its order, first one that cannot build here (Codex's before Copilot's, where
+  neither builds), then a builder's, last the fallback reviewer's, Claude's (`modules/claude.md`).
 - **The design checker, the stand-in and planning design** are Claude's, at the models `modules/claude.md` gives:
   planning design is asked at most once per task (its PR says when it was), with a self-contained brief, when it needs a
   new or better plan.

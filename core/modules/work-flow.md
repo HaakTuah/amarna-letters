@@ -25,4 +25,5 @@ the *progress file* saying where to pick up (core archive 143). A session of the
 no orchestrator started, and the orchestrator on every wake, first checks whether the core has moved
 (`core/scripts/core-moved.mjs --dry`) and syncs it if so (`core/scripts/sync.mjs`, its PR never auto-merged: floor rule
 8; then what `setup/sync-notes.md` asks); where checks cost money, not on a day a sync PR was already opened (core
-archive 178). Another builder's session leaves the sync to them.
+archive 178); then both read what reviews left after a merge (`modules/reviews.md`, point 2). Another builder's session
+leaves the sync to them.
