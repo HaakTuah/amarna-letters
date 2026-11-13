@@ -13,7 +13,7 @@
  * Each glyph sits in a box centred on 0,0, about 24 units across, drawn in one fill over its power's colour.
  */
 import { FixedPowers, WorldMap, risenOf, type Power } from "@amarna/engine";
-import { city, len, sub } from "./art.ts";
+import { F, city, len, sub } from "./art.ts";
 
 export type ArmyStyle = "egypt" | "anatolia" | "hurrian" | "kassite" | "canaan" | "nomad" | "aegean";
 export type FleetStyle = "egypt" | "aegean" | "levant";
@@ -328,14 +328,79 @@ export function figureMarkup(d: string): string {
   return `<path d="${plain}"/>` + parts.filter((_, i) => i % 2 === 1).map((w) => `<path fill-rule="evenodd" d="${w}"/>`).join("");
 }
 
+/** The box a figure's symbol is drawn in, centred on 0,0. */
+const Box = 25;
+const viewBox = `${-Box / 2} ${-Box / 2} ${Box} ${Box}`;
+
 /** The symbols, for the map's <defs>: `fig-army-<style>` and `fig-fleet-<style>`. */
 export function figureSymbols(): string {
   let sb = "";
-  for (const [k, d] of Object.entries(ArmyPaths)) sb += `<symbol id="fig-army-${k}" viewBox="-12.5 -12.5 25 25" overflow="visible">${figureMarkup(d)}</symbol>`;
-  for (const [k, d] of Object.entries(FleetPaths)) sb += `<symbol id="fig-fleet-${k}" viewBox="-12.5 -12.5 25 25" overflow="visible">${figureMarkup(d)}</symbol>`;
-  for (const [k, d] of Object.entries(Others)) sb += `<symbol id="fig-${k}" viewBox="-12.5 -12.5 25 25" overflow="visible">${figureMarkup(d)}</symbol>`;
+  for (const [k, d] of Object.entries(ArmyPaths)) sb += `<symbol id="fig-army-${k}" viewBox="${viewBox}" overflow="visible">${figureMarkup(d)}</symbol>`;
+  for (const [k, d] of Object.entries(FleetPaths)) sb += `<symbol id="fig-fleet-${k}" viewBox="${viewBox}" overflow="visible">${figureMarkup(d)}</symbol>`;
+  for (const [k, d] of Object.entries(Others)) sb += `<symbol id="fig-${k}" viewBox="${viewBox}" overflow="visible">${figureMarkup(d)}</symbol>`;
   return sb;
 }
+
+/**
+ * The point a power's fleet heels about while it sails (playback.css, `heel`), for its figure drawn `size` units across:
+ * half across and 85% down the figure's drawn bounds, in the figure's own drawing. The heel was measured from the figure's
+ * own box (`transform-box: fill-box`) until #666, which the browser cannot hand to the compositor; this is the same point.
+ */
+export const heelOrigin = (p: Power, size: number): string => {
+  const b = FleetBounds[fleetStyle(p)];
+  const at = (v: number): string => `${F(((v + Box / 2) * size) / Box)}px`;
+  return `${at((b.x0 + b.x1) / 2)} ${at(b.y0 + 0.85 * (b.y1 - b.y0))}`;
+};
+
+/** The bounds of a path of moves, lines and cubic curves (the figures' own), as the browser measures its fill. */
+export function pathBounds(d: string): { x0: number; y0: number; x1: number; y1: number } {
+  const t = d.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e-?\d+)?/g) ?? [];
+  const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+  const take = (x: number, y: number): void => {
+    b.x0 = Math.min(b.x0, x);
+    b.y0 = Math.min(b.y0, y);
+    b.x1 = Math.max(b.x1, x);
+    b.y1 = Math.max(b.y1, y);
+  };
+  // A cubic's turning points on one axis: where its derivative, t²(A - 2B + C) + 2t(B - A) + A, is zero.
+  const turns = (p0: number, p1: number, p2: number, p3: number): number[] => {
+    const [a, bb, c] = [p1 - p0 - 2 * (p2 - p1) + (p3 - p2), 2 * (p2 - p1 - (p1 - p0)), p1 - p0];
+    if (Math.abs(a) < 1e-12) return Math.abs(bb) < 1e-12 ? [] : [-c / bb];
+    const disc = bb * bb - 4 * a * c;
+    return disc < 0 ? [] : [(-bb + Math.sqrt(disc)) / (2 * a), (-bb - Math.sqrt(disc)) / (2 * a)];
+  };
+  const on = (p0: number, p1: number, p2: number, p3: number, s: number): number =>
+    (1 - s) ** 3 * p0 + 3 * (1 - s) ** 2 * s * p1 + 3 * (1 - s) * s * s * p2 + s ** 3 * p3;
+  let cmd = "M";
+  let i = 0;
+  let [x, y, sx, sy] = [0, 0, 0, 0];
+  const num = (): number => Number(t[i++]);
+  while (i < t.length) {
+    if (/[A-Za-z]/.test(t[i])) {
+      cmd = t[i++];
+      if (cmd === "Z" || cmd === "z") [x, y] = [sx, sy];
+      if (cmd === "Z" || cmd === "z") continue;
+    }
+    // A small letter is a step from where the pen stands.
+    const [dx, dy] = cmd === cmd.toLowerCase() ? [x, y] : [0, 0];
+    const big = cmd.toUpperCase();
+    if (big === "M" || big === "L") {
+      [x, y] = [dx + num(), dy + num()];
+      if (big === "M") [sx, sy, cmd] = [x, y, cmd === "M" ? "L" : "l"];
+      take(x, y);
+    } else if (big === "H" || big === "V") {
+      if (big === "H") x = dx + num();
+      else y = dy + num();
+      take(x, y);
+    } else if (big === "C") {
+      const [x1, y1, x2, y2, x3, y3] = [dx + num(), dy + num(), dx + num(), dy + num(), dx + num(), dy + num()];
+      for (const s of [0, 1, ...turns(x, x1, x2, x3), ...turns(y, y1, y2, y3)].filter((s) => s >= 0 && s <= 1)) take(on(x, x1, x2, x3, s), on(y, y1, y2, y3, s));
+      [x, y] = [x3, y3];
+    } else throw new Error(`a figure's path has a command not read here: ${cmd}`);
+  }
+  return b;
+}
+const FleetBounds = Object.fromEntries(Object.entries(FleetPaths).map(([k, d]) => [k, pathBounds(d.replaceAll("|", ""))])) as Record<FleetStyle, ReturnType<typeof pathBounds>>;
 
 /** The symbol a power's army or fleet is drawn with. */
 export const figureOf = (p: Power, kind: "Army" | "Fleet"): string => (kind === "Army" ? `#fig-army-${armyStyle(p)}` : `#fig-fleet-${fleetStyle(p)}`);
