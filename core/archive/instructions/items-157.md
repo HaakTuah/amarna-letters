@@ -603,3 +603,59 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      Behind the wording of the owner throughout the floor, the modules, `README.md` and `setup/`; the last pattern in
      `scripts/general.json`; and "the account in the core's address in the manifest not being the *owner's account*"
      in `modules/inbox.md`.
+
+190. **13 November 2026** (the core, in the design chat):
+
+     > Will […] repo implement all modules? Did it do it o[n] the initial implementation with the brief, and will it
+     > implement new ones during daily syncs?
+
+     Told: a project's copy of the core always holds every module, and each sync brings its newest text; which modules
+     apply is the manifest's line, "all" or a list; changes inside a module a project takes arrive by themselves, but a
+     list does not gain a new module by itself and nothing told a project so. Built at once as an obvious improvement,
+     to reach the next import: a note for every project, and a sentence in the README.
+
+     Behind "A list of modules does not grow by itself" in `README.md` and the note "the modules a project takes" in
+     `setup/sync-notes.md`.
+
+191. **13 November 2026** (the core, in the design chat):
+
+     > Should we do a full audit again while I sleep?
+
+     Told: yes, by a fresh reader of the whole core as it then stood, with the imports replayed and every suite run;
+     plain faults mended at once, each reviewed, and whatever would change what a rule asks listed for the owner.
+
+     > Perfect! […]
+
+     The reader found nine faults and some doubts. Mended: a late security finding that holds was to be filed as a
+     bug, which floor rule 9 forbids of a weakness; the call for late findings read only those written on a line; the
+     core's own `AGENTS.md` took no part of "Sessions", so no one here read late reviews or cleaned up; a clone was
+     left out of what a session cleans up; and pointers and descriptions that no longer held (`README.md`, the header
+     of `scripts/reading-size.mjs` and of the security-review workflow). The rules stood 17 bytes under the cap and
+     the mends add 94: a fresh session's leanness check found too little to trim, its answer in the PR, and the cap
+     rose one step, to 52 KB. Left for the owner, each in the PR: a trim of the floor the check found, and the doubts
+     that would change what a rule asks.
+
+     Behind "a weakness: floor rule 9" in `modules/reviews.md`; "those not on a line" in `modules/github-calls.md`;
+     "worktree or clone" in `modules/work-flow.md`; "It also does here what "Sessions" in `modules/work-flow.md` asks"
+     and "one step of a whole KB" in `AGENTS.md`; and the cap in `scripts/size.mjs`.
+
+192. **13 November 2026** (the core, in the design chat; of `scripts/general.json`):
+
+     > Okay, last thing, really! […] But I found this file with my username hardcoded. Is that so wise? I could
+     > change it at any time, and why hard anchor stuff to my name in such a way? Does it not suffice to state repo
+     > owner or something, if something should be anchored to me, expert?
+
+     Told: in that file the name is a banned word, which keeps it out of the rules; that the account stands in about
+     ten places outside the archive, each an address or the one anchor of whose word counts, which is stated on
+     purpose and never inferred; that GitHub needs it written out in a workflow's call to another repository and in
+     an issue template's assignee; and that the scripts could share one place for it, a change for the daytime.
+
+     > Fully agreed! It must be one place at least, so it only needs changing once, if there is no better way to
+     > attach it to the account name so it changes dynamically? You have a go on everything expertly. Want all we have
+     > agreed on finished tonight. […]
+
+     Behind `scripts/core-address.mjs`, which every script that names the core reads; the one `CORE` of
+     `.github/workflows/core.yml`, which may not read it from the copy it checks; the words check banning the
+     account's login from there, the list no longer holding it; and `scripts/core-address-test.mjs`, which holds each
+     place GitHub needs it written out to the one, and fails in the core's own repository where that is not the one
+     named: the nearest to "dynamically" that GitHub allows.

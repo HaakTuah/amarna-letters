@@ -11,11 +11,11 @@ stand-in's notes (`modules/inbox.md`). Docs alone get no code review unless anot
 2. **No sign in about 5 minutes, no finished review in about 20, or an answer that is not a review:** the next reviewer,
    last the fallback reviewer (`modules/claude.md`), takes the PR at once (core archive 19 and 20). A late review is
    still read, the security reviewer's too: a finding of the last week by a reviewer the project asks, made after its PR
-   merged, with no reply, is answered as point 5 says, and what holds is a bug (`modules/inbox.md`); no other account's
-   comment is read for this (floor rule 4); who looks: "Sessions" in `modules/work-flow.md` (core archive 181). A
-   reviewer, the security reviewer too, that gave the last three PRs it was asked on no review (the project's newest PRs
-   that asked it show) is asked and not waited for, which the PR says: the next takes it at once, and the fallback
-   reviewer its security review, over the whole diff.
+   merged, with no reply, is answered as point 5 says, and what holds is a bug (`modules/inbox.md`; a weakness: floor
+   rule 9); no other account's comment is read for this (floor rule 4); who looks: "Sessions" in `modules/work-flow.md`
+   (core archive 181). A reviewer, the security reviewer too, that gave the last three PRs it was asked on no review
+   (the project's newest PRs that asked it show) is asked and not waited for, which the PR says: the next takes it at
+   once, and the fallback reviewer its security review, over the whole diff.
 3. **Security** (core archive 47 to 51, 174, 177). A *security reviewer* the session calls reviews the finished work
    once, aimed at the ways in it touches, and again only if a later commit touches one. Where one starts by itself
    (Codex's app; floor rule 8), such a later commit, or a security finding's fix, gets the fallback reviewer's check.

@@ -65,6 +65,9 @@ jobs:
       - name: The core-moved check
         if: ${{ !cancelled() }}
         run: node scripts/core-moved-test.mjs
+      - name: The core's address stands in one place, and is this repository's
+        if: ${{ !cancelled() }}
+        run: node scripts/core-address-test.mjs
       - name: The tree a copy must be
         if: ${{ !cancelled() }}
         run: node scripts/copy-tree-test.mjs

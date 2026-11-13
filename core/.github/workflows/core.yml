@@ -20,6 +20,10 @@ jobs:
   core:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      # the core's address, written here once (and once for the scripts: scripts/core-address.mjs, whose test holds the
+      # two to each other); never read from the copy this workflow checks
+      CORE: HaakTuah/agent-core
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -57,9 +61,10 @@ jobs:
         id: pin
         run: |
           set -euo pipefail
-          pin=$(sed -n 's|^Core: HaakTuah/agent-core at \([0-9a-f]\{40\}\), copied whole under core/.*|\1|p' core-manifest.md)
+          core=${CORE//./\\.} # (in a pattern, a dot of the address is a dot)
+          pin=$(sed -n "s|^Core: $core at \([0-9a-f]\{40\}\), copied whole under core/.*|\1|p" core-manifest.md)
           if [ "$(printf '%s' "$pin" | grep -c .)" -ne 1 ]; then
-            echo "core-manifest.md has no one \"Core: HaakTuah/agent-core at <full commit SHA>, copied whole under core/\" line"; exit 1
+            echo "core-manifest.md has no one \"Core: $CORE at <full commit SHA>, copied whole under core/\" line"; exit 1
           fi
           # whose word counts (floor rule 4) is never left to a guess: the slot is filled, one GitHub login
           if [ "$(grep -cE "^\| \*owner's account\* \| \`[A-Za-z0-9-]+\` \|$" core-manifest.md)" -ne 1 ]; then
@@ -68,7 +73,7 @@ jobs:
           echo "sha=$pin" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: HaakTuah/agent-core
+          repository: ${{ env.CORE }}
           ref: ${{ steps.pin.outputs.sha }}
           path: .core-at-pin
           fetch-depth: 0 # (the workflow pins are older commits of it)
@@ -78,7 +83,7 @@ jobs:
           PIN: ${{ steps.pin.outputs.sha }}
         run: |
           set -euo pipefail
-          bad=0
+          bad=0 core=${CORE//./\\.} # (in a pattern, a dot of the address is a dot)
           # (what the core keeps to itself is no part of a copy: its own .gitattributes says which folder)
           if grep -q -s -x '/reports export-ignore' .core-at-pin/.gitattributes; then rm -rf .core-at-pin/reports; fi
           if ! diff -r -q --exclude=.git .core-at-pin core; then echo "core/ differs from the core at its pin (above)"; bad=1; fi
@@ -88,11 +93,11 @@ jobs:
           fi
           # (every mention outside a comment, in whatever form the YAML writes the call)
           calls=$(sed 's/#.*//' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null \
-            | grep -o -i -E 'haaktuah/agent-core/[^"'\''[:space:]},]*' | sort -u || true)
+            | grep -o -i -E "$core/[^\"'[:space:]},]*" | sort -u || true)
           while IFS= read -r call; do
             [ -n "$call" ] || continue
-            if ! [[ "$call" =~ ^HaakTuah/agent-core/\.github/workflows/([A-Za-z0-9._-]+\.ya?ml)@([0-9a-f]{40})$ ]]; then
-              echo "a call to the core not written HaakTuah/agent-core/.github/workflows/<name>.yml@<full commit SHA>: $call"; bad=1; continue
+            if ! [[ "$call" =~ ^"$CORE"/\.github/workflows/([A-Za-z0-9._-]+\.ya?ml)@([0-9a-f]{40})$ ]]; then
+              echo "a call to the core not written $CORE/.github/workflows/<name>.yml@<full commit SHA>: $call"; bad=1; continue
             fi
             name=${BASH_REMATCH[1]} sha=${BASH_REMATCH[2]}
             if ! git -C .core-at-pin cat-file -e "$sha^{commit}" 2>/dev/null \
