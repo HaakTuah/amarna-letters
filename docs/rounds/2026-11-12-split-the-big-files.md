@@ -28,7 +28,7 @@ changes, so they wait for a later pass.
 | `src/llm/src/rules.ts` | 43,718 | One: the rulebook text, byte-stable for prompt caching; but three parts are their own subjects: how to win (the ending, par, the opening bonds), what a sleeping king is told, and the conditions and standing answers the plan's rules also read | how to win to `rules-winning.ts`, sleeping to `rules-sleeping.ts`, conditions and standing answers to `rules-plan.ts`; text unchanged byte for byte | **split** (26 KB, 8 KB, 7 KB, 4 KB) |
 | `src/engine/src/turn/unrest.ts` | 42,610 | One rule, as its header says (the ledger, the choice of whom a province obeys, the rising, lawless land); its governors' reports (3 KB) and the spies' stirring (1.5 KB) are small and use the rule's own helpers, which a split would export one by one | none | whole |
 | `src/llm/src/character-mind.ts` | 42,383 | One class (judged in the progress file) | none | whole |
-| `src/batch/src/main.ts` | 42,200 | The batch runner's command line, its worker threads and its report | judged when opened | **left**: the batch runner is the balance pass's |
+| `src/batch/src/main.ts` | 42,200 | Two: the command line (the options' defaults, every switch, the help; 22 KB) and running the batch (the file and character folders, the pool of games, the printed reports; 19 KB) | the command line to `options.ts` (`parseArgs`, which returns the options and the runner's own switches) | **split** (20 KB, 25 KB) |
 | `src/web/src/pages/Play.tsx` | 41,684 | One component (the play screen, 37 KB of it) | none unless it holds two screens | **left**: the polish lane works in the web interface |
 | `src/llm/src/prompts.ts` | 41,018 | One: a king's prompt, already split from letters, audiences and economy (item 572) | none | whole |
 
