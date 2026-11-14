@@ -73,8 +73,9 @@ export const FILES = [
 ];
 // What the script makes itself, beside the templates' files: none of these may exist either.
 const MADE = ["checks/sizes.json", "checks/licences.json", "checks/copies-baseline.json", "core"];
-// The files every session reads at its start, as the AGENTS.md template imports them: the reading-size check's marks.
-const READ = ["AGENTS.md", "CLAUDE.md", "docs/PROGRESS.md", "core-manifest.md", "core/floor/security.md", "core/modules/how-to-work.md",
+// The files every session reads at its start, as the AGENTS.md template imports them: the reading-size check's marks,
+// and of the core's own (those under core/) what the core's cap counts (size.mjs).
+export const READ = ["AGENTS.md", "CLAUDE.md", "docs/PROGRESS.md", "core-manifest.md", "core/floor/security.md", "core/modules/how-to-work.md",
   "core/modules/inbox.md", "core/modules/work-flow.md", "core/modules/git.md", "core/modules/claude.md", "core/modules/other-builders.md"];
 const KB = 1024;
 
@@ -160,10 +161,11 @@ export function files(o, pin, moduleNames, read) {
   });
 }
 
-// The reading-size check's first marks: each file every session reads at about 20 KB, and their total at what they
-// come to today, rounded up to a whole KB with one to spare, so the first task has room and the mark means something.
+// The reading-size check's first marks: each file every session reads at about 20 KB, and the total of the project's
+// own among them (the core's copy under core/ is held to the core's own cap) at what they come to today, rounded up
+// to a whole KB with one to spare, so the first task has room and the mark means something.
 export function sizes(bytes) {
-  const total = Object.values(bytes).reduce((a, b) => a + b, 0);
+  const total = Object.entries(bytes).filter(([f]) => !f.startsWith("core/")).reduce((a, [, b]) => a + b, 0);
   return { each: 20 * KB, read: Object.fromEntries(Object.keys(bytes).map(f => [f, 20 * KB])), total: (Math.ceil(total / KB) + 1) * KB, split: 50 * KB, skip: [], past: {} };
 }
 

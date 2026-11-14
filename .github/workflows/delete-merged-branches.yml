@@ -15,6 +15,6 @@ permissions:
 
 jobs:
   delete:
-    uses: HaakTuah/agent-core/.github/workflows/delete-merged-branches.yml@8d9d418adf581dc8ff010c4a35606bcf8b825443
+    uses: HaakTuah/agent-core/.github/workflows/delete-merged-branches.yml@f90e369a8b40bd8b417abee838555e978e8faa2d
     with:
       dry_run: ${{ inputs.dry_run }}

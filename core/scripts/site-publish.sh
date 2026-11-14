@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Write one part of a game's published site to its gh-pages branch, which GitHub Pages serves ("How a project takes
-# the core" in README.md, point 5). Run from the game's clone, as its core/ copy:
-#   core/scripts/site-publish.sh root <site-dir>      main's build: replaces the root, keeps every pr-<n>/ folder
-#   core/scripts/site-publish.sh pr-<n> <site-dir>    a PR's preview: replaces pr-<n>/ only
-#   core/scripts/site-publish.sh pr-<n> --remove      removes pr-<n>/ only
+# the core" in README.md, point 5). Run from the game's clone, as its core/ copy, through bash (never by its mode):
+#   bash core/scripts/site-publish.sh root <site-dir>      main's build: replaces the root, keeps every pr-<n>/ folder
+#   bash core/scripts/site-publish.sh pr-<n> <site-dir>    a PR's preview: replaces pr-<n>/ only
+#   bash core/scripts/site-publish.sh pr-<n> --remove      removes pr-<n>/ only
 # Run only from workflows that run main's own copy (never a PR's code): the game's publish of main, and the core's
 # preview workflow. The root is published only from a commit of main (GITHUB_SHA) that comes after the one live, which
 # .root-commit names: a re-run of an older build is skipped, so the live game never goes back, and a passing build goes

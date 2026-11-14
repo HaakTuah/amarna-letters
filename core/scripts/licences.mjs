@@ -30,7 +30,7 @@
 // beside this file) with this file's lists, the same audit and an "accepted" of its own.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, posix } from "node:path";
+import { join, posix, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scan } from "./licence-scan.mjs";
 import { acceptedList, yesFaults } from "./licence-yes.mjs";
@@ -64,7 +64,7 @@ const OSI = [
 // for data, the Open Data Commons dedication; GitHub's own services an audit may name, under GitHub's terms.
 const SAME_TERMS = ["PSF-2.0"];
 const PUBLIC_DOMAIN = { any: ["Public Domain"], data: ["PDDL-1.0"] };
-const GITHUB_SERVICES = new Set(["CodeQL CLI"]);
+const GITHUB_SERVICES = new Set(["CodeQL CLI", "GitHub's commit signing key"]);
 const GITHUB_TERMS = "LicenseRef-GitHub-Terms";
 const OWNER = "LicenseRef-Owner";
 // What the floor never allows on either list or by any yes (non-commercial, no-derivatives and source-available
@@ -74,7 +74,30 @@ const NEVER = new RegExp([
   "(^|[^a-z])BSL(?![-_ ]?1\\.0)", // (the floor's "BSL", as the Business Source License is also written; BSL-1.0 is Boost's, on the list)
   "elastic", "commons[-_ ]?clause", "polyform", "functional[-_ ]?source", "source[-_ ]?available",
 ].join("|"), "iu");
-const COPYLEFT = /GPL|MPL|EPL|CDDL|-SA(-|$)/iu;
+const COPYLEFT = /GPL|MPL|EPL|CDDL|-SA(-|$)|MS-PL/iu;
+// Licences the floor moved off the list for what ships, each with the day it moved (core archive 201): from then on
+// what ships under one waits for the owner's yes, save what a project already shipped at the pull request's base (in
+// the same lock file, shipped there by the base's own config, or in its audit as it stands), which is reported and
+// passes, so that no sync fails a project over what it holds (the core's AGENTS.md, "Nothing locks another owner's
+// project"); one a pull request adds, updates or moves into what ships waits, that pull request alone.
+export const MOVED_OFF = new Map([["MS-PL", "13 November 2026"]]);
+/** Whether an expression off a list would pass but for a licence the floor moved off it. */
+export function movedOff(expression, allow) {
+  try { return !licenceOk(expression, allow) && licenceOk(expression, new Set([...allow, ...MOVED_OFF.keys()])); } catch { return false; }
+}
+/** A file's text at a commit of the repository at `root`, or null where git cannot give it. */
+export function textAt(root, rev, file) {
+  try { return execFileSync("git", ["show", `${rev}:${file}`], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 28 }); } catch { return null; }
+}
+/** The config at `path` as the commit `rev` held it, parsed, or null where it held none git can give as JSON. */
+export function configAt(root, rev, path) {
+  if (!rev) return null;
+  try { const c = JSON.parse(textAt(root, rev, relative(root, resolve(path)).split(sep).join("/"))); return c && typeof c === "object" && !Array.isArray(c) ? c : null; } catch { return null; }
+}
+/** The base a pull request's checkout is read against: the first parent of GitHub's merge of it, or null. */
+export function baseOf(root) {
+  try { execFileSync("git", ["rev-parse", "-q", "--verify", "HEAD^2"], { cwd: root, stdio: "ignore" }); return "HEAD^1"; } catch { return null; }
+}
 
 /** Floor rule 10's list for what ships, read from its own words: { any, data, fonts, publicDomain }. */
 export function floorList(file = new URL("../floor/topics.md", import.meta.url)) {
@@ -133,12 +156,16 @@ export function policy(config = {}) {
 /**
  * Whether an SPDX expression is allowed: read with its brackets, one side of an OR enough and every part of an AND
  * needed. AND and OR mixed without brackets (which SPDX reads with AND first, a reader perhaps not), an exception
- * (WITH) or anything unreadable is refused.
+ * (WITH) or anything unreadable is refused: a blank but a space within it, a character beyond printable ASCII, or a
+ * WITH with no exception's name after it. A space, a tab or a line's end at its ends is read past, as before, so that
+ * no lock file's field written with one newly fails. scripts/readers-test.mjs, in the core's own tests, holds it to SPDX's own parser.
  */
 export function licenceOk(expression, allow) {
-  if (typeof expression !== "string" || !expression.trim()) return false;
-  if (allow.has(expression.trim())) return true;
-  const tokens = expression.match(/\(|\)|[^\s()]+/gu) ?? [];
+  if (typeof expression !== "string") return false;
+  expression = expression.replace(/^[ \t\r\n]+|[ \t\r\n]+$/gu, "");
+  if (!expression || /[^\x20-\x7e]/u.test(expression)) return false;
+  if (allow.has(expression)) return true;
+  const tokens = expression.match(/\(|\)|[^ ()]+/gu) ?? [];
   let at = 0;
   const level = () => {
     const oks = [term()];
@@ -158,7 +185,12 @@ export function licenceOk(expression, allow) {
       return ok;
     }
     if (token === undefined || [")", "AND", "OR", "WITH"].includes(token)) throw new Error("unexpected token");
-    if (tokens[at] === "WITH") { at += 2; return false; }
+    if (tokens[at] === "WITH") {
+      const exception = tokens[at + 1] ?? "";
+      at += 2;
+      if (!/^[A-Za-z0-9][A-Za-z0-9.-]*$/u.test(exception) || /^(?:AND|OR|WITH)$/iu.test(exception)) throw new Error("no exception's name");
+      return false;
+    }
     return allow.has(token);
   };
   try {
@@ -325,9 +357,9 @@ export function lockRead(packages, workspaces) {
 }
 
 /** Every package each lockfile installs, with its licence, whether it ships, and the name its registry address gives. */
-function lockfilePackages(root, lockPath, ships) {
+function lockfilePackages(root, lockPath, ships, text = (f) => readFileSync(join(root, f), "utf8")) {
   const base = posix.dirname(lockPath) === "." ? "" : posix.dirname(lockPath);
-  const read = (p) => JSON.parse(readFileSync(join(root, base, p), "utf8"));
+  const read = (p) => JSON.parse(text(posix.join(base, p)));
   const lock = read(posix.basename(lockPath));
   if (!lock.packages || typeof lock.packages !== "object" || Array.isArray(lock.packages)) throw new Error(`${lockPath} has no "packages" (npm's lockfile version 2 or 3)`);
   const odd = Object.entries(lock.packages).find(([path, entry]) => !lockPathOk(path) || !entry || typeof entry !== "object" || Array.isArray(entry));
@@ -338,15 +370,38 @@ function lockfilePackages(root, lockPath, ships) {
     .map(({ path, entry: target }) => {
       const entry = lock.packages[path];
       const name = path.slice(path.lastIndexOf("node_modules/") + 13);
-      return { name, version: target.version, license: target.license, registryName: entry.link ? undefined : registryName(entry.resolved), registryVersion: entry.link ? undefined : registryVersion(entry.resolved), shipped: shipped.has(path), lockPath };
+      return { name, version: target.version, license: target.license, resolved: entry.resolved, registryName: entry.link ? undefined : registryName(entry.resolved), registryVersion: entry.link ? undefined : registryVersion(entry.resolved), shipped: shipped.has(path), lockPath };
     });
 }
 
-/** The check, on the project at `root`: { failures, summary }. */
-export function check(config, root) {
+/**
+ * The check, on the project at `root`, read against `base` (a commit, or null) and the config as the base held it
+ * (`baseConfig`; null where the base held none at this config's path, so that nothing counts as shipped there):
+ * { failures, reports, summary }.
+ */
+export function check(config, root, base = null, baseConfig = null) {
   config = normalised(config);
   const lists = policy(config), { allowedFor } = lists;
-  const failures = [];
+  const failures = [], reports = [];
+  // (what each lock file shipped at the base, by name@version, read once each, by the base's own config: a package the
+  // base held only as a tool, or in a lock file whose packages did not ship then, was not shipped)
+  const heldIn = new Map(), then = baseConfig ? normalised(baseConfig) : { ships: [] };
+  // (with no base to read it against, as in a checkout of one commit, what ships under a licence moved off is reported
+  // and passes, as it passed before: held or not cannot be told, and no sync fails a project over it)
+  // (a package is known by what it is, not the name it is installed under: its registry's name and version, or where it
+  // has none, its name, version and where it came from, so that an alias moved to another package is another)
+  const identity = (q) => (q.registryName !== undefined ? `${q.registryName}@${q.registryVersion}` : `${q.name}@${q.version}@${q.resolved ?? ""}`);
+  const held = (lockPath, p) => {
+    if (!base) return true;
+    if (!heldIn.has(lockPath)) {
+      let names = new Set();
+      const shipped = Array.isArray(then.ships) && then.ships.includes(posix.join(posix.dirname(lockPath), "package.json"));
+      try { names = new Set(lockfilePackages(root, lockPath, shipped, (f) => textAt(root, base, f)).filter((q) => q.shipped).map(identity)); } catch { /* (none held) */ }
+      heldIn.set(lockPath, names);
+    }
+    return heldIn.get(lockPath).has(identity(p));
+  };
+  const report = (what, licence) => `${what} ships under ${licence}, which since ${[...MOVED_OFF].filter(([id]) => licence.includes(id)).map(([id, day]) => `${day} (${id})`).join(", ")} waits for the owner's yes (floor rule 10): ${base ? "shipped at the pull request's base" : "with no base to read it against"}, it passes; file an issue for the owner, who gives the yes in "accepted" or has it replaced`;
   // (the owner's yeses, by what each names; `needed`: those something off its list stood on, `onList`: those nothing did)
   const accepted = config.accepted ?? [], needed = new Set(), onList = new Set();
   const yesFor = (kind, name) => accepted.find((a) => a[kind] === name);
@@ -362,6 +417,7 @@ export function check(config, root) {
     const a = p.registryName === undefined || p.registryVersion !== p.version ? undefined : yesFor("package", `${p.registryName}@${p.version}`);
     if (licenceOk(p.license, allowedFor(p.registryName ?? "", p.shipped))) { if (a) onList.add(a); continue; }
     if (a) { needed.add(a); failures.push(...yesFaults(a.package, a, p.shipped, [p.license], lists, '"accepted"')); continue; }
+    if (p.shipped && movedOff(p.license, allowedFor(p.registryName ?? "", true)) && held(p.lockPath, p)) { reports.push(report(`${p.name}@${p.version}, in ${p.lockPath},`, p.license)); continue; }
     const never = p.license !== undefined && NEVER.test(typeof p.license === "string" ? p.license : JSON.stringify(p.license));
     failures.push(`off the ${p.shipped ? "list for what ships" : "tools' list"}: ${p.name}@${p.version} (${p.license === undefined ? "no licence" : typeof p.license === "string" ? p.license : JSON.stringify(p.license)}), in ${p.lockPath}${never ? "" : `; one the owner wants anyway is named in the config's "accepted", with the owner's words (floor rule 10)`}`);
   }
@@ -369,6 +425,10 @@ export function check(config, root) {
   if (config.audit) {
     entries = JSON.parse(readFileSync(join(root, config.audit), "utf8")).entries;
     if (!Array.isArray(entries)) throw new Error(`${config.audit} has no "entries" list`);
+    // (an entry held at the base as it stands: the same name, version and licence)
+    let before = [];
+    try { before = base ? JSON.parse(textAt(root, base, config.audit)).entries ?? [] : []; } catch { /* (none held) */ }
+    const auditHeld = (e) => !base || (Array.isArray(before) && before.some((b) => b && b.name === e.name && b.version === e.version && b.licence === e.licence && b.ships === true));
     // (the notices file the config names; null when it names none there, which fails once, not for every entry)
     const noticesFile = config.notices === undefined ? undefined : join(root, config.notices);
     const notices = noticesFile === undefined ? undefined : existsSync(noticesFile) && statSync(noticesFile).isFile() ? readFileSync(noticesFile, "utf8") : null;
@@ -393,6 +453,7 @@ export function check(config, root) {
         if (a.licence !== e.licence) failures.push(`${config.audit}: ${e.name}: accepted under ${a.licence}, and recorded as under ${e.licence}: another licence is another yes`);
         failures.push(...yesFaults(`${config.audit}: ${e.name}`, a, e.ships === true, [e.licence], lists, null));
       }
+      else if (e.ships === true && movedOff(e.licence, allowedFor(e.name, true, e.kind ?? null)) && auditHeld(e)) reports.push(report(`${config.audit}: ${e.name}`, e.licence));
       else failures.push(`${config.audit}: ${e.name}: ${e.licence} is not on the list for ${e.ships === true ? "what ships" : "tools that only run"}`);
       if (e.ships === true && notices !== null && !(notices === undefined ? typeof e.notice === "string" && e.notice.trim() : notices.includes(e.name))) {
         failures.push(`${config.audit}: ${e.name}: it ships, so its notice ships too (floor rule 10): ${notices === undefined ? 'its "notice", for the notices the project builds' : `its name in ${config.notices}`}`);
@@ -414,8 +475,8 @@ export function check(config, root) {
   const shippedCount = packages.filter((p) => p.shipped).length;
   const summary = `${packages.length} packages checked (${shippedCount} shipped or may be, ${packages.length - shippedCount} tools that only run)` +
     `${config.audit ? `, ${entries.length} audit entries` : ""}${scanned ? `, ${scanned.scanned} files scanned for what the audit must hold` : ""}; ` +
-    `${needed.size ? `${needed.size} accepted on the owner's yes; ` : ""}${all.length} failing (floor rule 10)`;
-  return { failures: all, summary };
+    `${needed.size ? `${needed.size} accepted on the owner's yes; ` : ""}${reports.length ? `${reports.length} shipped at the base under a licence moved off the list, reported; ` : ""}${all.length} failing (floor rule 10)`;
+  return { failures: all, reports, summary };
 }
 
 /**
@@ -444,7 +505,8 @@ if (started(import.meta.url)) {
     for (const line of actionLists(config)) console.log(line);
   } else {
     let result;
-    try { result = check(config, root); } catch (e) { fail(e.message); }
+    try { const base = baseOf(root); result = check(config, root, base, configAt(root, base, configPath)); } catch (e) { fail(e.message); }
+    for (const r of result.reports) console.log(`REPORT: ${r}`);
     for (const f of result.failures) console.error(`FAIL: ${f}`);
     console.log(result.summary);
     process.exit(result.failures.length ? 1 : 0);

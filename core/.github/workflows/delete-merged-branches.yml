@@ -3,7 +3,8 @@
 # (workflow_call), pinned to a full commit SHA ("How a project takes the core" in README.md, point 5), and grants it
 # contents: write and pull-requests: read.
 # Deletes only branches whose every commit is already in main, that no open pull request uses, and whose newest
-# commit is more than a day old (unless their pull request was merged). main, pr-media and gh-pages are never touched.
+# commit is more than a day old (unless their pull request was merged). main, pr-media, gh-pages and agents-stop (the
+# owner's stop switch, modules/work-flow.md) are never touched.
 # Branch names reach the shell only through git and gh, quoted.
 name: Delete merged branches
 
@@ -44,7 +45,7 @@ jobs:
           cut=$(( $(date +%s) - 86400 ))
           deleted=0; kept=0
           for ref in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin); do
-            case "$ref" in HEAD|main|pr-media|gh-pages) continue;; esac
+            case "$ref" in HEAD|main|pr-media|gh-pages|agents-stop) continue;; esac
             if grep -qxF -- "$ref" <<<"$open"; then echo "keep (open pull request): $ref"; kept=$((kept+1)); continue; fi
             if ! git merge-base --is-ancestor "origin/$ref" origin/main; then echo "keep (not merged into main): $ref"; kept=$((kept+1)); continue; fi
             if [ "$(git log -1 --format=%ct "origin/$ref")" -gt "$cut" ]; then
