@@ -13,6 +13,6 @@ permissions:
 
 jobs:
   check:
-    uses: HaakTuah/agent-core/.github/workflows/personal-terms.yml@8d9d418adf581dc8ff010c4a35606bcf8b825443
+    uses: HaakTuah/agent-core/.github/workflows/personal-terms.yml@f90e369a8b40bd8b417abee838555e978e8faa2d
     secrets:
       PERSONAL_TERMS: ${{ secrets.PERSONAL_TERMS }}

@@ -10,14 +10,32 @@
 # project's first day (core archive 198). With "advisory" (off unless a project turns it on) it says what it would
 # fail and passes, a restore that fails included: for a project where the check itself is at fault, while that is
 # reported to the core and mended, and never to let a package through. A restore runs the pull request's own project
-# files, as its build would, and what they run could change anything in this job, the script and the manifests it reads
-# included: so this runs with contents: read and no secret, nothing after the checkout holds the token, and what a pull
-# request does to its project files is the reviews' to read, as with every check that builds. Where the packages come
-# from is this restore's to say (floor rule 7): NuGet's own registry and the sources the config names, given to every
-# restore, which overrules what a NuGet.Config names, and the script then reads, by NuGet's own record beside each
-# package it brought (.nupkg.metadata), that it took none from elsewhere; a source that asks for a sign-in has none
-# here. A project for Windows alone restores here all the same (EnableWindowsTargeting); one whose SDK the runner lacks
-# restores in a workflow of its own, and runs the script there.
+# files, as its build would, and what they run could change anything in this job after it, the script and the manifests
+# it reads included: so before the restore a step fetches every package the lock files name, and every tool a manifest
+# of dotnet's names (dotnet-tools.json, in .config/ or any folder), holds each package to its lock file's content hash
+# and reads each licence from its own file (core/scripts/nuget-fetch.mjs, then nuget.mjs with --fetched; core archive
+# 201), a verdict no build has run beside (where the first look below has itself restored, it is left out: nothing it
+# reads changed from the base, whose verdict stands); and this runs with contents: read and no secret, nothing after the
+# checkout holds the token, and what a pull request does to its project files is the reviews' to read, as with every
+# check that builds. Where the packages come from is this restore's to say (floor rule 7): NuGet's own registry and the
+# sources the config names, given to every restore, which overrules what a NuGet.Config names, and the script then
+# reads, by NuGet's own record beside each package it brought (.nupkg.metadata), that it took none from elsewhere; a
+# source that asks for a sign-in has none here. A project for Windows alone restores here all the same
+# (EnableWindowsTargeting); one whose SDK the runner lacks restores in a workflow of its own, and runs the script there.
+# It first looks whether the pull request changes anything NuGet reads, so that a private repository pays for no
+# restore a pull request cannot have changed, while the check still reports on every pull request (core archive 201).
+# Two looks: git's own diff against the base, as the signature check looks, for a project file, a lock file, a .props,
+# .targets, Directory.Build or response file, a .user file beside a project file, packages.config, a NuGet.Config, a
+# global.json, .NET's tools manifest, a package file, the licence check's config and its audit, a folder the config
+# names as a source, the core's Node version and the calling workflow; and, where none changed, NuGet's own word that
+# every lock file still holds what its project asks for, however it asks (an import, a property, any file a build
+# reads), from a restore against an empty source that downloads nothing. It passes without a restore only where both
+# say so. Any doubt runs it: no base, a base that cannot be fetched, a config that cannot be read, a listed file that
+# is a link, an error of the restore's other than a locked package not found, or a package downloaded beside a lock
+# file, save the SDK's own reference packs (Microsoft.NETCore.App.Ref, Microsoft.WindowsDesktop.App.Ref and
+# Microsoft.AspNetCore.App.Ref), which it adds by itself. What the second look leaves to the next change of a lock
+# file: a source that a build file adds, from which a package of the same content hash would come, since every
+# package's bytes are its lock file's.
 name: nuget
 
 on:
@@ -44,10 +62,115 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
+          fetch-depth: 2 # the merge commit and its parents: the base the next step diffs from
+      - name: Does the pull request change what NuGet reads?
+        id: what
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }} # empty where the caller runs on anything but a pull request
+          CONFIG: ${{ inputs.config }}
+          CALLER: ${{ github.workflow_ref }} # the calling workflow, by its own path, whatever it is named
+          NUGET_PACKAGES: ${{ runner.temp }}/nuget-look # a folder of its own, which an empty source leaves empty
+          DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+          DOTNET_NOLOGO: "1"
+          EnableWindowsTargeting: "true"
+        run: |
+          # The checkout is the pull request merged into its base, with both parents, so the diff from the base is what
+          # it changes. Any doubt means the check runs.
+          paths=(':(glob,icase)**/*.csproj' ':(glob,icase)**/*.fsproj' ':(glob,icase)**/*.vbproj' ':(glob,icase)**/*.props'
+            ':(glob,icase)**/*.targets' ':(glob,icase)**/Directory.Build.*' ':(glob,icase)**/*.rsp' ':(glob,icase)**/*.user'
+            ':(glob,icase)**/packages.lock.json' ':(glob,icase)**/packages.*.lock.json' ':(glob,icase)**/packages.config'
+            ':(glob,icase)**/nuget.config' ':(glob,icase)**/global.json' ':(glob,icase)**/dotnet-tools.json'
+            ':(glob,icase)**/*.nupkg' core/.node-version .github/workflows/nuget.yml)
+          # NuGet's own word on whether every lock file still holds what its project asks for, however the project asks
+          # (in an import, through a property, from any file a build reads): a restore of each project file from its
+          # lock file alone against an empty source, which downloads nothing. It holds only where each restore passed
+          # or failed only for packages not found that a lock file names, and no project downloads a package beside its
+          # lock file (a PackageDownload, a targeting pack), as each restore's own record of the project says.
+          # (the SDK's own reference packs, which it adds by itself, a Windows project's with EnableWindowsTargeting: no
+          # package of the project's, and the same for every project on the runner's SDK)
+          PACKS='Microsoft\.(NETCore|WindowsDesktop|AspNetCore)\.App\.Ref'
+          holds() {
+            local empty stamp project out codes id projects locks records
+            # (from here the pull request's build files have run in this job: the licence read before the restore is
+            # left out, since nothing it reads changed from the base)
+            echo "built=true" >> "$GITHUB_OUTPUT"
+            empty=$(mktemp -d) stamp=$(mktemp)
+            mapfile -d '' -t projects < <(git -c core.quotePath=false ls-files -z -- ':(glob,icase)**/*.csproj' \
+              ':(glob,icase)**/*.fsproj' ':(glob,icase)**/*.vbproj' ':(exclude)core/**')
+            mapfile -d '' -t locks < <(git -c core.quotePath=false ls-files -z -- ':(glob,icase)**/packages.lock.json' \
+              ':(glob,icase)**/packages.*.lock.json' ':(exclude)core/**')
+            for project in "${projects[@]}"; do
+              out=$(dotnet restore --locked-mode --source "$empty" "-p:RestorePackagesPath=$NUGET_PACKAGES" \
+                -p:NuGetLockFilePath= "./$project" < /dev/null 2>&1) && continue
+              codes=$(printf '%s\n' "$out" | grep -oE 'error [A-Z]+[0-9]+' | sort -u)
+              [ -n "$codes" ] || { echo "$project: the restore failed with no error NuGet names"; return 1; }
+              if printf '%s\n' "$codes" | grep -qvE '^error NU110[123]$'; then echo "$project:" $codes; return 1; fi
+              while IFS= read -r id; do
+                printf '%s\n' "$id" | grep -qxE "$PACKS" && continue
+                [ "${#locks[@]}" -gt 0 ] && grep -qiF -- "\"$id\": {" "${locks[@]}" || { echo "$project: a package no lock file names is asked for ($id)"; return 1; }
+              done < <(printf '%s\n' "$out" | grep -oE 'NU110[123]: Unable to find (a stable )?package [^ ]+' | sed -E 's/.* package //; s/\.$//' | sort -u)
+            done
+            # (each project's own record of its restore, written just now inside the checkout and naming that project:
+            # one that lies elsewhere, or is not there, is a doubt)
+            records=$(find . -path ./core -prune -o -name project.assets.json -newer "$stamp" -print0 \
+              | xargs -0 -r jq -r '.project.restore.projectPath // empty' | tr '\\' '/' | tr -d '\r')
+            for project in "${projects[@]}"; do
+              printf '%s\n' "$records" | while IFS= read -r r; do [[ "${r,,}" == *"/${project,,}" ]] && echo yes; done | grep -q yes \
+                || { echo "$project: its own record of its restore lies outside the checkout"; return 1; }
+            done
+            while IFS= read -r -d '' assets; do
+              jq -e --arg packs "$PACKS" '[.project.frameworks[]? | .downloadDependencies // [] | .[] | select(.name | test("^(" + $packs + ")$") | not)] | length == 0' "$assets" > /dev/null \
+                || { echo "a project downloads a package beside its lock file"; return 1; }
+            done < <(find . -path ./core -prune -o -name project.assets.json -newer "$stamp" -print0)
+          }
+          run=true
+          # (the config, its audit and each folder it names as a source, each by its exact name, and the caller)
+          if [ -n "$BASE" ] && extra=$(jq -r '[.audit, (.nuget.sources // [])[]] | .[] | strings | select(startswith("https://") | not)' "$CONFIG"); then
+            paths+=(":(literal)$CONFIG")
+            while IFS= read -r p; do p=${p%$'\r'}; [ -n "$p" ] && paths+=(":(literal)$p"); done <<< "$extra" # (jq on Windows ends lines with CR)
+            caller=${CALLER#"$GITHUB_REPOSITORY"/}; caller=${caller%%@*}
+            [ -n "$caller" ] && [ "$caller" != "$CALLER" ] && paths+=(":(literal)$caller")
+            if { git cat-file -e "$BASE^{commit}" 2>/dev/null || git fetch --quiet --no-tags --depth=1 origin "$BASE"; } \
+              && changed=$(git diff --no-renames --name-only "$BASE" HEAD -- "${paths[@]}") \
+              && listed=$(git ls-files -s -- "${paths[@]}"); then
+              if [ -n "$changed" ]; then
+                echo "Changed:"
+                printf '%s\n' "$changed" | sed 's/^/- /' # behind a dash, so that no file's name starts a workflow command
+              elif printf '%s\n' "$listed" | grep -q '^120000 '; then
+                echo "A listed file is a link to another, whose changes this step would not see."
+              elif holds; then
+                run=false
+                echo "Nothing NuGet reads changed, and every lock file still holds what its project asks for: nothing to restore."
+              else
+                echo "A lock file no longer holds what its project asks for, or a project downloads a package beside it, or NuGet could not say: the check runs."
+                echo "That look ran the pull request's build files, so the licence read before the restore is left out: nothing it reads changed from the base."
+              fi
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         with:
           node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+      - name: Every locked package and tool, fetched before the restore and held to its list
+        # (anything but a plain no checks, and only before any build of the pull request's has run in this job)
+        if: steps.what.outputs.run != 'false' && steps.what.outputs.built != 'true'
+        env:
+          CONFIG: ${{ inputs.config }}
+          ADVISORY: ${{ inputs.advisory }}
+        run: |
+          # (before the restore, which runs the pull request's own build files: each package's file held to its lock
+          # file's content hash, and its licence read from it, in a step that build has not run in)
+          fetched="$RUNNER_TEMP/nuget-fetched" failed=0
+          node core/scripts/nuget-fetch.mjs "$CONFIG" --into "$fetched" || failed=1
+          if [ "$ADVISORY" = true ]; then node core/scripts/nuget.mjs "$CONFIG" --packages "$fetched" --fetched --advisory || failed=1
+          else node core/scripts/nuget.mjs "$CONFIG" --packages "$fetched" --fetched || failed=1; fi
+          if [ "$failed" = 1 ]; then
+            [ "$ADVISORY" = true ] || exit 1
+            echo "Advisory: nothing fails for it yet."
+          fi
       - name: Restore each project file from its lock file alone
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         env:
           CONFIG: ${{ inputs.config }}
           ADVISORY: ${{ inputs.advisory }}
@@ -79,6 +202,7 @@ jobs:
             echo "Advisory: nothing fails for it yet."
           fi
       - name: Every package one exact version, and under a licence on its list
+        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         env:
           CONFIG: ${{ inputs.config }}
           ADVISORY: ${{ inputs.advisory }}

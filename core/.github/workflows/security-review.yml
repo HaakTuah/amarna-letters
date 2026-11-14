@@ -18,6 +18,11 @@
 # needs no security review and gets none by itself (floor rule 8: it touches no way in, or is a pure sync, where no
 # reviewer starts by itself) says so in a comment that opens "Security review:".
 #
+# In a private repository each run is a job its owner pays for, a dozen or so a pull request, for a status that only
+# advises: there the job is skipped, which GitHub does not bill (core archive 201), unless the caller turns it on with
+# the input "private", or has turned advisory off, since a ruleset may then wait for the status. A ruleset that
+# requires the status while it advises waits for good in a private repository: such a project passes "private".
+#
 # What keeps it safe, since a comment starts it and it may write a status (floor rule 2): it checks out the default
 # branch, never the pull request, and runs only that branch's copy of the script; a comment's text is read only in the
 # job's condition and as data from GitHub's API, never written into a run line; it runs for a comment only where that is
@@ -41,6 +46,11 @@ on:
         required: false
         type: string
         default: core
+      private:
+        description: Whether it runs in a private repository, where each run is a billed job, while it is advisory. Left out, it does not.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -50,14 +60,15 @@ permissions:
 jobs:
   report:
     if: >-
-      ${{ (github.event_name == 'pull_request' && !github.event.pull_request.draft
+      ${{ (!github.event.repository.private || inputs.private || !inputs.advisory)
+      && ((github.event_name == 'pull_request' && !github.event.pull_request.draft
       && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
       || (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.issue.state == 'open'
       && ((github.event.comment.user.login == 'chatgpt-codex-connector[bot]'
       && startsWith(github.event.comment.body, '<!-- codex-pull-request-review-summary -->'))
       || (contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
       && (startsWith(github.event.comment.body, 'Security review:')
-      || startsWith(github.event.comment.body, '**Security review:'))))) }}
+      || startsWith(github.event.comment.body, '**Security review:')))))) }}
     # one at a time for a pull request, in the order they came: the last to run has read the newest comments
     concurrency:
       group: security-review-${{ github.event.issue.number || github.event.pull_request.number }}
@@ -99,4 +110,6 @@ jobs:
             exit 0
           fi
           jq -r '.status | "\(.state): \(.description)"' "$d/out.json"
+          # (a summary of Codex's it cannot read: the check's own fixed words, never the comment's)
+          if jq -e '.warning' "$d/out.json" > /dev/null; then echo "::warning::$(jq -r '.warning' "$d/out.json")"; fi
           jq '.status' "$d/out.json" | gh api -X POST "repos/$REPO/statuses/$sha" --input - > /dev/null

@@ -13,9 +13,10 @@ and 57).
   config in one pass.
 - **Read little, print little:** read only what the task names, never a *large file* whole (grep, then read that range);
   scripts print a summary and the failures, never a full log; long runs go in the background, never polled.
-- **Edit in place,** and **don't loop:** if one approach fails twice, write down what you tried and take another, or
-  take its brief (the problem, what was tried, the files and lines) to escalation (`modules/roles.md`), or mark the task
-  blocked with it and go on to the next that does not depend on it.
+- **Edit in place.**
+- **Don't loop:** if one approach fails twice, write down what you tried and take another, or take its brief (the
+  problem, what was tried, the files and lines) to escalation (`modules/roles.md`), or mark the task blocked with it and
+  go on to the next that does not depend on it.
 - **One fact, one place** (core archive 3, 57 and 58): in code, data, tests, docs and rule files. Point to where a thing
   lives, never copy it. When a better home appears, it moves there in one PR, its pointers updated.
 - **No description left untrue** (core archive 16 and 64): a change updates, in the same PR, every place that describes
@@ -23,12 +24,12 @@ and 57).
 - **Keep it lean** (core archive 24): every change removes what it replaces, in the same PR: no commented-out code, no
   "old" copies, nothing left unused. Look for an existing helper before writing one.
 - **Split by meaning, from the start** (core archive 25 and 26): each file holds one thing people look up on its own, as
-  small as that thing is; new work goes into its own file. A file past about 20 KB probably holds two things. A split
-  goes in its own PR, behaviour proven unchanged; a file past the *size marks*' split mark is split before it is changed
-  (core archive 45).
+  small as that thing is; new work goes into its own file. A file past about 20 KB probably holds two things.
+  - A split goes in its own PR, behaviour proven unchanged; a file past the *size marks*' split mark is split before it
+    is changed (core archive 45).
 - **Principles over rules** (core archive 25): where a rule's letter would defeat its purpose, follow the purpose, say
-  so under "Readings taken", and flag the rule to be fixed. Never for the floor, nor for a rule the project's
-  `AGENTS.md` marks as a safety rule.
+  so under "Readings taken", and flag the rule to be fixed.
+  - Never for the floor, nor for a rule the project's `AGENTS.md` marks as a safety rule.
 - **A project's own rules add to the core's** (core archive 161): one that replaces a module's yields unless its
   manifest lists it under "Differences", on its owner's word; never against the floor, who reviews or merges, or the
   review guidelines.

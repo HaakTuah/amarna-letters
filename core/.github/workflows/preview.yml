@@ -55,7 +55,7 @@ jobs:
             echo "PR #$n's head is now $sha from $repo, not this run's $RUN_SHA: a newer run will publish it"; exit 0
           fi
           if [ "$state" = open ] && [ -f "$PREVIEW/site/index.html" ]; then
-            out=$(core/scripts/site-publish.sh "pr-$n" "$PREVIEW/site"); echo "$out"
+            out=$(bash core/scripts/site-publish.sh "pr-$n" "$PREVIEW/site"); echo "$out"
             case $out in *"gh-pages: published"*|*"unchanged"*) ;; *) exit 0 ;; esac
             owner=${GITHUB_REPOSITORY%%/*}
             url="https://${owner,,}.github.io/${GITHUB_REPOSITORY#*/}/pr-$n/"
@@ -70,7 +70,7 @@ jobs:
               gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="$body" > /dev/null
             fi
           elif [ "$state" = closed ]; then
-            core/scripts/site-publish.sh "pr-$n" --remove
+            bash core/scripts/site-publish.sh "pr-$n" --remove
           else
             echo "PR #$n is open but its run uploaded no site"; exit 1
           fi
@@ -85,6 +85,6 @@ jobs:
           for d in $(git ls-tree --name-only FETCH_HEAD | grep -E '^pr-[1-9][0-9]{0,9}$' || true); do
             state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/${d#pr-}" --jq .state 2>/dev/null) || continue
             if [ "$state" = closed ]; then
-              core/scripts/site-publish.sh "$d" --remove || echo "::warning::could not take down $d"
+              bash core/scripts/site-publish.sh "$d" --remove || echo "::warning::could not take down $d"
             fi
           done

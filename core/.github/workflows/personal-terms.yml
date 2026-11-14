@@ -1,9 +1,24 @@
-# Nothing personal, ever (floor rule 11). Fails a pull request whose files, commit messages, title or description hold
-# a term from the PERSONAL_TERMS secret: one term per line, set by the owner in the repository's Actions secrets and
-# never written into the repository, since the list itself would be personal. It prints only where a term was found
-# (file and line), never the term. Without the secret (a fork, Dependabot) it passes with a note.
-# It checks this repository, and every project that takes the core calls it (workflow_call), pinned to a full commit SHA
-# (README.md, point 5), passing only that secret: the caller's event, checkout and token are the caller's own.
+# Nothing personal, ever (floor rule 11). Fails a pull request whose files, commits, title or description hold a term
+# from the PERSONAL_TERMS secret: one term per line, set by the owner in the repository's Actions secrets and never
+# written into the repository, since the list itself would be personal. Of each commit it reads the message, the
+# author's and the committer's name and address (save those of a commit GitHub itself made, which floor rule 11 excepts:
+# a merge, "update branch", an edit or a suggestion committed on github.com, under a profile GitHub wrote as the author
+# of a merge it made on the base's side, since one made through GitHub's API takes whatever author its caller names;
+# each GitHub commits and signs with its own key, which the check fetches from GitHub as it runs; where it cannot, none
+# is excepted, and the run says so), the lines it adds (a merge's, those its own resolution adds) and the names of the
+# files it writes, so a term that one commit adds and a later one takes out still fails: merging keeps every commit
+# (core archive 201). The commits read are the pull request's own, its base's left out, whatever date a commit bears: a
+# date is whatever its maker writes, and a commit not yet on main can still be changed. A term in a commit's author or
+# committer most often comes from git's own name on the machine that committed, which git writes into every commit made
+# there, the agents' too: its failure says how the session that made them mends it in the pull request itself (git's
+# name in the repository set to the login, the pull request's commits rewritten), so it holds a project once, never for
+# good (core archive 202; README.md, "Setting up (the owner's part)"). A file whose older name holds a term is deleted
+# or renamed away freely; a commit that only edits it fails, since the diff names it. It reads no file git takes for
+# binary (`git grep -I`, a diff's "Binary files differ"), pictures included. It prints only where a term was found (file
+# and line, or the commit), never the term. Without the secret (a fork, Dependabot, a project that has not set it) it
+# passes with a note: the check is optional. It checks this repository, and every project that takes the core calls it
+# (workflow_call), pinned to a full commit SHA (README.md, point 5), passing only that secret: the caller's event,
+# checkout and token are the caller's own.
 name: Personal terms
 
 on:
@@ -47,16 +62,68 @@ jobs:
           hits=$(git grep -I -n -i -F -f "$list" -- . | cut -d: -f1,2 || true)
           if [ -n "$hits" ]; then echo "A personal term is in these files (file:line):"; echo "$hits"; found=1; fi
           if [ -n "$BASE" ]; then
-            # Only commits made since the rule (2 November 2026): older ones cannot be changed without rewriting history.
-            # One commit at a time, so every new commit's message is checked, not only the newest.
-            # --since-as-filter skips older commits without stopping the walk; a failing rev-list fails the job.
-            commits=$(git rev-list --since-as-filter='2026-11-02T17:30:00Z' "$BASE..HEAD")
-            bad=""
+            # One commit at a time, so every new commit is checked, not only the newest; a failing rev-list fails the
+            # job. The checkout is GitHub's merge of the pull request into its base: what its first parent holds is the
+            # base's, whatever commit the event names as the base, so it is left out, and with it every commit main
+            # already holds, which cannot be changed without rewriting history; none is left out by its date. That
+            # merge itself is left out too: GitHub makes it only to check the pull request, under the opener's profile,
+            # adds nothing of its own, never reaches main, and no mend could change it.
+            side=$BASE head=HEAD; if git rev-parse -q --verify 'HEAD^2' > /dev/null; then side=HEAD^1 head=HEAD^2; fi
+            commits=$(git rev-list "$BASE..$head" "^$side")
+            bad="" people="" added="" names=""
+            # (GitHub's own signing key, from GitHub itself, in a keyring of this run's alone: a merge counts as GitHub's
+            # only where its committer is GitHub and an OpenPGP signature on it is good by a key of that keyring, named
+            # by its fingerprint; git's other signature formats, which may carry their own certificate, are read by no
+            # program, so one written by hand to look so does not)
+            keys="$RUNNER_TEMP/github-keys"; mkdir -p -m 700 "$keys"
+            if ! curl -fsS --max-time 30 --retry 3 https://github.com/web-flow.gpg | GNUPGHOME="$keys" gpg -q --batch --import 2> /dev/null; then
+              echo "::notice::GitHub's signing key could not be fetched, so no commit is taken for one GitHub made: re-run the check"
+            fi
+            github=$(GNUPGHOME="$keys" gpg --batch --with-colons --list-keys 2> /dev/null \
+              | awk -F: '$1 == "pub" { p = 1; next } p && $1 == "fpr" { print $10; p = 0 }')
+            # (a commit GitHub itself made: committed as GitHub, an OpenPGP signature on it good by a key of GitHub's, by
+            # its fingerprint)
+            made() {
+              local sig
+              [ "$(git log -1 --format='%cn <%ce>' "$1")" = "GitHub <noreply@github.com>" ] && [ -n "$github" ] \
+                && sig=$(GNUPGHOME="$keys" git -c gpg.program=gpg -c gpg.x509.program=false -c gpg.ssh.program=false \
+                         log -1 --format='%G? %GP' "$1" 2> /dev/null) \
+                && printf '%s\n' "$github" | sed 's/^/G /; p; s/^G /U /' | grep -q -x -F -e "$sig"
+            }
+            # (the profiles GitHub writes as the author of what it made on the base's side, each pull request's merge or
+            # squash into main: a commit it made on the pull request's side, a merge or an edit on github.com, passes
+            # only under one of them, since one made through GitHub's API takes whatever author its caller names)
+            profiles=$(for m in $(git rev-list --max-count=100 --committer='noreply@github.com' "$side"); do
+              made "$m" && git log -1 --format='%an <%ae>' "$m"; done | sort -u)
+            # (no step here names a shell, so GitHub runs it without pipefail: a grep -q that stops early never makes a
+            # hit read as a miss)
             for c in $commits; do
-              if git log -1 --format=%B "$c" | tr '\n' ' ' | grep -q -i -F -f "$list"; then bad="$bad $(git rev-parse --short "$c")"; fi
+              short=$(git rev-parse --short "$c")
+              if git log -1 --format=%B "$c" | tr '\n' ' ' | grep -q -i -F -f "$list"; then bad="$bad $short"; fi
+              # (save a commit GitHub itself made under a profile above, the acting account's, as floor rule 11 excepts:
+              # a merge, "update branch" too, or an edit on github.com)
+              if git log -1 --format='%an%n%ae%n%cn%n%ce' "$c" | grep -q -i -F -f "$list" \
+                && ! { made "$c" && printf '%s\n' "$profiles" | grep -q -x -F -e "$(git log -1 --format='%an <%ae>' "$c")"; }; then
+                people="$people $short"
+              fi
+              # (the lines it adds, a merge's those its own resolution adds; git that cannot show them, older than 2.36,
+              # fails the check rather than read nothing)
+              if ! patch=$(git show --format= --patch --remerge-diff --no-ext-diff --no-textconv --no-color "$c"); then
+                echo "git could not show what $short adds (it needs git 2.36 or later)"; found=1
+              elif printf '%s\n' "$patch" | grep '^+' | grep -q -i -F -f "$list"; then added="$added $short"; fi
+              # (the names of every file it writes, not of one it deletes, so that an older name is taken out freely, as
+              # git holds them: empty, renamed or binary ones too, none quoted; a merge's,
+              # those its own resolution writes)
+              if git diff-tree --root --no-commit-id -r --cc --name-only --no-renames --diff-filter=d -z "$c" | tr '\0' '\n' | grep -q -i -F -f "$list"; then names="$names $short"; fi
             done
             if [ -n "$bad" ]; then echo "A personal term is in these commits' messages:"; echo "$bad"; found=1; fi
+            if [ -n "$people" ]; then
+              echo "A personal term is in these commits' author or committer (name or address):"; echo "$people"; found=1
+              echo "To mend it, on the machine that made them: set git's name and address in this repository to the account's login and its no-reply address (git config user.name <login>; git config user.email <the no-reply address under Settings, Emails>), rewrite this pull request's commits with them (git rebase --exec 'git commit --amend --no-edit --reset-author' origin/main) and push the branch again (git push --force-with-lease). main is never rewritten."
+            fi
+            if [ -n "$added" ]; then echo "A personal term is in a line that these commits add:"; echo "$added"; found=1; fi
+            if [ -n "$names" ]; then echo "A personal term is in the name of a file that these commits write:"; echo "$names"; found=1; fi
           fi
           if grep -q -i -F -f "$list" <<< "$TITLE"$'\n'"$BODY"; then echo "A personal term is in the PR's title or description."; found=1; fi
-          rm -f "$list"
+          rm -rf "$list" "$RUNNER_TEMP/github-keys"
           exit "$found"

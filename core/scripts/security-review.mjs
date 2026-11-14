@@ -31,8 +31,8 @@ import { started } from "./started.mjs";
 
 const CODEX = "chatgpt-codex-connector[bot]";
 const DEPENDABOT = "dependabot[bot]";
-// the first two lines of the summary Codex's app keeps: the second is its state, as JSON with each brace written as
-// &#123; or &#125;
+// the first two lines of the summary Codex's app keeps: the second is its state, as JSON (GitHub's API gives its braces
+// as they are; one written as &#123; or &#125;, as a delivery may show it, is read as one too)
 const SUMMARY = /^<!-- codex-pull-request-review-summary -->\r?\n<!-- codex-review-state:v1 ([^\r\n]{1,4000}) -->\r?\n/u;
 const WRITERS = ["OWNER", "MEMBER", "COLLABORATOR"]; // GitHub's own word for who wrote a comment, not the comment's
 const POSTED = /^(?:\*\*)?Security review:/u;
@@ -44,16 +44,25 @@ const flat = (pages) => (Array.isArray(pages) ? pages.flat() : []).filter((entry
 const codexs = (comment) => comment.user?.login === CODEX && comment.user.type === "Bot" && typeof comment.body === "string";
 const newest = (times) => times.reduce((latest, at) => (at > latest ? at : latest), -Infinity); // -Infinity: none
 
-// what the summary Codex's app keeps says of its security review; undefined where there is none it can read. The app
-// keeps one summary and edits it, so the first comment of its that opens as one is read, never a later look-alike.
+// what the summary Codex's app keeps says of its security review: { review }, review undefined where there is none it
+// can read, and { unread: true } where a summary of Codex's is there but its state cannot be read, a form nobody
+// documents having changed (core archive 201). The app keeps one summary and edits it, so the first comment of its that
+// opens as one is read, never a later look-alike.
+const OPENS = /^<!-- codex-pull-request-review-summary -->/u;
 function codex(comments) {
   for (const comment of comments) {
-    const text = codexs(comment) ? SUMMARY.exec(comment.body)?.[1] : undefined;
-    if (text === undefined) continue;
-    try { return JSON.parse(text.replaceAll("&#123;", "{").replaceAll("&#125;", "}"))?.security_review; } catch { return undefined; }
+    if (!codexs(comment) || !OPENS.test(comment.body)) continue;
+    const text = SUMMARY.exec(comment.body)?.[1];
+    let state;
+    try { state = text === undefined ? undefined : JSON.parse(text.replaceAll("&#123;", "{").replaceAll("&#125;", "}")); } catch { state = undefined; }
+    if (state === null || typeof state !== "object" || !("security_review" in state)) return { unread: true };
+    return { review: state.security_review };
   }
-  return undefined;
+  return {};
 }
+// what the check says where Codex's summary is there but cannot be read: a warning beside the status, which waits or
+// passes as it would with no summary at all
+export const UNREAD = "Codex's summary is on the pull request, but its state cannot be read: its form may have changed, and scripts/security-review.mjs must learn it";
 
 // { sha, done, why }, or undefined for a pull request with nothing to mark (closed, a draft, no commit to name)
 export function judge(pull, comments, reviewComments, commits) {
@@ -61,7 +70,11 @@ export function judge(pull, comments, reviewComments, commits) {
   const sha = pull.head.sha;
   const list = flat(comments);
   const posted = list.filter((comment) => typeof comment.body === "string" && POSTED.test(comment.body) && WRITERS.includes(comment.author_association));
-  const review = codex(list);
+  const read = codex(list), review = read.review, warning = read.unread ? UNREAD : undefined;
+  const verdict = judgeWith(sha, list, posted, review, pull, reviewComments, commits);
+  return warning ? { ...verdict, warning } : verdict;
+}
+function judgeWith(sha, list, posted, review, pull, reviewComments, commits) {
   if (review !== null && typeof review === "object" && review.status === "completed") {
     const on = typeof review.commit_sha === "string" && SHA.test(review.commit_sha) ? ` (on ${review.commit_sha.slice(0, 7)})` : "";
     if (review.has_unresolved_findings !== true) return { sha, done: true, why: `Codex's security review has run${on}` };
@@ -84,7 +97,8 @@ export function judge(pull, comments, reviewComments, commits) {
 // the commit status GitHub is given: while advisory always a pass, saying what the check would have done
 export function status(verdict, advisory, url) {
   const state = verdict.done || advisory ? "success" : "pending";
-  const description = `${advisory ? "Advisory: " : ""}${verdict.done ? "" : advisory ? "would wait, " : "Waiting: "}${verdict.why}`;
+  // (where Codex's summary cannot be read, the status says so too, where the owner sees it; GitHub takes 140 characters)
+  const description = `${advisory ? "Advisory: " : ""}${verdict.done ? "" : advisory ? "would wait, " : "Waiting: "}${verdict.why}${verdict.warning ? "; summary unreadable" : ""}`.slice(0, 140);
   return { state, description, context: CONTEXT, ...(typeof url === "string" && /^https:\/\/[\w./-]{1,200}$/u.test(url) ? { target_url: url } : {}) };
 }
 
@@ -96,5 +110,5 @@ if (started(import.meta.url)) {
   }
   const read = (file) => JSON.parse(readFileSync(file, "utf8"));
   const verdict = judge(read(pullFile), read(commentsFile), reviewCommentsFile ? read(reviewCommentsFile) : [], commitsFile ? read(commitsFile) : []);
-  console.log(JSON.stringify(verdict === undefined ? {} : { sha: verdict.sha, status: status(verdict, process.env.ADVISORY !== "false", process.env.RUN_URL) }));
+  console.log(JSON.stringify(verdict === undefined ? {} : { sha: verdict.sha, status: status(verdict, process.env.ADVISORY !== "false", process.env.RUN_URL), ...(verdict.warning ? { warning: verdict.warning } : {}) }));
 }
