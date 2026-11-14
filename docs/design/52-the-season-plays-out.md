@@ -143,7 +143,8 @@ from nothing (`@starting-style`), one changing crosses its colour:
 | The snow | down from the heights: three bands by depth over the snow line (`snow-high`, `-mid`, `-low`, `--b`), the heights first; it melts from below | the snow line by elevation (`43-the-living-map.md`) |
 | Frost | midway | |
 | The Nile's flood | rises from the south up its valley (`nile-rise`: the field revealed from its southern end over 0.8 of `--move`) | #03-nile-rise-north: "Flooding reached Aswan about a week earlier than modern Cairo" |
-| A river in spate, the storms, the harvest | at once, fading in | |
+| A river in spate (the Tigris, the Euphrates, the Marassantiya, the Orontes, the Jordan) | comes down from its source (`spate-rise`: the stroke revealed over 0.8 of `--move` from the side of the board its source lies at on the drawn course: from the north for the Tigris, the Euphrates and the Jordan, from the south for the Orontes, from the east for the Marassantiya; a spate going away does not rise again) | #03-tigris-euphrates-floods: "rise with the snowmelt in the Taurus and Zagros" for the Tigris and the Euphrates; the others' order is the game's reading, from their drawn courses alone |
+| The storms, the harvest | at once, fading in | |
 
 The pace decides whether the land moves (`Pace.ground`: Slow and Normal move it, Fast and Simulate do not, however long
 their great moments run); under that, `--move` is half the season's playout, at most 5 s, and nothing under 1 s (first

@@ -99,7 +99,9 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   are full zoomed out and thin as the map is zoomed in, by the `--wash` factor of `map/wash.ts` (the rules in `styles/map.css`), set when a gesture
   settles: from 1.6 times the realm's wash at 0.45 screen pixels a map unit or less to 0.2 at 3 or more, in eight steps,
   so the realms' layer is painted again only when a zoom crosses one. The realm bands and the emblems on the city seals
-  stay, and the mood view keeps its colours. A province list stands in for
+  stay, the stretch of a band against another power's land (its `firm` path; the rest runs along a coast or no one's land)
+  growing up to half as thick again as the wash thins below 1 (`styles/map.css`, from the same factor), and
+  the mood view keeps its colours. A province list stands in for
   tapping small provinces; in a human seat's orders it picks a destination as a tap on the map would.
   **Since item 11c** the board is a true projection ([the true map](28-the-true-map-and-the-red-sea.md)) and the rule
   below is replaced: each name has the zoom step from which it shows (`NameLevels`, `NameSteps` in `map/markup.ts`; the
