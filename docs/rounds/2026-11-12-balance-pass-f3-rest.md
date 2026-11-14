@@ -21,6 +21,7 @@ the 200 games'. Every figure is in "Finished", below.
 |---|---|---|---|
 | 17++a the war of choice (`--war-play-half`), before the patch | 1.049 / 1.061 | 47 / 49 | the Great Kings far ahead (1.085 / 0.975), the cities behind (0.05 against the null) |
 | the same, **a city keeping its peace** (patched) | 1.083 / 1.063; 101-200: 1.060 / 1.077 | 49 / 43; 101-200: 51 / 40 | **pays**: ahead in wins by about 12 in each hundred beyond the null, the Great Kings ahead, the cities level |
+| the same, **a small king keeping his peace** (the code review's form, 767cab8; its own null split) | 1.055 / 1.046 over 1-200 (null 1.021 / 1.018) | 94 / 96 (null 100 / 84) | **kept**: level in standing, the Great Kings 0.045 ahead, the rest level; wins within the 200 games' swing |
 | 7a sea play (`--sea-play-half`) | 1.021 / 1.002; 101-200: 1.017 / 1.023 | 44 / 47; 101-200: 43 / 50 | **even** over 200 games: ahead in growth on seeds 1-100 (0.775 / 0.735), behind on 101-200 (0.755 / 0.785) |
 | the coffer (`--coffer-play-half`) | 1.035 / 1.020; 101-200: 1.005 / 1.027 | 41 / 52; 101-200: 39 / 49 | **even** in standing, **a little behind in wins** (80 / 101 in 200 games, the null's 88 / 95); the Great Kings, who hold the far provinces, ahead |
 | 17 and 17++ A, buying food and stirring (`--freedom-play-half`) | 1.049 / 1.046; 101-200: 1.023 / 1.030 | 40 / 46; 101-200: 56 / 36 | **a little ahead in wins** (96 / 82 in 200 games, the null's 88 / 95), level in standing; food bought in 24 unit-seasons of about 16,300, so the gain is the tax eased and the stirring |
