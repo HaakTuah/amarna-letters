@@ -31,10 +31,10 @@ the 200 games'. Every figure is in "Finished", below.
 | the ride (`--ride-play-half`), seeds 1-50 | 1.045 / 1.025 | 27 / 22 | too rare to move a game: riders hired twice (#980) |
 | 8 inventories (`--inventory-play-half`), seeds 1-50 | 1.041 / 1.028 | 27 / 22 | too rare: gold without an inventory 6 times (#980) |
 
-- **Par** measured again on F3's patched play (seeds 101-200, 100 games, at dde658d), and once more as the last runs, on
-  the branch's play with the city's peace (938ba68): `rules/par-results.ts` holds the second. With the city's peace, the middle Great Kings grow
-  more (Mitanni 0.71 to 0.80, Assyria 0.37 to 0.45) and the strong a little less (Hatti 1.57 to 1.49, Babylonia 1.28 to
-  1.20).
+- **Par** measured again on F3's patched play (seeds 101-200, 100 games, at dde658d), then on the city's peace
+  (938ba68), and last on the small king's peace (767cab8), which `rules/par-results.ts` holds. The city's peace raised the middle Great Kings (Mitanni 0.71 to 0.80, Assyria 0.37 to
+  0.45); the small king's peace, holding a Great King brought low to his peace as well, takes them back (0.72, 0.36),
+  with the rest about as at dde658d.
 - **The caretaker's realm against the war of choice** (F2's hand-off): a king held long leaves his realm at par under its
   caretaker (1.05 and 1.00 against par in the two halves of the war of choice's run, every realm 1.04), while the war of
   choice is worth the Great Kings 0.09 of standing beyond the null and, before the patch, cost the cities 0.05. So a
@@ -51,7 +51,8 @@ the 200 games'. Every figure is in "Finished", below.
 
 - **The benchmarks** (seeds 1-4, each Great King alone among baseline kings and all baseline): no regression from this
   part's patch; every Great King as before but Mitanni (2.33 to 2.37) and Assyria (1.89 to 2.00), all kings 2.33 to 2.29
-  alone, now that the cities alone keep their peace.
+  alone, now that the cities alone keep their peace. On the small king's peace (767cab8) the same but Assyria (2.04) and
+  Arzawa alone (1.14 to 0.81 in four games, where the null split's 100 games show it growing more), all kings 2.31.
 - **What changed in play:** one patch, kept: a small king keeps a plain peace as a bar to his war of choice, as he keeps
   an ally (`keptBond`, `small`, `bots/siege-tactics.ts`; design note `docs/design/07-script-kings/05-choosing-a-war.md`).
   Measured on 938ba68 as a city (its rank in the starting data); the code review held that against "Different data, same
@@ -65,6 +66,11 @@ the 200 games'. Every figure is in "Finished", below.
 
 Unsure first.
 
+- **Unsure: the small king's peace is kept** on a verdict within the noise: over 200 games level in standing, the Great
+  Kings 0.045 ahead and the rest level, where the city's peace on 938ba68 was much the same in standing and ahead in
+  wins. The code review held the city's form against "Different data, same rules", and the pillar decides between two
+  forms the measurement cannot tell apart. Its cost, if real: a Great King brought low keeps his peace too, and Mitanni
+  and Assyria grow about as at dde658d, not as on the city's peace.
 - **Unsure: level, ahead and behind are read by eye against the null split**, as F3 read them (a side about 0.02 ahead in
   standing and a few wins either way is level; wins in 100 games carry a noise of about ten either way). Over 200 games
   the coffer is 14 wins behind beyond the null's own lean and 17++ A about 21 ahead; the first is read as "a little
@@ -82,8 +88,9 @@ Unsure first.
   split asked seeds 101-200 for the close rows and these even rows are close: they were read on the old play, so they
   need seeds 1-100 on the patched play before 101-200 means anything, and F3 itself warned they may move. Their verdicts
   in the progress file are marked as read on the old play.
-- **The new par is not yet played:** every run here was on 938ba68, under dde658d's par, and par steers the script
-  kings' ranking of rivals; the next part's first runs are the first on it, and its null split is measured again.
+- **The new par is not yet played:** the feature runs were on 938ba68 under dde658d's par, the small king's on 767cab8
+  under 938ba68's, and par steers the script kings' ranking of rivals; the next part's first runs are the first on
+  767cab8's par, and its null split is measured again.
 - **17++ A was played on seeds 151-200** as well as 101-150 ("then the rest of its seed set if close"): on 101-150 it led
   where 1-100 had been even, which is close enough to need the second half. 17++ D, even on 1-100, was played on both.
 - **Runs lost with a container were run again, unchanged:** the earlier session's 17++ A run of seeds 101-150 was never
@@ -91,9 +98,9 @@ Unsure first.
   on every run.
 - **The branch was brought up to date with `main`** (core syncs, file splits proven unchanged, the model kings' rules
   split) before the last runs; the runs stayed on 938ba68, as the report names, so they compare with every run before.
-- **Par last:** par was measured again on 938ba68 after every feature's run, so that the standings in those runs, all read
-  on dde658d's par, stay comparable among themselves; `rules/par-results.ts` now holds the new par, which the next part
-  reads its standings against.
+- **Par last:** par was measured again after every other run of its play, so that the standings in those runs stay
+  comparable among themselves; `rules/par-results.ts` now holds 767cab8's, which the next part reads its standings
+  against.
 
 ## How the runs are kept
 
@@ -108,22 +115,8 @@ about the same).
 
 The branch's play was 938ba68's (ff5c41b reverts the demand trial) until the code review; it is now 767cab8's.
 
-From the code review (the small king, by strength now: 767cab8), on 767cab8, one at a time, each written here as it
-finishes:
-
-1. The war of choice (`--war-play-half`), seeds 101-150: done.
-2. The null split (`--null-half`), seeds 101-150: done.
-3. The war of choice and the null split, seeds 151-200: done.
-4. The benchmarks after: done.
-4a. Seeds 101-200 on 767cab8 leaned the other way from 938ba68's, within the null's spread: the war of choice and the
-   null split on seeds 1-50, then 51-100, on 767cab8, to settle the verdict on 200 games. The war of choice, seeds
-   1-50: done; the null split, seeds 1-50: done; the war of choice, seeds 51-100: done; the null split, seeds 51-100:
-   done.
-5. Par again: seeds 101-150 done; `--games 50 --seed 151 --par-out <file>` **running** (started 01:56 UTC on 14
-   November), merged into `rules/par-results.ts` as before: the last runs.
-
-A session that ends with a run marked running: start that run again from a worktree of 767cab8 (Node as
-`core/.node-version`), and go on down the list.
+Nothing: every run of this part is finished and below, the last par on 767cab8 (the small king's peace, from the
+code review).
 
 Left to the next part (the reading is under "Readings taken"): F3's rows that were measured on the play before its
 patches (walls, raiders, judging people, gifts, hunting bands, borrowing, caravans abroad, holding back pay, languages,
@@ -197,3 +190,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | The war of choice, the small king's peace, seeds 51-100 | `--games 50 --seed 51 --war-play-half` | 767cab8 | 21 minutes. Growth 0.84 / 0.80, standing 1.065 / 1.039, wins 27 / 21; Great Kings 0.96 / 0.95 (1.042 / 0.969), the rest 0.81 / 0.77 (1.069 / 1.052). The null split on 767cab8 runs next |
 | Null split, seeds 51-100 | `--games 50 --seed 51 --null-half` | 767cab8 | 21 minutes. Growth 0.80 / 0.79, standing 1.022 / 1.046, wins 21 / 21; Great Kings 0.97 / 0.95 (0.988 / 1.001), the rest 0.78 / 0.76 (1.028 / 1.054). The war of choice on the same seeds against it: 0.05 ahead in standing, 6 wins ahead, the Great Kings 0.09 and the rest 0.04 ahead. **Seeds 1-200 on 767cab8: the war of choice 1.055 / 1.046, wins 94 / 96, Great Kings 1.027 / 0.968, the rest 1.060 / 1.060; the null 1.021 / 1.018, wins 100 / 84, Great Kings 0.999 / 0.985, the rest 1.025 / 1.023.** Against the null's lean: level in standing (0.005 ahead), the Great Kings 0.045 ahead, the rest level (before the patch 0.05 behind), wins 18 behind (on 938ba68 24 ahead: in 200 games the wins swing about 20 either way between two plays this close). **Kept**: it pays the Great Kings in standing and no longer costs the rest |
 | Par again, seeds 101-150, on the small king's peace | `--games 50 --seed 101 --par-out <file>` | 767cab8 | 21 minutes. Median age 79 seasons. Growth (standing on 938ba68's par): Egypt 1.18 (1.00), Hatti 1.41 (0.94), Babylonia 1.24 (1.07), Mitanni 0.76 (0.93), Assyria 0.37 (0.95), Arzawa 0.73 (1.01), Alashiya 0.95 (1.06); wins 4, 0, 4, 2, 0, 1, 1. A Great King's realm fell in 35 of 50 games (32 on 938ba68) |
+| Par again, seeds 151-200, on the small king's peace | `--games 50 --seed 151 --par-out <file>` | 767cab8 | 21 minutes. Median age 91 seasons. Egypt 1.17 (1.04), Hatti 1.54 (1.04), Babylonia 1.22 (1.02), Mitanni 0.67 (0.86), Assyria 0.35 (0.89), Arzawa 0.84 (1.14), Alashiya 0.94 (0.98); wins 1, 2, 1, 1, 2, 3, 1. A Great King's realm fell in 32 of 50 games. **Seeds 101-200 (938ba68's par, then dde658d's): Egypt 1.18 (1.17, 1.15), Hatti 1.48 (1.49, 1.57), Babylonia 1.23 (1.20, 1.28), Mitanni 0.72 (0.80, 0.71), Assyria 0.36 (0.45, 0.37), Arzawa 0.79 (0.71, 0.80), Alashiya 0.95 (0.94, 0.94).** The city's peace had raised the middle Great Kings; the small king's peace, which holds a Great King brought low to his peace too, takes them back to dde658d's and Arzawa with them. Merged as before into `rules/par-results.ts`, 100 games: the par this part leaves |
