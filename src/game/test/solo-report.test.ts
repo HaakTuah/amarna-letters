@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { AllPowers } from "@amarna/engine";
-import { soloReport } from "../src/batch.ts";
+import { soloReport } from "../src/batch-report.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 describe("The solo benchmark's table", () => {

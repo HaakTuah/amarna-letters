@@ -1,7 +1,6 @@
-/** Plays games unattended and summarizes winners and signals across them (the batch runner's shared half). */
-import { pulseOf, pulseReport, type Pulse } from "./pulse.ts";
+/** Plays one game unattended and measures it: the summary a batch keeps (the batch runner's shared half; `batch-report.ts` reads many). */
+import { pulseOf, type Pulse } from "./pulse.ts";
 import {
-  ClauseKindValues,
   isAlive,
   standingOf,
   type Clause,
@@ -9,21 +8,11 @@ import {
   CharacterParBest,
   GameStateSchema,
   TurnEngine,
-  Wealth,
   addEarnings,
-  align,
   boardLine,
   characterResult,
-  count,
-  cmpNum,
-  cmpStr,
   courtDecided,
-  earningsTotal,
-  fmt,
-  fmtN,
-  groupBy,
   hash,
-  idNumber,
   inboxOf,
   isSealedAgreement,
   max,
@@ -32,28 +21,22 @@ import {
   min,
   newEarnings,
   newGame,
-  parsePower,
   roundTo,
-  sortBy,
   sum,
-  tier,
-  trim,
   type Earnings,
   type GameConfig,
   type GameState,
-  type InboxItem,
   type Power,
   UnheardOutcome,
   UnheardOnArrival,
 } from "@amarna/engine";
-import type { ModelCall, ShadowDecision, CharacterChoice } from "./log.ts";
 import { GameLog } from "./log.ts";
 import { GameRunner } from "./runner.ts";
 import { SignalDetector } from "./signals.ts";
-import { MoneyWatch, moneyReport, type MoneyMeasure } from "./money-report.ts";
-import { SpendingWatch, spendingReport, type SpendingMeasure } from "./spending-report.ts";
-import { HeldWatch, heldReport, type HeldMeasure } from "./captives-report.ts";
-import { BondWatch, bondReport, type BondTake } from "./bonds-report.ts";
+import { MoneyWatch, type MoneyMeasure } from "./money-report.ts";
+import { SpendingWatch, type SpendingMeasure } from "./spending-report.ts";
+import { HeldWatch, type HeldMeasure } from "./captives-report.ts";
+import { BondWatch, type BondTake } from "./bonds-report.ts";
 
 /**
  * A kingdom's fall as the pace of war measures it: the season, the conqueror, and the seasons from the conqueror's first
@@ -170,24 +153,6 @@ export function risenMeasures(s: GameState, engine: TurnEngine): RisenMeasure[] 
   });
 }
 
-/** The governors' seats (item 13+): how many rose, how long they lasted, and what their seats did. */
-export function risenReport(games: readonly GameSummary[]): string[] {
-  const all = games.flatMap((g) => g.risen ?? []);
-  const rose = games.filter((g) => (g.risen ?? []).length > 0).length;
-  const sig = (k: string): number => sum(games, (g) => g.signals[k] ?? 0);
-  const free = [
-    `How cities became free (item 17): revolts ${sig("revolt-led") + sig("revolt-lawless")} (led ${sig("revolt-led")}, lawless ${sig("revolt-lawless")}; of the homeland ${sig("revolt-home")}), ${sig("revolt-crushed")} put down by troops; gates opened from within ${sig("siege-starved")}; spies stirring ${sig("stir")} seasons.`,
-    `  Words to armies on their food: buy ${sig("supply-word-buy")}, take ${sig("supply-word-take")}. Armies by leave, unit-seasons: bought food ${sig("supply-buy")}, took it ${sig("supply-take")} (both in a season count once each); commanders who kept the gold ${sig("supply-kept")}.`,
-  ];
-  if (all.length === 0) return ["Seats risen in play (items 13+ and 17): none rose.", ...free];
-  const used = all.filter((r) => r.envoys > 0).length;
-  const how = ["turned", "revolt", "chief", "elder", "granted"].map((h) => `${h} ${all.filter((r) => r.how === h).length}`).join(", ");
-  return [
-    ...free,
-    `Seats risen in play (items 13+ and 17; by how: ${how}): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
-    `  Their seats sent envoys in ${used} of ${all.length} (${sum(all, (r) => r.envoys)} envoys) and sealed ${sum(all, (r) => r.sealed)} tablets with other courts, ${sum(all, (r) => r.vassal)} of them vassal tablets.`,
-  ];
-}
 
 /**
  * The press of one game in counts (item 8): clauses written by kind ("w:askGold"), letters whose clauses an envoy changed
@@ -245,29 +210,7 @@ export function pressOf(s: GameState): Record<string, number> {
   return out;
 }
 
-/** The press over many games: the clauses script players wrote, how envoys changed them, and how kings answered (item 8). */
-export function pressReport(games: readonly GameSummary[]): string[] {
-  const total: Record<string, number> = {};
-  for (const g of games) for (const [k, v] of Object.entries(g.press)) total[k] = (total[k] ?? 0) + v;
-  const n = (k: string): number => total[k] ?? 0;
-  const lines = [`Press: ${n("letters")} letters, ${n("letters-with-clauses")} with clauses; gold sent without an inventory ${n("gold-without-inventory")} times.`];
-  lines.push(`  Written: ${ClauseKindValues.filter((k) => n(`w:${k}`) > 0).map((k) => `${k} ${n(`w:${k}`)}`).join(", ")}.`);
-  // Item 12 ("Calibration"): how often each court's envoys were not understood where they arrived.
-  lines.push(
-    `  Envoys not understood on arrival, by the court that sent them (% of those that arrived): ${AllPowers.filter((p) => n(`arrived:${p}`) > 0)
-      .map((p) => `${p} ${Math.round((100 * n(`unheard:${p}`)) / n(`arrived:${p}`))} (${n(`arrived:${p}`)})`)
-      .join(", ")}.`,
-  );
-  lines.push(`  Recited changed ${n("recited-changed")}: threat dropped ${n("threat-dropped")}, gift lowered ${n("gift-lowered")}, courtesy added ${n("courtesy-added")}, a clause lost ${n("clause-dropped")}; answers misreported ${n("misreported")}.`);
-  lines.push(
-    `  Vassalage: tribute sent ${n("tribute-sent")} times, ${n("tribute-delivered")} delivered (${n("tribute-gold")} shekels); vassal tablets offered ${n("bond-offered")}, sealed ${n("bond-sealed-by-vassal") + n("bond-sealed-by-overlord")} (${n("bond-sealed-by-vassal")} offered by the vassal, ${n("bond-sealed-by-overlord")} by the overlord).`,
-  );
-  const answers = Object.keys(total).filter((k) => /^(accept|refuse|counter):/.test(k)).sort();
-  lines.push(`  Answers: ${answers.map((k) => `${k} ${total[k]}`).join(", ")}.`);
-  return lines;
-}
 
-/** The falls of a game, measured. */
 /** Whether the age saw a Great King's war decided (item 17), and how first: his capital taken, or he made another's vassal. */
 export function greatWarOf(s: GameState): string | null {
   const great = new Set<string>(GreatKings);
@@ -282,6 +225,7 @@ export function greatWarOf(s: GameState): string | null {
   return f <= b ? "capital" : "vassal";
 }
 
+/** The falls of a game, measured. */
 export function fallsOf(s: GameState, engine: TurnEngine): FallMeasure[] {
   return s.falls.map((f) => {
     // The letter there and the reply back: each leg by its own road, since the winds and currents differ.
@@ -409,422 +353,3 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   };
   return [summary, runner];
 }
-
-const mean = (xs: readonly number[]): number => (xs.length === 0 ? 0 : sum(xs, (x) => x) / xs.length);
-
-function median(xs: readonly number[]): number {
-  const s = sortBy(xs, [(x: number) => x, cmpNum]);
-  return s.length % 2 === 1 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2.0;
-}
-
-/** The pace of war over many games: games that saw a capital fall, the first fall, and the seasons from entry to fall. */
-export function warReport(games: readonly GameSummary[]): string[] {
-  const falls = games.flatMap((g) => g.falls);
-  const out = [
-    `Wars: a capital fell in ${games.filter((g) => g.falls.length > 0).length} of ${games.length} games (${falls.length} kingdoms fell in all; at most ${games.length === 0 ? 0 : max(games, (g) => g.falls.length)} in one game).`,
-  ];
-  if (falls.length === 0) return out;
-  const first = games.filter((g) => g.falls.length > 0).map((g) => min(g.falls, (f) => f.turn));
-  out.push(`  The first fall of a game came in season ${median(first)} on the median (range ${min(first, (x) => x)}-${max(first, (x) => x)}).`);
-  // The builder rules' line for a playable game: no capital falling within the game's first two seasons (item 11e).
-  const early = falls.filter((f) => f.turn <= 2);
-  const earlyBy = sortBy([...new Set(early.map((f) => f.power))], [(p: Power) => -early.filter((f) => f.power === p).length, cmpNum], [(p: Power) => p, cmpStr]);
-  out.push(
-    `  Games with a kingdom fallen in the first two seasons: ${first.filter((t) => t <= 2).length} of ${games.length}${early.length > 0 ? ` (${earlyBy.map((p) => `${p} ${early.filter((f) => f.power === p).length}`).join(", ")})` : ""}.`,
-  );
-  const spread = (xs: number[]): string =>
-    xs.length === 0
-      ? "none"
-      : `median ${median(xs)}, range ${min(xs, (x) => x)}-${max(xs, (x) => x)}, ${fmt((100.0 * xs.filter((x) => x >= 5 && x <= 10).length) / xs.length, "0")}% within 5-10`;
-  out.push(`  Seasons from the conqueror's first entry into the fallen king's land to the fall: ${spread(falls.filter((f) => f.fromConquerorEntry !== null).map((f) => f.fromConquerorEntry!))}.`);
-  out.push(`  From anyone's first entry into it: ${spread(falls.filter((f) => f.fromFirstEntry !== null).map((f) => f.fromFirstEntry!))}.`);
-  // Pillar 8 ("War is slower than diplomacy"; item 18, part C): the kingdoms that fell sooner after their conqueror's entry
-  // than a letter from their court to his and its reply take (measured where the conqueror still reigns at the end).
-  const timed = falls.filter((f) => f.fromConquerorEntry !== null && f.reply != null);
-  const quick = timed.filter((f) => f.fromConquerorEntry! < f.reply!);
-  const quickBy = sortBy([...new Set(quick.map((f) => f.power))], [(p: Power) => -quick.filter((f) => f.power === p).length, cmpNum], [(p: Power) => p, cmpStr]);
-  out.push(`  A letter to the conqueror and its reply: ${timed.length === 0 ? "none" : `median ${median(timed.map((f) => f.reply!))} seasons`}; fallen faster than that after his entry: ${quick.length} of ${timed.length}${quick.length > 0 ? ` (${quickBy.map((p) => `${p} ${quick.filter((f) => f.power === p).length}`).join(", ")})` : ""}.`);
-  // A fall is a realm left holding nothing (item 17b), so a Great King's capital was taken in at least as many games.
-  const great = new Set<Power>(GreatKings);
-  out.push(`  A Great King's realm fell (held nothing) in ${games.filter((g) => g.falls.some((f) => great.has(f.power))).length} of ${games.length} games.`);
-  out.push(`  Kingdoms fallen: ${AllPowers.map((p) => `${p} ${falls.filter((f) => f.power === p).length}`).join(", ")}.`);
-  return out;
-}
-
-/** How often kings woken for an audience only reopened their orders (courts where the stand-in answered left out). */
-export function reopenRate([held, reopened, stoodIn]: [number, number, number]): string {
-  if (held === 0) return "Courts held while orders stood: none.";
-  if (stoodIn === 0) return `Courts held while orders stood: ${held}; orders reopened at ${reopened} (${fmt((100.0 * reopened) / held, "0")}%).`;
-  const decided = held - stoodIn;
-  const rate = decided === 0 ? "none left the choice to the king" : `orders reopened at ${reopened} of the ${decided} where the king chose (${fmt((100.0 * reopened) / decided, "0")}%)`;
-  return `Courts held while orders stood: ${held}; ${rate}; at ${stoodIn} a call failed, the stand-in answered and the king was asked for orders without choosing (left out of the rate).`;
-}
-
-/** A wake reason without its particulars, to count reasons of one kind together ("land lost: Gaza ..." is "land lost"). */
-export const reasonKind = (reason: string): string => trim(reason.split(/[:(]/)[0]);
-
-/** Orders a notice reports as refused or failed. */
-export const failedOrders = (item: InboxItem): number => (item.kind !== "Rejected" ? 0 : Math.max(1, item.body.split("\n").filter((l) => l.startsWith("- ")).length));
-
-/** Per seat: how often it was asked, orders refused, fallbacks, courts held while orders stood, sleeps and what woke it. */
-export function seatReport(runner: GameRunner): string {
-  const s = runner.state;
-  const lines = ["  Power       seat                 orders  audiences  invalid  fallbacks  courts  slept (seasons)       woken by"];
-  const cut = (t: string, n: number): string => (t.length <= n ? t : t.slice(0, n));
-  for (const p of AllPowers) {
-    const label = runner.log.header.seats.tryGet(p) ?? "?";
-    const orders = runner.log.decisions.filter((d) => d.key.startsWith("t") && d.key.endsWith(`/orders/${p}`)).length;
-    // Audiences answered by a model or file seat: one per logged key (a retry is the same audience). Script seats log no calls.
-    const hostKeys = new Set(runner.log.calls.filter((c) => c.role === `host:${p}`).map((c) => c.key)).size;
-    const hosted = runner.log.calls.some((c) => c.role === `leader:${p}` || c.role === `host:${p}`) ? String(hostKeys) : "-";
-    const invalid = sum(inboxOf(s, p), failedOrders);
-    const fallbacks = runner.errors.filter(
-      (e) => e.includes(`/orders/${p}:`) || (e.includes("/host/") && runner.log.calls.some((c) => c.role === `host:${p}` && e.startsWith(c.key))),
-    ).length;
-    let sleeps = "";
-    let woken = "";
-    const held = s.sleep.tryGet(p);
-    let courts = "-";
-    if (held !== undefined) {
-      const stood = held.courts.filter((c) => !courtDecided(c)).length;
-      courts = `${held.courts.length}/${held.courts.filter((c) => c.reopened).length}` + (stood > 0 ? ` (${stood} by stand-in)` : "");
-    }
-    if (held !== undefined && held.history.length > 0) {
-      // A spell still open at the end counts the seasons slept so far.
-      sleeps = held.history.map((h) => (h.wokeAt > 0 ? `${h.wokeAt - h.from}` : `${s.turn - h.from + 1}+`)).join(" ");
-      // Every reason a seat was woken, not only the first, counted over its spells.
-      woken = groupBy(
-        held.history.flatMap((h) => h.reasons),
-        reasonKind,
-      )
-        .map(([k, g]) => `${k} x${g.length}`)
-        .join("; ");
-    }
-    lines.push(
-      `  ${align(p, -10)}  ${align(cut(label, 19), -19)}  ${align(String(orders), 6)}  ${align(hosted, 9)}  ${align(String(invalid), 7)}  ${align(String(fallbacks), 9)}  ${align(courts, 6)}  ${align(sleeps, -20)}  ${woken}`,
-    );
-  }
-  if (s.sleep.size > 0) lines.push("  " + reopenRate(courtsOf(s)));
-  return lines.join("\n");
-}
-
-/** Model (or file) characters beside the script with the same traits, decision by decision in the same situations. */
-export function characterReport(log: GameLog): string {
-  const all = sortBy(log.shadows, [(s: ShadowDecision) => s.turn, cmpNum], [(s: ShadowDecision) => s.key, cmpStr]);
-  const made = all.filter((s) => s.model !== null);
-  const lines = [
-    `  Characters: ${made.length} decisions by the characters' own minds, each beside the script's with the same traits in the same situation` +
-      (all.length > made.length ? `; ${all.length - made.length} more fell back to the script (no reply or an unreadable one)` : "") +
-      ".",
-    "                                         mind                script",
-  ];
-  const countLine = (what: string, of: readonly ShadowDecision[], yes: (c: CharacterChoice) => boolean): void => {
-    lines.push(`    ${align(what, -36)} ${align(String(of.filter((s) => yes(s.model!)).length), -19)} ${of.filter((s) => yes(s.script)).length}`);
-  };
-
-  const gold = made.filter((s) => s.kind === "present" && s.goldCarried > 0);
-  lines.push(`  Speeches abroad: ${made.filter((s) => s.kind === "present").length}, ${gold.length} with gold (${sum(gold, (s) => s.goldCarried)} shekels carried)`);
-  countLine("kept some of the gold", gold, (c) => c.kept > 0);
-  lines.push(`    ${align("shekels kept", -36)} ${align(String(sum(gold, (s) => s.model!.kept)), -19)} ${sum(gold, (s) => s.script.kept)}`);
-  countLine("swapped the inventory", gold, (c) => c.swap);
-  countLine(
-    "softened a threat to the host",
-    made.filter((s) => s.kind === "present"),
-    (c) => c.flags.includes("softened-threat"),
-  );
-
-  const gifts = made.filter((s) => s.kind === "react" && s.giftOffered > 0);
-  const posts = made.filter((s) => s.kind === "react" && s.serviceOffered > 0);
-  lines.push(`  Audience replies: ${made.filter((s) => s.kind === "react").length}; gifts offered ${gifts.length}, posts offered ${posts.length}`);
-  countLine("took the gift", gifts, (c) => c.acceptGift);
-  countLine("refused the gift", gifts, (c) => !c.acceptGift);
-  countLine("went over to the host", posts, (c) => c.acceptService);
-  countLine("refused the post", posts, (c) => !c.acceptService);
-  countLine(
-    "committed its lord to something",
-    made.filter((s) => s.kind === "react"),
-    (c) => trim(c.commitments).length > 0,
-  );
-
-  const reports = made.filter((s) => s.kind === "report");
-  const home = reports.filter((s) => s.goldCarried > 0);
-  lines.push(`  Reports home: ${reports.length}, ${home.length} with gold (${sum(home, (s) => s.goldCarried)} shekels)`);
-  countLine("kept some of the gold", home, (c) => c.kept > 0);
-  lines.push(`    ${align("shekels kept", -36)} ${align(String(sum(home, (s) => s.model!.kept)), -19)} ${sum(home, (s) => s.script.kept)}`);
-  countLine("swapped the inventory", home, (c) => c.swap);
-  countLine("hid or contradicted something", reports, (c) => c.flags.length > 0);
-  for (const flag of sortBy(new Set(reports.flatMap((s) => [...s.model!.flags, ...s.script.flags])), [(x: string) => x, cmpStr]))
-    countLine("  " + flag, reports, (c) => c.flags.includes(flag));
-
-  const spies = made.filter((s) => s.kind === "spy");
-  if (spies.length > 0) {
-    lines.push(`  Spy reports: ${spies.length}`);
-    countLine("passed on its masters' words", spies, (c) => c.flags.includes("passed-poison"));
-    countLine("left out observations", spies, (c) => c.dropped > 0);
-  }
-  const pitches = made.filter((s) => s.kind === "pitch");
-  if (pitches.length > 0) {
-    lines.push(`  Pitches: ${pitches.length}`);
-    lines.push(
-      `    ${align("mean asking price (shekels a season)", -36)} ${align(fmt(mean(pitches.map((s) => s.model!.price)), "0"), -19)} ${fmt(mean(pitches.map((s) => s.script.price)), "0")}`,
-    );
-  }
-  const memories = made.filter((s) => s.kind === "memory").length;
-  if (memories > 0) lines.push(`  Memory summaries: ${memories}`);
-
-  lines.push("  Per character (traits loyalty/greed/competence/ambition/courage): decisions; gold kept, gifts taken, posts taken and reports flagged, mind / script");
-  for (const [, g] of sortBy(
-    groupBy(made, (s) => s.character),
-    [(x: [string, ShadowDecision[]]) => idNumber(x[0]), cmpNum],
-  )) {
-    const first = g[0];
-    const both = (f: (s: ShadowDecision, c: CharacterChoice) => number): string => `${sum(g, (s) => f(s, s.model!))}/${sum(g, (s) => f(s, s.script))}`;
-    lines.push(
-      `    ${first.name} (${first.character}, ${first.traits}): ${g.length}; kept ${both((_, c) => c.kept)}, gifts ${both((_, c) => (c.acceptGift ? 1 : 0))}, ` +
-        `posts ${both((_, c) => (c.acceptService ? 1 : 0))}, flagged ${both((s, c) => (s.kind === "report" && c.flags.length > 0 ? 1 : 0))}`,
-    );
-  }
-  return lines.join("\n");
-}
-
-/** A call's kind, from its role and key: a king's orders or audience, or what a character was asked. */
-export function callKind(c: ModelCall): string {
-  if (c.role.startsWith("leader:")) return "king: orders";
-  if (c.role.startsWith("host:")) return "king: audience";
-  if (c.key.includes("/aud/present/")) return "character: speech";
-  if (c.key.includes("/aud/react/")) return "character: reply";
-  if (c.key.includes("/report/")) return "character: report";
-  if (c.key.includes("/pitch/")) return "character: pitch";
-  if (c.key.includes("/spy/")) return "character: spy report";
-  if (c.key.includes("/memory/")) return "character: memory";
-  return "other: " + c.role.split(":")[0];
-}
-
-/** How large each kind of request was: for file seats the request file's length, for API calls the input tokens. */
-export function callSizes(log: GameLog): string {
-  const lines = ["  Requests by kind        calls   mean chars   max chars   mean tokens (file: chars/3.6; API: input)"];
-  for (const [kind, g] of sortBy(groupBy(log.calls, callKind), [(x: [string, ModelCall[]]) => x[0], cmpStr])) {
-    const files = g.filter((c) => c.requestChars > 0);
-    const api = g.filter((c) => c.requestChars === 0 && c.inputTokens + c.cacheReadTokens + c.cacheWriteTokens > 0);
-    const chars = files.length === 0 ? "-" : fmt(mean(files.map((c) => c.requestChars)), "0");
-    const most = files.length === 0 ? "-" : `${max(files, (c) => c.requestChars)}`;
-    const tokens =
-      files.length > 0
-        ? fmt(mean(files.map((c) => c.requestChars)) / 3.6, "0")
-        : api.length > 0
-          ? fmt(mean(api.map((c) => c.inputTokens + c.cacheReadTokens + c.cacheWriteTokens)), "0")
-          : "-";
-    lines.push(`  ${align(kind, -22)} ${align(String(g.length), 6)}   ${align(chars, 10)}   ${align(most, 9)}   ${tokens}`);
-  }
-  return lines.join("\n");
-}
-
-/** Current bot against the frozen baseline: growth, standing against par and wins for each side, overall, and growth per power. */
-export function versusReport(games: readonly GameSummary[], current: readonly Set<Power>[]): string {
-  const lines = ["", "Current bot against the baseline (the same kings play both sides across seeds):"];
-  const newGrowth: number[] = [];
-  const oldGrowth: number[] = [];
-  // Item 18, part F3: each side's standing against par too, where a feast or a fall of one power weighs no more than its rank.
-  const newStanding: number[] = [];
-  const oldStanding: number[] = [];
-  let newWins = 0;
-  let oldWins = 0;
-  for (let i = 0; i < games.length; i++) {
-    for (const p of AllPowers) {
-      (current[i].has(p) ? newGrowth : oldGrowth).push(games[i].growth[p]);
-      (current[i].has(p) ? newStanding : oldStanding).push(standingOf(p, games[i].growth[p]));
-    }
-    for (const w of games[i].winners) {
-      const p = parsePower(w);
-      if (p === null) continue;
-      if (current[i].has(p)) newWins += 1.0 / games[i].winners.length;
-      else oldWins += 1.0 / games[i].winners.length;
-    }
-  }
-  const newSeats = sum(current, (c) => c.size);
-  const oldSeats = games.length * AllPowers.length - newSeats;
-  lines.push(
-    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, standing ${fmtN(mean(newStanding), 3)}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
-  );
-  lines.push(
-    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, standing ${fmtN(mean(oldStanding), 3)}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
-  );
-  // Item 18, part F3: the Great Kings apart from the rest, since a feature can help one and cost the other.
-  const great = new Set<Power>(GreatKings);
-  for (const [name, has] of [["Great Kings", (p: Power) => great.has(p)], ["The rest", (p: Power) => !great.has(p)]] as const) {
-    const of = (cur: boolean, f: (g: GameSummary, p: Power) => number): number =>
-      mean(games.flatMap((g, i) => AllPowers.filter((p) => has(p) && current[i].has(p) === cur).map((p) => f(g, p))));
-    const grow = (g: GameSummary, p: Power): number => g.growth[p];
-    const stand = (g: GameSummary, p: Power): number => standingOf(p, g.growth[p]);
-    lines.push(`  ${name}: growth ${fmt(of(true, grow), "0.00")} / ${fmt(of(false, grow), "0.00")}, standing ${fmtN(of(true, stand), 3)} / ${fmtN(of(false, stand), 3)} (current / baseline)`);
-  }
-  lines.push(...bondReport(games.map((g) => g.bonds ?? []), (i, p) => current[i].has(p)).map((x) => `  ${x}`));
-  lines.push("  Per power, mean growth as current / as baseline:");
-  for (const p of AllPowers) {
-    const asNew = mean(games.filter((_, i) => current[i].has(p)).map((g) => g.growth[p]));
-    const asOld = mean(games.filter((_, i) => !current[i].has(p)).map((g) => g.growth[p]));
-    lines.push(`    ${align(p, -10)} ${fmt(asNew, "0.00")} / ${fmt(asOld, "0.00")}`);
-  }
-  return lines.join("\n");
-}
-
-/** The scoreboard over many games: who stood first, how rich the richest character was at the end, and where all characters' gold came from. */
-export function scoreboardReport(games: readonly GameSummary[]): string[] {
-  const top = games.map((g) => g.topWealth);
-  const gained = newEarnings();
-  for (const g of games) addEarnings(gained, g.gained);
-  const total = earningsTotal(gained);
-  const share = (part: number): string => (total === 0 ? "0%" : `${fmt((100.0 * part) / total, "0.0")}%`);
-  return [
-    "Every person on one scoreboard (item 17b, part D):",
-    `  First place: a king in ${count(games, (g) => g.firstIsKing === true)} of ${games.length} games, a character in ${count(games, (g) => g.firstIsKing === false)}.`,
-    `  The richest character held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
-    `  All the gold characters gained, ${total} shekels: fees ${share(gained.fees)}, lending and dealing ${share(gained.dealt)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal or capture ${share(gained.carried)}, savings brought in ${share(gained.savings)}, loot ${share(gained.loot)}, news and carrying ${share(gained.news)}; they spent ${gained.spent}.`,
-    "  " + Wealth.WhatCounts,
-  ];
-}
-
-/**
- * Par's results from these games (item 11e, "One scoreboard for every power"): each power's growth in each game, a fall
- * as 0, sorted, as the source of `src/engine/src/rules/par-results.ts`.
- */
-export function parResultsSource(games: readonly GameSummary[], seeds: string): string {
-  const rows = AllPowers.map((p) => `  ${p}: [${[...games.map((g) => (g.growth[p] > 0 ? Math.max(0.01, g.growth[p]) : 0))].sort((a, b) => a - b).map((x) => fmt(x, "0.00")).join(", ")}],`);
-  return [
-    "/**",
-    ` * Par's results (item 11e, "One scoreboard for every power"): each power's growth at the end of ${games.length} script games (${seeds}), a fall`,
-    " * counted as 0, sorted. Generated by `scripts/sim.sh --par-out`; refreshed when the rules change who falls and grows.",
-    " */",
-    'import type { Power } from "../model/power.ts";',
-    "",
-    "export const ParResults: Partial<Record<Power, readonly number[]>> = {",
-    ...rows,
-    "};",
-    "",
-    "/**",
-    ` * Par for a character (item 17b, part D, "One scoreboard for every person"; item 18, part F2): what the best ${CharacterParBest} characters`,
-    " * who never reigned gained in each of the same games, measured from what each brought into play (`characterResult`), pooled and",
-    " * sorted.",
-    " */",
-    `export const CharacterPar: readonly number[] = [${games.flatMap((g) => g.characterResults ?? []).sort((a, b) => a - b).map((x) => roundTo(x, 2)).join(", ")}];`,
-    "",
-  ].join("\n");
-}
-
-export function batchReport(games: readonly GameSummary[]): string {
-  const lines: string[] = [];
-  lines.push(`${games.length} games, ${fmt(mean(games.map((g) => g.turns)), "0.0")} turns on average (range ${min(games, (g) => g.turns)}-${max(games, (g) => g.turns)}).`);
-  {
-    // Item 17: the length of the age, and the one test it is judged by.
-    const lengths = games.map((g) => g.turns).sort((a, b) => a - b);
-    const decided = games.filter((g) => (g.greatWar ?? null) !== null);
-    lines.push(
-      `The age: median ${lengths[Math.floor((lengths.length - 1) / 2)]} seasons; a Great King's war decided in ${decided.length} of ${games.length} ages (his capital taken first ${decided.filter((g) => g.greatWar === "capital").length}, made another's vassal first ${decided.filter((g) => g.greatWar === "vassal").length}).`,
-    );
-  }
-  {
-    // Item 17++a: how much happened, against the first-guess target.
-    const pulse = pulseReport(games.flatMap((g) => (g.pulse !== undefined ? [g.pulse] : [])));
-    if (pulse !== "") lines.push(pulse);
-  }
-  lines.push("");
-  lines.push("Wins by power (shared wins count for each partner):");
-  for (const p of AllPowers) {
-    const wins = games.filter((g) => g.winners.includes(p)).length;
-    const avg = mean(games.map((g) => g.growth[p]));
-    // The mean growth, a fall counted as 0, the survivors' own mean, and the mean standing against par's results (item
-    // 11e: each result ranked among its position's, 1 at their middle).
-    const standing = games.filter((g) => g.growth[p] > 0);
-    const survived = standing.length === 0 ? "" : `  survivors ${align(String(standing.length), 3)} at ${fmt(mean(standing.map((g) => g.growth[p])), "0.00")}`;
-    const ranked = mean(games.map((g) => standingOf(p, g.growth[p])));
-    // Its final score where it lived (item 11e: size and performance blended).
-    const scored = games.filter((g) => g.score?.[p] !== undefined).map((g) => g.score[p]);
-    const final = scored.length === 0 ? "" : `  score ${fmt(mean(scored), "0.00")}`;
-    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (standing ${fmt(ranked, "0.00")})${final}${survived}`);
-  }
-  const weakWins = games.filter((g) =>
-    g.winners.some((w) => {
-      const p = parsePower(w);
-      return p !== null && tier(p) === "Weak";
-    }),
-  ).length;
-  const cityWins = games.filter((g) => g.winners.some((w) => parsePower(w) !== null && tier(parsePower(w)!) === "City")).length;
-  lines.push(`  Games won by a weak power: ${weakWins}; by a city-state: ${cityWins}`);
-  lines.push(`  Shared victories: ${games.filter((g) => g.winners.length > 1).length}`);
-  lines.push("");
-  lines.push("Signals (games with at least one / total):");
-  for (const kind of SignalDetector.Kinds) {
-    const withIt = games.filter((g) => (g.signals[kind] ?? 0) > 0).length;
-    const total = sum(games, (g) => g.signals[kind] ?? 0);
-    lines.push(`  ${align(kind, -24)} ${align(String(withIt), 3)} / ${total}`);
-  }
-  lines.push("");
-  lines.push(
-    `Standing orders, every seat's: ${sum(games, (g) => g.standingKept)} kept in ${games.filter((g) => g.standingKept > 0).length} games; ${sum(games, (g) => g.standingFired)} fired in ${games.filter((g) => g.standingFired > 0).length} games.`,
-    // Item 12 ("Where characters are, and what they speak"): how long each court's letters waited for a carrier who can be understood there.
-    `Letters to each court, seasons waited for a carrier understood there (letters): ${AllPowers.filter((p) => sum(games, (g) => g.lettersTo?.[p]?.[0] ?? 0) > 0)
-      .map((p) => {
-        const n = sum(games, (g) => g.lettersTo?.[p]?.[0] ?? 0);
-        return `${p} ${fmt(sum(games, (g) => g.lettersTo?.[p]?.[1] ?? 0) / n, "0.0")} (${n})`;
-      })
-      .join(", ")}.`,
-  );
-  lines.push("");
-  lines.push(...warReport(games));
-  lines.push(...risenReport(games));
-  lines.push("");
-  lines.push(...pressReport(games));
-  const seasons = sum(games, (g) => g.turns);
-  const pool = sum(games, (g) => g.characterPool * g.turns);
-  if (seasons > 0 && pool > 0)
-    lines.push(
-      `Characters as agents would be asked ${fmt(sum(games, (g) => g.characterCalls) / seasons, "0.0")} times a season (calls), ` +
-        `${fmt(sum(games, (g) => g.characterWakeups) / seasons, "0.0")} wake-ups a season over a pool of ${fmt(mean(games.map((g) => g.characterPool)), "0")}: ` +
-        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season; ` +
-        `the busiest season woke ${max(games, (g) => g.characterPeak ?? 0)} (its median over the games ${median(games.map((g) => g.characterPeak ?? 0))}).`,
-    );
-  // Item 17+: how often each attested person is sent anywhere or decides anything, over the games (the report's count).
-  const people = new Map<string, [number, number, number, number]>();
-  for (const g of games)
-    for (const [name, [asked, sent, served]] of Object.entries(g.people ?? {})) {
-      const t = people.get(name) ?? [0, 0, 0, 0];
-      people.set(name, [t[0] + asked, t[1] + sent, t[2] + served, t[3] + 1]);
-    }
-  if (people.size > 0)
-    lines.push(
-      `People of the sources, over ${games.length} games (decisions asked, times sent anywhere, games in a court's service): ` +
-        [...people.entries()].sort((a, b) => b[1][0] + b[1][1] - (a[1][0] + a[1][1]) || a[0].localeCompare(b[0])).map(([n, t]) => `${n} ${t[0]}/${t[1]}/${t[2]}`).join(", ") + ".",
-    );
-  lines.push("");
-  lines.push(...scoreboardReport(games));
-  lines.push(...moneyReport(games.flatMap((g) => (g.money !== undefined ? [g.money] : []))));
-  lines.push(...spendingReport(games.flatMap((g) => (g.spending !== undefined ? [g.spending] : []))));
-  lines.push(...heldReport(games.flatMap((g) => (g.held !== undefined ? [g.held] : []))));
-  lines.push(...bondReport(games.map((g) => g.bonds ?? [])));
-  const cost = sum(games, (g) => g.costUsd);
-  if (cost > 0) lines.push(`\nModel cost: $${fmt(cost, "0.00")} total, $${fmt(cost / games.length, "0.00")} per game.`);
-  const errors = sum(games, (g) => g.errors);
-  if (errors > 0) lines.push(`Seat or model errors replaced by script fallbacks: ${errors}.`);
-  if (games.some((g) => g.sleepers))
-    lines.push(reopenRate([sum(games, (g) => g.courtsHeld), sum(games, (g) => g.courtsReopened), sum(games, (g) => g.courtsStoodIn)]));
-  if (games.some((g) => !g.replayMatches)) lines.push(`REPLAY MISMATCH in ${games.filter((g) => !g.replayMatches).length} game(s).`);
-  return lines.join("\n");
-}
-
-/** The solo benchmark's table: each king alone with the current bot against six baselines, against the same seed all-baseline. */
-export function soloReport(seeds: number, baseGrowth: Record<string, number[]>, soloGrowth: Record<string, number[]>, baseWins: Record<string, number>, soloWins: Record<string, number>): string {
-  const lines = [`One current king against ${AllPowers.length - 1} baselines, ${seeds} seeds:`, "  Power       growth alone / all-baseline   wins alone / all-baseline"];
-  for (const p of AllPowers)
-    lines.push(
-      `  ${align(p, -10)}  ${align(fmt(mean(soloGrowth[p]), "0.00"), 5)} / ${align(fmt(mean(baseGrowth[p]), "0.00"), 4)}                  ${align(fmt((100 * soloWins[p]) / seeds, "0"), 3)}% / ${align(fmt((100 * baseWins[p]) / seeds, "0"), 3)}%`,
-    );
-  const allSolo = mean(AllPowers.map((p) => mean(soloGrowth[p])));
-  const allBase = mean(AllPowers.map((p) => mean(baseGrowth[p])));
-  const sumSolo = sum(AllPowers, (p) => soloWins[p]);
-  const sumBase = sum(AllPowers, (p) => baseWins[p]);
-  lines.push(
-    `  All kings   ${align(fmt(allSolo, "0.00"), 5)} / ${align(fmt(allBase, "0.00"), 4)}                  ${align(fmt((100 * sumSolo) / (seeds * AllPowers.length), "0"), 3)}% / ${align(fmt((100 * sumBase) / (seeds * AllPowers.length), "0"), 3)}%`,
-  );
-  return lines.join("\n");
-}
-
