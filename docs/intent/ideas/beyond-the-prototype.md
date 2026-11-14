@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Ideas tab, revision 22 (2026-11-11). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Ideas tab, revision 22 (2026-11-14). Do not edit: see docs/intent/INDEX.md. -->
 ## Beyond the prototype
 
 If the hypothesis holds, the full game becomes a grand strategy whose tech tree is a tree of trust: each era changes how fast information moves, how verifiable it is and how easy it is to fake.
