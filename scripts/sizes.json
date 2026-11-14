@@ -16,7 +16,7 @@
     "core/modules/claude.md": 20480,
     "core/modules/other-builders.md": 20480
   },
-  "total": 71680,
+  "total": 49836,
   "split": 51200,
   "skip": [
     "docs/archive/",
