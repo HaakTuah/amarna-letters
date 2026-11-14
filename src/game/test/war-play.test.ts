@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { Views, newGame, newGameConfig } from "@amarna/engine";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
-import { WarPlay, keptBond, willing } from "../src/bots/siege-tactics.ts";
+import { WarPlay, keptBond, small, willing } from "../src/bots/siege-tactics.ts";
 import { strategy } from "../src/bots/statecraft-strategy.ts";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 
@@ -21,7 +21,7 @@ describe("WarPlayTests", () => {
     const [b, brain] = hattiAtPeaceWithKaska();
     brain.warTarget = "Kaska";
     Assert.true(brain.isFriend("Kaska"));
-    Assert.false(keptBond(brain, "Kaska"));
+    Assert.false(keptBond(b, brain, "Kaska"));
     Assert.true(willing(b, brain, "Kaska", null));
     WarPlay.off = true;
     try {
@@ -52,9 +52,30 @@ describe("WarPlayTests", () => {
     brain.rel.get("Kaska").allied = true;
     brain.warTarget = "Kaska";
     brain.warSince = b.v.turn;
-    Assert.true(keptBond(brain, "Kaska"));
+    Assert.true(keptBond(b, brain, "Kaska"));
     strategy(b, brain, brain.r(b.v.turn, "test"));
     Assert.notEqual("Kaska", brain.warTarget);
     Assert.false(willing(b, brain, "Kaska", null));
+  });
+
+  test("A small king keeps a plain peace as a bar to his war of choice, by his strength now, not his rank", () => {
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Kaska");
+    const at = (me: "Hatti" | "Kaska", strength: number | null): [Board, Brain] => {
+      const view = Views.for(s, me);
+      if (strength !== null) view.strength = strength;
+      const brain = new Brain(me, 4);
+      brain.learn(view, new Board(view));
+      brain.rel.get(me === "Hatti" ? "Kaska" : "Hatti").treaty = true;
+      return [new Board(view, brain.remembered(view)), brain];
+    };
+    const [city, cityBrain] = at("Kaska", null);
+    Assert.true(small(city));
+    Assert.true(keptBond(city, cityBrain, "Hatti"));
+    const [grown, grownBrain] = at("Kaska", 1_000_000);
+    Assert.false(small(grown));
+    Assert.false(keptBond(grown, grownBrain, "Hatti"));
+    const [fallen, fallenBrain] = at("Hatti", 1);
+    Assert.true(small(fallen));
+    Assert.true(keptBond(fallen, fallenBrain, "Kaska"));
   });
 });

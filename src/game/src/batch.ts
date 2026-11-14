@@ -53,6 +53,7 @@ import { SignalDetector } from "./signals.ts";
 import { MoneyWatch, moneyReport, type MoneyMeasure } from "./money-report.ts";
 import { SpendingWatch, spendingReport, type SpendingMeasure } from "./spending-report.ts";
 import { HeldWatch, heldReport, type HeldMeasure } from "./captives-report.ts";
+import { BondWatch, bondReport, type BondTake } from "./bonds-report.ts";
 
 /**
  * A kingdom's fall as the pace of war measures it: the season, the conqueror, and the seasons from the conqueror's first
@@ -102,6 +103,8 @@ export interface GameSummary {
   spending?: SpendingMeasure;
   /** #806: the kings held captive and how long ({@link HeldWatch}); older summaries have none. */
   held?: HeldMeasure;
+  /** Provinces overlords took from their own vassals (item 18, F3; `bonds-report.ts`). */
+  bonds?: BondTake[];
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
   /**
@@ -323,6 +326,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   const watch = new MoneyWatch();
   const spent = new SpendingWatch(runner.state);
   const captives = new HeldWatch();
+  const bonds = new BondWatch(runner.state);
   // Each season read once it is played, by its own number, the last (when playTurn says the age is over) included.
   for (let more = true; more; ) {
     const played = runner.state.turn;
@@ -330,6 +334,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     watch.season(runner.state, played);
     spent.season(runner.state, played, runner.log);
     captives.season(runner.state);
+    bonds.season(runner.state);
   }
   const s = runner.state;
 
@@ -371,6 +376,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     money: watch.end(characters.filter((x) => !reigned.has(x.character.id))),
     spending: spent.end(),
     held: captives.end(s, (p) => standingOf(p, engine.growth(p))),
+    bonds: bonds.taken,
     gained,
     press: pressOf(s),
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
@@ -643,6 +649,16 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
   lines.push(
     `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, standing ${fmtN(mean(oldStanding), 3)}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
+  // Item 18, part F3: the Great Kings apart from the rest, since a feature can help one and cost the other.
+  const great = new Set<Power>(GreatKings);
+  for (const [name, has] of [["Great Kings", (p: Power) => great.has(p)], ["The rest", (p: Power) => !great.has(p)]] as const) {
+    const of = (cur: boolean, f: (g: GameSummary, p: Power) => number): number =>
+      mean(games.flatMap((g, i) => AllPowers.filter((p) => has(p) && current[i].has(p) === cur).map((p) => f(g, p))));
+    const grow = (g: GameSummary, p: Power): number => g.growth[p];
+    const stand = (g: GameSummary, p: Power): number => standingOf(p, g.growth[p]);
+    lines.push(`  ${name}: growth ${fmt(of(true, grow), "0.00")} / ${fmt(of(false, grow), "0.00")}, standing ${fmtN(of(true, stand), 3)} / ${fmtN(of(false, stand), 3)} (current / baseline)`);
+  }
+  lines.push(...bondReport(games.map((g) => g.bonds ?? []), (i, p) => current[i].has(p)).map((x) => `  ${x}`));
   lines.push("  Per power, mean growth as current / as baseline:");
   for (const p of AllPowers) {
     const asNew = mean(games.filter((_, i) => current[i].has(p)).map((g) => g.growth[p]));
@@ -784,6 +800,7 @@ export function batchReport(games: readonly GameSummary[]): string {
   lines.push(...moneyReport(games.flatMap((g) => (g.money !== undefined ? [g.money] : []))));
   lines.push(...spendingReport(games.flatMap((g) => (g.spending !== undefined ? [g.spending] : []))));
   lines.push(...heldReport(games.flatMap((g) => (g.held !== undefined ? [g.held] : []))));
+  lines.push(...bondReport(games.map((g) => g.bonds ?? [])));
   const cost = sum(games, (g) => g.costUsd);
   if (cost > 0) lines.push(`\nModel cost: $${fmt(cost, "0.00")} total, $${fmt(cost / games.length, "0.00")} per game.`);
   const errors = sum(games, (g) => g.errors);

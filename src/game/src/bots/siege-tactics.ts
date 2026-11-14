@@ -3,7 +3,7 @@
  * armies standing in foreign walls besiege them, the sallies that go with a plan, whether a friend's besieged city is worth
  * relieving, whether the king will fight a given king at all, and what a siege is worth against a storm.
  */
-import { besiege, cmpNum, cmpStr, sally, sortBy, type Order, type Power, type SallyOrder, type UnitView } from "@amarna/engine";
+import { GreatKings, besiege, cmpNum, cmpStr, sally, sortBy, type Order, type Power, type SallyOrder, type UnitView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -102,9 +102,11 @@ export function willing(b: Board, brain: Brain, owner: Power, leader: Power | nu
 /**
  * Script kings wage the war they choose (item 17++a, "something happens every season"). A plain peace is a price the choice
  * of a war weighs (`strategy`: its worth to an honest king, and the trust it carries), not a bar: a king fights the war he
- * chose on a king at peace with him, breaking the peace. An ally who broke no oath, his overlord and a vassal who pays are
- * kept whatever a war would win, and are never the war. Before, a king named a war on a king at peace with him, his choice
- * weighed and made, and then never fought it, while the war he would fight waited. `--no-war-play` and `--war-play-half`
+ * chose on a king at peace with him, breaking the peace. An ally who broke no oath and his overlord are kept whatever a war
+ * would win, and are never the war; so, for a small king ({@link small}), is a king at peace with him whom he still
+ * trusts (`isFriend`; item 18, part F3's rest: cities that broke a peace for a war of choice fell behind those that kept
+ * it, while the Great Kings gained by it). Before, a king named a war on a king at peace with him, his choice weighed and
+ * made, and then never fought it, while the war he would fight waited. `--no-war-play` and `--war-play-half`
  * turn this off, only to measure what it is worth.
  */
 export const WarPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -115,10 +117,19 @@ export const WarPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me:
   },
 };
 
-/** Bonds a king keeps whatever a war would win: an ally who broke no oath to him, and his overlord. */
-export function keptBond(brain: Brain, x: Power): boolean {
+/**
+ * A small king: weaker now than every Great King was at the start, as every city begins. By his strength now, not his
+ * rank, so a city grown great chooses its wars as a Great King does and a Great King brought low as a city does
+ * ("Different data, same rules").
+ */
+export function small(b: Board): boolean {
+  return b.strength(b.me) < Math.min(...GreatKings.map((g) => b.startStrength(g)));
+}
+
+/** Bonds a king keeps whatever a war would win: an ally who broke no oath to him, his overlord, and for a small king any friend. */
+export function keptBond(b: Board, brain: Brain, x: Power): boolean {
   const r = brain.rel.get(x);
-  return (r.allied && r.oathsBroken === 0) || brain.bondFriends.has(x);
+  return (r.allied && r.oathsBroken === 0) || brain.bondFriends.has(x) || (brain.isFriend(x) && small(b));
 }
 
 /**

@@ -172,37 +172,36 @@ Answered review points from before 2 November 2026: `docs/archive/progress-done.
 
 Every item adds its numbers here ("Every item tests them" in the builder rules; how they are measured: the *use-against-ignore measurement* in `core-manifest.md`). Earlier items' numbers are in their reports; item 10+a's audit of every feature built so far adds them here.
 
-The rows of done items (6c to 17++) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
-17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check");
-new rows are added here. Where they stand (F3: item 18 F3):
+The rows of done items (6c to 17b) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (6c to
+17+ moved 2 November 2026, 17++ on 6 November, 17++a to 17++++a and the bug fixes' rows on 7 November, "The workshop check";
+17b on 13 November);
+new rows are added here. Where they stand (F3: item 18 F3, on its unpatched play unless marked; F3r: its rest, 200 games):
 **pays** 6c planning ahead, 7b roads, 9 authority (F3), 9+a the economy (F3, patched), 9+b trade, 10+a land play (F3),
 10+b borders, 11a and 11a+ money and seasons (a little), 13 command (a little), 15 works (growth), 16 the council, 17++
-(occupying, the census, governors' regions and grants, the spy's check, remnants); **a little ahead** (F3) 9 winter
-strokes, 12 languages, 17 buying food and stirring, 17+ holding back pay, 17++ D talk; **even** (F3) 10 judging people,
-11b, 11b++ hunting, 11b+ borrowing, raiders, 11e walls, 11f caravans abroad, 11+ vassalage (patched), 18 E gifts; #806 and 18
-F2 a captive king; **mixed** 17++a the war of choice (F3, unpatched play); **not measured again yet** 7a sea play, 8
-inventories, tidings, rides, coffers, 17++ A the ledger, 17++ D a carrier caught; nothing to measure for 11d,
-11f+, 13+, 14 and 17+'s names.
+(occupying, the census, governors' regions and grants, the spy's check, remnants), 17++a the war of choice (F3r, patched:
+a small king keeps his peace); **a little ahead** (F3) 9 winter strokes, 12 languages, 17+ holding back pay, (F3r) 17 and 17++
+A buying food and stirring (in wins); **even** (F3) 10 judging people, 11b, 11b++ hunting, 11b+ borrowing, raiders, 11e
+walls, 11f caravans abroad, 18 E gifts, (F3r) 7a sea play, 17++ D talk; #806 and 18 F2 a captive king; **a little
+behind** (F3r) the coffer (in wins); **behind** (F3r) 11+ vassalage, the Great Kings most (patches tried, none kept);
+**too rare to move a game** (F3r) 8 inventories, rides, 17++ D a carrier caught; **never in play** (F3r) tidings (#980);
+nothing to measure for 11d, 11f+, 13+, 14 and 17+'s names.
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
-| 17b B | A captive king ransomed or put to death, and one's own ransomed (`--king-play-half`) | 0.76 growth to 0.77, 29 wins to 21, in 50 games; kings taken 1,178 times, 72 escapes, 6 deaths | Pays in wins |
-| 17b C1 | A king who goes to the front without his court when his army fights where the court's couriers come late (`--field-play-half`) | 0.76 growth to 0.73, 29 wins to 21, in 50 games; kings went alone 736 times in 44 of 50 games (regression run) | Pays in wins |
-| 17b C2 | Granting land, now also to a fallen realm's king or heir in exile at the court (`--grant-play-half`) | 0.79 growth to 0.75, 28 wins to 22, in 50 games; heirs in exile 124 times in 39 games, fallen realms' kings or heirs made king again 26 times in 20 games (regression run) | Pays |
-| 17b D | One scoreboard of every person: no lever of its own (it changes what is counted, not what a player can do) | a character first on the board in 1 of 50 regression games, a king in 49 | No lever |
 | 18 C | Commanders granted away from court, with mandates, on the slower breach (`--command-play-half`) | 0.79 growth to 0.90, 12 wins to 27, in 50 games | Pays |
 | 18 E | Gifts, bribes and tribute judged by their expected return (`--gift-play-half`) | 0.79 growth to 0.85, 15 wins to 24 (seeds 1-50, with the vassal's tribute judged too); before that, 14 to 20 and 14 to 17 (seeds 101-150) | Ahead, within the noise of 50 games; part F re-measures on the full seed sets |
 | 18 E | A vassal's tribute judged by the peace it buys (`--vassal-play-half`) | 0.74 growth to 0.78, 21 wins to 19 | Growth ahead, wins even |
 | #806 | A captive king under a caretaker: his ransom by his word home or, short of it, giving in with land; a spy sent to free him; letters to his sworn friends; a captor keeping his letters, guarding him once a plot is found, and letting him go for land; with 17b's ransoms (`--king-play-half`) | 0.83 growth to 0.82, 19 wins to 22, in 50 games; 395 kings held, 22 still held at the age's end; 132 escapes, 6 helped by a spy; 2 letters smuggled, 6 kept; 8 gave in | Even, within the noise of 50 games; not yet in wins |
 | 18 F2 | A captive king, after #878 and the new par (`--king-play-half`) | 0.82 growth to 0.80, 44 wins to 50, in 100 games (before: 0.82 to 0.81, 39 to 37); a king held long gains his captor nothing beyond the capture | Even; holding a king forever neither pays nor ruins |
 | 18 F3 | Every feature, against a null split (`--null-half`) | the economy 0.80 growth to 0.865, patched 0.865 to 0.765; vassalage 0.77 to 0.79, patched even; the rest in F3's report | Two patched; five not measured |
+| 18 F3r | The rest, against the null split, seeds 1-200 | the war of choice, a small king keeping his peace: standing level, the Great Kings 0.045 ahead; 17 and 17++ A: wins 96 / 82 (null 88 / 95), standing level; the coffer: wins 80 / 101, standing level; 7a sea play, 17++ D: level; vassal play: the Great Kings 0.15 behind (seeds 101-200); tidings, rides, inventories too rare; figures in the F3 rest report | One patched (the small king's peace); vassal play behind, for the next part |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); **pick up at the F3 report's "Split, and where to pick up"**: F3's remainder (par, benchmarks, five features), F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review (none started: the owner's word, 12 November) | `item/balance-f3` | `docs/rounds/2026-11-11-balance-pass-f3.md` |
+| 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's rest done (save version 95; par again on 938ba68, the features left, 17++ A and D, seeds 101-200 for the close rows; a small king keeps a plain peace as a bar to his war of choice; vassal play still behind); next, by the F3 report's "Split, and where to pick up" and the F3 rest report's "Left to the next part": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
 | 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |

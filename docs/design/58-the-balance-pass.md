@@ -103,3 +103,19 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   what the seeds alone give each side. On seeds 1-100 the powers of one parity win more often on the seeds of the other.
 - Every feature now has its half switch: `--sea-play-half` ([12](12-the-map-and-the-seas.md)) and
   `--inventory-play-half` ([14](14-structured-press.md)) are new.
+
+## Part F3's rest: the last features and par again (`versusReport`, `game/src/bonds-report.ts`, `rules/par-results.ts`)
+
+- **The Great Kings and the rest apart:** each half-switch run also reports the Great Kings' and the other states' growth
+  and standing, current against baseline, since a feature can help one and cost the other (the war of choice did).
+- **Vassals taken by their own overlords** (`BondWatch`, `bondReport`): the provinces overlords take from vassals in good
+  standing (paying their tribute, owing none, or not yet due: `inGoodStanding`, as a script overlord reckons arrears), and
+  from vassals in arrears, by side in a half-switch run. Overlords take about 0.3 provinces a game
+  from paying vassals (0.1 to 0.4 in each run) and 6 to 8 from those in arrears, so a paid overlord sparing his vassal
+  holds.
+- **A small king keeps a plain peace** as a bar to his war of choice: one weaker now than every Great King was at the
+  start, as every city begins ([05](07-script-kings/05-choosing-a-war.md)).
+- **Par refreshed** from 100 games (seeds 101-200) with the small king's peace in play, measured after every feature's run so
+  that their standings, all read on the par before it, stay comparable.
+- Save version 95: par refreshed, so a game's final scores and winner, and the script kings' play that ranks rivals by
+  standing, differ from version 94's (as at part B's version 88).
