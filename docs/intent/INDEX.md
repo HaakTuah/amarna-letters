@@ -17,7 +17,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 579 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 379 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 381 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 85 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 28 |
@@ -26,7 +26,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 35 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 114 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 28 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 48 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 51 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 18 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 22 |
 
@@ -62,7 +62,7 @@ session loads.
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 40.9 |
-| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.6 |
+| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 7.2 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 18.6 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
@@ -114,7 +114,8 @@ session loads.
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 21.5 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 5.6 |
-| `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
+| `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.2 |
+| `docs/intent/interface-and-the-council/the-players-screen.md` | The player's screen | 8.3 |
 | `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 25.4 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
