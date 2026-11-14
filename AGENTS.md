@@ -20,7 +20,7 @@ these whole at the start of every task (Claude Code imports them; any other buil
 A builder of another provider: read `core/modules/other-builders.md` at the start of every task. The other files of the
 core, `core/floor/topics.md` (when: the floor's opening says) and `core/modules/game-design.md` among them, are read
 when a task needs them; each module says when. A safety rule of this game's own, which "Principles over rules"
-(`core/modules/how-to-work.md`) never reaches: no model games until the build order is done.
+(`core/modules/how-to-work.md`) never reaches: "No model games with paid models" in the builder rules.
 
 ## Where things are
 

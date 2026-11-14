@@ -9,7 +9,7 @@ fresh session. Since then the fix pass (20 October 2026) changed the isolation t
 it to make every step. The kit of 19 October predated the change, so on 20 October it was remade with `node
 sim/setup.js --seeds 7,15 --force` (the old one is in `sim/runs/setup-<time>/`), and `node sim/check-isolation.js
 --dry` holds on it; start a fresh session before using it, so that its agent types load. No model game is run until
-the build order is done and the owner asks for one (the builder rules, "No model games until the build order is done").
+the build order is done and the owner asks for one (the builder rules, "No model games with paid models until the build order is done").
 The `ANTHROPIC_API_KEY` environment variable must not be set in that session: it would make Claude Code bill the API
 instead of the subscription.
 

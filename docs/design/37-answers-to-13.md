@@ -61,7 +61,7 @@ long they lasted, their growth, and the envoys and tablets their seats sent and 
 
 ## Not built here
 
-- A risen seat played by a model: it is a script seat; model seats return with model games ("No model games until the
-  build order is done").
+- A risen seat played by a model: it is a script seat; model seats return with model games ("No model games with paid
+  models until the build order is done").
 - The other ways a city becomes free (a revolt, a commander keeping his army, a governor turning on his recall and
   ruling a city of his own): item 17, by the same powers risen in play.
