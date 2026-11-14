@@ -116,7 +116,7 @@ finishes:
 4. The benchmarks after: done.
 4a. Seeds 101-200 on 767cab8 leaned the other way from 938ba68's, within the null's spread: the war of choice and the
    null split on seeds 1-50, then 51-100, on 767cab8, to settle the verdict on 200 games. The war of choice, seeds
-   1-50: **running** (started 00:16 UTC on 14 November).
+   1-50: **running** (started again 00:11 UTC on 14 November after the container restarted).
 5. Par again (`--games 50 --seed 101 --par-out <file>`, then `--seed 151`), merged into `rules/par-results.ts` as before:
    the last runs.
 
