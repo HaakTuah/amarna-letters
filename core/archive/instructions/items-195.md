@@ -75,3 +75,38 @@ How they are kept, and where each item lives: `archive/instructions.md`.
      `scripts/nuget.mjs` holds; and behind the NuGet check failing from a project's first day, "advisory" left as a
      setting a project turns on while a fault of the check's own is mended. The second yes was read as a yes to
      the question as put, not to this session's "I would keep the week".
+
+199. **13 November 2026** (the core and both games, in a chat with a session the owner had asked how the work went,
+     whether it had questions and how the stand-in was doing). Told that the stand-in had answered ideas once in each
+     project, on 12 November, eighteen verdicts in all, ten of them sure; that the owner had answered none of them,
+     and nothing recorded whether it was right, its record having gone with the weekly measuring check on 10
+     November; that ideas filed in the week before it was called got no verdict, though its rule asks one on every
+     open idea; that a "later" waiting on a measurement was not looked at again once the measurement came; and that
+     builders seldom said they had asked it, one PR taking on its own a reading against an answer of the owner's of 6
+     November. Asked yes or no to three looks the stand-in was unsure of, and whether to keep that reading:
+
+     > I concur with all, expertly!
+
+     Read as a yes to each look, to keeping the reading, and to closing each gap named. Behind, in `modules/inbox.md`:
+     the stand-in's verdict on every open idea however new, and again on a "later" once its condition is measured, as
+     `scripts/stand-in-record.mjs --open` lists them; a reading departing from an owner's answer given by the stand-in
+     and listed with that answer's date; and "Its record", which the same script counts at each review of the core
+     (`AGENTS.md`, "The core is measured as a feature is").
+
+200. **13 November 2026** (the core, the same chat as item 199). Shown an orchestrator's own account of a lane it
+     called alive at one check, from a status line, while its branch had had no push for two hours, which then sat idle
+     for nine; told that the orchestrator's model, set as "Sonnet is enough", was the one seat nothing reviews, and
+     offered Opus there, a script for the stall check, a wake set once rather than each turn, and an end to a false
+     alarm of unpushed commits, the owner had said that Sonnet, at high, had "stopped fully up at least twice for the
+     couple of days we have given it this position". Then:
+
+     > Agreed, expertly! But would a script spam whenever I run out of usage, or tell my orchestrators to stop up to
+     > save usage, expert? What should our recommendation be? Opus on high? Or should we keep sonnet on high/extra, with
+     > the script to keep it in line, expert?
+
+     Answered: Opus at high, with the script; nothing stops to save usage; and a lane handed over once, then to
+     another provider, or else waiting and tried once a day, named to the owner once, so that no wake repeats it.
+     Behind the orchestrator's row in `modules/claude.md` and its line in `setup/server.md`; and, in
+     `modules/orchestrating.md`, the hourly wake set once as a repeat, its clone on `main`, and "A stalled lane" found by
+     `scripts/stalled.mjs` and handed over once. Read as a yes to Opus at high, the session's recommendation when he
+     asked which.

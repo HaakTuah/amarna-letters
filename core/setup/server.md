@@ -34,7 +34,7 @@ once.
    the host by mistake and the instructions are not the only guard. Written and tested when the machine is set up.
 8. **The agents' instructions** (below) copied to where each tool reads its own at the start of every session there:
    `~/.claude/CLAUDE.md` for Claude Code, and Codex's (such as `~/.codex/AGENTS.md`) once its part is written.
-9. **Each project's orchestrator** started by the owner, in the tool, from that project's folder: Claude Code on Sonnet.
+9. **Each project's orchestrator** started by the owner, in the tool, from that project's folder: Claude Code on Opus at high (`modules/claude.md`).
 
 ## The agents' instructions
 
