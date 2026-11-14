@@ -28,7 +28,7 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   storm, not the clock" (War). Now hunger and thirst end most sieges, as "How long a siege lasts" asks.
 - **Kept**: the age's median (80 seasons) and cap (140 to 160), the owner's of 30 October 2026, since most ages pass the
   length test; the gate a starving city keeps (`UnrestData.gate` 1); the people's help on rough ground (twice).
-- **The war report** (`warReport` in `game/src/batch.ts`) measures pillar 8: a letter from each fallen court to its
+- **The war report** (`warReport` in `game/src/batch-report.ts`) measures pillar 8: a letter from each fallen court to its
   conqueror's and the reply (`FallMeasure.reply`, the couriers' seasons there and back, each way by its own road, at the
   game's end, where the conqueror still reigns), the falls sooner than that after his entry, by kingdom; and the games in which a
   Great King's realm fell (held nothing, item 17b), a lower bound on the games in which his capital was taken.
@@ -95,7 +95,7 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 - **The bold and careful lines** count only those who never reigned.
 - Save version 94.
 
-## Part F3: every feature's use against ignore (`versusReport` in `game/src/batch.ts`)
+## Part F3: every feature's use against ignore (`versusReport` in `game/src/batch-report.ts`)
 
 - **Each side's standing against par** is reported beside its mean growth and wins: wins in 100 games carry a noise of
   about ten either way, and mean growth the outliers of the fast-growing states.
