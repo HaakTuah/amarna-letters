@@ -21,10 +21,7 @@ The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 Octo
 - **Queued ideas,** in order:
   [A smoothness guard: the phone soak at each milestone fails when long frames grow](https://github.com/HaakTuah/amarna-letters/issues/681)
   once the bug above ends (keeps gains from creeping back; archive item 97; the stand-in's sure yes, 12 November 2026);
-  then two looks, the owner's yes of 13 November 2026 (pictures, before and after):
-  ~~[rivers in spate rising from their sources](https://github.com/HaakTuah/amarna-letters/issues/679)~~ (done) and
-  ~~[realm bands firmer as the wash thins](https://github.com/HaakTuah/amarna-letters/issues/636)~~ (done). The other sure yeses
-  of 12 November are done (#647, #631).
+  the two looks of 13 November 2026 (#679, #636) and the other sure yeses of 12 November (#647, #631) are done.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
@@ -203,6 +200,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 |---|---|---|---|---|
 | 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's rest done (save version 95; par again on 938ba68, the features left, 17++ A and D, seeds 101-200 for the close rows; a small king keeps a plain peace as a bar to his war of choice; vassal play still behind); next, by the F3 report's "Split, and where to pick up" and the F3 rest report's "Left to the next part": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
 | 18a | The world in graphs | not started | | |
+| 18b | The player's screen (a lane beside item 18) | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |
 
