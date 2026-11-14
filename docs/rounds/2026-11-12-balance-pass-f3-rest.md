@@ -113,10 +113,10 @@ finishes:
 1. The war of choice (`--war-play-half`), seeds 101-150: done.
 2. The null split (`--null-half`), seeds 101-150: done.
 3. The war of choice and the null split, seeds 151-200: done.
-4. The benchmarks after: seeds 1-2 done; `--versus solo --games 2 --seed 3` **running** (started 00:06 UTC on 14
-   November).
+4. The benchmarks after: done.
 4a. Seeds 101-200 on 767cab8 leaned the other way from 938ba68's, within the null's spread: the war of choice and the
-   null split on seeds 1-50, then 51-100, on 767cab8, to settle the verdict on 200 games.
+   null split on seeds 1-50, then 51-100, on 767cab8, to settle the verdict on 200 games. The war of choice, seeds
+   1-50: **running** (started 00:16 UTC on 14 November).
 5. Par again (`--games 50 --seed 101 --par-out <file>`, then `--seed 151`), merged into `rules/par-results.ts` as before:
    the last runs.
 
@@ -189,3 +189,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | The war of choice, the small king's peace, seeds 151-200 | `--games 50 --seed 151 --war-play-half` | 767cab8 | 22 minutes. Growth 0.83 / 0.83, standing 1.035 / 1.044, wins 20 / 28; Great Kings 0.96 / 0.95 (1.024 / 0.972), the rest 0.80 / 0.81 (1.037 / 1.056). On 938ba68 the same seeds gave 1.048 / 1.074, wins 27 / 18; the null split on 767cab8 runs next |
 | Null split, seeds 151-200 | `--games 50 --seed 151 --null-half` | 767cab8 | 22 minutes. Growth 0.80 / 0.76, standing 1.019 / 0.976, wins 29 / 19; Great Kings 1.00 / 0.92 (1.031 / 0.962), the rest 0.76 / 0.73 (1.017 / 0.978). **Seeds 101-200 on 767cab8: the null 1.012 / 1.001, wins 56 / 41, Great Kings 0.994 / 0.999, the rest 1.015 / 1.001; the war of choice 1.045 / 1.054, wins 47 / 47, Great Kings 1.008 / 0.973, the rest 1.052 / 1.068.** Against the null's lean: standing 0.02 behind (level), wins 15 behind (the null's own halves lean 15 here, 3 on 938ba68), the Great Kings 0.04 ahead, the rest 0.03 behind. Within the null's spread, the reverse of 938ba68's lean on the same seeds (14 wins ahead); seeds 1-100 on 767cab8 run next to settle it |
 | Benchmarks after, seeds 1-2 | `--versus solo --games 2 --seed 1` | 767cab8 | 19 minutes. Growth alone / all-baseline: Egypt 1.40 / 0.84, Hatti 1.31 / 0.99, Babylonia 1.47 / 0.60, Mitanni 3.35 / 0.74, Assyria 2.12 / 0.83, Arzawa 0.76 / 0.84, Alashiya 1.39 / 0.73; all kings 2.83 / 1.05, wins alone 28% / 1%. Against dde658d's seeds 1-2 (the same seeds): Assyria up (1.82), Arzawa down (1.38) in its two games; in the null split's 100 games on 767cab8 Arzawa grows 0.78 against 0.71 in 938ba68's par, while Mitanni grows 0.72 (0.80) and Assyria 0.37 (0.45): a Great King brought low now keeps his peace, within about two standard errors |
+| Benchmarks after, seeds 3-4 | `--versus solo --games 2 --seed 3` | 767cab8 | 9 minutes. Egypt 1.37 / 0.93, Hatti 1.46 / 0.86, Babylonia 1.41 / 0.66, Mitanni 1.38 / 0.91, Assyria 1.95 / 0.92, Arzawa 0.85 / 0.68, Alashiya 1.05 / 0.76; all kings 1.79 / 1.06, wins alone 12% / 2%. **Seeds 1-4: Egypt 1.39 / 0.89, Hatti 1.39 / 0.93, Babylonia 1.44 / 0.63, Mitanni 2.37 / 0.82, Assyria 2.04 / 0.88, Arzawa 0.81 / 0.76, Alashiya 1.22 / 0.74; all kings 2.31 / 1.06, wins alone 20% / 2%.** Against 938ba68's after: the same but Assyria (2.00 to 2.04) and Arzawa alone (1.14 to 0.81), all kings 2.29 to 2.31. Arzawa, the weakest Great King at the start, is a small king whenever it is below its own start; alone among baseline kings in four games it does worse, while in the null split's 100 games it does better (above). Left for the next part's look at Arzawa (F4) |
