@@ -117,9 +117,9 @@ finishes:
 4a. Seeds 101-200 on 767cab8 leaned the other way from 938ba68's, within the null's spread: the war of choice and the
    null split on seeds 1-50, then 51-100, on 767cab8, to settle the verdict on 200 games. The war of choice, seeds
    1-50: done; the null split, seeds 1-50: done; the war of choice, seeds 51-100: done; the null split, seeds 51-100:
-   **running** (started 01:14 UTC on 14 November).
-5. Par again (`--games 50 --seed 101 --par-out <file>`, then `--seed 151`), merged into `rules/par-results.ts` as before:
-   the last runs.
+   done.
+5. Par again (`--games 50 --seed 101 --par-out <file>`: **running**, started 01:35 UTC on 14 November; then `--seed
+   151`), merged into `rules/par-results.ts` as before: the last runs.
 
 A session that ends with a run marked running: start that run again from a worktree of 767cab8 (Node as
 `core/.node-version`), and go on down the list.
@@ -194,3 +194,4 @@ Nothing heavy (a type check, the tests) runs beside a run: the first restart cam
 | The war of choice, the small king's peace, seeds 1-50 | `--games 50 --seed 1 --war-play-half` | 767cab8 | 21 minutes (started again after a container restart). Growth 0.84 / 0.81, standing 1.063 / 1.039, wins 20 / 28; Great Kings 0.99 / 0.97 (1.048 / 0.958), the rest 0.81 / 0.79 (1.066 / 1.053). The null split on 767cab8 runs next |
 | Null split, seeds 1-50 | `--games 50 --seed 1 --null-half` | 767cab8 | 21 minutes. Growth 0.81 / 0.77, standing 1.040 / 1.023, wins 23 / 22; Great Kings 0.96 / 0.94 (1.021 / 0.943), the rest 0.79 / 0.74 (1.043 / 1.037). The war of choice on the same seeds against it: level in standing (0.007 ahead), 9 wins behind, the Great Kings and the rest level |
 | The war of choice, the small king's peace, seeds 51-100 | `--games 50 --seed 51 --war-play-half` | 767cab8 | 21 minutes. Growth 0.84 / 0.80, standing 1.065 / 1.039, wins 27 / 21; Great Kings 0.96 / 0.95 (1.042 / 0.969), the rest 0.81 / 0.77 (1.069 / 1.052). The null split on 767cab8 runs next |
+| Null split, seeds 51-100 | `--games 50 --seed 51 --null-half` | 767cab8 | 21 minutes. Growth 0.80 / 0.79, standing 1.022 / 1.046, wins 21 / 21; Great Kings 0.97 / 0.95 (0.988 / 1.001), the rest 0.78 / 0.76 (1.028 / 1.054). The war of choice on the same seeds against it: 0.05 ahead in standing, 6 wins ahead, the Great Kings 0.09 and the rest 0.04 ahead. **Seeds 1-200 on 767cab8: the war of choice 1.055 / 1.046, wins 94 / 96, Great Kings 1.027 / 0.968, the rest 1.060 / 1.060; the null 1.021 / 1.018, wins 100 / 84, Great Kings 0.999 / 0.985, the rest 1.025 / 1.023.** Against the null's lean: level in standing (0.005 ahead), the Great Kings 0.045 ahead, the rest level (before the patch 0.05 behind), wins 18 behind (on 938ba68 24 ahead: in 200 games the wins swing about 20 either way between two plays this close). **Kept**: it pays the Great Kings in standing and no longer costs the rest |
