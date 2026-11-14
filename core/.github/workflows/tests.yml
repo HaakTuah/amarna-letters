@@ -64,6 +64,12 @@ jobs:
       - name: The core's own measurement
         if: ${{ !cancelled() }}
         run: node scripts/core-cost-test.mjs
+      - name: The stand-in's record
+        if: ${{ !cancelled() }}
+        run: node scripts/stand-in-record-test.mjs
+      - name: The stalled lanes
+        if: ${{ !cancelled() }}
+        run: node scripts/stalled-test.mjs
       - name: The description check
         if: ${{ !cancelled() }}
         run: node scripts/pr-description-test.mjs
