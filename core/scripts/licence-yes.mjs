@@ -37,9 +37,10 @@ export function acceptedList(list = [], key, named, shape, { entries = false, sa
 }
 
 /** Whether a licence is named so that a machine can read it: a whole SPDX expression, each licence in it one of `ids`
- *  or LicenseRef-<name>, an exception's id after WITH, its brackets closed and nothing left over. */
+ *  or LicenseRef-<name>, an exception's id after WITH, its brackets closed and nothing left over, its words parted by
+ *  spaces alone (scripts/readers-test.mjs, in the core's own tests, holds it to SPDX's own parser). */
 export function readable(licence, ids) {
-  const words = typeof licence === "string" ? licence.match(/\(|\)|[^\s()]+/gu) ?? [] : [];
+  const words = typeof licence === "string" && !/[^\x20-\x7e]/u.test(licence) ? licence.match(/\(|\)|[^ ()]+/gu) ?? [] : [];
   const joins = ["AND", "OR", "WITH"];
   if (words.length > 100) return false; // (no licence anyone wrote is that long, and each bracket is a call deeper)
   let at = 0;
@@ -50,7 +51,7 @@ export function readable(licence, ids) {
     if (words[at] !== "WITH") return true;
     const exception = words[at + 1];
     at += 2;
-    return exception !== undefined && !joins.includes(exception) && /^[A-Za-z0-9][A-Za-z0-9.-]*$/u.test(exception);
+    return exception !== undefined && !joins.includes(exception.toUpperCase()) && /^[A-Za-z0-9][A-Za-z0-9.-]*$/u.test(exception);
   };
   const level = () => {
     if (!term()) return false;

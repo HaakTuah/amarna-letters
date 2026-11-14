@@ -2,8 +2,11 @@
 // the core, measured on every PR. Its marks are the project's *size marks*, a JSON file (its SECURITY.md names it under
 // rule 3, among the checks on the work), and it fails:
 //   - when a file every session reads ("read") is past its mark (about 20 KB, "each"; one past that has a mark of its
-//     own, its size: when the file shrinks, the mark comes down with it), or their total is
-//     past "total";
+//     own, its size: when the file shrinks, the mark comes down with it), or the project's own among them total past
+//     "total" (the core's copy under core/, which the core's check holds to the core's tree, is left out: the core's
+//     own cap, scripts/size.mjs there, holds what of it every session reads, so that no sync fails a project over what
+//     the core grew, the core's AGENTS.md, "Nothing locks another owner's project"; where "total" leaves room above the
+//     project's own files for more than half that copy, a note gives the mark to set);
 //   - when the PR changes a file past "split" (about 50 KB: Step 0, split it by meaning first), unless "past" lists it
 //     with a mark at least its size. The copy of the core (core/, changed only by a sync PR), the paths under "skip"
 //     (such as the archive: dated records, added to by every merge) and binary files are not counted.
@@ -41,16 +44,24 @@ const kb = n => (n / 1024).toFixed(1);
 const skip = ["core/", ...(marks.skip ?? [])];
 const fail = [], notes = [];
 
-// the files every session reads
-let total = 0;
+// the files every session reads; their total, the project's own alone (the core's copy under core/ left out)
+let total = 0, core = 0;
 for (const [f, mark] of Object.entries(marks.read)) {
   if (!tracked.has(f)) { fail.push(`${f} is listed under "read" in ${MARKS} but is no tracked file: update ${MARKS}`); continue; }
   const n = size(f);
-  total += n;
+  if (f.startsWith("core/")) core += n; else total += n;
   if (n > mark) fail.push(`${f} is ${n} bytes, past its mark of ${mark}: make it smaller; its mark in ${MARKS} rises only as "A mark on what every session reads" in core/modules/review-guidelines.md says`);
   else if (mark > marks.each && n < mark) fail.push(`${f} has shrunk to ${n} bytes: lower its mark in ${MARKS} from ${mark} to ${Math.max(n, marks.each)}`);
 }
-if (total > marks.total) fail.push(`the files every session reads total ${total} bytes, past their mark of ${marks.total}: make them smaller; the mark in ${MARKS} rises only as "A mark on what every session reads" in core/modules/review-guidelines.md says`);
+// (a total that leaves room above the project's own files for more than half of what the core's copy every session
+// reads comes to, as one set when it counted that copy does however the core grew since: said, with the mark to set
+// in one step, never failed. The mark takes that copy off as often as the room holds it, keeping what room is left,
+// and is never below a KB above the project's own files, as the starter kit writes one)
+const least = (Math.ceil(total / 1024) + 1) * 1024;
+const over = marks.total - total - core / 2;
+const to = core && over > 0 ? Math.max(marks.total - Math.ceil(over / core) * core, least) : marks.total;
+if (to < marks.total) notes.push(`the total in ${MARKS}, ${marks.total}, leaves ${marks.total - total} bytes of room above the project's own files, more than half what the core's copy every session reads comes to (${core}), which the core's own cap holds: set it to ${to} (core/setup/sync-notes.md, 14 November 2026)`);
+if (total > marks.total) fail.push(`the project's own files every session reads total ${total} bytes, past their mark of ${marks.total}: make them smaller; the mark in ${MARKS} rises only as "A mark on what every session reads" in core/modules/review-guidelines.md says`);
 
 // Step 0: files past the split mark that the PR changes
 // (a file is read to be counted only where its bytes on disk are past the mark: counted, it is never larger)
@@ -70,5 +81,5 @@ for (const f of Object.keys(marks.past)) if (!big.includes(f)) fail.push(`${MARK
 for (const n of notes) console.log(`note ${n}`);
 for (const x of fail) console.error(`FAIL: ${x}`);
 if (fail.length) process.exit(1);
-console.log(`ok   read by every session: ${Object.keys(marks.read).map(f => `${f} ${kb(size(f))} KB`).join(", ")}; ${kb(total)} of ${kb(marks.total)} KB. `
+console.log(`ok   read by every session: ${Object.keys(marks.read).map(f => `${f} ${kb(size(f))} KB`).join(", ")}; the project's own ${kb(total)} of ${kb(marks.total)} KB. `
   + `Past ${kb(marks.split)} KB: ${big.join(", ") || "none"}${base ? ", none changed here" : ""}`);

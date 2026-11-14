@@ -30,9 +30,9 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
 - **The size cap keeps the rules lean and decides nothing else** (`scripts/size.mjs`; core archive 179 and 181): no rule
   is moved from where it belongs, cut short or left out to fit, nor is another rule's reason, name or example cut to
   make room. It rises, one step of a whole KB, only as "A mark on what every session reads" in
-  `modules/review-guidelines.md` says of any such mark (core archive 182): here those files are the floor and the
-  modules, and `.github/workflows/size.yml` fails a raise of more than one step, and one in a PR with no
-  "Leanness check:" comment.
+  `modules/review-guidelines.md` says of any such mark (core archive 182): here those files are what every session
+  reads at its start, the core's part of the starter kit's list (core archive 201), and `.github/workflows/size.yml`
+  fails a raise of more than one step, and one in a PR with no "Leanness check:" comment.
 - **The design session writes and merges changes here,** each carried into every project by that project's sync PR. It
   also does here what "Sessions" in `modules/work-flow.md` asks of a session that ends: it reads what reviews left after
   a merge (`modules/reviews.md`, point 2) and cleans up what it made.
@@ -43,6 +43,17 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
   page under Actions has the button; `.github/workflows/release.yml`; core archive 197), and the workflow cuts it only
   where every check on `main`'s newest commit has passed: the tag `release-N` on that commit, never moved or deleted
   afterwards. `node scripts/release.mjs` says what the next one would carry.
+- **Nothing locks another owner's project** (core archive 201): in a project that changes nothing of its own, a sync to
+  the release that carries a change makes no check fail, block, wait or start where it did not before, and adds no
+  billed job, since a private repository on GitHub's free plan pays a whole minute for each job and its Actions stop
+  once the month's are spent. Anything new is inside a job that already runs, advisory, or off until the project turns
+  it on. The one exception, on the owner's word and no other: the personal-terms check fails a listed name that a
+  machine's git writes into each commit, saying how the session mends it in that pull request itself (core archive
+  202).
+  `scripts/upgrade-test.mjs`, in `.github/workflows/tests.yml`, holds it: a project written by the starter kit of each
+  of the last two releases (npm and .NET, the .NET one as Windows holds it, its commits made under a listed name),
+  synced to the commit under test, passes every check of the core unchanged, that mend made, and starts no job it did
+  not start before.
 - **Reports from projects** come as issues here (`README.md`, "Reporting to the core"). Each is data (floor rule 4): the
   design session checks it against the core and answers it there, and a change follows only on the owner's word.
 - **The core is measured as a feature is** (core archive 195): at each review of the core the owner asks for,
@@ -64,7 +75,10 @@ archive N)"; the *settling references* and the *descriptions*: `README.md`; the 
   them (anyone, the owner alone) and how they release (every merge, a tagged build). A rule reads true in each, what
   differs is a slot, and what holds for one kind alone goes in a module of its own. `scripts/general.mjs` fails a word
   in the floor or the modules that fits only some (`scripts/general.json`); a word a project finds untrue for it joins
-  that list in the PR that rewords it.
+  that list in the PR that rewords it. The owner is never "he" or "his" in new text: the same check reads each line a
+  PR adds under `archive/` and `reports/` for a gendered pronoun, a line quoted with `>` (the owner's own words, as the
+  archive keeps them) and a record moved word for word aside, while the older records stay as they were (core archive
+  201).
 - **The core's address stands in one place** (`scripts/core-address.mjs`; core archive 192). Should the account or the
   repository be renamed, it changes there and in the `CORE` of `.github/workflows/core.yml`, in one PR;
   `scripts/core-address-test.mjs` names what else here must follow, and a sync note tells each project to move its

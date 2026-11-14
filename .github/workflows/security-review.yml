@@ -22,4 +22,4 @@ permissions:
 
 jobs:
   security-review:
-    uses: HaakTuah/agent-core/.github/workflows/security-review.yml@1c4a58ed05535df7e926eba77ae3f7906d7fff25
+    uses: HaakTuah/agent-core/.github/workflows/security-review.yml@aa72682dbaf03cf90ee6be36d2b8f7085748fa20

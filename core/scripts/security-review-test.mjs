@@ -8,7 +8,8 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CONTEXT, judge, status } from "./security-review.mjs";
+import { CORE } from "./core-address.mjs";
+import { CONTEXT, UNREAD, judge, status } from "./security-review.mjs";
 
 let failed = 0;
 const ok = (cond, what) => { console.log(`${cond ? "ok  " : "FAIL"} ${what}`); if (!cond) failed++; };
@@ -16,10 +17,10 @@ const HEAD = "a".repeat(40);
 const SEEN = "b".repeat(40);
 const pull = { state: "open", draft: false, head: { sha: HEAD } };
 const brace = (text) => text.replaceAll("{", "&#123;").replaceAll("}", "&#125;");
-// the summary as Codex's app writes it: a first line, then its state in a comment, its braces as entities
+// the summary as Codex's app writes it and GitHub's API gives it: a first line, then its state in a comment
 const summary = (security, at = "2026-11-12T10:00:00Z", who = { login: "chatgpt-codex-connector[bot]", type: "Bot" }) => ({
   user: who, author_association: "NONE", updated_at: at,
-  body: `<!-- codex-pull-request-review-summary -->\n<!-- codex-review-state:v1 ${brace(JSON.stringify({ code_review: { commit_sha: null, status: null }, security_review: security }))} -->\n<details>the table</details>`,
+  body: `<!-- codex-pull-request-review-summary -->\n<!-- codex-review-state:v1 ${JSON.stringify({ code_review: { commit_sha: null, status: null }, security_review: security })} -->\n<details>the table</details>`,
 });
 const done = { commit_sha: SEEN, has_any_findings: null, has_unresolved_findings: null, status: "completed" };
 const running = { ...done, status: "running" };
@@ -28,6 +29,26 @@ const said = (body, assoc = "OWNER", at = "2026-11-12T11:00:00Z") => ({ user: { 
 const finding = (at, who = { login: "chatgpt-codex-connector[bot]", type: "Bot" }) => ({ user: who, author_association: "NONE", created_at: at, path: "a.js", line: 3, body: "<!-- codex-security-review-finding:v1 -->\n\n### Codex Security Review\n\nA finding." });
 const open = { ...done, has_any_findings: true, has_unresolved_findings: true };
 const is = (verdict, isDone, words) => verdict?.sha === HEAD && verdict.done === isDone && verdict.why.includes(words);
+
+// Two summaries Codex's app really posted on this repository's pull requests, byte for byte as GitHub's API gives them
+// (its issue comments, which the workflow reads), the core's address aside: the form the check reads, kept here so that
+// a change in it is seen in the core before a project waits on it (core archive 201).
+const REAL_CLEAN = "<!-- codex-pull-request-review-summary -->\n<!-- codex-review-state:v1 {\"code_review\":{\"commit_sha\":\"80c3527ef98503ce036cc33343ba1391f45d312c\",\"has_any_findings\":false,\"has_unresolved_findings\":false,\"status\":\"completed\"},\"security_review\":{\"commit_sha\":\"be5f0965b6ccbbfebdee33e06fe7d93e45ff22b0\",\"has_any_findings\":null,\"has_unresolved_findings\":null,\"status\":\"completed\"}} -->\n<!-- codex-security-review:v1 {\"blockingSeverityThreshold\":\"P0\",\"headSha\":\"be5f0965b6ccbbfebdee33e06fe7d93e45ff22b0\",\"mergeGateEnabled\":false,\"pullRequestNumber\":199,\"repository\":\"<the core>\",\"status\":\"completed\"} -->\n<details>\n<summary><strong>Codex Review Summary</strong>: ✅ Completed</summary>\n\nThis comment shows the latest Codex review activity on this pull request.\n\n| Review | Status | Commit | Review trigger |\n| --- | --- | --- | --- |\n| 📝 **Code Review** | ✅ **Completed** <relative-time datetime=\"2026-11-14T01:13:55.985631Z\">2026-11-14T01:13:55.985631Z</relative-time> | `80c3527` | Manual request |\n| 🔒 **Security Review** | ✅ **Completed** <relative-time datetime=\"2026-11-14T01:08:34.247269Z\">2026-11-14T01:08:34.247269Z</relative-time> | `be5f096` | Draft marked ready |\n\n\n\n<details> <summary>ℹ️ About Codex in GitHub</summary>\n<br/>\n\n[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you\n- Open a pull request for review\n- Mark a draft as ready\n- Comment \"@codex review\" or \"@codex security review\".\n\nCodex reacts with 👀 while any review is running, comments if it has suggestions, and reacts with 👍 once all reviews finish with no findings.\n\n</details>\n\n</details>".replaceAll("<the core>", CORE);
+const REAL_FINDING = "<!-- codex-pull-request-review-summary -->\n<!-- codex-review-state:v1 {\"code_review\":{\"commit_sha\":\"d457776390f620deea6cf59e4b33dee6a139bcd3\",\"has_any_findings\":false,\"has_unresolved_findings\":false,\"status\":\"completed\"},\"security_review\":{\"commit_sha\":\"4df287f8f7cd2b43add2963fe9e6df596e7dc8f7\",\"has_any_findings\":true,\"has_unresolved_findings\":true,\"status\":\"completed\"}} -->\n<!-- codex-security-review:v1 {\"blockingSeverityThreshold\":\"P0\",\"headSha\":\"4df287f8f7cd2b43add2963fe9e6df596e7dc8f7\",\"mergeGateEnabled\":false,\"pullRequestNumber\":190,\"repository\":\"<the core>\",\"status\":\"completed\"} -->\n<details>\n<summary><strong>Codex Review Summary</strong>: ✅ Completed</summary>\n\nThis comment shows the latest Codex review activity on this pull request.\n\n| Review | Status | Commit | Review trigger |\n| --- | --- | --- | --- |\n| 📝 **Code Review** | ✅ **Completed** <relative-time datetime=\"2026-11-13T22:23:05.884667Z\">2026-11-13T22:23:05.884667Z</relative-time> | `d457776` | Manual request |\n| 🔒 **Security Review** | ✅ **Completed** <relative-time datetime=\"2026-11-13T22:03:32.372561Z\">2026-11-13T22:03:32.372561Z</relative-time> | `4df287f` | Draft marked ready |\n\n### Security findings\n\n#### Advisory findings (1)\n\n- 🟡 [Run NuGet validation when MSBuild.rsp changes](https://github.com/<the core>/pull/190#discussion_r4569157823) · **Medium**\n\n<details> <summary>ℹ️ About Codex in GitHub</summary>\n<br/>\n\n[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you\n- Open a pull request for review\n- Mark a draft as ready\n- Comment \"@codex review\" or \"@codex security review\".\n\nCodex reacts with 👀 while any review is running, comments if it has suggestions, and reacts with 👍 once all reviews finish with no findings.\n\n</details>\n\n</details>".replaceAll("<the core>", CORE);
+const real = (body, at = "2026-11-14T01:13:56Z") => ({ user: { login: "chatgpt-codex-connector[bot]", type: "Bot" }, author_association: "NONE", updated_at: at, body });
+ok(is(judge(pull, [real(REAL_CLEAN)]), true, "has run (on be5f096)") && judge(pull, [real(REAL_CLEAN)]).warning === undefined, "a real summary of Codex's, its security review completed with no finding, is read as one: no warning");
+ok(is(judge(pull, [real(brace(REAL_CLEAN))]), true, "has run (on be5f096)") && judge(pull, [real(brace(REAL_CLEAN))]).warning === undefined, "and the same with each brace written as an entity, as a delivery may show it");
+ok(is(judge(pull, [real(REAL_FINDING)]), false, "no review posted after it") && judge(pull, [real(REAL_FINDING)]).warning === undefined, "a real summary with a finding marked open is read as one too");
+// a summary of Codex's whose state cannot be read: a warning beside a verdict that is what it would be with no summary
+for (const [what, body] of [
+  ["a state line of another version", REAL_CLEAN.replace("codex-review-state:v1", "codex-review-state:v2")],
+  ["a state that is no JSON", REAL_CLEAN.replace("{\"code_review\"", "{code_review")],
+  ["a state with no security review in it", REAL_CLEAN.replace("\"security_review\"", "\"security_scan\"")],
+]) {
+  const v = judge(pull, [real(body)]);
+  ok(v.warning === UNREAD && v.done === false && v.why.includes("no security review"), `a summary of Codex's with ${what}: the check warns, and waits as with no summary`, JSON.stringify(v));
+}
+ok(judge(pull, [real(REAL_CLEAN.replace("codex-review-state:v1", "codex-review-state:v2")), said("Security review: checked")]).done === true && judge(pull, [real("A comment of Codex's that is no summary.")]).warning === undefined, "a posted review still settles it, and a comment of Codex's that is no summary brings no warning");
 
 // Nothing to mark.
 ok(judge({ ...pull, state: "closed" }, [summary(done)]) === undefined && judge({ ...pull, draft: true }, [summary(done)]) === undefined, "a closed pull request and a draft get no status");
@@ -82,6 +103,8 @@ ok(status(wait, false).state === "pending" && status(wait, false).description ==
 ok(status(wait, true).state === "success" && status(wait, true).description === "Advisory: would wait, no security review has run yet" && status(pass, true).state === "success" && status(pass, true).description.startsWith("Advisory: Codex's"), "while advisory it always passes, and says what it would have done");
 ok([wait, pass, judge(pull, [said("Security review: x")]), judge(pull, [summary(open)]), judge(pull, [summary(open), said("Security review: x")])].every((v) => [true, false].every((a) => status(v, a).context === CONTEXT && status(v, a).description.length <= 140)), "every status has the one name and a description GitHub takes");
 ok(status(pass, true, "https://github.com/o/r/actions/runs/1").target_url === "https://github.com/o/r/actions/runs/1" && !("target_url" in status(pass, true)) && !("target_url" in status(pass, true, "javascript:alert(1)")) && !("target_url" in status(pass, true, "https://x/?a=b c")), "it links to its run, and to nothing that is no plain https address");
+const unread = judge(pull, [real(REAL_CLEAN.replace("codex-review-state:v1", "codex-review-state:v2"))]), longest = { sha: HEAD, done: true, why: "x".repeat(200), warning: UNREAD };
+ok(status(unread, true).description === "Advisory: would wait, no security review has run yet; summary unreadable" && status(unread, true).state === "success" && status(longest, true).description.length === 140, "where Codex's summary cannot be read, the status says so too, as the owner sees it, and no description runs past GitHub's 140 characters");
 
 // From the command line, as the workflow runs it.
 const dir = mkdtempSync(join(tmpdir(), "security-review-"));
@@ -102,6 +125,7 @@ try {
   ok(run(pull, [[summary(open), said("Security review: checked", "OWNER", "2026-11-12T11:00:00Z")]], { ADVISORY: "false" }, [[finding("2026-11-12T12:00:00Z")]]).status.state === "pending" && run(pull, [[summary(open), said("Security review: checked", "OWNER", "2026-11-12T13:00:00Z")]], { ADVISORY: "false" }, [[finding("2026-11-12T12:00:00Z")]]).status.state === "success", "given the review comments too, it weighs a finding against a posted review");
   ok(run(bump, [], { ADVISORY: "false" }, [], its).status.state === "success" && run(bump, [], { ADVISORY: "false" }, []).status.state === "pending", "given the commits too, it passes Dependabot's own, and without them it does not");
   ok(JSON.stringify(run({ ...pull, draft: true }, [])) === "{}", "a draft prints nothing to mark");
+  ok(run(pull, [[real(REAL_CLEAN.replace("codex-review-state:v1", "codex-review-state:v2"))]]).warning === UNREAD && run(pull, [[real(REAL_CLEAN)]]).warning === undefined, "run as the workflow runs it, it prints the warning beside the status, for the workflow to show");
   let usage = 0;
   try { execFileSync(process.execPath, [script], { stdio: "ignore" }); } catch (e) { usage = e.status; }
   ok(usage === 2, "with no files named, it says how it is run");

@@ -1,26 +1,32 @@
-// The cap on the core's rules (README.md, "Two layers"): the floor and the modules together stay under it, so a new
-// rule replaces text rather than adding to it (core archive 134). It keeps the rules lean and decides nothing else: no
-// rule is moved, cut short or left out to fit, and a change that honest trimming gives no room for raises CAP in the
-// same pull request, saying why, once a fresh session has read all the rules for room and found too little (AGENTS.md,
-// "How changes are made here"; core archive 179 and 181). That session's answer stands in the pull request as a
-// comment that opens "Leanness check:" (modules/review-guidelines.md, "A mark on what every session reads"), and with
-// --raise this script fails a pull request that raises CAP and has no such comment from the repository's owner, a
-// member or a collaborator, by GitHub's own word for who wrote it, and one that raises it by more than one step. It
-// holds that the comment is there, not what it says, when it was written or that a fresh session wrote it: whether
-// the session found too little room stays with the reviews, as does any change to this check itself, which a pull
-// request runs in its own version. Run from this repository's root by the size workflow
+// The cap on the core's rules (README.md, "Two layers"): what every session reads at its start stays under it, so a new
+// rule there replaces text rather than adding to it (core archive 134). Those files are the core's among the starter
+// kit's list of what every session reads (READ in init.mjs): the floor's security.md and the modules each session reads
+// then, a builder's own among them; a file read only when needed is held instead by the reviews' "content put where its
+// readers must read past it" (modules/review-guidelines.md; core archive 201). It keeps the rules lean and decides
+// nothing else: no rule is moved, cut short or left out to fit, and a change that honest trimming gives no room for
+// raises CAP in the same pull request, saying why, once a fresh session has read all the rules for room and found too
+// little (AGENTS.md, "How changes are made here"; core archive 179 and 181). That session's answer stands in the pull
+// request as a comment that opens "Leanness check:" (modules/review-guidelines.md, "A mark on what every session
+// reads"), and with --raise this script fails a pull request that raises CAP and has no such comment from the
+// repository's owner, a member or a collaborator, by GitHub's own word for who wrote it, and one that raises it by more
+// than one step. It holds that the comment is there, not what it says, when it was written or that a fresh session
+// wrote it: whether the session found too little room stays with the reviews, as does any change to this check itself,
+// which a pull request runs in its own version. Run from this repository's root by the size workflow
 // (.github/workflows/size.yml); Node's own modules only.
 //
-//   node scripts/size.mjs                                  the floor and the modules against the cap
+//   node scripts/size.mjs                                  what every session reads at its start, against the cap
 //   node scripts/size.mjs --raise <base> <comments>        a raise has its leanness check: <base>, this file as the
 //                                                          pull request's base holds it; <comments>, the pull
 //                                                          request's comments as GitHub's API gives them
 import fs from "node:fs";
-import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { sizeOf } from "./file-size.mjs";
+import { READ } from "./init.mjs";
 import { started } from "./started.mjs";
 
-export const CAP = 52 * 1024;
+export const CAP = 21 * 1024;
+// the core's files every session reads at its start, by their paths here
+export const COUNTED = READ.filter(f => f.startsWith("core/")).map(f => f.slice("core/".length));
 const WRITERS = ["OWNER", "MEMBER", "COLLABORATOR"]; // GitHub's own word for who wrote a comment, not the comment's
 const ANSWER = /^(?:\*\*)?Leanness check:/u;
 
@@ -63,9 +69,10 @@ function main([flag, baseFile, commentsFile]) {
     console.log(capOf(base) < CAP ? `ok   the cap rises from ${capOf(base)} to ${CAP} bytes, and the pull request holds a leanness check's answer` : `ok   the cap is not raised (${CAP} bytes)`);
     return 0;
   }
-  const files = ["floor", "modules"].flatMap(dir => fs.readdirSync(dir).filter(f => f.endsWith(".md")).map(f => path.join(dir, f)));
-  const total = files.reduce((sum, f) => sum + fs.statSync(f).size, 0);
-  console.log(`floor/ and modules/: ${total} bytes of ${CAP} (${files.length} files)`);
+  const missing = COUNTED.filter(f => !fs.existsSync(f));
+  if (!COUNTED.length || missing.length) { console.error(`FAIL: what every session reads at its start cannot be counted: ${missing.join(", ") || "the list is empty"}`); return 1; }
+  const total = COUNTED.reduce((sum, f) => sum + sizeOf(f), 0);
+  console.log(`what every session reads at its start (${COUNTED.join(", ")}): ${total} bytes of ${CAP}`);
   if (total <= CAP) return 0;
   console.error("FAIL: over the cap. Say the rule in fewer words and trim what is said twice; raise CAP only once a\n"
     + "fresh session has read all the rules for room and found too little (AGENTS.md, \"How changes are made here\").");

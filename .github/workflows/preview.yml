@@ -15,4 +15,4 @@ jobs:
       contents: write
       actions: read
       pull-requests: write
-    uses: HaakTuah/agent-core/.github/workflows/preview.yml@8d9d418adf581dc8ff010c4a35606bcf8b825443
+    uses: HaakTuah/agent-core/.github/workflows/preview.yml@aa72682dbaf03cf90ee6be36d2b8f7085748fa20

@@ -13,7 +13,9 @@ This repository takes the floor whole, `floor/security.md` and `floor/topics.md`
   17:** Dependabot updates only the workflows' GitHub actions (`.github/dependabot.yml`); this repository names no
   manifest or lock file, so no other PR of Dependabot's meets it.
 - **The threat model's part:** the core has no users of its own; what an attacker would want of it is a rule loosened
-  here that every project then takes, so a change reaches a project only through a reviewed sync PR there.
+  here that every project then takes, so a change reaches a project only through a sync PR there: a pure sync gets no
+  review of its own, since its content was reviewed in the core's own PR (floor rule 8), and any other is reviewed there
+  like any PR.
 
 ## Reporting a weakness
 

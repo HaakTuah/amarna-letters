@@ -1,13 +1,16 @@
 # The copy of the core ("How a project takes the core" in README.md, points 1 and 5), for every project that takes it:
-# fails a change whose core/ is not this repository, whole and unchanged, at the commit its core-manifest.md pins, whose
-# pin, or the pin of a call to one of its workflows, is not a commit of this repository's main (so what a project takes
-# passed the core's reviews; floor rule 8; the call to this workflow itself: scripts/pure-sync.mjs), or
-# whose calls to the core's workflows are pinned to a commit where the called workflow differs from the one at that pin,
-# or whose manifest does not fill the *owner's account* with one GitHub login, or whose default branch is not main, or
-# whose manifest lists a difference ("Differences") from the floor or the review guidelines.
+# fails a change whose core/ is not this repository, whole and unchanged, at the commit its core-manifest.md pins (a
+# folder, compared as scripts/copy-tree.mjs compares: core archive 201), whose pin, or the pin of a call to one of its
+# workflows, is not a commit of this repository's main (so what a project takes passed the core's reviews; floor rule 8;
+# the call to this workflow itself: scripts/pure-sync.mjs), or whose calls to the core's workflows are pinned to a
+# commit where the called workflow differs from the one at that pin, or whose manifest does not fill the *owner's
+# account* with one GitHub login, or whose default branch is not main, or whose manifest lists a difference
+# ("Differences") from the floor or the review guidelines.
 # A project calls it (workflow_call) on every pull request and push to main, docs-only changes included,
 # pinned to a full commit SHA. Reads only, with no secret: it fetches this public repository at the pin it reads, which
-# must be a full commit SHA before it is used, and runs nothing from either repository.
+# must be a full commit SHA before it is used, and runs nothing from either repository. Its own shell is tested in the
+# core before any project runs it: scripts/core-yml-test.mjs runs this job on scratch projects, and
+# scripts/pure-sync-test.mjs on every way a copy can differ.
 name: core
 
 on:
@@ -85,8 +88,25 @@ jobs:
           set -euo pipefail
           bad=0 core=${CORE//./\\.} # (in a pattern, a dot of the address is a dot)
           # (what the core keeps to itself is no part of a copy: its own .gitattributes says which folder)
-          if grep -q -s -x '/reports export-ignore' .core-at-pin/.gitattributes; then rm -rf .core-at-pin/reports; fi
-          if ! diff -r -q --exclude=.git .core-at-pin core; then echo "core/ differs from the core at its pin (above)"; bad=1; fi
+          # (core/ a folder, and entry by entry as the core's scripts/copy-tree.mjs compares, which says why; each path
+          # quoted as git quotes it, so none prints raw or passes for two entries)
+          entries() { git -C "$1" -c core.quotePath=true ls-tree -r --full-tree "$2" | sed 's/^100755 blob /100644 blob /'; }
+          # (the pin's tree without its top-level reports entry, built as scripts/copy-tree.mjs builds it, so that no
+          # name inside that folder, however git quotes it, is taken for part of the copy)
+          tree=$PIN
+          if grep -q -s -x '/reports export-ignore' .core-at-pin/.gitattributes; then
+            # (the whole entry matched, its name after the first tab exactly "reports"; grep's "none left" is no fault,
+            # any other failure is)
+            tree=$(git -C .core-at-pin ls-tree -z "$PIN" | { grep -z -v -x -e $'[^\t]*\treports' || [ $? -eq 1 ]; } | git -C .core-at-pin mktree -z)
+          fi
+          want=$(entries .core-at-pin "$tree") id=$(git rev-parse -q --verify HEAD:core || true)
+          if [ -n "$id" ] && [ "$(git ls-tree HEAD -- core)" = "040000 tree $id"$'\t'"core" ]; then have=$(entries . HEAD:core)
+          else echo "core/ is no folder of this commit (a submodule, a file, a link or nothing)"; have=""; bad=1; fi
+          if [ "$want" != "$have" ]; then
+            echo "core/ differs from the core at its pin, by git's object ids (< the core's, > core/'s):"
+            diff <(printf '%s\n' "$want") <(printf '%s\n' "$have") | grep '^[<>]' | head -n 20 || true
+            bad=1
+          fi
           if ! git -C .core-at-pin fetch -q --no-tags origin refs/heads/main \
             || ! git -C .core-at-pin merge-base --is-ancestor "$PIN" FETCH_HEAD; then
             echo "the pin $PIN is not a commit of the core's main"; bad=1
