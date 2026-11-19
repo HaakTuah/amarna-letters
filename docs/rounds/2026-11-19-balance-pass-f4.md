@@ -26,7 +26,9 @@ a mutineer's leader or a crowd's chief bold, by how he rose ("The circumstance p
 start with nothing and seldom rise, bold or careful alike. Within each way to a fortune the two roads pay about alike
 too (Steady 3.5 / 3.1, Keeper 2.2 / 1.8, Seller 2.0 / 2.1, Climber 2.7 / 2.8 among those who chose), so no number is
 tuned for the bold road. On this part's play, over seeds 1-200, those who chose: bold 378 of 12,053 (3.1), careful 303
-of 12,447 (2.4). The top twenty leans careful (1.67 times over seeds 1-200; among those who chose, 9.5 against 12.3),
+of 12,447 (2.4), the bold ahead on seeds 1-100 (216 of 6,026 against 131 of 6,210) and level on 101-200 (2.7 / 2.8).
+Reading par by length moves no character's place: the order by gain alone and the scoreboard's differ in 1 top-five
+place of 1,000 over those 200 games, so the shift is the seeds and the kings' play, and neither road always wins. The top twenty leans careful (1.67 times over seeds 1-200; among those who chose, 9.5 against 12.3),
 as the design has it: the careful road "is slower, but it compounds", and its steady fees give the higher middle.
 
 **The age's random end, more than play, chose who stood first.** Par pooled the results of games of every length, and
@@ -88,16 +90,20 @@ Unsure first.
   number, as they are told of par itself; they know the season, so they lose nothing by it.
 - **Unsure: the script kings reckon rivals by the season it is**, the age's length so far, since the end is unknown
   ("Random ending"): the reading nearest the engine's own function ("Neutrality is accidental": "the kings'
-  victory-threat assessment must use the same function"). It changed their play a little, so par was measured again on
-  that play (seeds 101-200, d40570b) before the evaluation on seeds 1-100.
+  victory-threat assessment must use the same function"). The other reading, the length a king believes the age will
+  run to from its omens, would rank rivals against an end no court can know and is not taken. It changed their play a
+  little, so par was measured again on that play (seeds 101-200, d40570b) before the evaluation on seeds 1-100.
 - **Unsure: the bold road is kept as built.** The item asks the two roads to "reach the top of the ranking at comparable
-  rates" and to be tuned "until both roads pay"; among those who chose their road they reach the top five alike, and
+  rates" and to be tuned "until both roads pay"; among those who chose their road the bold reach the top five as often
+  as the careful or more (3.1 to 2.4 a hundred heads on this part's play, 2.78 to 2.75 on the play before), and
   the gap a head over all characters (1.07 to 1.19) is the mix of how men came into play, which is the engine drawing
   the heads by their circumstance, a rule of item 11's ("A head rises where men lack one"), not a road that pays less.
   Tuning the bold road until the per-head rate over everyone matched would have made the bold who chose richer than the
   careful who chose. The money report now gives both counts.
-- **Unsure: Arzawa's few first places are read as chance**, on the measures above; the item tunes only numbers every
-  realm shares, and none found a fault.
+- **Unsure: Arzawa's few first places are read as chance and the sample of par**, on the measures above; the item tunes
+  only numbers every realm shares, and none found a fault. Out of par's sample, on seeds 1-100, the Great Kings' games in
+  the top tenth of their par spread wider than chance (Arzawa 4, Assyria 20, against about 10 each), so par from seeds
+  101-200 does not carry over to other seeds power by power as well as it should: "Par from more games" below.
 - **The live design document could not be read** from this session (the docs connector refused access), so the check
   for changes read the copy on `main` again by its diff since c5cda6b, at the start and before the pull request: no
   change.

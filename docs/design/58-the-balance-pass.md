@@ -128,10 +128,12 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   in the shorter half of par's ages, two thirds in the longer; Mitanni and Assyria the reverse), so the age's random end,
   more than play, chose who stood first. Par keeps each game's length (`ParSeasons`) and its results in game order; the
   script kings reckon rivals the same way, by the season it is (`Board.growth`). The rulebook says so under PAR.
-- **The bold road is kept as built.** Among those who chose their road, the bold and the careful reach the top five alike
-  (2.78 and 2.75 a hundred heads over seeds 101-200); the gap a head over every character (the careful 1.19 times over
-  seeds 1-200) is the mix: two thirds of the bold are heads raised by circumstance (loose men's chiefs, band splits,
-  mutineers, raiders), who start with nothing and rarely rise, bold and careful alike.
+- **The bold road is kept as built.** Neither road always wins the top five: over every character the careful reach it
+  1.07 times as often a head on this part's play (1.19 on the play before), and among those who chose their road the
+  bold reach it 3.1 times a hundred heads to the careful's 2.4 (seeds 1-100 3.6 / 2.1, seeds 101-200 2.7 / 2.8; on the
+  play before, 2.78 / 2.75). The gap a head over everyone is the mix: two thirds of the bold are heads raised by
+  circumstance (loose men's chiefs, band splits, mutineers, raiders), who start with nothing and rarely rise, bold and
+  careful alike. The top twenty leans careful (about 1.7 times), the careful road's steadier middle.
 - **Arzawa** reaches the top tenth of its par as often as the other Great Kings (9 to 13 games in 100), and its first
   places are within chance; no number is its own.
 - **The money report** gives the top five by way to a fortune, and by how men came into play (`raisedByCircumstance`:
