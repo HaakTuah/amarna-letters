@@ -1,7 +1,10 @@
 # The owner's instructions, by day
 
-The owner's instructions about this project, each quoted word for word with the date and time (UTC) it was given and
-numbered in order, one file per day. "Archive item N" anywhere in the repository is item N here, and the table says
+The owner's instructions about this project, each with the date and time (UTC) it was given and numbered in order,
+one file per day. Of each, only the decision and the owner's words that carry its reason are kept, spelling and grammar
+corrected and the meaning unchanged: no bare agreement, praise, chatter, frustration, jokes or words addressed to a
+session, and nothing personal (floor rule 11). This replaced quoting them word for word on 19 November 2026, by the
+owner's word (#1029). "Archive item N" anywhere in the repository is item N here, and the table says
 which file holds it. A new item goes at the end of the newest file, numbered after its last; the first item given on a
 new day (UTC) starts that day's file, `instructions/<yyyy-mm-dd>.md`, and its row here, closing the row before it.
 

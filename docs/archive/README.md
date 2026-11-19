@@ -10,7 +10,7 @@ History, kept for the record. Sessions read it only when a task points here.
 | `design-history.md` | Passages taken out of the design document when it was condensed on 27 October 2026 (what was tried, dropped or retired, what past runs measured, and the full text of build order items 1 to 5), word for word, each with the tab and section it stood in. |
 | `specs/` | Briefs and specs of done items, moved from `docs/` on 2 November 2026 (the file-by-file review): `items/` (item 5+'s steps), `prompts/` (the owner's words for item 2's visual overhaul, item 4's fix pass and item 5+'s docs and preview pass) and `CONVERSION-PLAN.md`. Records made before then cite their old paths, `docs/items/`, `docs/prompts/` and `docs/CONVERSION-PLAN.md`. |
 | `closed-differences.md` | Entries of the design note on where the code differs from the design document that no longer differ, word for word (2 November 2026). |
-| `instructions.md` | the owner's standing instructions given in chat, word for word with their dates. Add new ones here. |
+| `instructions.md` | the owner's standing instructions given in chat, each cut to its decision and the owner's words that carry its reason, with their dates. Add new ones here. |
 
 ## What came from the owner's computer (PR #15, 26 October 2026)
 

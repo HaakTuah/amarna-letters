@@ -7,7 +7,7 @@ its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an ite
 history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
-the owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
+the owner's standing instructions given in chat, each cut to its decision and reason, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
