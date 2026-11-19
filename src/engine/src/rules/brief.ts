@@ -105,8 +105,20 @@ export function seasonBrief(v: SeatView): BriefLine[] {
   const unfed = v.provinces.filter((x) => mine.has(x.province) && x.fed < 1000);
   if (unfed.length > 0) add("Short", `Your people went short of grain last season in ${places(unfed.map((x) => x.province))}.`, unfed[0].province, "Treasury");
 
+  // The same line twice is one line, with how many times ("Word from Haya, a spy's report (twice).").
+  const merged: BriefLine[] = [];
+  const times = new Map<string, number>();
+  for (const l of lines) {
+    const n = times.get(l.text) ?? 0;
+    times.set(l.text, n + 1);
+    if (n === 0) merged.push(l);
+  }
+  for (const l of merged) {
+    const n = times.get(l.text)!;
+    if (n > 1) l.text = `${l.text.replace(/\.$/u, "")} (${n === 2 ? "twice" : `${n} times`}).`;
+  }
   const order = (k: BriefKind): number => BriefKindValues.indexOf(k);
-  const sorted = lines.map((l, i) => [l, i] as const).sort((a, b) => order(a[0].kind) - order(b[0].kind) || a[1] - b[1]).map(([l]) => l);
+  const sorted = merged.map((l, i) => [l, i] as const).sort((a, b) => order(a[0].kind) - order(b[0].kind) || a[1] - b[1]).map(([l]) => l);
   if (sorted.length <= MaxBrief) return sorted;
   const rest = sorted.length - (MaxBrief - 1);
   return [...sorted.slice(0, MaxBrief - 1), { kind: sorted[MaxBrief - 1].kind, text: `And ${rest} more this season, in the season's record.`, at: null, answer: "News" }];
@@ -120,7 +132,7 @@ function newsLine(i: InboxItem): { kind: BriefKind; text: string; answer: BriefA
     case "EnvoyReport":
       return { kind: "Word", text: `${i.title} with his report.`, answer: "News" };
     case "SpyReport":
-      return { kind: "Word", text: `${i.title}.`, answer: "News" };
+      return { kind: "Word", text: `${i.title}, a spy's report.`, answer: "News" };
     case "Tablet":
       return { kind: "Word", text: "A tablet you ordered is ready.", answer: "News" };
     case "Candidates":
