@@ -10,6 +10,7 @@ import {
   buyNews,
   inboxOf,
   lossKey,
+  newChiefChoice,
   newGame,
   newLossAbroad,
   newNewsHeld,
@@ -78,6 +79,110 @@ describe("BandTests", () => {
     Assert.true(e.market(prov).purse < purse + chief.earned.spent);
     Assert.true(chief.earned.loot > 0);
     Assert.equal(chief.purse, chief.earned.loot - chief.earned.spent);
+  });
+
+  test("Men join only while the band's steady take, less its chief's share, pays more than they cost, so the share stays his", () => {
+    const s = smallWorld(newGame(2), "Egypt");
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    chief.traits.greed = 50;
+    const cut = (BandData.chiefCut.least + BandData.chiefCut.most) / 2;
+    // A rich town robbed season after season, its purse made good each time, with loose men enough to join.
+    const season = (): void => {
+      e.market(prov).purse = 20000;
+      s.people.get(prov).loose = 40000;
+      s.turn++;
+      new TurnEngine(s).bandsSeason();
+    };
+    for (let i = 0; i < 60; i++) season();
+    Assert.true(s.bands.includes(b));
+    // It has stopped growing where what the chief leaves of the take pays its men, and no further.
+    const men = b.men;
+    season();
+    Assert.true(b.men - men <= 1);
+    Assert.true(b.cost <= Math.ceil((b.took * (100 - cut)) / 100));
+    Assert.true(b.cost >= Math.floor((b.took * (100 - cut - 5)) / 100));
+    // So every season leaves the chief his share of it.
+    const purse = chief.purse;
+    season();
+    Assert.true(chief.purse - purse >= Math.floor((b.took * (cut - 5)) / 100));
+    // One haul on the roads draws no men: they join for what the band takes season after season.
+    e.robbedBy(prov, 5000);
+    const before = b.men;
+    season();
+    Assert.true(b.men - before <= 1);
+    Assert.true(chief.purse >= 5000);
+  });
+
+  test("A script chief sends away the men his band's take no longer pays, a fifth a season at most, though he could pay them", () => {
+    const s = smallWorld(newGame(2), "Egypt");
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    const season = (purse: number): void => {
+      e.market(prov).purse = purse;
+      s.people.get(prov).loose = 40000;
+      s.turn++;
+      new TurnEngine(s).bandsSeason();
+    };
+    for (let i = 0; i < 40; i++) season(20000);
+    const grown = b.men;
+    Assert.true(grown > 1000);
+    // The town grows poor: the band takes less than its men cost, and the chief has the gold to pay them all the same.
+    chief.purse = 100000;
+    season(2000);
+    Assert.equal(0, b.short);
+    Assert.equal(grown - Math.floor((grown * BandData.leavePercent) / 100), b.men);
+    for (let i = 0; i < 40; i++) season(2000);
+    // It has shrunk to what its take pays once the chief has his share, and no further.
+    const cut = BandData.chiefCut.least + Math.floor(((BandData.chiefCut.most - BandData.chiefCut.least) * chief.traits.greed) / 100);
+    Assert.true(s.bands.includes(b));
+    Assert.true(b.cost <= Math.ceil((b.took * (100 - cut)) / 100) && b.cost >= Math.floor((b.took * (100 - cut - 10)) / 100));
+    const men = b.men;
+    const purse = chief.purse;
+    season(2000);
+    Assert.equal(men, b.men);
+    Assert.true(chief.purse > purse);
+  });
+
+  test("A chief who decides for himself keeps the men he pays, and sends away only those he chooses to", () => {
+    const s = smallWorld(newGame(2), "Egypt");
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    const season = (purse: number, sendAway: number | null): void => {
+      e.market(prov).purse = purse;
+      s.people.get(prov).loose = 40000;
+      s.turn++;
+      // His own choice of last season (a model chief's request), or the script's formula.
+      chief.chiefPlan = sendAway === null ? null : newChiefChoice({ turn: s.turn - 1, sendAway });
+      new TurnEngine(s).bandsSeason();
+    };
+    for (let i = 0; i < 40; i++) season(20000, null);
+    const grown = b.men;
+    // The town grows poor; he has the gold, and chooses to keep every man: none leaves, and his purse pays them.
+    chief.purse = 100000;
+    for (let i = 0; i < 5; i++) season(2000, 0);
+    Assert.equal(grown, b.men);
+    Assert.equal(0, b.short);
+    Assert.true(chief.purse < 100000);
+    Assert.true(s.bands.includes(b) && b.province === prov);
+    // He sends a hundred away: they are loose men of the land again, and he remembers it.
+    season(2000, 100);
+    Assert.equal(grown - 100, b.men);
+    Assert.contains(chief.memory, (m) => m.text.includes("I sent 100 of my men away"));
+    // More than he has is all he has: the band is no more, and he is on the way back, though a haul on the roads
+    // lies in its take and the town is rich again, which would have drawn men to an empty band.
+    e.robbedBy(prov, 500);
+    b.took = 500;
+    season(20000, 1000000);
+    Assert.false(s.bands.includes(b));
+    Assert.false(s.bands.some((x) => x.leaderId === chief.id));
+    Assert.true(chief.duty !== "Leading");
   });
 
   test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {

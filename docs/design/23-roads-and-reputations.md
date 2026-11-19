@@ -31,9 +31,15 @@ item 18 tunes them.
   men (half their cost), the rest is sold at the market there; the gold and the grain's price are the chief's
   (`GoldSource` "Loot"), who pays his men 20 shekels a thousand a season less what the grain fed, spent at the market.
   Short of pay, as many leave as went unpaid (at most a fifth a season), or a large band splits; three seasons short and
-  the men take what the chief has and turn on him. Paid, the loose men there join as many as a fifth of what the surplus,
-  less the chief's cut (20 to 50 in a hundred by greed), could pay. Bands in one province compete: a short band's men go
-  over to the strongest that pays.
+  the men take what the chief has and turn on him. Paid, the loose men there join as many as a fifth of what its steady
+  take (the lesser of this season's and the last's, so one haul on the roads draws nobody), less the chief's cut of it
+  (20 to 50 in a hundred by greed) and the cost of the men it has, could pay: a band stops growing where the rest of its
+  take pays its men, and the cut stays the chief's every season (item 18, part F4; taken of the surplus before, it shrank
+  to nothing as men joined, and no chief gained by the road). Men he pays stay, so a band keeps the size of its best
+  seasons and a falling take is paid from its chief's purse, unless he sends men away, back to the loose: his own
+  choice (`ChiefChoice.sendAway`, [25](25-chiefs-and-spies-choose.md)). A script chief, from his band's second season,
+  sends away those the steady take less his cut no longer covers, at most a fifth a season, and so keeps his share.
+  Bands in one province compete: a short band's men go over to the strongest that pays.
 - **The chief's choices**, by formula for every chief: with 15 men or fewer a careful chief gives up the road half the
   time (`wayBack`: his men go loose, he walks to the nearest court a free man seeking service); with 30 men and twice the
   price in hand a bold chief on a coast buys a ship (40 shekels, spent at the market) and works the sea beside it; and

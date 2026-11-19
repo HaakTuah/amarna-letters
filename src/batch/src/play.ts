@@ -1,7 +1,7 @@
 /** One game of the batch runner, as the C# batch runner plays it: in a worker thread for script games, in the main thread otherwise. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { AllPowers, Dict, GameStateSchema, fmt, serialize, setNameClaims, setRisen, align, type GameConfig, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameStateSchema, fmt, idNumber, serialize, setNameClaims, setRisen, align, type GameConfig, type Power } from "@amarna/engine";
 import {
   BaselineLeader,
   PlanAhead,
@@ -29,6 +29,7 @@ import {
   WarPlay,
   TidingsPlay,
   RidePlay,
+  RoadLife,
   SpyCheckPlay,
   OutlawPlay,
   RaiderPlay,
@@ -174,6 +175,8 @@ export interface BatchOptions {
   /** #601: script kings never hire a rider for a far province's report (all of them, or half, alternating by seed). */
   noRidePlay: boolean;
   ridePlayHalf: boolean;
+  /** Item 18, part F4: half the script persons never take to the hills, by their number and the seed, alternating. */
+  bandLifeHalf: boolean;
   /** Script kings read their governor's word alone, never checked against their spy's (#459, `--no-spy-check-play`), or half of them (`--spy-check-play-half`). */
   noSpyCheckPlay: boolean;
   spyCheckPlayHalf: boolean;
@@ -345,6 +348,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   TidingsPlay.only = o.tidingsPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   RidePlay.off = o.noRidePlay || o.ridePlayHalf;
   RidePlay.only = o.ridePlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  RoadLife.ignores = o.bandLifeHalf ? (id) => (idNumber(id) + s) % 2 === 0 : null;
+  RoadLife.chose.clear();
   SpyCheckPlay.off = o.noSpyCheckPlay || o.spyCheckPlayHalf;
   SpyCheckPlay.only = o.spyCheckPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   OutlawPlay.off = o.noOutlawPlay || o.outlawPlayHalf;

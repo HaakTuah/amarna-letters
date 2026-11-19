@@ -303,6 +303,9 @@ export interface ChiefView {
   /** What its men cost a season, in shekels' worth, and seasons in a row it could not pay them. */
   cost: number;
   short: number;
+  /** Item 18, part F4: what the band took last season, in shekels' worth, and his own share of a take, in a hundred. */
+  took: number;
+  cut: number;
   here: LandSeen;
   /** Land next door the band could move to. */
   next: LandSeen[];
@@ -326,7 +329,7 @@ export interface ChiefView {
 }
 
 export function newChiefView(init: Partial<ChiefView> = {}): ChiefView {
-  return { turn: 0, men: 0, ship: false, purse: 0, cost: 0, short: 0, here: LandSeenSchema.make(), next: [], shipCost: null, shipMen: 0, kill: null, ending: "", home: null, canGoHome: false, captives: 0, paidBy: null, paidUntil: 0, ...init };
+  return { turn: 0, men: 0, ship: false, purse: 0, cost: 0, short: 0, took: 0, cut: 0, here: LandSeenSchema.make(), next: [], shipCost: null, shipMen: 0, kill: null, ending: "", home: null, canGoHome: false, captives: 0, paidBy: null, paidUntil: 0, ...init };
 }
 
 /** What a chief decides for his band's next season, taken at its start; `turn` is the season he decided it. */
@@ -340,13 +343,15 @@ export interface ChiefChoice {
   kill: Kill;
   /** Item 17++++a: a band based beyond the map goes home now, if it can from where it stands. */
   home: boolean;
+  /** Item 18, part F4: men he sends away, back to the loose men where his band stands (0: none). */
+  sendAway: number;
 }
 
 export function newChiefChoice(init: Partial<ChiefChoice> = {}): ChiefChoice {
-  return { turn: 0, go: null, ship: false, giveUp: false, kill: "none", home: false, ...init };
+  return { turn: 0, go: null, ship: false, giveUp: false, kill: "none", home: false, sendAway: 0, ...init };
 }
 
-export const ChiefChoiceSchema: ObjSchema<ChiefChoice> = obj("ChiefChoice", newChiefChoice, { turn: I, go: opt(S), ship: B, giveUp: B, kill: S, home: B });
+export const ChiefChoiceSchema: ObjSchema<ChiefChoice> = obj("ChiefChoice", newChiefChoice, { turn: I, go: opt(S), ship: B, giveUp: B, kill: S, home: B, sendAway: I });
 
 /** What a posted spy knows when its reports wait for a carrier (the owner's answers to item 11b: the spy decides). */
 export interface ReportsView {

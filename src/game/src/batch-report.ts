@@ -414,6 +414,14 @@ export function batchReport(games: readonly GameSummary[]): string {
     const final = scored.length === 0 ? "" : `  score ${fmt(mean(scored), "0.00")}`;
     lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (standing ${fmt(ranked, "0.00")})${final}${survived}`);
   }
+  // Item 18, part F4: how par fits where first place is decided. A position played as par's games were played lands in the
+  // upper quarter of its par in a quarter of the games and in its top tenth in a tenth; one that seldom does cannot stand first.
+  const upper = (p: Power, rank: number): number => count(games, (g) => standingOf(p, g.growth[p]) >= 2 * rank);
+  const rest = AllPowers.filter((p) => !GreatKings.includes(p));
+  const share = (rank: number): string => fmt((100 * sum(rest, (p) => upper(p, rank))) / Math.max(1, rest.length * games.length), "0");
+  lines.push(
+    `  Results in the upper quarter and the top tenth of a position's par (${fmt(games.length / 4, "0")} and ${fmt(games.length / 10, "0")} are due): ${GreatKings.map((p) => `${p} ${upper(p, 0.75)} and ${upper(p, 0.9)}`).join(", ")}; the other states ${share(0.75)}% and ${share(0.9)}% of theirs.`,
+  );
   const weakWins = games.filter((g) =>
     g.winners.some((w) => {
       const p = parsePower(w);

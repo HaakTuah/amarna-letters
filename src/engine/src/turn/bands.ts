@@ -4,9 +4,10 @@
  *
  * A band is men a chief gathered from a province's loose people. It robs its province's purse and stores and the
  * travellers on its roads (and, with a ship, the sea beside its coast), feeds and pays its men from what it takes, and
- * keeps only as many as it can pay: men join it while it has a surplus to pay them and leave when it is short, so no
- * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
- * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
+ * keeps only as many as it can pay: men join it while what it takes, less its chief's share, pays more than they cost,
+ * and leave when it is short or its chief sends them away, so no number sets how many bands a land holds or how large
+ * they grow. A chief's share is his own gold. Its holder's armies hunt it where they stand on his order or standing
+ * order. Everything is drawn from seeded streams ("Deterministic").
  */
 import { listed } from "../rules/wording.ts";
 import { UnrestData } from "../model/unrest.ts";
@@ -16,7 +17,7 @@ import { clamp, idiv } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { BandData, bandCost, bandRobs, newBand, type Band } from "../model/bands.ts";
+import { BandData, bandCost, bandRobs, chiefCutOf, newBand, type Band } from "../model/bands.ts";
 import { grainWorth, needOf, priceAt } from "../model/economy.ts";
 import { coverOf, gain, newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
@@ -444,8 +445,9 @@ P.bandsSeason = function () {
     // Its men spend their share where they stand.
     this.spendAt(b.province, paid);
     b.cost = cost;
+    // What it took in both of its last two seasons: a single haul on the roads draws no men.
+    const steady = Math.min(take, b.took);
     b.took = take;
-    const surplus = take - cost;
     b.take = 0;
 
     if (paid < pay) {
@@ -478,16 +480,27 @@ P.bandsSeason = function () {
       }
     } else {
       b.short = 0;
-      // Men join while it pays: as many of the loose here as its surplus, less the chief's share, could pay a season.
-      const cut = BandData.chiefCut.least + idiv((BandData.chiefCut.most - BandData.chiefCut.least) * chief.traits.greed, 100);
-      const spareGold = idiv(Math.max(0, surplus) * (100 - cut), 100);
-      const could = idiv(spareGold * 1000, BandData.menCost);
+      // Men join while it pays them: as many of the loose here as what its steady take leaves, after the chief's share
+      // of it (`forMen`) and the cost of the men he has, could pay a season. So a band stops growing where that part of
+      // the take pays its men, and the chief's share stays his (item 18, part F4: taken of the surplus, it shrank to
+      // nothing as men joined, and no chief gained by the road).
+      const forMen = steady - idiv(steady * chiefCutOf(chief.traits.greed), 100);
+      const could = idiv(Math.max(0, forMen - cost) * 1000, BandData.menCost);
       const x = this.peopleOf(b.province);
       const join = Math.min(x.loose, idiv(could * BandData.joinPercent, 100));
       if (join > 0) {
         x.loose -= join;
         b.men += join;
         this.looseLeave(b.province, 0);
+      }
+      // A script chief's choice, by formula (a model chief sends men away in his own request, `chiefDecides`): men he pays
+      // stay, so a band keeps the size of its best seasons and a falling take is paid from what its chief gained. Once
+      // that part of its steady take no longer covers his men, he sends those it cannot cover back to the loose, at most
+      // a share a season, and keeps his own share.
+      if (own === false && S.turn > b.since && forMen < cost) {
+        const away = Math.min(idiv(b.men * BandData.leavePercent, 100), Math.ceil((b.men * (cost - forMen)) / cost));
+        b.men -= away;
+        x.loose += away;
       }
     }
     if (b.men < BandData.least) {
