@@ -6,6 +6,118 @@ c5cda6b (save version 95, par from 767cab8). Model trial 2's Opus builder (`docs
 **The check for changes:** the live design document could not be read from this session (the docs connector refused
 access), so the copy on `main` was read again by its diff since c5cda6b, at the start and before the pull request.
 
+## What was found
+
+**The bold road pays as the careful does.** The careful reached the top five of the characters' ranking 1.19 times as
+often a head as the bold over seeds 1-200 on the play F4 started from (1.10 on seeds 1-100, 1.29 on 101-200; F2's 1.40
+was on an older play), and 1.07 times over the 200 games of this part's play. The gap a head is the mix of how men
+came into play, not the road:
+
+| Seeds 101-200, the play F4 started from | Bold: heads, top five (a hundred heads) | Careful: heads, top five |
+|---|---|---|
+| Those who chose their road (the starting cast and arrivals) | 5,330, 148 (2.78) | 6,139, 169 (2.75) |
+| Heads raised by circumstance (risen from loose men, a band, mutineers, refugees) | 11,188, 136 (1.22) | 3,794, 39 (1.03) |
+| Raiders from beyond the map | 713, 0 | 21, 0 |
+| Men who took to the hills by choice | 695, 7 (1.0) | 83, 1 (1.2) |
+
+Two thirds of the bold are heads raised by circumstance or raiders, against two fifths of the careful: the engine draws
+a mutineer's leader or a crowd's chief bold, by how he rose ("The circumstance picks the man", `newHead` in
+`turn/bands.ts`), and 1,246 of the 2,957 bold in a 16-game look walked off from a band that could not pay its men. They
+start with nothing and seldom rise, bold or careful alike. Within each way to a fortune the two roads pay about alike
+too (Steady 3.5 / 3.1, Keeper 2.2 / 1.8, Seller 2.0 / 2.1, Climber 2.7 / 2.8 among those who chose), so no number is
+tuned for the bold road. On this part's play, over seeds 1-200, those who chose: bold 378 of 12,053 (3.1), careful 303
+of 12,447 (2.4). The top twenty leans careful (1.67 times over seeds 1-200; among those who chose, 9.5 against 12.3),
+as the design has it: the careful road "is slower, but it compounds", and its steady fees give the higher middle.
+
+**The age's random end, more than play, chose who stood first.** Par pooled the results of games of every length, and
+a realm that usually grows stands low in a short age and high in a long one, one that usually falls the reverse: in the
+shorter half of par's ages Egypt ranked 0.32 of the way up its par, in the longer half 0.67; Assyria 0.61 and 0.40
+(table below). So in a short age the realms that usually fall, Assyria and the cities most fallen in par, stood first,
+and in a long one the realms that usually grow. **Par is now read by the age's length** (`ParNear` in
+`rules/scoring.ts`): a result is ranked among the 30 of par's 100 games nearest in length to its age, a character's
+among their best five's. Par keeps each game's length and its results in game order (`ParSeasons`,
+`rules/par-results.ts`), the script kings reckon rivals the same way by the season it is, and the rulebook's PAR says
+so. Mean rank of each Great King in its par, ages shorter / longer than the median:
+
+| Great King | Seeds 1-100, pooled | Seeds 1-100, by length | Seeds 101-200, pooled | Seeds 101-200, by length |
+|---|---|---|---|---|
+| Egypt | 0.29 / 0.66 | 0.42 / 0.52 | 0.32 / 0.67 | 0.45 / 0.53 |
+| Hatti | 0.51 / 0.58 | 0.49 / 0.58 | 0.51 / 0.49 | 0.49 / 0.49 |
+| Babylonia | 0.39 / 0.50 | 0.43 / 0.40 | 0.43 / 0.56 | 0.48 / 0.49 |
+| Mitanni | 0.57 / 0.48 | 0.52 / 0.52 | 0.56 / 0.44 | 0.51 / 0.48 |
+| Assyria | 0.69 / 0.40 | 0.65 / 0.48 | 0.61 / 0.40 | 0.54 / 0.48 |
+| Arzawa | 0.52 / 0.41 | 0.44 / 0.50 | 0.58 / 0.42 | 0.51 / 0.50 |
+| Alashiya | 0.48 / 0.39 | 0.51 / 0.42 | 0.49 / 0.51 | 0.51 / 0.50 |
+
+First places on seeds 1-100, out of par's sample: the Great Kings 13 on the pooled par (Assyria 8, Babylonia 3, Egypt
+1, Hatti 1, the other three none), 10 read by length (Assyria 3, Egypt 2, Mitanni 2, Alashiya 2, Hatti 1, Babylonia and
+Arzawa none); a character 12 and 14; the other states 75 and 76. On seeds 101-200 the Great Kings stood first in 25
+games read by length (Egypt 4, Hatti 2, Babylonia 5, Mitanni 5, Assyria 5, Arzawa 3, Alashiya 1) against 11 pooled. A
+cross-check ranking each half of seeds 101-200 against a par from the other half put the strong three first in 3 of 49
+shorter ages and 8 of 51 longer ones pooled, 5 and 8 by the nearest 30 games; the cities 42 and 32, then 35 and 31.
+
+**Arzawa** has no handicap a shared number could mend. Its standing is at par over the 200 games (0.92 to 1.07 in each
+half), it falls about as often as its par (18 to 19 in 100), and in its own par's games it reaches the top tenth of its
+results as often as the other Great Kings (9 to 13 in 100, by the cross-check). On seeds 1-100 it reached that tenth in
+4 of 100 games, on both pars (F3 found 4 of 84 there): its top tenth needs a growth of about 1.5, a conquest that came
+in about 10 of par's games on seeds 101-200 and 4 on seeds 1-100, a gap within chance (a two-sided p of about 0.1 to 0.2).
+Its 0 first places in those 100 games, against about 1.4 due a Great King, are about as likely (one in four). Over
+seeds 1-200 on this part's play it stood first in 3 of 200.
+
+**What changed:** par read by the age's length (above); the money report's top five by how men came into play
+(`raisedByCircumstance` in `game/src/money-report.ts`) beside F3's by way to a fortune (taken from commit f2e973c); each
+power's games in the top tenth of its par in the batch's powers' lines. **Save version 96.** No script's play changed
+but the kings' reckoning of rivals by par, which now reads it by the season it is.
+
+**Checked and not patched: a bold chief who pays his men from his own purse** until his band melts away (only a
+careful chief gives up a dwindling band, `wayBack` in `turn/bands.ts`). A band's men cost 20 shekels a season a thousand
+(`BandData.menCost`), so a chief loses little by it; his results are low because a band's take beside his own living is
+small, not by a choice a script chief could make better.
+
+## Readings taken
+
+Unsure first.
+
+- **Unsure: par is read by the age's length, 30 of its 100 games** (`ParNear`). Item 18 leaves "how par is computed" to
+  be tuned here ("One scoreboard for every power", Victory), and the measure it names is that "every power has about the
+  same chance of first place" and "every position has the same chance when played as the scripts play". A pooled par
+  gave each position the same chance only on average over ages of every length; within an age the random end, which no
+  king can see coming, chose between the realms that grow and those that fall. The number 30 is a first guess between
+  a narrow window (a noisy rank) and a wide one (the bias back): 20, 30, 40 and 60 were tried in the cross-check, and
+  30 took out most of the bias (the tables above). Kings are told of it under PAR in the rulebook, in words, with no
+  number, as they are told of par itself; they know the season, so they lose nothing by it.
+- **Unsure: the script kings reckon rivals by the season it is**, the age's length so far, since the end is unknown
+  ("Random ending"): the reading nearest the engine's own function ("Neutrality is accidental": "the kings'
+  victory-threat assessment must use the same function"). It changed their play a little, so par was measured again on
+  that play (seeds 101-200, d40570b) before the evaluation on seeds 1-100.
+- **Unsure: the bold road is kept as built.** The item asks the two roads to "reach the top of the ranking at comparable
+  rates" and to be tuned "until both roads pay"; among those who chose their road they reach the top five alike, and
+  the gap a head over all characters (1.07 to 1.19) is the mix of how men came into play, which is the engine drawing
+  the heads by their circumstance, a rule of item 11's ("A head rises where men lack one"), not a road that pays less.
+  Tuning the bold road until the per-head rate over everyone matched would have made the bold who chose richer than the
+  careful who chose. The money report now gives both counts.
+- **Unsure: Arzawa's few first places are read as chance**, on the measures above; the item tunes only numbers every
+  realm shares, and none found a fault.
+- **The live design document could not be read** from this session (the docs connector refused access), so the check
+  for changes read the copy on `main` again by its diff since c5cda6b, at the start and before the pull request: no
+  change.
+- **Par's own games could not be replayed**: the par F3 left was measured on play that read the par before it (the
+  script kings rank rivals by par), so seeds 101-200 replayed today give the same spread with other games (Egypt's mean
+  1.175 against 1.167, Arzawa's 0.782 against 0.780). The baseline's 100 games stood in for par's own in the cross-check.
+- **Each game's length is the season it ended**, the same in par (`GameSummary.turns`) and on the scoreboard (`S.turn`).
+- **The diagnostics were scripts reading the saved final states** (`--out`), not kept: their counts are reproducible
+  from the commands above, and the lines kept in the money report and the powers' lines give the same counts in every
+  batch from now on.
+
+## Left to the next part
+
+- **F5,** as F3's split gives it: the people 17+ added, starting positions, banditry and far provinces against the
+  sources, and commanders' worth.
+- **Par from more games:** read 30 games at a time, par's tails are thin, and a power's top tenth rests on three of
+  them; at the next par refresh, 200 games (seeds 101-300) would halve the noise that Arzawa's tail and Assyria's 20
+  top-tenth games on seeds 1-100 show.
+- From F3's rest, still open: vassal play behind, the coffer's wins, and the rows read on the play before F3's patches.
+
 ## How the runs are kept
 
 Every run is written here, with its command, seeds, commit and result, as it finishes; each is 50 games, from a worktree
