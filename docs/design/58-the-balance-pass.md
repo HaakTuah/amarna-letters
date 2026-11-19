@@ -119,3 +119,25 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   that their standings, all read on the par before it, stay comparable.
 - Save version 95: par refreshed, so a game's final scores and winner, and the script kings' play that ranks rivals by
   standing, differ from version 94's (as at part B's version 88).
+
+## Part F4: the bold road and Arzawa (`rules/scoring.ts`, `rules/par-results.ts`, `game/src/money-report.ts`)
+
+- **Par is read by the age's length** (`ParNear`, `standingOf`, `characterStanding`): a result is ranked among the 30 of
+  par's games nearest in length to the age it was reached in, not among all of them. A power that usually grows stands
+  low in a short age and high in a long one, one that usually falls the reverse (Egypt a third of the way up its results
+  in the shorter half of par's ages, two thirds in the longer; Mitanni and Assyria the reverse), so the age's random end,
+  more than play, chose who stood first. Par keeps each game's length (`ParSeasons`) and its results in game order; the
+  script kings reckon rivals the same way, by the season it is (`Board.growth`). The rulebook says so under PAR.
+- **The bold road is kept as built.** Neither road always wins the top five: over every character the careful reach it
+  1.07 times as often a head on this part's play (1.19 on the play before), and among those who chose their road the
+  bold reach it 3.1 times a hundred heads to the careful's 2.4 (seeds 1-100 3.6 / 2.1, seeds 101-200 2.7 / 2.8; on the
+  play before, 2.78 / 2.75). The gap a head over everyone is the mix: two thirds of the bold are heads raised by
+  circumstance (loose men's chiefs, band splits, mutineers, raiders), who start with nothing and rarely rise, bold and
+  careful alike. The top twenty leans careful (about 1.7 times), the careful road's steadier middle.
+- **Arzawa** reaches the top tenth of its par as often as the other Great Kings (9 to 13 games in 100), and its first
+  places are within chance; no number is its own.
+- **The money report** gives the top five by way to a fortune, and by how men came into play (`raisedByCircumstance`:
+  heads raised by circumstance apart from those who chose their road), bold and careful apart; **the powers' lines** give
+  each power's games in the top tenth of its par (standing 1.8 or more), about a tenth where play is as par's.
+- Save version 96: par read by length, so a game's final scores and winner, and the script kings' ranking of rivals,
+  differ from version 95's.

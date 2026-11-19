@@ -10,7 +10,7 @@
  */
 import type { GameConfig } from "../model/config.ts";
 import type { Power } from "../model/power.ts";
-import { ParResults } from "./par-results.ts";
+import { CharacterPar, ParResults, ParSeasons } from "./par-results.ts";
 
 export function strengthOf(
   weight: number,
@@ -38,10 +38,49 @@ export function strength(
  * ranks among its own position's results, its standing: 1 at the middle of them, 2 above them all, and below 1 short of
  * the middle, so every position has the same chance when played as the scripts play, and surviving where most fall still
  * counts (item 11e: a mean with falls counted as 0 let any survivor of a fragile position win). A power with no measure is
- * ranked against a single result of 1.
+ * ranked against a single result of 1. Since item 18, part F4, a result is ranked among par's games nearest in length to the
+ * age it was reached in ({@link ParNear}), `seasons` long.
  */
-export function standingOf(p: Power, growth: number): number {
-  return 2 * rankAmong(ParResults[p] ?? [1], growth);
+export function standingOf(p: Power, growth: number, seasons: number): number {
+  return 2 * rankAmong(ParResults[p] === undefined ? [1] : parAt(seasons).powers[p]!, growth);
+}
+
+/** Where a character's result ranks among what the best characters of par's games nearest in length gained ({@link CharacterPar}). */
+export function characterStanding(result: number, seasons: number): number {
+  return rankAmong(parAt(seasons).characters, result);
+}
+
+/**
+ * Item 18, part F4: how many of par's games a result is ranked among, those nearest in length to its age (all of them where
+ * par holds fewer). A power that usually grows stands low in a short age and high in a long one, one that usually falls the
+ * reverse, so ranked among par's games of every length the age's random end, not play, chose the winner: in par's own
+ * games those of the shortest half put Egypt, Hatti and Babylonia about a third of the way up their results and Mitanni and
+ * Assyria two thirds, and the longest half the reverse (the measure in `docs/rounds/2026-11-19-balance-pass-f4.md`).
+ */
+export const ParNear = 30;
+
+/** Par's results of the games nearest in length to an age of `seasons`, sorted for {@link rankAmong}. */
+interface ParAt {
+  powers: Partial<Record<Power, number[]>>;
+  characters: number[];
+}
+
+const parAtCache = new Map<number, ParAt>();
+
+function parAt(seasons: number): ParAt {
+  let at = parAtCache.get(seasons);
+  if (at !== undefined) return at;
+  // The nearest games in length, the earlier first where two are as near.
+  const games = ParSeasons.map((n, i) => [Math.abs(n - seasons), i] as const)
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1])
+    .slice(0, ParNear)
+    .map(([, i]) => i);
+  const sorted = (xs: readonly number[]): number[] => [...xs].sort((a, b) => a - b);
+  const powers: Partial<Record<Power, number[]>> = {};
+  for (const [p, results] of Object.entries(ParResults) as [Power, readonly number[]][]) powers[p] = sorted(games.map((i) => results[i]));
+  at = { powers, characters: sorted(games.flatMap((i) => CharacterPar[i])) };
+  parAtCache.set(seasons, at);
+  return at;
 }
 
 /**
@@ -98,7 +137,7 @@ export function finalScore(sizeWeight: number, size: number, performance: number
 
 /** How a position's results read: how often it fell, and its survivors' growth at the quarters (for the rulebook). */
 export function parSummary(p: Power): string {
-  const results = ParResults[p] ?? [1];
+  const results = [...(ParResults[p] ?? [1])].sort((a, b) => a - b);
   const lived = results.filter((r) => r > 0);
   const q = (f: number): string => (lived.length === 0 ? "-" : lived[Math.min(lived.length - 1, Math.floor(f * lived.length))].toFixed(2));
   return `${p} fell ${results.length - lived.length} of ${results.length}${lived.length === 0 ? "" : `, survivors ${q(0.25)}/${q(0.5)}/${q(0.75)}`}`;

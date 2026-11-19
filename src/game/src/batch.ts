@@ -319,7 +319,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     characterResults: characters.filter((x) => !reigned.has(x.character.id)).map((x) => characterResult(x.character)).sort((a, b) => b - a).slice(0, CharacterParBest),
     money: watch.end(characters.filter((x) => !reigned.has(x.character.id))),
     spending: spent.end(),
-    held: captives.end(s, (p) => standingOf(p, engine.growth(p))),
+    held: captives.end(s, (p) => standingOf(p, engine.growth(p), s.turn)),
     bonds: bonds.taken,
     gained,
     press: pressOf(s),

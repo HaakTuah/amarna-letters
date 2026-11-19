@@ -478,7 +478,7 @@ function cession(b: Board, brain: Brain, plan: MilitaryPlan): CedeProvinceOrder 
       ) ?? null;
     if (rival === null) continue;
     const gain = b.worth(prov.id);
-    const against = standingOf(rival, (b.strength(rival) + gain) / b.startStrength(rival));
+    const against = standingOf(rival, (b.strength(rival) + gain) / b.startStrength(rival), b.v.turn);
     const friend =
       sortBy(
         [...b.alive].filter(
@@ -488,7 +488,7 @@ function cession(b: Board, brain: Brain, plan: MilitaryPlan): CedeProvinceOrder 
             brain.isFriend(f) &&
             brain.betraying !== f &&
             (b.muster(f, x) > 0 || Board.Map.neighbors(x).some((n) => b.ownerOf(n) === f)) &&
-            standingOf(f, (b.strength(f) + gain) / b.startStrength(f)) < against,
+            standingOf(f, (b.strength(f) + gain) / b.startStrength(f), b.v.turn) < against,
         ),
         [(f: Power) => brain.rel.get(f).trust, desc(cmpNum)],
         [(f: Power) => f, cmpPower],

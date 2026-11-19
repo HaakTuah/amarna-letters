@@ -6,7 +6,7 @@ A realm's strength is ten times what its land produces in a season (its harvest 
 measure, plus its mines' gold), plus its gold and what its people and men hold besides, never counting what it owes. Each
 province counts as far as it obeys you. Its growth is that strength against its strength when its king came to the
 throne (at the start, for the kings the game begins with). At the end every person, kings and characters alike, stands
-on one scoreboard, and each score blends two things: performance, a king's growth, ranked among the results of powers that started where his did (most of the score, so a
+on one scoreboard, and each score blends two things: performance, a king's growth, ranked among the results of powers that started where his did, in the trial games nearest in length to the age when it ends (most of the score, so a
 city that holds its own can win as well as an empire), a character's gain in gold since he came into play ranked among
 what the best five characters of each trial game gained; and size, what he holds against the largest holding (a small part, 2
 percent by default). The dead rank below the living, by what they held when they died. The highest on the board wins,

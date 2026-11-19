@@ -3,7 +3,7 @@
  * characters ranked together at the end of a game, each by what he holds, blended with how he did against par for his own
  * start (`GameConfig.sizeWeight` percent for size). A king holds his realm and is measured from his accession, against
  * what he inherited (`GameState.startStrength`); a character holds his purse and hoard and is measured by what he gained since he came into play,
- * against what the best characters of each script game gained ({@link CharacterPar}). The dead rank below every living person, by
+ * against what the best characters of each script game gained (`characterStanding`), each against par's games nearest in length to the age. The dead rank below every living person, by
  * what they held when they died. The realms' scores are their reigning kings' rows, and the winner is the first person on
  * the board, king or character.
  */
@@ -15,8 +15,7 @@ import { powerName, rulerStyle, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
 import { isAlive, logEvent } from "../model/state.ts";
 import { realmOfKing } from "../rules/court.ts";
-import { CharacterPar } from "../rules/par-results.ts";
-import { finalScore, rankAmong, standingOf, type FinalScore } from "../rules/scoring.ts";
+import { characterStanding, finalScore, standingOf, type FinalScore } from "../rules/scoring.ts";
 import { wealthOf, wealthSources, wealthStanding } from "../rules/wealth.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 
@@ -67,10 +66,10 @@ P.scoreboard = function () {
     if (p !== null && isAlive(S, p)) {
       // A king: his realm, measured from his accession against what he inherited (`growth`), by par for his realm's start.
       const holding = Math.max(0, this.strength(p));
-      return { character: c, power: p, holding, performance: standingOf(p, this.growth(p)) / 2, dead };
+      return { character: c, power: p, holding, performance: standingOf(p, this.growth(p), S.turn) / 2, dead };
     }
     const holding = wealthOf(c).total;
-    return { character: c, power: null, holding, performance: dead ? 0 : rankAmong(CharacterPar, characterResult(c)), dead };
+    return { character: c, power: null, holding, performance: dead ? 0 : characterStanding(characterResult(c), S.turn), dead };
   });
   const largest = Math.max(1, ...rows.filter((x) => !x.dead).map((x) => x.holding));
   const scored: PersonScore[] = rows.map((x) => {
