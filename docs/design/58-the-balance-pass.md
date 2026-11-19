@@ -127,9 +127,10 @@ The report, with every run: `docs/rounds/2026-11-19-balance-pass-f4.md`.
 - **A chief's share is of the take.** Men joined a band while it had a surplus, with the chief's cut taken of that
   surplus, so the band grew until the surplus was gone and the cut with it: the bands took 4.6 shekels a season and cost
   5.2, and a chief gained 5 in a game, on the road that should pay most and end worst ("Bold or careful, one goal").
-  Now men join only while the band's steady take, less the chief's cut of it, pays more than its men cost
-  ([23](23-roads-and-reputations.md), "Bands"); `chiefCut` and every other number of the bands stay as they were. How
-  much the roads yield, and how many bands a land holds against the sources, is the next part's ("How many bands").
+  Now men join only while the band's steady take, less the chief's cut of it, pays more than its men cost, and a band
+  grown past that frays, a fifth a season at most ([23](23-roads-and-reputations.md), "Bands"); `chiefCut` and every
+  other number of the bands stay as they were. How much the roads yield, and how many bands a land holds against the
+  sources, is the next part's ("How many bands").
 - **The roads are told three ways** (money report): by way to a fortune, bold and careful apart (part F3's line, taken
   here); among those there from the start; and those leading a band at the end. Most who come into play later are
   bold (a crowd's chief is bold by how he rises), have fewer seasons to gain in, and many lead bands, so the roads'
