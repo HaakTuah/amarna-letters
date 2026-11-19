@@ -12,13 +12,15 @@ script's side ([`24-jobs-and-money-answers.md`](24-jobs-and-money-answers.md)); 
   its post for a carrier (task `Reports`). The choices are taken when the next season begins (`freshPlan`: made last
   season). A script mind answers nothing (`ScriptMind`), so its traits decide as before; script games are unchanged
   apart from the request ids (save version 23).
-- **A chief sees** (`ChiefView`): his men, ship and purse, what his men cost a season and how long they went unpaid; the
-  land where he works and the land next door as he hears of it, in round numbers (its people's purse and stores, whether
+- **A chief sees** (`ChiefView`): his men, ship and purse, what his men cost a season and how long they went unpaid, what
+  his band took last season and his own share of a take (item 18, part F4); the land where he works and the land next door as he hears of it, in round numbers (its people's purse and stores, whether
   an army stands there, other bands' men, a coast); a ship's price where he could buy one, or the men one needs; whom he
   kills now, if he has said.
 - **A chief decides** (`ChiefChoice`, on `Character.chiefPlan`): land next door to move to (or stay), buying a ship
   (only asked when he can), whom his men kill of the travellers they rob ("nobody", "kings' servants", "everyone",
-  standing until he says otherwise, `killsByChoice`), and giving up the road (`wayBack`). A chief who chose this season
+  standing until he says otherwise, `killsByChoice`), how many of his men to send away (item 18, part F4: a script chief
+  sends away those his band's take no longer pays, [23](23-roads-and-reputations.md)), and giving up the road
+  (`wayBack`). A chief who chose this season
   does nothing by formula (`chiefDecides`, at the start of his band's season; hunted, he flees as anyone; a ship is
   not bought for a move inland, where it would be left behind). A man who leads a new band starts with no choices. A chief whose
   call failed or who has not yet been asked (his first season) decides by the formula of his traits, as the stand-in.

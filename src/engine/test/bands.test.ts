@@ -10,6 +10,7 @@ import {
   buyNews,
   inboxOf,
   lossKey,
+  newChiefChoice,
   newGame,
   newLossAbroad,
   newNewsHeld,
@@ -115,7 +116,7 @@ describe("BandTests", () => {
     Assert.true(chief.purse >= 5000);
   });
 
-  test("A band grown past what it takes frays, a fifth a season at most, though its chief can still pay", () => {
+  test("A script chief sends away the men his band's take no longer pays, a fifth a season at most, though he could pay them", () => {
     const s = smallWorld(newGame(2), "Egypt");
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
@@ -145,6 +146,38 @@ describe("BandTests", () => {
     season(2000);
     Assert.equal(men, b.men);
     Assert.true(chief.purse > purse);
+  });
+
+  test("A chief who decides for himself keeps the men he pays, and sends away only those he chooses to", () => {
+    const s = smallWorld(newGame(2), "Egypt");
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    const season = (purse: number, sendAway: number | null): void => {
+      e.market(prov).purse = purse;
+      s.people.get(prov).loose = 40000;
+      s.turn++;
+      // His own choice of last season (a model chief's request), or the script's formula.
+      chief.chiefPlan = sendAway === null ? null : newChiefChoice({ turn: s.turn - 1, sendAway });
+      new TurnEngine(s).bandsSeason();
+    };
+    for (let i = 0; i < 40; i++) season(20000, null);
+    const grown = b.men;
+    // The town grows poor; he has the gold, and chooses to keep every man: none leaves, and his purse pays them.
+    chief.purse = 100000;
+    for (let i = 0; i < 5; i++) season(2000, 0);
+    Assert.equal(grown, b.men);
+    Assert.equal(0, b.short);
+    Assert.true(chief.purse < 100000);
+    Assert.true(s.bands.includes(b) && b.province === prov);
+    // He sends a hundred away: they are loose men of the land again, and he remembers it.
+    season(2000, 100);
+    Assert.equal(grown - 100, b.men);
+    Assert.contains(chief.memory, (m) => m.text.includes("I sent 100 of my men away"));
+    // More than he has is all he has: the band is no more, and he is on the way back.
+    season(2000, 1000000);
+    Assert.false(s.bands.includes(b));
   });
 
   test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {

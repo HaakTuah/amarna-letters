@@ -29,6 +29,9 @@ export function chiefText(v: ChiefView): string {
   sb.appendLine(
     `Your purse holds ${v.purse} shekels; what your band robs of gold is yours, and you pay your men from it. Your men cost about ${v.cost > 0 ? v.cost : bandCost(v.men)} shekels' worth a season in pay and food.${v.short > 0 ? ` For ${v.short} season${v.short === 1 ? "" : "s"} in a row you could not pay them all: men leave a band that does not pay, and a large band long unpaid turns on its chief.` : ""}`,
   );
+  sb.appendLine(
+    `${v.took > 0 ? `Last season your band took about ${v.took} shekels' worth. ` : ""}Men join it while what it took in both of its last two seasons, less your own share of ${v.cut}%, would pay more men than you have. Men you pay stay, at your cost when the takings fall; you may send men away, back to the loose men of the land.`,
+  );
   sb.appendLine("The land where you work and the land next door, as you hear of it:");
   sb.appendLine(landLine(v.here, true));
   for (const l of v.next) sb.appendLine(landLine(l, false));
@@ -63,6 +66,7 @@ export function chiefSchema(v: ChiefView): ReplySchema {
   if (v.next.length > 0) f.push(["go", z.enum(["", ...v.next.map((l) => l.name)] as [string, ...string[]]).describe("Land next door to move your band to, or empty to stay.")]);
   if (v.shipCost !== null && v.purse >= v.shipCost) f.push(["buy_ship", z.boolean().describe("True to buy a ship here from your purse.")]);
   f.push(["kill", z.enum([KillWords.none, KillWords.servants, KillWords.all]).describe("Whom your men kill of the travellers they rob, until you say otherwise.")]);
+  f.push(["send_away", z.int().min(0).max(v.men).describe("How many of your men to send away now; 0 to keep them all.")]);
   if (v.home === null) f.push(["give_up_the_road", z.boolean().describe("True to give up the road now.")]);
   else if (v.canGoHome) f.push(["go_home", z.boolean().describe("True to go home now with your men, captives and purse.")]);
   return object(...f);
@@ -71,14 +75,14 @@ export function chiefSchema(v: ChiefView): ReplySchema {
 /** The reply as choices; the engine checks each against what can be done. `turn` is set by the engine. */
 export function chiefOf(o: JsonObject, v: ChiefView): ChiefChoice {
   const go = v.next.find((l) => l.name === o.go) ?? null;
-  return newChiefChoice({ turn: v.turn, go: go?.province ?? null, ship: o.buy_ship === true, giveUp: o.give_up_the_road === true, home: o.go_home === true, kill: killOf(o.kill) ?? v.kill ?? "none" });
+  return newChiefChoice({ turn: v.turn, go: go?.province ?? null, ship: o.buy_ship === true, giveUp: o.give_up_the_road === true, home: o.go_home === true, kill: killOf(o.kill) ?? v.kill ?? "none", sendAway: typeof o.send_away === "number" ? Math.max(0, Math.min(v.men, Math.trunc(o.send_away))) : 0 });
 }
 
 export function chiefSummary(ch: ChiefChoice | null): string {
   if (ch === null) return "by its traits";
   if (ch.giveUp) return "give up the road";
   if (ch.home) return "go home";
-  return [ch.go !== null ? `move to ${ch.go}` : "stay", ...(ch.ship ? ["buy a ship"] : []), `kill ${KillWords[ch.kill]}`].join("; ");
+  return [ch.go !== null ? `move to ${ch.go}` : "stay", ...(ch.ship ? ["buy a ship"] : []), ...(ch.sendAway > 0 ? [`send ${ch.sendAway} men away`] : []), `kill ${KillWords[ch.kill]}`].join("; ");
 }
 
 /** The spy's request: its reports waiting at its post, who could carry them, and at what price. */

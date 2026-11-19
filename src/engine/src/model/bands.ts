@@ -55,7 +55,7 @@ export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderI
  * - `chiefCut`: of what the band takes, the chief's share in a hundred, from 20 for the generous to 50 for the greedy:
  *   men join only while the rest pays more than the band's men cost.
  * - `joinPercent`: of the loose men that rest could pay, the share who join a season; `leavePercent` leave a season short,
- *   or a season that rest does not cover its men.
+ *   and a script chief sends as many away, at most, a season that rest does not cover his men.
  * - `shortMutiny`: seasons short after which the men of a band of `splitMen` or more turn on their chief; `least`: fewer men than this and it melts away.
  * - `splitMen`: a band short this large may split instead: a lieutenant walks off with `splitPercent` of the men.
  * - `successorPercent`: the chance a band that lost its chief raises one of its own, plus a percent for each 10 men.
@@ -100,6 +100,11 @@ export const BandData = {
   gatherLoose: 500,
   wayBack: 15,
 } as const;
+
+/** A chief's share of what his band takes, in a hundred, by his greed (`chiefCut`). */
+export function chiefCutOf(greed: number): number {
+  return BandData.chiefCut.least + Math.floor(((BandData.chiefCut.most - BandData.chiefCut.least) * greed) / 100);
+}
 
 /** What a band's men cost a season, in shekels: their food and their share. */
 export function bandCost(men: number): number {

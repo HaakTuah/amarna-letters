@@ -5,8 +5,8 @@
  * A band is men a chief gathered from a province's loose people. It robs its province's purse and stores and the
  * travellers on its roads (and, with a ship, the sea beside its coast), feeds and pays its men from what it takes, and
  * keeps only as many as it can pay: men join it while what it takes, less its chief's share, pays more than they cost,
- * and leave when it is short or that pays less than they cost, so no number sets how many bands a land holds or how
- * large they grow. A chief's share is his own gold. Its holder's armies hunt it where they stand on his order or standing
+ * and leave when it is short or its chief sends them away, so no number sets how many bands a land holds or how large
+ * they grow. A chief's share is his own gold. Its holder's armies hunt it where they stand on his order or standing
  * order. Everything is drawn from seeded streams ("Deterministic").
  */
 import { listed } from "../rules/wording.ts";
@@ -17,7 +17,7 @@ import { clamp, idiv } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { BandData, bandCost, bandRobs, newBand, type Band } from "../model/bands.ts";
+import { BandData, bandCost, bandRobs, chiefCutOf, newBand, type Band } from "../model/bands.ts";
 import { grainWorth, needOf, priceAt } from "../model/economy.ts";
 import { coverOf, gain, newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
@@ -484,8 +484,7 @@ P.bandsSeason = function () {
       // of it (`forMen`) and the cost of the men he has, could pay a season. So a band stops growing where that part of
       // the take pays its men, and the chief's share stays his (item 18, part F4: taken of the surplus, it shrank to
       // nothing as men joined, and no chief gained by the road).
-      const cut = BandData.chiefCut.least + idiv((BandData.chiefCut.most - BandData.chiefCut.least) * chief.traits.greed, 100);
-      const forMen = steady - idiv(steady * cut, 100);
+      const forMen = steady - idiv(steady * chiefCutOf(chief.traits.greed), 100);
       const could = idiv(Math.max(0, forMen - cost) * 1000, BandData.menCost);
       const x = this.peopleOf(b.province);
       const join = Math.min(x.loose, idiv(could * BandData.joinPercent, 100));
@@ -494,14 +493,14 @@ P.bandsSeason = function () {
         b.men += join;
         this.looseLeave(b.province, 0);
       }
-      // A band grown past what it takes frays ("How many bands", "a leader keeps only as many as he can pay and feed"):
-      // once that part of its steady take no longer covers its men, those it cannot cover go back to the loose, at most a
-      // share a season, though the chief could pay them from his own purse. So a band is as large as its take pays,
-      // falling as well as rising, and what a chief gained is not spent on men his band no longer feeds.
-      if (S.turn > b.since && forMen < cost) {
-        const fray = Math.min(idiv(b.men * BandData.leavePercent, 100), Math.ceil((b.men * (cost - forMen)) / cost));
-        b.men -= fray;
-        x.loose += fray;
+      // A script chief's choice, by formula (a model chief sends men away in his own request, `chiefDecides`): men he pays
+      // stay, so a band keeps the size of its best seasons and a falling take is paid from what its chief gained. Once
+      // that part of its steady take no longer covers his men, he sends those it cannot cover back to the loose, at most
+      // a share a season, and keeps his own share.
+      if (own === false && S.turn > b.since && forMen < cost) {
+        const away = Math.min(idiv(b.men * BandData.leavePercent, 100), Math.ceil((b.men * (cost - forMen)) / cost));
+        b.men -= away;
+        x.loose += away;
       }
     }
     if (b.men < BandData.least) {

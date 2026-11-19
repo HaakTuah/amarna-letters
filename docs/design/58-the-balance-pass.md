@@ -125,11 +125,12 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
 The report, with every run: `docs/rounds/2026-11-19-balance-pass-f4.md`.
 
 - **A chief's share is of the take.** Men joined a band while it had a surplus, with the chief's cut taken of that
-  surplus, so the band grew until the surplus was gone and the cut with it: the bands took 4.6 shekels a season and cost
-  5.2, and a chief gained 5 in a game, on the road that should pay most and end worst ("Bold or careful, one goal").
-  Now men join only while the band's steady take, less the chief's cut of it, pays more than its men cost, and a band
-  grown past that frays, a fifth a season at most ([23](23-roads-and-reputations.md), "Bands"); `chiefCut` and every
-  other number of the bands stay as they were. How much the roads yield, and how many bands a land holds against the
+  surplus, so the band grew until the surplus was gone and the cut with it: the bands took 4.5 shekels a season and cost
+  4.7, and a chief gained 5 in a game, on the road that should pay most and end worst ("Bold or careful, one goal").
+  Now men join only while the band's steady take, less the chief's cut of it, pays more than its men cost, and a chief
+  may send men away, which a script chief does with those that take no longer pays, a fifth a season at most
+  ([23](23-roads-and-reputations.md), "Bands"; [25](25-chiefs-and-spies-choose.md)); `chiefCut` and every other number
+  of the bands stay as they were. How much the roads yield, and how many bands a land holds against the
   sources, is the next part's ("How many bands").
 - **The roads are told three ways** (money report): by way to a fortune, bold and careful apart (part F3's line, taken
   here); among those there from the start; and those leading a band at the end. Most who come into play later are
@@ -145,5 +146,5 @@ The report, with every run: `docs/rounds/2026-11-19-balance-pass-f4.md`.
   #1028); no number was tuned for Arzawa.
 - **Par refreshed** from 100 games (seeds 101-200) on that play: the best characters gain more (the median of par's
   best five 490 shekels for 455), so on the old par a character stood first in 17 games of a hundred.
-- Save version 97: a band's men join and go by its steady take less its chief's share, and par refreshed, so play from
-  the same seed and a game's final scores differ from version 96's.
+- Save version 97: a band's men join by its steady take less its chief's share, a chief may send men away, and par
+  refreshed, so play from the same seed and a game's final scores differ from version 96's.
