@@ -22,6 +22,8 @@ import { directorShot } from "../map/director.ts";
 import { MapLegend } from "../components/MapLegend.tsx";
 import { MarkInfo } from "../components/MarkInfo.tsx";
 import { OrdersPanel } from "../components/OrdersPanel.tsx";
+import { SeasonBrief } from "../components/SeasonBrief.tsx";
+import type { BriefRow } from "../ui/brief.ts";
 import { PeoplePanel } from "../components/PeoplePanel.tsx";
 import { ProvinceInfo } from "../components/ProvinceInfo.tsx";
 import { ProvinceList } from "../components/ProvinceList.tsx";
@@ -345,6 +347,15 @@ export function Play() {
     setFollowId(null);
     setTracking(false);
     setTab("season");
+  };
+  /** A line of the season brief tapped (item 18b): its place on the map, and what answers it. */
+  const briefLine = (r: BriefRow): void => {
+    closeCards();
+    setTracking(false);
+    if (r.at !== null) map.current?.focus(city(r.at), 2.2);
+    setTab(r.tab);
+    setSheet(false);
+    if (r.section !== null) requestAnimationFrame(() => document.getElementById(r.section!)?.scrollIntoView({ block: "start" }));
   };
   /** The season's orders sealed (item 19+++ plays the seal): by the orders' own button, or Enter. */
   const seal = (sleep: boolean): void => {
@@ -735,6 +746,7 @@ export function Play() {
             )}
           {(s.godView || !s.hasHumans) && <FallbackNotice live={live} />}
         </div>
+        {pendingOrders !== null && tab !== "audience" && <SeasonBrief view={pendingOrders.orders!} onLine={briefLine} />}
         <div className="panelbody">
           {panel()}
         </div>

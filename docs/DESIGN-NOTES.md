@@ -109,3 +109,4 @@ claim graded and sourced.
 | [`design/61-the-rules-a-player-reads/07-playing-with-claude.md`](design/61-the-rules-a-player-reads/07-playing-with-claude.md) | The rules a player reads: playing with claude | 4.4 |
 | [`design/61-the-rules-a-player-reads/08-watching-a-game.md`](design/61-the-rules-a-player-reads/08-watching-a-game.md) | The rules a player reads: watching a game | 5.4 |
 | [`design/61-the-rules-a-player-reads/09-music-and-sound.md`](design/61-the-rules-a-player-reads/09-music-and-sound.md) | The rules a player reads: music and sound | 0.9 |
+| [`design/62-the-players-screen.md`](design/62-the-players-screen.md) | The player's screen (item 18b), part 1: the first game (its powers, its short ending, the absent powers beyond the map's edge) and the season brief, one source for the screen and the model's request | 4.8 |

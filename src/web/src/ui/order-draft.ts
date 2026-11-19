@@ -35,7 +35,6 @@ const newUnitDraft = (): UnitDraft => ({ kind: "hold", target: null, to: null })
 export const byName = (a: string, b: string): number => provinceName(a).localeCompare(provinceName(b));
 
 export class OrderDraft {
-  private static readonly map = WorldMap.default;
   readonly view: SeatView;
   readonly units = new Map<string, UnitDraft>();
   readonly other: Order[] = [];
@@ -62,7 +61,7 @@ export class OrderDraft {
 
   movesFor(province: string): string[] {
     // Winter closes nothing (item 9): a crossing it makes dangerous is offered, and may cost the troop.
-    const map = OrderDraft.map;
+    const map = WorldMap.default;
     const u = this.unitAt(province);
     if (u === null) return [];
     let direct = map.movesFrom(u.kind, province);

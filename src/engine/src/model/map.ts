@@ -76,7 +76,14 @@ export class WorldMap {
   /** Every province that is not a sea zone, in the map's order. */
   readonly landProvinces: readonly Province[];
 
-  constructor(provinces: readonly Province[], edges: readonly Edge[]) {
+  /**
+   * The land beyond this game's map (item 18b, "The first game"): its provinces stay on record, but no road leads there and
+   * it is no part of the land in play ({@link landProvinces}), so nothing moves, travels, grows or rises there.
+   */
+  readonly outside: ReadonlySet<string>;
+
+  constructor(provinces: readonly Province[], edges: readonly Edge[], outside: ReadonlySet<string> = new Set()) {
+    this.outside = outside;
     this.provinces = provinces;
     this.edges = edges;
     for (const p of provinces) {
@@ -89,12 +96,40 @@ export class WorldMap {
       this.adj.get(e.a)!.push({ to: e.b, kind: e.kind });
       this.adj.get(e.b)!.push({ to: e.a, kind: e.kind });
     }
-    this.landProvinces = provinces.filter((p) => !p.isSea);
+    this.landProvinces = provinces.filter((p) => !p.isSea && !outside.has(p.id));
   }
 
-  private static defaultMap: WorldMap | undefined;
+  private static fullMap: WorldMap | undefined;
+  private static played: WorldMap | null = null;
+  private static readonly parts = new Map<string, WorldMap>();
+  /** The whole map, every province joined. */
+  static get full(): WorldMap {
+    return (WorldMap.fullMap ??= buildMap());
+  }
+  /** The map of the game in play: the whole map, or the part a setup plays on ({@link play}). */
   static get default(): WorldMap {
-    return (WorldMap.defaultMap ??= buildMap());
+    return WorldMap.played ?? WorldMap.full;
+  }
+
+  /**
+   * Sets the map of the game in play (item 18b): the whole map, or, with absent powers, the whole map less their land, which
+   * lies beyond its edge. A game sets it as it begins and as its engine is built, as it does the powers risen in play.
+   */
+  static play(absent: readonly string[]): void {
+    const full = WorldMap.full;
+    const out = full.landProvinces.filter((p) => p.home !== null && absent.includes(p.home)).map((p) => p.id);
+    if (out.length === 0) {
+      WorldMap.played = null;
+      return;
+    }
+    const key = out.join(",");
+    let part = WorldMap.parts.get(key);
+    if (part === undefined) {
+      const gone = new Set(out);
+      part = new WorldMap(full.provinces, full.edges.filter((e) => !gone.has(e.a) && !gone.has(e.b)), gone);
+      WorldMap.parts.set(key, part);
+    }
+    WorldMap.played = part;
   }
 
   private winterMap: WorldMap | undefined;
@@ -104,7 +139,7 @@ export class WorldMap {
    */
   get winter(): WorldMap {
     if (this.edges.every((e) => !dangerousInWinter(e))) return this;
-    return (this.winterMap ??= new WorldMap(this.provinces, this.edges.filter((e) => !dangerousInWinter(e))));
+    return (this.winterMap ??= new WorldMap(this.provinces, this.edges.filter((e) => !dangerousInWinter(e)), this.outside));
   }
 
   /** The open-sea crossing between two sea zones, if that is what joins them (either way round). */
@@ -150,6 +185,13 @@ export class WorldMap {
     const risen = risenOf(power);
     if (risen !== null) return this.provinces.filter((p) => p.id === risen.capital);
     return this.provinces.filter((p) => p.home === power);
+  }
+
+  /** Whether a power is absent from the game in play (item 18b): its whole homeland lies beyond this map's edge. */
+  isAbsent(power: Power): boolean {
+    if (this.outside.size === 0) return false;
+    const home = this.homeOf(power);
+    return home.length > 0 && home.every((x) => this.outside.has(x.id));
   }
 
   /** Whether a province is of a power's homeland (a risen power's: its capital, item 13+). */

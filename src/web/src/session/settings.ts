@@ -1,5 +1,5 @@
 /** The table's settings, chosen on the start page and carried into the engine's worker (plain data, so it crosses over). */
-import { FixedPowers, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
+import { FirstGameAbsent, FixedPowers, firstGameConfig, isFirstGame, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
 import type { LogHeader } from "@amarna/game";
 import {
   CostEstimate,
@@ -16,6 +16,11 @@ import {
 
 export interface GameSettings {
   seed: number;
+  /**
+   * Which game (item 18b): the first game, an evening's, offered first (Egypt, Hatti and Mitanni and the powers between
+   * them, on a short curve), or the full game.
+   */
+  game: GameKind;
   leaders: Record<string, LeaderKind>;
   characters: CharacterKind;
   narrator: NarratorKind;
@@ -77,7 +82,17 @@ export interface GameSettings {
   auditShare: number;
 }
 
+export type GameKind = "first" | "full";
+
 const Ending = newGameConfig();
+const FirstEnding = firstGameConfig();
+/** The ending each game starts with; the table may change it under "Customize the table". */
+export const EndingOf: Record<GameKind, Pick<GameSettings, "endMedian" | "capped" | "capMin" | "capMax" | "openAge">> = {
+  first: { endMedian: FirstEnding.endMedian, capped: FirstEnding.capped, capMin: FirstEnding.capMin, capMax: FirstEnding.capMax, openAge: FirstEnding.openAge },
+  full: { endMedian: Ending.endMedian, capped: Ending.capped, capMin: Ending.capMin, capMax: Ending.capMax, openAge: Ending.openAge },
+};
+/** The powers absent from a game. */
+export const absentFrom = (g: GameKind): readonly Power[] => (g === "first" ? FirstGameAbsent : []);
 const Spend = newSpendingSettings();
 
 export const randomSeed = (): number => 1 + Math.floor(Math.random() * 999_999);
@@ -85,6 +100,7 @@ export const randomSeed = (): number => 1 + Math.floor(Math.random() * 999_999);
 export function newSettings(): GameSettings {
   return {
     seed: randomSeed(),
+    game: "first",
     leaders: Object.fromEntries(FixedPowers.map((p) => [p, "Script" as LeaderKind])),
     characters: "Script",
     narrator: "Template",
@@ -98,11 +114,7 @@ export function newSettings(): GameSettings {
     fallenSeeAll: true,
     sleepingSeats: true,
     maxSleep: 12,
-    endMedian: Ending.endMedian,
-    capped: Ending.capped,
-    capMin: Ending.capMin,
-    capMax: Ending.capMax,
-    openAge: Ending.openAge,
+    ...EndingOf.first,
     budgetUsd: 0,
     messagesPerTurn: 3,
     simulateApi: false,
@@ -124,7 +136,9 @@ export function newSettings(): GameSettings {
 
 export function choicesOf(s: GameSettings): SeatChoices {
   const c = new SeatChoices();
-  for (const p of FixedPowers) c.leaders.set(p, s.leaders[p]);
+  // An absent power's seat (item 18b) is a script seat that plays nothing: no model, key or bridge is asked for it.
+  c.absent = [...absentFrom(s.game)];
+  for (const p of FixedPowers) c.leaders.set(p, c.absent.includes(p) ? "Script" : s.leaders[p]);
   c.characters = s.characters;
   c.narrator = s.narrator;
   c.leaderEffort = s.leaderEffort;
@@ -178,6 +192,7 @@ export const estimate = (s: GameSettings): number => CostEstimate.perGame(choice
 
 export function toConfig(s: GameSettings): GameConfig {
   return newGameConfig({
+    absent: [...absentFrom(s.game)],
     customsPrimer: s.customsPrimer,
     sharedVictory: s.sharedVictory,
     rolledTraits: s.rolledTraits,
@@ -201,6 +216,7 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
     {
       ...newSettings(),
       seed: header.seed,
+      game: isFirstGame(header.config) ? "first" : "full",
       customsPrimer: header.config.customsPrimer,
       sharedVictory: header.config.sharedVictory,
       rolledTraits: header.config.rolledTraits,

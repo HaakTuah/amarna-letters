@@ -43,6 +43,8 @@ export class TurnEngine {
 
   constructor(state: GameState, map: WorldMap | null = null) {
     this.s = state;
+    // The map of the game in play (item 18b): the part its setup plays on, or the whole.
+    if (map === null) WorldMap.play(state.config.absent);
     this.map = map ?? WorldMap.default;
     // The powers risen in play are the state's (item 13+): a loaded or replayed game brings its own.
     setRisen(state.risen);
