@@ -23,8 +23,10 @@ A run not in this table does not exist.
 | Run | Command (`scripts/sim.sh ...`) | Commit | Result |
 |---|---|---|---|
 | Baseline, seeds 1-50 | `--games 50 --seed 1 --out <dir>` | 5280231 (`main`'s play, with the per-way line) | 25 minutes. Median age 89 seasons. Bold 8,359 characters, 158 of the top five, 519 of the top twenty, 10% dead, the living gained 27 a head; careful 4,853, 92 and 481, 13% dead, gained 39. A careful character reaches the top five 1.00 times as often a head as a bold one, the top twenty 1.60 times. Wins: Egypt 0, Hatti 0, Babylonia 2, Mitanni 0, Assyria 3, Arzawa 0, Alashiya 0; a character 4; another state 41 |
+| Baseline, seeds 51-100 | `--games 50 --seed 51 --out <dir>` | 5280231 | 24 minutes. Median age 87 seasons over the hundred. Bold 9,298 characters, 152 of the top five, 513 of the top twenty, 12% dead, gained 26 a head; careful 4,977, 98 and 487, 14% dead, gained 41. **Seeds 1-100:** bold 17,657 characters, 310 of the top five (1.76 in a hundred) and 1,032 of the top twenty (5.84); careful 9,830, 190 (1.93) and 968 (9.85): a careful character reaches the top five 1.10 times as often a head (a standard error of 0.10), the top twenty 1.68 times. First places: Egypt 1, Hatti 1, Babylonia 3, Mitanni 0, Assyria 8, Arzawa 0, Alashiya 0; a character 12; another state 75 (Arwad 8) |
 
 ### Still to do, in order
 
-1. Baseline, seeds 51-100 (running), then 101-200.
-2. The chief's share (f957586), seeds 1-100.
+1. The chief's share (52104fd), seeds 1-100 (running).
+2. Baseline, seeds 101-200: par's own seeds, played with that par in the script kings' reckoning of their rivals, to tell
+   whether the Great Kings' upper results fall short of par on seeds 1-100 by the seeds or by the par in play.
