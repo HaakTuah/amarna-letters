@@ -19,7 +19,8 @@ script's side ([`24-jobs-and-money-answers.md`](24-jobs-and-money-answers.md)); 
 - **A chief decides** (`ChiefChoice`, on `Character.chiefPlan`): land next door to move to (or stay), buying a ship
   (only asked when he can), whom his men kill of the travellers they rob ("nobody", "kings' servants", "everyone",
   standing until he says otherwise, `killsByChoice`), how many of his men to send away (item 18, part F4: a script chief
-  sends away those his band's take no longer pays, [23](23-roads-and-reputations.md)), and giving up the road
+  sends away those his band's take no longer pays, [23](23-roads-and-reputations.md); a band he leaves with fewer than
+  `BandData.least` men ends at once, by the way back), and giving up the road
   (`wayBack`). A chief who chose this season
   does nothing by formula (`chiefDecides`, at the start of his band's season; hunted, he flees as anyone; a ship is
   not bought for a move inland, where it would be left behind). A man who leads a new band starts with no choices. A chief whose
