@@ -1,4 +1,4 @@
-import { B, D, I, type ObjSchema, S, obj } from "../core/json.ts";
+import { B, D, I, type ObjSchema, S, list, obj } from "../core/json.ts";
 import type { PressMode } from "./clauses.ts";
 
 /** Every tunable number in one place. The defaults are first proposals, tuned by batch runs. */
@@ -18,6 +18,11 @@ export interface GameConfig {
    * winner is recorded. Only one kingdom left still ends it.
    */
   openAge: boolean;
+  /**
+   * The powers the map starts with that are absent from this game (item 18b, "The first game"): left out before its first
+   * season, their land unruled (`rules/first-game.ts`). None in the full game.
+   */
+  absent: string[];
   /**
    * The land's multiple in the wealth of a realm: its worth is this times what it produces a season at reference prices
    * (see {@link Scoring}).
@@ -151,6 +156,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     capMin: 140,
     capMax: 160,
     openAge: false,
+    absent: [],
     provinceWeight: 10,
     sizeWeight: 2,
     sharedVictory: false,
@@ -200,6 +206,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   capMin: I,
   capMax: I,
   openAge: B,
+  absent: list(S),
   provinceWeight: I,
   sizeWeight: I,
   sharedVictory: B,
