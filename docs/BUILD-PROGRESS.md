@@ -75,6 +75,13 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   two things, in a PR of its own when no open lane touches it, behaviour proven unchanged; generated data and the
   files judged one thing above stay whole. The list and what waits: `docs/rounds/2026-11-12-split-the-big-files.md`.
   Split so far: `turn/plans.ts`, `turn/intel.ts`, `model/map.ts`, `turn/resolve.ts`, `llm/src/rules.ts`, `game/src/batch.ts`, `batch/src/main.ts` (the report has each).
+- **An audit of how the code is put together** (stand-in's sure yes, 19 November 2026;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/1013), with the owner's words): one session that reads
+  and measures and changes no code, by the fixed brief and questions the idea points to; its numbers kept as this
+  game's baseline and its measures as scripts, so the next audit is a run.
+- **The prune of the records of the owner's words** (stand-in's sure yes, 19 November 2026; the owner asked for it to be
+  queued, [the idea](https://github.com/HaakTuah/amarna-letters/issues/1014)): the archive's files and the old comments,
+  by the points and the care the idea and its comment point to; a reader holds each changed entry against the old.
 
 ## Follow-ups
 
@@ -122,6 +129,15 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **A standing reserve for a far province's coffer** (stand-in's sure yes, 12 November 2026;
   [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: the king's own
   standing order, like paying troops (archive item 96). A new save version, the script kings' use and a measurement.
+
+- **Each person's past drawn by what they are** (stand-in's sure yes, 19 November 2026;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/766)), after the entry above: the lines of a person's
+  past drawn by calling, each with a few wordings. A new save version, since it moves the opening.
+
+- **This game follows the core's `main` while its next batch is built** (stand-in's sure yes, 19 November 2026;
+  [the idea](https://github.com/HaakTuah/amarna-letters/issues/1015)), the trusted builder's, at its next session: the
+  manifest's *follows* row to `main`, and back to `releases` once the batch's release is cut, each in a small PR of its
+  own. Moot, and the idea closed, if that release is cut first.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
