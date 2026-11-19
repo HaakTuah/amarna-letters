@@ -47,6 +47,8 @@ describe("RichestTests", () => {
     Assert.contains("Every person on one scoreboard (item 17b, part D):", report);
     Assert.contains(`  The richest character held ${summary.topWealth} shekels at the end on average (range ${summary.topWealth}-${summary.topWealth}).`, report);
     Assert.contains(Wealth.WhatCounts, report);
+    // Item 18, part F4: how often each Great King's results land in the top of its own par, where first place is decided.
+    Assert.contains("  Results in the upper quarter and the top tenth of a position's par (0 and 0 are due): Egypt ", report);
   });
 
   test("A model character knows its own wealth and nothing of the ranking", () => {
