@@ -45,7 +45,8 @@ P.newcomers = function () {
   // The pool on the map: raider chiefs gone home beyond it are not in it (item 17++++a).
   const rng = this.r("arrivals");
   if (!rng.chance(arrivalChance(S.baseline, living(this)) / 100)) return;
-  const door = rng.weighted(Doors, (d) => d.share);
+  // Item 18b: only the doors on the map in play (a setup's absent land lies beyond its edge).
+  const door = rng.weighted(Doors.filter((d) => d.provinces.some((x) => !this.map.outside.has(x))), (d) => d.share);
   const c = this.newcomer(rng, door);
   logEvent(S, "newcomer", `${c.name} came onto the map through ${door.name}.`, [], "newcomer");
 };
@@ -80,7 +81,7 @@ P.newcomer = function (rng, door) {
   });
   // What he carries, by why he came (first guesses).
   c.purse = c.earned.savings = reason === "trade" ? rng.range(30, 120) : reason === "home" ? rng.range(20, 80) : reason === "soldiering" ? rng.range(5, 30) : rng.range(0, 20);
-  const doorAt = rng.pick(door.provinces);
+  const doorAt = rng.pick(door.provinces.filter((x) => !this.map.outside.has(x)));
   const add = (text: string, secrecy: "Public" | "Hidden", tag: string): void => {
     c.facts.push(newFact({ id: newId(S, "f"), text, secrecy, tag }));
   };

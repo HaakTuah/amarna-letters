@@ -5,6 +5,7 @@
  * economy in prompt-economy.ts.
  */
 import {
+  seasonBrief,
   AllPowers,
   journeyGroups,
   mandateText,
@@ -180,6 +181,16 @@ function travelLine(v: SeatView): string {
   return joinS(`; `, parts);
 }
 
+/**
+ * The season brief as the request gives it (item 18b, "A model seat reads the same"): the same lines, in the same order, as
+ * the seat's screen shows them, from `seasonBrief`; nothing when the season brought nothing.
+ */
+export function briefText(v: SeatView): string {
+  const lines = seasonBrief(v);
+  if (lines.length === 0) return "";
+  return `SEASON BRIEF (what happened to you, most urgent first; the details are below):\n${lines.map((l) => `  - ${l.text}\n`).join("")}`;
+}
+
 export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): string
     {
         const map = WorldMap.default;
@@ -187,6 +198,8 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const woke = sleepLine(v, true);
         if (woke.length > 0) sb.appendLine(woke);
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
+        // Item 18b: what happened to you this season, most urgent first, as your screen's brief says it (one source).
+        sb.append(briefText(v));
         // Item 16, "Omens of the end": what the court's diviners read this season, in words only.
         if (v.omens !== ``) sb.appendLine(`OMENS: ${v.omens}`);
         // Item 13: where the court is, and (item 17b, part C) where the king stands apart from it, from where his orders go out.

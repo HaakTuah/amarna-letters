@@ -1,4 +1,4 @@
-import { AllPowers, kingFor, kingOtherNames, type Power } from "@amarna/engine";
+import { AllPowers, WorldMap, kingFor, kingOtherNames, type Power } from "@amarna/engine";
 import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import type { FrameSleep } from "../session/frames.ts";
@@ -28,7 +28,8 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
   return (
     <div className="courtbar">
       <div className="courts" ref={sideScroll}>
-        {AllPowers.map((p) => {
+        {/* A power absent from the game (item 18b, the first game) has no court on the strip. */}
+        {AllPowers.filter((p) => !WorldMap.default.isAbsent(p)).map((p) => {
           const held = heldBy(p);
           const fallen = f.eliminated.has(p);
           const sleep = sleepOf(p);

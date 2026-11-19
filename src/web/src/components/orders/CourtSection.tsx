@@ -44,7 +44,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
   const { draft, v, me, f, set, wage, jobTerm, ready, reserved, others, add, addSpy } = c;
   // #601: the far provinces of yours a rider can bring the report of, and the job's errand and its words.
   // Its report two seasons old or more, as a ride can make fresher (the validator refuses the rest).
-  const far = [...v.ownerAsOf.entries()].filter(([x, asOf]) => v.owner.getOrDefault(x, null) === me && v.turn - asOf >= 2 && !map.get(x).isSea).map(([x]) => x);
+  const far = [...v.ownerAsOf.entries()].filter(([x, asOf]) => v.owner.getOrDefault(x, null) === me && v.turn - asOf >= 2 && !map().get(x).isSea).map(([x]) => x);
   const rideTo = f.errandWhat === "ride" && !far.includes(f.errandWhere) ? (far[0] ?? "") : f.errandWhere;
   const errand = { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhat === "ride" ? rideTo : f.errandWhere, payOnDone: f.payOnDone };
   const errandLabel =
@@ -56,7 +56,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
     draft.other.some((o) => o.type === "upkeep" && o[half] !== null && (o.province === undefined || at === undefined || o.province === at));
   return (
     <>
-    <div className="section">
+    <div className="section" id="orders-court">
       <h3>Court</h3>
       {/* #806: a king held abroad writes from captivity; his letters leave through his captor's court. */}
       {v.heldAt !== null && (
@@ -143,12 +143,12 @@ export function CourtSection({ c }: { c: OrdersContext }) {
         <select value={f.grantAt} onChange={(e) => set({ grantAt: e.target.value })}>
           <option value="">{f.grantKind === "passage" ? "all your land" : "in…"}</option>
           {[...v.owner.entries()]
-            .filter(([id, o]) => o === me && !map.get(id).isSea)
+            .filter(([id, o]) => o === me && !map().get(id).isSea)
             .map(([id]) => id)
             .sort()
             .map((id) => (
               <option key={id} value={id}>
-                {map.get(id).name}
+                {map().get(id).name}
               </option>
             ))}
         </select>
@@ -430,7 +430,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               to the court of {powerName(p)}
             </option>
           ))}
-          {[...map.landProvinces]
+          {[...map().landProvinces]
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((p) => (
               <option key={p.id} value={`@${p.id}`}>

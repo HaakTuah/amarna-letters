@@ -73,7 +73,6 @@ class Memory {
   lastTurnSeen = 0;
 }
 
-const Map_ = WorldMap.default;
 const Oath = "By Shamash, Amun, Marduk and Teshub";
 
 const G = (m: Memory, p: Power): number => m.grudge.getOrDefault(p, 0);
@@ -178,7 +177,7 @@ export class BaselineLeader implements ISeat {
       let aggressiveTowardSender = false;
       if (m.aggression > 0.75)
         for (const [k, o] of court.owner)
-          if (o === sender && court.units.some((u) => u.power === me && Map_.areAdjacent(u.province, k))) {
+          if (o === sender && court.units.some((u) => u.power === me && WorldMap.default.areAdjacent(u.province, k))) {
             aggressiveTowardSender = true;
             break;
           }
@@ -240,8 +239,8 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
   // Hold valuable land that is threatened.
   for (const u of mine) {
     if (v.owner.getOrDefault(u.province, null) !== me) continue;
-    const threats = count(others, (o) => !friendly(o.power) && Map_.canMove(o.kind, o.province, u.province));
-    const p = Map_.get(u.province);
+    const threats = count(others, (o) => !friendly(o.power) && WorldMap.default.canMove(o.kind, o.province, u.province));
+    const p = WorldMap.default.get(u.province);
     if (threats > 0 && (p.capital || p.yield >= 35 || threats >= 2)) {
       orders.push(hold(u.province));
       free.delete(u.province);
@@ -258,7 +257,7 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
 
   // Pick targets and gather enough strength for each.
   const targets: [string, number, number][] = [];
-  for (const t of distinct([...free.values()].flatMap((u) => Map_.movesFrom(u.kind, u.province))).filter((id) => !Map_.get(id).isSea)) {
+  for (const t of distinct([...free.values()].flatMap((u) => WorldMap.default.movesFrom(u.kind, u.province))).filter((id) => !WorldMap.default.get(id).isSea)) {
     const owner = v.owner.getOrDefault(t, null);
     const occ = unitAt.tryGet(t) ?? null;
     if (occ?.power === me) continue;
@@ -273,13 +272,13 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
     else if (!willing(owner)) need = 0;
     else need = occ === null ? empty : 2 + (m.aggression < 0.5 ? 1 : 0) + (walls > 0 ? 0 : Math.floor(people / 1000));
     if (need === 0) continue;
-    const prov = Map_.get(t);
+    const prov = WorldMap.default.get(t);
     const value = prov.yield + (prov.capital ? 25 : 0) + (owner === null ? 5 : 0) + (prov.home === me ? 30 : 0) + (owner !== null ? G(m, owner) * 3 + (owner === leader ? 15 : 0) : 0);
     targets.push([t, need, value]);
   }
   for (const [target, need] of sortBy(targets, [(x: [string, number, number]) => x[2], desc(cmpNum)], [(x: [string, number, number]) => x[0], cmpStr])) {
     const able = sortBy(
-      [...free.values()].filter((u) => Map_.canMove(u.kind, u.province, target)),
+      [...free.values()].filter((u) => WorldMap.default.canMove(u.kind, u.province, target)),
       [(u: UnitView) => (u.kind === "Army" ? 0 : 1), cmpNum],
       [(u: UnitView) => u.province, cmpStr],
     );
@@ -302,7 +301,7 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
       destinations.add(step);
       continue;
     }
-    const assist = orders.find((o): o is Extract<Order, { type: "move" }> => o.type === "move" && Map_.canMove(u.kind, u.province, o.to) && o.unit !== u.province) ?? null;
+    const assist = orders.find((o): o is Extract<Order, { type: "move" }> => o.type === "move" && WorldMap.default.canMove(u.kind, u.province, o.to) && o.unit !== u.province) ?? null;
     orders.push(assist !== null ? support(u.province, assist.unit, assist.to) : hold(u.province));
   }
   return destinations;
@@ -311,7 +310,7 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
 function stepToward(u: UnitView, v: SeatView, me: Power, peace: HSet<Power>, m: Memory, taken: HSet<string>, unitAt: Dict<string, UnitView>): string | null {
   const leader = leaderOf(v);
   const goal = (id: string): boolean => {
-    const p = Map_.get(id);
+    const p = WorldMap.default.get(id);
     if (p.isSea) return false;
     const owner = v.owner.getOrDefault(id, null);
     if (owner === me) return false;
@@ -331,7 +330,7 @@ function stepToward(u: UnitView, v: SeatView, me: Power, peace: HSet<Power>, m: 
       if ((v.resistance.tryGet(step) ?? 0) >= 1000) return null; // its people would hold off a lone army (item 10+a)
       return step;
     }
-    for (const n of sortBy(Map_.movesFrom(u.kind, cur), [(x: string) => x, cmpStr]))
+    for (const n of sortBy(WorldMap.default.movesFrom(u.kind, cur), [(x: string) => x, cmpStr]))
       if (!prev.has(n)) {
         prev.set(n, cur);
         queue.push(n);
@@ -352,13 +351,13 @@ function economy(v: SeatView, rng: Rng, orders: Order[], destinations: HSet<stri
   let fleets = count(v.units, (u) => u.power === me && u.kind === "Fleet");
 
   const spots = sortBy(
-    Map_.homeOf(me).filter((p) => v.owner.getOrDefault(p.id, null) === me && v.units.every((u) => u.province !== p.id) && !destinations.has(p.id)),
+    WorldMap.default.homeOf(me).filter((p) => v.owner.getOrDefault(p.id, null) === me && v.units.every((u) => u.province !== p.id) && !destinations.has(p.id)),
     [(p) => p.capital, desc(cmpBool)],
     [(p) => p.yield, desc(cmpNum)],
   );
   let raised = 0;
   // Grain, the plain way (item 9+a): sell it all each season; its sales and the mines are the season's income.
-  let surplus = plainGrainOrders(v, orders) + sum(v.provinces, (x) => economyOf(Map_.get(x.province)).mine) - v.upkeep - v.fees;
+  let surplus = plainGrainOrders(v, orders) + sum(v.provinces, (x) => economyOf(WorldMap.default.get(x.province)).mine) - v.upkeep - v.fees;
   for (const spot of spots) {
     // Small kingdoms keep their gold for buying cities rather than for troops they cannot feed.
     if (units + raised >= provinces + (weak ? 0 : 1)) break;
@@ -394,7 +393,7 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
   const mineProv = new HSet<string>();
   for (const [k, o] of v.owner) if (o === me) mineProv.add(k);
   const borders = (p: Power, near: (n: string) => boolean): boolean => {
-    for (const [k, o] of v.owner) if (o === p && Map_.neighbors(k).some(near)) return true;
+    for (const [k, o] of v.owner) if (o === p && WorldMap.default.neighbors(k).some(near)) return true;
     return false;
   };
   const neighbors = alive.filter((p) => borders(p, (n) => mineProv.has(n)));
@@ -587,7 +586,7 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
     for (const [k, o] of v.owner) if (o === me) mineProv.add(k);
     const bordering = (p: Power): number => {
       let n = 0;
-      for (const [k, o] of v.owner) if (o === p && Map_.neighbors(k).some((x) => mineProv.has(x))) n++;
+      for (const [k, o] of v.owner) if (o === p && WorldMap.default.neighbors(k).some((x) => mineProv.has(x))) n++;
       return n;
     };
     const target = sortBy(
