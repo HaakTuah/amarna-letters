@@ -297,7 +297,7 @@ export class Board {
    */
   growth(p: Power): number {
     let g = this.growthCache.tryGet(p);
-    if (g === undefined) this.growthCache.set(p, (g = this.alive.has(p) ? standingOf(p, this.strength(p) / this.startStrength(p)) : 0));
+    if (g === undefined) this.growthCache.set(p, (g = this.alive.has(p) ? standingOf(p, this.strength(p) / this.startStrength(p), this.v.turn) : 0));
     return g;
   }
 

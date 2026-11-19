@@ -17,6 +17,8 @@ import {
   max,
   rankAmong,
   standingOf,
+  characterStanding,
+  ParNear,
   clause,
   vassalBonds,
   vassalTerms,
@@ -25,6 +27,7 @@ import {
   newGameConfig,
   PeopleOf1346,
 } from "@amarna/engine";
+import { CharacterPar, ParResults, ParSeasons } from "../src/rules/par-results.ts";
 import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
@@ -144,8 +147,28 @@ describe("City-states as powers (item 11+)", () => {
     // A survivor of a position that always fell ranks above them all; a position never measured is ranked against 1.
     Assert.equal(1, rankAmong([0, 0], 0.4));
     Assert.true(rankAmong([0, 0], 0) < rankAmong([0, 0], 0.4));
-    for (const p of AllPowers) Assert.inRange(standingOf(p, 1e9), 1.5, 2);
-    Assert.true(standingOf("Byblos", 0) < standingOf("Byblos", 0.05));
+    for (const p of AllPowers) Assert.inRange(standingOf(p, 1e9, 60), 1.5, 2);
+    Assert.true(standingOf("Byblos", 0, 60) < standingOf("Byblos", 0.05, 60));
+  });
+
+  test("A result is ranked among par's games nearest in length to its age (item 18, part F4)", () => {
+    // Of par's games, those nearest a short age and those nearest a long one; a result is ranked among them alone.
+    const order = ParSeasons.map((n, i) => [n, i] as const).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const [shortest, longest] = [order[0][0], order[order.length - 1][0]];
+    const near = (seasons: number): number[] =>
+      ParSeasons.map((n, i) => [Math.abs(n - seasons), i] as const)
+        .sort((a, b) => a[0] - b[0] || a[1] - b[1])
+        .slice(0, ParNear)
+        .map(([, i]) => i);
+    for (const [p, seasons] of [["Egypt", shortest], ["Assyria", longest], ["Arzawa", 80]] as const) {
+      const results = near(seasons).map((i) => ParResults[p]![i]).sort((a, b) => a - b);
+      for (const g of [0, 0.5, 1, 1.3, 2]) Assert.equal(2 * rankAmong(results, g), standingOf(p, g, seasons));
+    }
+    const best = near(longest).flatMap((i) => CharacterPar[i]).sort((a, b) => a - b);
+    Assert.equal(rankAmong(best, 300), characterStanding(300, longest));
+    // Par's games and each power's results are kept in one order: one result per game.
+    Assert.all(Object.values(ParResults), (xs) => xs.length === ParSeasons.length);
+    Assert.equal(ParSeasons.length, CharacterPar.length);
   });
 
   test("The final score blends size and performance, and the highest wins", () => {
