@@ -80,6 +80,41 @@ describe("BandTests", () => {
     Assert.equal(chief.purse, chief.earned.loot - chief.earned.spent);
   });
 
+  test("Men join only while the band's steady take, less its chief's share, pays more than they cost, so the share stays his", () => {
+    const s = smallWorld(newGame(2), "Egypt");
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    chief.traits.greed = 50;
+    const cut = (BandData.chiefCut.least + BandData.chiefCut.most) / 2;
+    // A rich town robbed season after season, its purse made good each time, with loose men enough to join.
+    const season = (): void => {
+      e.market(prov).purse = 20000;
+      s.people.get(prov).loose = 40000;
+      s.turn++;
+      new TurnEngine(s).bandsSeason();
+    };
+    for (let i = 0; i < 60; i++) season();
+    Assert.true(s.bands.includes(b));
+    // It has stopped growing where what the chief leaves of the take pays its men, and no further.
+    const men = b.men;
+    season();
+    Assert.true(b.men - men <= 1);
+    Assert.true(b.cost <= Math.ceil((b.took * (100 - cut)) / 100));
+    Assert.true(b.cost >= Math.floor((b.took * (100 - cut - 5)) / 100));
+    // So every season leaves the chief his share of it.
+    const purse = chief.purse;
+    season();
+    Assert.true(chief.purse - purse >= Math.floor((b.took * (cut - 5)) / 100));
+    // One haul on the roads draws no men: they join for what the band takes season after season.
+    e.robbedBy(prov, 5000);
+    const before = b.men;
+    season();
+    Assert.true(b.men - before <= 1);
+    Assert.true(chief.purse >= 5000);
+  });
+
   test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {
     const s = smallWorld(newGame(3), "Egypt");
     const prov = quiet(s, "Egypt");

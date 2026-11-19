@@ -56,6 +56,18 @@ export interface RoadMeasure {
   safeJobs: number;
   /** Item 18, part F3: by way to a fortune, its characters and how many of them stood in the top five (older summaries have none). */
   ways?: Partial<Record<Strategy, [number, number]>>;
+  /** Item 18, part F4: those there from the start, and those leading a band at the end ({@link RoadPart}; older summaries have none). */
+  start?: RoadPart;
+  chiefs?: RoadPart;
+}
+
+/** A part of a road's characters: how many, how many of them in the top five and the top twenty, and the living's results summed. */
+export interface RoadPart {
+  people: number;
+  top5: number;
+  top20: number;
+  living: number;
+  result: number;
 }
 
 /** One window of {@link FeeWindow} seasons. */
@@ -141,6 +153,16 @@ export class MoneyWatch {
         w[0]++;
         if (top.has(x.character.id)) w[1]++;
       }
+      const top20 = new Set(living.slice(0, 20).map((x) => x.character.id));
+      const part = (ys: readonly PersonScore[]): RoadPart => ({
+        people: ys.length,
+        top5: ys.filter((x) => top.has(x.character.id)).length,
+        top20: ys.filter((x) => top20.has(x.character.id)).length,
+        living: ys.filter((x) => !x.dead).length,
+        result: sum(ys.filter((x) => !x.dead), (x) => characterResult(x.character) - 1),
+      });
+      r.start = part(xs.filter((x) => x.character.arrived === null));
+      r.chiefs = part(xs.filter((x) => !x.dead && x.character.duty === "Leading"));
       for (const x of xs) addEarnings(r.earned, x.character.earned);
       return r;
     };
@@ -201,5 +223,16 @@ export function moneyReport(ms: readonly MoneyMeasure[]): string[] {
     return b[0] + c[0] === 0 ? [] : [`${w} bold ${b[1]} of ${b[0]} (${rate(b)}), careful ${c[1]} of ${c[0]} (${rate(c)})`];
   });
   if (ways.length > 0) lines.push(`  The top five by way to a fortune (of those who never reigned; in a hundred heads): ${ways.join("; ")}.`);
+  // Item 18, part F4: the roads among those there from the start, where neither is the newcomers' or the chiefs' road, and
+  // what leading a band brought those who led one at the end.
+  const parts = (pick: (r: RoadMeasure) => RoadPart | undefined, bold: boolean): RoadPart => {
+    const ps = ms.flatMap((m) => (m.roads !== undefined ? [pick(bold ? m.roads.bold : m.roads.careful)] : [])).flatMap((x) => (x !== undefined ? [x] : []));
+    return { people: sum(ps, (x) => x.people), top5: sum(ps, (x) => x.top5), top20: sum(ps, (x) => x.top20), living: sum(ps, (x) => x.living), result: sum(ps, (x) => x.result) };
+  };
+  const told = (x: RoadPart): string =>
+    x.people === 0 ? "none" : `${x.people}, ${x.top5} of the top five (${fmt((100 * x.top5) / x.people, "0.0")}), ${x.top20} of the top twenty (${fmt((100 * x.top20) / x.people, "0.0")}), the living gained ${fmt(x.result / Math.max(1, x.living), "0")} a head`;
+  const [sb, sc, cb, cc] = [parts((r) => r.start, true), parts((r) => r.start, false), parts((r) => r.chiefs, true), parts((r) => r.chiefs, false)];
+  if (sb.people + sc.people > 0) lines.push(`  There from the start (in a hundred heads): bold ${told(sb)}; careful ${told(sc)}.`);
+  if (cb.people + cc.people > 0) lines.push(`  Leading a band at the end: bold ${told(cb)}; careful ${told(cc)}.`);
   return lines;
 }
