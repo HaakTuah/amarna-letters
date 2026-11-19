@@ -127,6 +127,27 @@ Unsure first.
   top-tenth games on seeds 1-100 show.
 - From F3's rest, still open: vassal play behind, the coffer's wins, and the rows read on the play before F3's patches.
 
+## Hand-off: where to pick up (stopped 19 November 2026, about 06:10 UTC)
+
+The owner stopped development ("Don't start any new tasks now. If the builders are close to finish, let them, but if
+they are some way off, have them commit all their work and hand-off notes at their viable point. We are stopping
+development for now.", passed on by the orchestrator), so this part stops here, everything pushed on
+`item/balance-f4-opus` (PR #1024, marked ready, auto-merge off, not merged).
+
+- **Done:** every run above (baselines on seeds 1-200, par by length measured on its own play, the evaluation on seeds
+  1-100, the benchmarks on seeds 1-4 after); the code, tests, descriptions, design note 58 and the progress row.
+- **The design check** (a fresh Opus reviewer, nothing blocking) is answered in full in 3eba3a0: the kings' PAR wording
+  (`src/llm/src/rules-winning.ts`, lines 50 and 52: "nearest in length to this age when it ends", growth not standing),
+  the shipped numbers in design note 58 and the progress row in place of "alike", the player-facing descriptions of par
+  (design note 61's winning page, the About page, `Wealth.WhatCounts`), the other reading of the kings' reckoning named,
+  and the spread of the top tenth out of par's sample said plainly. **Fix rounds so far: 1** (the design check's).
+- **Pending:** Codex's code review and security review of fa54954, both running when stopped; read them, fix what they
+  find (a round each), and the security review needs its "Security review:" comment. Then the trial's shared measurement
+  and blind judgement (`docs/rounds/2026-11-12-model-trial-2.md`), which the orchestrator runs.
+- **At the merge:** `main` has since taken save version 96 (item 18b), so this change becomes 97 when the branch is
+  brought up to date (`CURRENT_VERSION` and `save-version.test.ts`); it merges without a conflict.
+- **This session's tally when stopped:** Session so far: 317 answers (Opus); tokens in 690, cache written 572,712, cache read 100,731,682, out 160,002.
+
 ## How the runs are kept
 
 Every run is written here, with its command, seeds, commit and result, as it finishes; each is 50 games, from a worktree
