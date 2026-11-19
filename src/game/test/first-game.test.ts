@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { FirstGameAbsent, FirstGamePowers, Views, firstGameConfig, isFirstGame, newGame, newGameConfig } from "@amarna/engine";
+import { FirstGameAbsent, FirstGamePowers, TurnEngine, Views, WorldMap, firstGameConfig, isFirstGame, newGame, newGameConfig } from "@amarna/engine";
 import { GameRunner, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
 import { Assert } from "../../engine/test/support.ts";
 import { scriptSeats } from "./small-world.ts";
@@ -24,6 +24,20 @@ describe("FirstGameTests", () => {
     Assert.contains("Egypt, Hatti and Mitanni hold their thrones", s.events[0].text);
     // The short curve, with a cap near thirty.
     Assert.true(s.finalSeason !== null && s.finalSeason <= 32);
+  });
+
+  // The map in play is set by each game as it begins and as its engine is built, so games of both kinds in one process
+  // ("Same seed, same game") never play on each other's map.
+  test("A first game and a full game in one process each play on their own map", () => {
+    const first = newGame(2, firstGameConfig());
+    Assert.true(WorldMap.default.outside.size > 0);
+    Assert.true(WorldMap.default.isAbsent("Babylonia"));
+    const full = newGame(2);
+    Assert.equal(0, WorldMap.default.outside.size);
+    Assert.true(new TurnEngine(first).map.landProvinces.length < WorldMap.full.landProvinces.length);
+    Assert.true(WorldMap.default.isAbsent("Babylonia"));
+    new TurnEngine(full);
+    Assert.false(WorldMap.default.isAbsent("Babylonia"));
   });
 
   test("The first game plays to its end and replays exactly", async () => {

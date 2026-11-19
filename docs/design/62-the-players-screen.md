@@ -46,17 +46,19 @@ brought the seat, from its own view alone (`seasonBrief` in `src/engine/src/rule
    land last season (troops that merely stand at its border, in their own land or another's, are no news).
 2. **Battle:** last season's, its own: a unit destroyed or beaten back, its attacks that took land or failed, and attacks
    on its land, held off or not.
-3. **Word:** an envoy received at its court, an envoy or spy home with a report, a tablet ready.
+3. **Word:** an envoy received at its court, an envoy home with a report, a spy's word ("Your spy Tahmaya at Hatti sent
+   word"), a tablet ready.
 4. **Promise:** a debt repaid, to it or by it, or past its season unpaid; a servant's fee paid, or fallen due unpaid.
 5. **Errand:** a servant home or gone, an envoy let go, gold brought home, a candidate seeking service.
 6. **Short:** the treasury below a season's pay of troops, works and servants; its troops hungry or unpaid; its people
    short of grain.
 
-Past six lines, the sixth says how many more wait in the season's record. Each line names its place, for the map, and what
+Past six lines, the sixth says how many more wait in this season's news. Each line names its place, for the map (the court's
+seat for word and errands), and what
 answers it: the troops, the court or the treasury in the orders, or the season's news in the inbox.
 
 **One source for the screen and the request** ("A model seat reads the same"): the screen shows `seasonBrief`'s lines
-above the panel's tabs while the seat's orders are open (`SeasonBrief.tsx`, rows by `src/web/src/ui/brief.ts`), each
+under the panel's tabs while the seat's orders are open (`SeasonBrief.tsx`, rows by `src/web/src/ui/brief.ts`), each
 with its own icon and word as well as its colour; a tap shows its place on the map and opens what answers it. The model's
 orders request gives the same lines in the same order under "SEASON BRIEF", right after the season (`briefText` in
 `src/llm/src/prompts.ts`). `src/web/test/season-brief.test.ts` fails where the two differ. The page shows the lines in

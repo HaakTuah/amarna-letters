@@ -13,8 +13,7 @@ percent by default). The dead rank below the living, by what they held when they
 king or character.
 
 Any season may be the last. Early on the end is very unlikely; it grows likelier every year, and half of all games
-are over by 1320 BCE, about season 80 (in the first game, half are over by about season 20, and none runs past about
-season 30). The last season is drawn in secret when the game begins: nobody can read it, and
+are over by 1320 BCE, about season 80 (in the first game, about season 20). The last season is drawn in secret when the game begins: nobody can read it, and
 your court's omens darken as it nears. A table can change how long games run, or play on with no end at all.
 
 A king is a person. He may travel without his court, commanding from where he is, near the front and at the risk of his

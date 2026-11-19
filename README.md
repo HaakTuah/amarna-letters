@@ -20,12 +20,12 @@ said at the foreign court, and what the envoy reported home. The gaps between th
 
 Choose a game, pick a preset, choose whether to watch or take a seat, and begin. **The first game**, offered first, is
 for an evening: Egypt, Hatti and Mitanni and the cities and chiefs of Syria and Canaan between them, the other powers
-absent and their lands beyond the map, and an age that often ends in about 20 seasons. **The full game** has all seven
+absent and their lands beyond the map, and a short age. **The full game** has all seven
 Great Kings (Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa and Alashiya) and the forty city-states and chiefs
 between them, over a few evenings. Every rule is the same in both. You can be a Great King or one of the city-states
 and chiefs, a harder start that can still win. It is built phone first, and games are saved in the browser.
 
-While your orders are open, the season brief above the panel says in a few lines what this season brought you, most
+While your orders are open, the season brief under the panel's tabs says in a few lines what this season brought you, most
 urgent first; tap a line to see its place on the map and open what answers it.
 
 The **Free** preset needs no key and costs nothing: every king and envoy is a script player. To have Claude play the

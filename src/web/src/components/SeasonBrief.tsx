@@ -3,7 +3,7 @@ import { briefRows, type BriefRow } from "../ui/brief.ts";
 import { shown } from "../ui/names.ts";
 
 /**
- * The season brief (item 18b): at most six lines of what this season brought the seat, most urgent first, above the
+ * The season brief (item 18b): at most six lines of what this season brought the seat, most urgent first, under the
  * panel's tabs while its orders are open. A tap on a line shows its place on the map and opens what answers it.
  */
 export function SeasonBrief({ view, onLine }: { view: SeatView; onLine: (row: BriefRow) => void }) {

@@ -71,10 +71,10 @@ export function isFirstGame(c: GameConfig): boolean {
 
 /**
  * Leaves the absent powers out of a new game, before its first season: their land unruled and long known so to every
- * court, their troops, tablets, debts and claims gone, their people with them (a servant of a present court standing at
- * an absent one is at home instead), and every present court's ties and every province's loyalty to them gone. The walls
- * and the people of their land stay where they are, since the land itself is still there; nobody keeps its works, as
- * nobody orders them kept. Every court starts knowing who is in the game: an absent power is no news, and no fall.
+ * court, and beyond the map the game is played on (`WorldMap.play`), so nothing moves, travels, grows or rises there;
+ * their troops, tablets, debts and claims gone, their people with them (a servant of a present court standing at an
+ * absent one is at home instead), and every present court's ties and every province's loyalty to them gone. Every court
+ * starts knowing who is in the game: an absent power is no news, and no fall.
  */
 export function leaveOut(s: GameState, m: WorldMap, absent: readonly Power[]): void {
   const out = new Set(absent);

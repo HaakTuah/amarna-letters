@@ -1,4 +1,4 @@
-/* The season brief (item 18b): what this season brought the seat, above the panel's tabs while its orders are open. Each
+/* The season brief (item 18b): what this season brought the seat, under the panel's tabs while its orders are open. Each
    line has its own icon and word as well as its colour; the colours are the theme's own tokens, so dark mode follows. */
 .brief { flex: none; border-bottom: 1px solid var(--line); padding: .35rem .5rem .4rem; background: var(--paper); max-height: 40%; overflow: auto; }
 .brief ul { list-style: none; margin: 0; padding: 0; }

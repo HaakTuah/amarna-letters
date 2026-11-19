@@ -20,7 +20,7 @@ export interface GameConfig {
   openAge: boolean;
   /**
    * The powers the map starts with that are absent from this game (item 18b, "The first game"): left out before its first
-   * season, their land unruled (`rules/first-game.ts`). None in the full game.
+   * season, their land beyond the game's map (`rules/first-game.ts`). None in the full game.
    */
   absent: string[];
   /**

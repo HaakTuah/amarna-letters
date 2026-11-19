@@ -2,7 +2,7 @@
  * The season brief ("The player's screen", build order item 18b, "Four questions, in order": what happened to me?): at most
  * six lines, most urgent first, of what this season brought the seat. A foreign army in its land or at its border, a
  * battle of its own, a letter or envoy waiting, a promise kept or broken, an errand done, gold or grain running short; the
- * world's other moves stay in the season's record. Drawn from the seat's own view alone, so it says only what the court
+ * world's other moves stay in the season's news. Drawn from the seat's own view alone, so it says only what the court
  * knows, and the one source of both the screen's brief and the model's request ("A model seat reads the same"): each line
  * names its place, and what answers it, for the screen to jump to.
  */
@@ -19,7 +19,7 @@ import { upper } from "./wording.ts";
 export const BriefKindValues = ["Threat", "Battle", "Word", "Promise", "Errand", "Short"] as const;
 export type BriefKind = (typeof BriefKindValues)[number];
 
-/** What answers a line: the seat's troops, the season's record (its news), its court and servants, or its treasury. */
+/** What answers a line: the seat's troops, the season's news, its court and servants, or its treasury. */
 export const BriefAnswerValues = ["Troops", "News", "Court", "Treasury"] as const;
 export type BriefAnswer = (typeof BriefAnswerValues)[number];
 
@@ -32,7 +32,7 @@ export interface BriefLine {
   answer: BriefAnswer;
 }
 
-/** The most lines a brief holds; past it, the last says how many more wait in the season's record. */
+/** The most lines a brief holds; past it, the last says how many more wait in this season's news. */
 export const MaxBrief = 6;
 
 const name = (id: string): string => WorldMap.default.get(id).name;
@@ -92,9 +92,10 @@ export function seasonBrief(v: SeatView): BriefLine[] {
   }
 
   // The season's news that waits on the king: a letter or envoy, a promise kept or broken, an errand done.
+  // Word and errands come to the court, where the map shows them; a promise of gold has no one place.
   for (const i of v.inbox) {
-    const line = newsLine(i);
-    if (line !== null) add(line.kind, line.text, null, line.answer);
+    const line = newsLine(i, v);
+    if (line !== null) add(line.kind, line.text, line.kind === "Promise" || v.courtAt === "" ? null : v.courtAt, line.answer);
   }
 
   // Gold or grain running short.
@@ -121,18 +122,23 @@ export function seasonBrief(v: SeatView): BriefLine[] {
   const sorted = merged.map((l, i) => [l, i] as const).sort((a, b) => order(a[0].kind) - order(b[0].kind) || a[1] - b[1]).map(([l]) => l);
   if (sorted.length <= MaxBrief) return sorted;
   const rest = sorted.length - (MaxBrief - 1);
-  return [...sorted.slice(0, MaxBrief - 1), { kind: sorted[MaxBrief - 1].kind, text: `And ${rest} more this season, in the season's record.`, at: null, answer: "News" }];
+  return [...sorted.slice(0, MaxBrief - 1), { kind: sorted[MaxBrief - 1].kind, text: `And ${rest} more in this season's news.`, at: null, answer: "News" }];
 }
 
-/** A line of the season's news for the brief, by its kind and title, or null for what stays in the record. */
-function newsLine(i: InboxItem): { kind: BriefKind; text: string; answer: BriefAnswer } | null {
+/** A line of the season's news for the brief, by its kind and title, or null for what stays in the news alone. */
+function newsLine(i: InboxItem, v: SeatView): { kind: BriefKind; text: string; answer: BriefAnswer } | null {
   switch (i.kind) {
     case "Audience":
       return { kind: "Word", text: `${i.title.replace(/^Audience with /u, "")}, was received at your court.`, answer: "News" };
     case "EnvoyReport":
       return { kind: "Word", text: `${i.title} with his report.`, answer: "News" };
-    case "SpyReport":
-      return { kind: "Word", text: `${i.title}, a spy's report.`, answer: "News" };
+    case "SpyReport": {
+      // Who sent it, and where the court posted him, as its own servants' list says.
+      const spy = [...v.court, ...v.known].find((c) => c.id === i.subject) ?? null;
+      const post = spy?.errandWhere ?? null;
+      const at = post === null ? "" : WorldMap.default.exists(post) ? ` in ${name(post)}` : ` at ${powerName(post)}`;
+      return { kind: "Word", text: spy !== null ? `Your spy ${spy.name}${at} sent word.` : `${i.title}, a spy's report.`, answer: "News" };
+    }
     case "Tablet":
       return { kind: "Word", text: "A tablet you ordered is ready.", answer: "News" };
     case "Candidates":
@@ -152,7 +158,7 @@ const PromiseTitles: ReadonlySet<string> = new Set(["A debt repaid to you", "A d
 /** The notices of an errand done or ended: a servant home or gone, an envoy let go, and gold brought home. */
 const ErrandTitles: ReadonlySet<string> = new Set(["Agent returns", "Gold brought home", "A servant leaves", "Envoy released"]);
 
-/** A notice's first sentence, which names who and what: the rest stays in the season's record. */
+/** A notice's first sentence, which names who and what: the rest stays in the season's news. */
 function firstSentence(body: string): string {
   const end = body.search(/[.!?](\s|$)/u);
   return end < 0 ? `${body.trim()}.` : body.slice(0, end + 1).trim();
