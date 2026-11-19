@@ -115,6 +115,38 @@ describe("BandTests", () => {
     Assert.true(chief.purse >= 5000);
   });
 
+  test("A band grown past what it takes frays, a fifth a season at most, though its chief can still pay", () => {
+    const s = smallWorld(newGame(2), "Egypt");
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    const season = (purse: number): void => {
+      e.market(prov).purse = purse;
+      s.people.get(prov).loose = 40000;
+      s.turn++;
+      new TurnEngine(s).bandsSeason();
+    };
+    for (let i = 0; i < 40; i++) season(20000);
+    const grown = b.men;
+    Assert.true(grown > 1000);
+    // The town grows poor: the band takes less than its men cost, and the chief has the gold to pay them all the same.
+    chief.purse = 100000;
+    season(2000);
+    Assert.equal(0, b.short);
+    Assert.equal(grown - Math.floor((grown * BandData.leavePercent) / 100), b.men);
+    for (let i = 0; i < 40; i++) season(2000);
+    // It has shrunk to what its take pays once the chief has his share, and no further.
+    const cut = BandData.chiefCut.least + Math.floor(((BandData.chiefCut.most - BandData.chiefCut.least) * chief.traits.greed) / 100);
+    Assert.true(s.bands.includes(b));
+    Assert.true(b.cost <= Math.ceil((b.took * (100 - cut)) / 100) && b.cost >= Math.floor((b.took * (100 - cut - 10)) / 100));
+    const men = b.men;
+    const purse = chief.purse;
+    season(2000);
+    Assert.equal(men, b.men);
+    Assert.true(chief.purse > purse);
+  });
+
   test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {
     const s = smallWorld(newGame(3), "Egypt");
     const prov = quiet(s, "Egypt");
