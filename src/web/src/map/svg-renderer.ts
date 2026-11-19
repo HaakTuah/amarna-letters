@@ -9,7 +9,7 @@ import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Riv
 import { roadsLayer, worksAtCities } from "./built.ts";
 import { OmenSigns, lifeLayer, mediumOf, memoryLayer } from "./life.ts";
 import { momentMarkup } from "./moments.ts";
-import { patch, patchParts, type Parts } from "./morph.ts";
+import { patchParts, patchSteps, type Parts } from "./morph.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import { Boxes, touch } from "./boxes.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
@@ -46,6 +46,12 @@ function nearestCity(e: MouseEvent): Element | null {
   }
   return best;
 }
+
+/** What a layer's key stands as while it is written in slices: none a scene could have, so a write dropped half way is made again. */
+const Pending = Symbol("pending");
+
+/** A step of the season's drawing (`runSteps`): it may give the step that goes on from it, for the next frame's budget. */
+type Step = () => Step | void;
 
 export class SvgMapRenderer implements MapRenderer {
   private view: HTMLElement | null = null;
@@ -142,7 +148,8 @@ export class SvgMapRenderer implements MapRenderer {
         this.closeUp();
         if (this.scene !== null) {
           this.drawUnits(this.scene);
-          this.drawWorks(this.scene);
+          // Written whole in this frame, as it was before the slices: the names are placed for it next.
+          for (let step = this.drawWorks(this.scene); step !== undefined; ) step = step();
         }
         // For the view as it settled, and what was just written for it, before the names are measured.
         this.wrote.clear();
@@ -158,35 +165,74 @@ export class SvgMapRenderer implements MapRenderer {
 
   /**
    * A layer drawn again when its key changes. With `update`, a layer already drawn is written in place by it instead (part G:
-   * the tints and the season's washes), which gives whether it wrote anything.
+   * the tints and the season's washes), which gives whether it wrote anything, or is a generator that goes on in slices and
+   * gives it when it ends. A layer is written in slices (`Step`, #666): the key is taken as drawn when the last is written,
+   * so a render that drops the steps still waiting writes the layer over, where it stood.
    */
-  private layer(name: string, key: unknown, draw: () => string, update?: (g: SVGGElement) => boolean): void {
+  private layer(name: string, key: unknown, draw: () => string, update?: (g: SVGGElement) => boolean | Generator<void, boolean>, after?: () => void): Step | void {
     if (this.drawn.get(name) === key) return;
-    const first = !this.drawn.has(name);
-    this.drawn.set(name, key);
+    const layer = this.layers.get(name)!;
     const t = performance.now();
-    if (update !== undefined && !first) {
-      if (update(this.layers.get(name)!)) {
+    const done = (wrote: boolean): void => {
+      this.drawn.set(name, key);
+      if (wrote) {
         this.changed = true;
-        this.wrote.add(this.layers.get(name)!);
+        this.wrote.add(layer);
       }
-      performance.measure(`map:${name}`, { start: t });
-      return;
+      after?.();
+    };
+    if (update !== undefined && this.drawn.has(name)) {
+      const r = update(layer);
+      if (typeof r === "boolean") {
+        done(r);
+        performance.measure(`map:${name}`, { start: t });
+        return;
+      }
+      this.drawn.set(name, Pending);
+      return this.slices(name, r, done);
     }
     // Drawn anew, but written only when the markup differs from what stands (item 17a: a write means a style recalculation
     // and a repaint of the layer, which a phone pays 40 ms and more for; most seasons the cities, the tints and the bands
     // come out the same).
     const html = draw();
-    if (this.written.get(name) !== html) {
-      // Patched, so only what changed is restyled and repainted (part G); the season's arrows are written whole, since each
-      // plays its drawing anew (map.css: .mv .shaft).
-      if (name === "moves") this.layers.get(name)!.innerHTML = html;
-      else patch(this.layers.get(name)!, html);
-      this.written.set(name, html);
-      this.changed = true;
-      this.wrote.add(this.layers.get(name)!);
+    if (this.written.get(name) === html) {
+      done(false);
+      performance.measure(`map:${name}`, { start: t });
+      return;
     }
-    performance.measure(`map:${name}`, { start: t });
+    const finish = (): void => {
+      this.written.set(name, html);
+      done(true);
+    };
+    // Patched, so only what changed is restyled and repainted (part G); the season's arrows are written whole, since each
+    // plays its drawing anew (map.css: .mv .shaft).
+    if (name === "moves") {
+      layer.innerHTML = html;
+      finish();
+      performance.measure(`map:${name}`, { start: t });
+      return;
+    }
+    this.drawn.set(name, Pending);
+    return this.slices(name, patchSteps(layer, html), finish, layer, t);
+  }
+
+  /**
+   * A step in slices (#666): each stops at the end of a slice, for the next frame's budget, and returns the rest. A layer
+   * written whole in one step ran 8 to 16 ms on the phone profile, and the browser's own work on it, 30 ms and more, came
+   * in the same frame. `layer`: written to in each slice, so what it made is looked at for the view (`in-view.ts`) in the
+   * frame it was made.
+   */
+  private slices(name: string, work: Generator<void, boolean | void>, done: (wrote: boolean) => void, layer?: SVGGElement, since = performance.now()): Step | void {
+    const go: Step = () => {
+      const t = since;
+      since = performance.now();
+      const r = work.next();
+      performance.measure(`map:${name}`, { start: t });
+      if (layer !== undefined) this.wrote.add(layer);
+      if (r.done !== true) return go;
+      done(r.value === true);
+    };
+    return go();
   }
 
   /** The markup each layer was last written with. */
@@ -202,37 +248,47 @@ export class SvgMapRenderer implements MapRenderer {
    * What is built at the cities (item 19): shown only close up (lod2, zoom.ts), so built only then, and again when the zoom
    * comes close; at the other zooms the layer stays empty and costs a season's redraw nothing.
    */
-  private drawWorks(s: MapScene): void {
+  private drawWorks(s: MapScene): Step | void {
     const close = this.view?.classList.contains("lod2") ?? false;
     const key = close ? s : null;
     if (this.drawn.get("worksat") === key) return;
-    this.drawn.set("worksat", key);
-    const t = performance.now();
+    const layer = this.layers.get("worksat")!;
+    this.drawn.set("worksat", Pending);
     // In parts, a city each: only the cities whose works changed are written (part G), and the tooltips in place (#666).
-    if (patchParts(this.layers.get("worksat")!, this.worksParts, close ? worksAtCities(s) : [])) {
-      this.changed = true;
-      this.wrote.add(this.layers.get("worksat")!);
-    }
-    performance.measure("map:worksat", { start: t });
+    return this.slices(
+      "worksat",
+      patchParts(layer, this.worksParts, close ? worksAtCities(s) : []),
+      (wrote) => {
+        this.drawn.set("worksat", key);
+        if (wrote) this.changed = true;
+      },
+      layer,
+    );
   }
   private readonly worksParts: Parts = { markup: [], nodes: [], tips: [] };
 
   /** The realms' bands, in parts, a land province each (#666): only the bands that changed are parsed. */
-  private drawBands(s: MapScene): void {
+  private drawBands(s: MapScene): Step | void {
     if (this.drawn.get("bands") === s) return;
-    this.drawn.set("bands", s);
-    const t = performance.now();
+    this.drawn.set("bands", Pending);
     const layer = this.layers.get("bands")!;
     const groups = bands(s);
     if (layer.children.length !== groups.length) {
       layer.innerHTML = groups.map((b) => `<g class="bands" clip-path="${b.clip}"></g>`).join("");
       this.bandParts = groups.map(() => ({ markup: [], nodes: [], tips: [] }));
     }
-    groups.forEach((b, i) => {
-      if (patchParts(layer.children[i], this.bandParts[i], b.parts.map((markup) => ({ markup, tips: [] })))) this.changed = true;
-    });
-    this.wrote.add(layer);
-    performance.measure("map:bands", { start: t });
+    const work = function* (this: SvgMapRenderer): Generator<void, boolean> {
+      let wrote = false;
+      for (let i = 0; i < groups.length; i++) {
+        const parts = groups[i].parts.map((markup) => ({ markup, tips: [] }));
+        if (yield* patchParts(layer.children[i], this.bandParts[i], parts)) wrote = true;
+      }
+      return wrote;
+    }.call(this);
+    return this.slices("bands", work, (wrote) => {
+      this.drawn.set("bands", s);
+      if (wrote) this.changed = true;
+    }, layer);
   }
   private bandParts: Parts[] = [];
 
@@ -283,7 +339,7 @@ export class SvgMapRenderer implements MapRenderer {
    * of the browser's own work after the steps on the phone profile (style, layout, layerization, paint), so a step past
    * a few milliseconds ends its frame (at 8 ms, 4.8 to 5% of frames ran over 50 ms on the phone at Fast; at 4 ms, 4.1%).
    */
-  private steps: (() => void)[] = [];
+  private steps: Step[] = [];
   private stepping = 0;
   private static readonly BudgetMs = 4;
 
@@ -297,46 +353,44 @@ export class SvgMapRenderer implements MapRenderer {
     const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
     // While a season plays out, its results (who holds what, the fog, the walls, the season's arrows) land on the map when
     // its cities fall, after the marches and battles (item 17+++); the pieces move at once.
-    const land: (() => void)[] = [
+    const land: Step[] = [
       () => this.layer("tints", tintsKey(s, input.mode ?? "realms"), () => tints(s, input.mode ?? "realms"), (g) => retint(g, s, input.mode ?? "realms")),
       () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
       () => {
         const m = s.memory;
         // Redrawn when anything a stele stands by changes: its battles, its city's walls, a siege camp round it.
-        this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}:${s.sieges.some((x) => x.province === k) ? 1 : 0}`).join()}`, () => memoryLayer(s));
+        return this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}:${s.sieges.some((x) => x.province === k) ? 1 : 0}`).join()}`, () => memoryLayer(s));
       },
       () => this.layer("fog", s, () => fog(s)),
       // Keyed by the scene, not the frame: who holds what and the armies seen are the viewer's own.
       () => this.drawBands(s),
-      () => {
-        if (this.drawn.get("cities") !== s) {
-          this.layer("cities", s, () => cities(s));
+      () =>
+        this.layer("cities", s, () => cities(s), undefined, () => {
           // Each name stands off its city's outermost ring, which grows with the walls the viewer knows.
           for (const p of Land) {
             const g = this.labels.get(p.id);
             const ring = F(ringOf(p.capital, s.walls.get(p.id) ?? 0));
             if (g !== undefined && g.style.getPropertyValue("--ring") !== ring) g.style.setProperty("--ring", ring);
           }
-        }
-      },
+        }),
       () => this.layer("moves", s, () => moves(s)),
       () => this.layer("outlaws", s, () => outlaws(s)),
     ];
     const wait = this.landWait(s);
     if (wait > 0)
       this.later("land", () => {
-        this.steps.push(...land, () => this.changed && this.placeNames());
+        this.steps.push(...land, () => {
+          if (this.changed) this.placeNames();
+        });
         this.stepSoon();
       }, wait);
     else this.cancelLater("land");
     this.steps = [
-      () => {
-        if (this.drawn.get("season") !== seasonKey) {
-          this.layer("season", seasonKey, () => seasonLayer(s), (g) => reseason(g, s));
+      () =>
+        this.layer("season", seasonKey, () => seasonLayer(s), (g) => reseason(g, s), () => {
           // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
           if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
-        }
-      },
+        }),
       ...(wait > 0 ? [] : land),
       () => this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input)),
       () => this.drawWorks(s),
@@ -407,8 +461,8 @@ export class SvgMapRenderer implements MapRenderer {
   private runSteps(): void {
     const start = performance.now();
     while (this.steps.length > 0) {
-      const step = this.steps.shift()!;
-      step();
+      const rest = this.steps.shift()!();
+      if (rest !== undefined) this.steps.unshift(rest);
       if (this.steps.length > 0 && performance.now() - start > SvgMapRenderer.BudgetMs) break;
     }
     // What was written is left out where it lies far off the view, in the frame it was written.

@@ -61,10 +61,13 @@ export function tints(s: MapScene, mode: MapMode): string {
 
 /**
  * The tints written in place (part G): each province's colour and tooltip set where they changed, and the governors' blocs
- * and moods patched; the shapes are not parsed again. Gives whether anything was written. The layer stands as `tints` draws it.
+ * and moods patched; the shapes are not parsed again. Gives whether anything was written, when the last slice ends: it stops
+ * after each few provinces (#666: a season's tints were one step of 15 ms on the phone profile, which the browser's work on
+ * the change followed in the same frame). The layer stands as `tints` draws it.
  */
-export function retint(g: Element, s: MapScene, mode: MapMode): boolean {
+export function* retint(g: Element, s: MapScene, mode: MapMode): Generator<void, boolean> {
   let wrote = false;
+  let n = 0;
   for (const el of g.querySelectorAll<SVGPathElement>(":scope > .politics > path.tint")) {
     const p = Map_.get(el.dataset.province ?? "");
     const owner = s.owner.get(p.id) ?? null;
@@ -79,16 +82,20 @@ export function retint(g: Element, s: MapScene, mode: MapMode): boolean {
       tip.textContent = text;
       wrote = true;
     }
+    if (++n % TintsASlice === 0) yield;
   }
   const holding = g.querySelector(":scope > .holding");
   const markup = holdingLayer(s, mode);
   if (holding !== null && HoldingWritten.get(holding) !== markup) {
+    yield;
     patch(holding, markup);
     HoldingWritten.set(holding, markup);
     wrote = true;
   }
   return wrote;
 }
+/** How many provinces' tints a slice of the tints' step writes. */
+const TintsASlice = 16;
 /** The blocs' and moods' markup each tints layer was last written with. */
 const HoldingWritten = new WeakMap<Element, string>();
 
