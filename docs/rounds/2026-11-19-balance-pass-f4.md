@@ -15,3 +15,4 @@ of the named commit, two at once at most.
 
 | Run | Command (`scripts/sim.sh ...`) | Commit | Result |
 |---|---|---|---|
+| Baseline, seeds 51-100 | `--games 50 --seed 51` | 1af19bc | 50 minutes beside another run. Bold 9,298 characters, 152 of the top five (1.63 a hundred heads), 513 of the top twenty, 12% dead, 9,352 jobs, the living gained 26 a head, earned 180 a head (fees 59%, loot 30%, dealing 8%); careful 4,977, 98 of the top five (1.97), 487 of the top twenty, 14% dead, 9,749 jobs, gained 41, earned 226 (fees 78%, loot 12%, dealing 8%). **The careful reach the top five 1.21 times as often a head, the top twenty 1.78 times.** By way, top five a hundred heads, bold / careful: Steady 2.9 / 2.0 (272 / 2,156 heads), Keeper 1.4 / 1.3 (4,173 / 916), Seller 2.7 / 2.6 (329 / 1,030), Climber 1.6 / 1.9 (4,415 / 858), Outlaw 2.8 / 0 (109 / 17). Great Kings' wins 1, 1, 1, 0, 5, 0, 0 (Egypt to Alashiya); standing 0.86, 0.98, 0.90, 1.14, 1.10, 0.95, 0.92 |
