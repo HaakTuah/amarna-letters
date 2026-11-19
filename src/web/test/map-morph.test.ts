@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
-import { patchChildren, patchParts, type Parts } from "../src/map/morph.ts";
+import { patchChildren, patchChildrenSteps, patchParts, type Parts } from "../src/map/morph.ts";
 
 // Item 17+++, part G: a map layer is patched, not written whole, so a season restyles only what changed. A stand-in for the
 // few DOM calls the patch makes (the suite runs without a browser), counting the writes.
@@ -123,6 +123,16 @@ const show = (n: FakeNode): string =>
   n.nodeType === 3 ? n.nodeValue ?? "" : `<${n.nodeName}${[...n.attrs].map(([k, v]) => ` ${k}="${v}"`).join("")}>${n.kids.map(show).join("")}</${n.nodeName}>`;
 const patched = (live: FakeNode, next: FakeNode): void => patchChildren(live as unknown as Node, next as unknown as Node);
 
+/** A sliced write driven to its end: what it gives, and how many slices it stopped after. */
+function whole<T>(work: Generator<void, T>): { value: T; slices: number } {
+  let slices = 0;
+  for (;;) {
+    const r = work.next();
+    if (r.done === true) return { value: r.value, slices };
+    slices++;
+  }
+}
+
 describe("A layer patched", () => {
   test("only what differs is written, and the layer ends as the new markup", () => {
     const tint = (id: string, cls: string, text: string): Spec => ["path", { class: cls, d: `M${id}`, "data-province": id }, ["title", {}, text]];
@@ -165,7 +175,7 @@ describe("A layer patched", () => {
   test("a layer in parts parses only the parts that changed, each in its place", () => {
     const live = new FakeNode(1, "g");
     const was: Parts = { markup: [], nodes: [], tips: [] };
-    const write = (parts: string[]): boolean => patchParts(live as unknown as Element, was, parts.map((markup) => ({ markup, tips: [] })));
+    const write = (parts: string[]): boolean => whole(patchParts(live as unknown as Element, was, parts.map((markup) => ({ markup, tips: [] })))).value;
     Assert.true(write(["a", "", "c"]), "first written");
     Assert.equal("a,c", live.kids.map((k) => k.nodeName).join(","));
     writes = [];
@@ -188,7 +198,7 @@ describe("A layer patched", () => {
   test("a part whose tooltips alone changed has them written in place, never parsed", () => {
     const live = new FakeNode(1, "g");
     const was: Parts = { markup: [], nodes: [], tips: [] };
-    const write = (parts: { markup: string; tips: string[] }[]): boolean => patchParts(live as unknown as Element, was, parts);
+    const write = (parts: { markup: string; tips: string[] }[]): boolean => whole(patchParts(live as unknown as Element, was, parts)).value;
     Assert.true(write([{ markup: "a|2", tips: ["a well", "granaries holding 40"] }, { markup: "b|1", tips: ["a mine"] }]), "first written");
     Assert.equal(["a well", "granaries holding 40", "a mine"], live.querySelectorAll("title").map((t) => t.textContent));
     const kept = live.kids[0];
@@ -205,5 +215,25 @@ describe("A layer patched", () => {
     Assert.true(write([{ markup: "a|3", tips: ["a well", "granaries holding 52", "famine"] }, { markup: "b2|1", tips: ["a mine"] }]));
     Assert.true(live.kids[0] === city, "the city's marks are the same element");
     Assert.equal(["a well", "granaries holding 52", "famine", "a mine"], live.querySelectorAll("title").map((t) => t.textContent));
+  });
+  // #666: a season's layers are written over frames, not in one step.
+  test("a layer patched in slices stops after each of its children and ends as the whole patch does", () => {
+    const cities = (names: string[]): FakeNode => build(["g", {}, ...names.map((n): Spec => ["g", { class: "city", "data-province": n }])]);
+    const live = cities(["a", "b", "c"]);
+    const next = cities(["a", "b2", "c", "d"]);
+    const whole_ = cities(["a", "b", "c"]);
+    patched(whole_, cities(["a", "b2", "c", "d"]));
+    const r = whole(patchChildrenSteps(live as unknown as Node, next as unknown as Node));
+    Assert.equal(4, r.slices); // one for each of the new markup's children, the unchanged ones too
+    Assert.equal(show(whole_), show(live));
+  });
+
+  test("a layer in parts stops after each part written anew, and not for parts unchanged", () => {
+    const live = new FakeNode(1, "g");
+    const was: Parts = { markup: [], nodes: [], tips: [] };
+    const run = (parts: string[]): number => whole(patchParts(live as unknown as Element, was, parts.map((markup) => ({ markup, tips: [] })))).slices;
+    Assert.equal(3, run(["a", "b", "c"]));
+    Assert.equal(0, run(["a", "b", "c"]));
+    Assert.equal(1, run(["a", "b2", "c"]));
   });
 });

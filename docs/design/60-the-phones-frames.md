@@ -47,8 +47,20 @@ the phone profile was made of, and what changed:
   group's origin, and a fleet's figure, placed by its transform, turns about the point its own box gave it, derived from its
   path (`heelOrigin`, `pathBounds` in `map/figures.ts`): the same look.
 
+- **The season's layers are written in slices** (`docs/rounds/2026-11-19-phone-frames-5.md`). A step of the renderer
+  (`Step`, `runSteps` in `map/svg-renderer.ts`) may give the step that goes on from it, so the layers written by `layer()`
+  (the tints, the roads and works of the land, the memory, the fog, the cities, the roads, the life marks, the outlaws, the
+  season's ground when first drawn), the works at the cities and the bands are
+  patched a few children or parts at a time (`patchSteps`, `patchParts` in `map/morph.ts`; `retint` a few provinces at a
+  time), as many to a frame as the 4 ms budget allows. A layer's key is taken as drawn only when its last slice is written (till
+  then `Pending`, and what was written is forgotten), and a later write of the same layer takes over from one still waiting, so
+  a render that drops the steps still waiting, or the zoom writing the works whole, never leaves a layer half written. The
+  layer is partly written for a frame or two; a render that arrives meanwhile writes what is still waiting of it to its end
+  first (`open`), before it drops the steps. On the phone profile at Fast the frames over 50 ms fell by about a seventh and
+  the browser's long tasks by a third.
+
 What is left is the browser's own layerization, paint and style (each about a fifth of a long frame, with the script that
-writes the map) and the steps that still take 10 to 30 ms on the phone (the names, the tints, the works, the units). One
+writes the map) and the steps that still take 10 to 30 ms on the phone (the names above all, then the units). One
 transform a symbol was tried and did not pay: the browser's work seems to follow how much is drawn together (or how many drawings; the bench does not
 tell the two apart), not the transforms
 (`docs/rounds/2026-11-12-phone-frames-2.md`; `src/web/scrub.mjs` is the bench that sets two builds against each other).

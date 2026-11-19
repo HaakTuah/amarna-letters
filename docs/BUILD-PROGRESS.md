@@ -13,9 +13,9 @@ the owner's standing instructions given in chat, word for word, in `docs/archive
 
 The game's polish lane (`core/modules/work-flow.md`, point 4; the owner, 31 October 2026).
 - **A bug beside it, now:** #666, a phone at Fast drops frames past 50 ms (part G's measure), until frames stay under 50 ms
-  on phone and on desktop at every speed; the steps' reports, `docs/rounds/2026-11-13-phone-frames-4.md` the last (with
-  nothing moving at all, still 3 to 3.6%) and the three it follows. Next: the season's single steps (the names in slices,
-  then the tints), the frames led by a layout, one measure on a real phone.
+  on phone and on desktop at every speed; the steps' reports, `docs/rounds/2026-11-19-phone-frames-5.md` the last (the
+  season's layers in slices: phone 2.5% to 2.1%) and the four it follows. Next: the names' placement, the frames led by a
+  layout, one measure on a real phone.
 - **Next:** the lane's own finds, from its report ("Finds not yet fixed"). Open from the owner's notes of 2 November
   (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Queued ideas,** in order:
