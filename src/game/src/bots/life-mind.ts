@@ -24,6 +24,13 @@ import {
   type Power,
 } from "@amarna/engine";
 
+/**
+ * Use against ignore for the road (item 18, part F4; `--band-life-half`): the script persons `ignores` names never take to
+ * the hills, and `chose` gathers every person whose own reckoning chose the road at least once, taken or not, so those who
+ * took it are measured against those who would have. Off (null) in play.
+ */
+export const RoadLife: { ignores: ((id: string) => boolean) | null; chose: Set<string> } = { ignores: null, chose: new Set() };
+
 /** The interest a season, in tenths of a percent, it asks of a borrower with this record: its impatience and the risk. */
 export function rateAsked(c: Character, broken: number, war: { besieged: boolean; growth: number } | null): number {
   let r = impatience(c) + MoneyData.interestBase + MoneyData.interestBroken * broken;
@@ -177,8 +184,15 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     const willing = (t.courage + t.greed + t.ambition) / 3 >= 55 && t.loyalty < 50;
     const crowd = sortBy(v.crowds, [(x) => x.band - x.loose, cmpNum], [(x) => x.province, cmpStr])[0];
     if (pushed && willing && crowd !== undefined) {
-      ch.outlaw = crowd.province;
-      return ch;
+      if (RoadLife.ignores === null) {
+        ch.outlaw = crowd.province;
+        return ch;
+      }
+      RoadLife.chose.add(c.id);
+      if (!RoadLife.ignores(c.id)) {
+        ch.outlaw = crowd.province;
+        return ch;
+      }
     }
   }
 

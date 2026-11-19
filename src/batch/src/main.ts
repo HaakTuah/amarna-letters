@@ -8,7 +8,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { AllPowers, cmpNum, fmt, sortBy, idNumber, PowerValues, type Power } from "@amarna/engine";
-import { batchReport, parResultsSource, soloReport, versusReport, type GameSummary } from "@amarna/game";
+import { batchReport, parResultsSource, roadLifeReport, soloReport, versusReport, type GameSummary } from "@amarna/game";
 import { CostEstimate, SimulatedApi, startProblem } from "@amarna/llm";
 import { FileCharacters } from "@amarna/llm/node";
 import { choicesOf, playOne, setupCheck, type PlayJob, type PlayResult, type SoloJob } from "./play.ts";
@@ -240,6 +240,8 @@ if (o.warPlayHalf && results.length > 0)
   console.log("\nScript kings that wage the war they choose, breaking a plain peace for it (\"current\") against those that name a war on a king at peace with them and never fight it (\"baseline\"):" + versusReport(results, sides));
 if (o.tidingsPlayHalf && results.length > 0)
   console.log("\nScript kings that read the word their vassals and allies send of land changing hands (\"current\") against those that leave it unread (\"baseline\"):" + versusReport(results, sides));
+if (o.bandLifeHalf && results.length > 0)
+  console.log("\nScript persons whose own reckoning chose the road, long without work and near the end of their purse: those who took to the hills against those of the other half, who never do:" + roadLifeReport(results.flatMap((g) => (g.money !== undefined ? [g.money] : []))));
 if (o.ridePlayHalf && results.length > 0)
   console.log("\nScript kings that hire a rider for the report of a far province that may be in danger, haggling over his fee (\"current\") against those that wait for word (\"baseline\"):" + versusReport(results, sides));
 if (o.grantPlayHalf && results.length > 0)
