@@ -103,8 +103,6 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   what the seeds alone give each side. On seeds 1-100 the powers of one parity win more often on the seeds of the other.
 - Every feature now has its half switch: `--sea-play-half` ([12](12-the-map-and-the-seas.md)) and
   `--inventory-play-half` ([14](14-structured-press.md)) are new.
-- **The top five by way to a fortune** (money report): each way's characters and how many stood in the top five, bold
-  and careful apart, so a gap between the roads can be told from a gap between the ways.
 
 ## Part F3's rest: the last features and par again (`versusReport`, `game/src/bonds-report.ts`, `rules/par-results.ts`)
 
@@ -121,3 +119,25 @@ numbers: `docs/rounds/2026-11-07-balance-pass.md`. Part A (no rule names a power
   that their standings, all read on the par before it, stay comparable.
 - Save version 95: par refreshed, so a game's final scores and winner, and the script kings' play that ranks rivals by
   standing, differ from version 94's (as at part B's version 88).
+
+## Part F4: the bold road and Arzawa (`bandsSeason` in `turn/bands.ts`; `game/src/money-report.ts`; `RoadLife`)
+
+The report, with every run: `docs/rounds/2026-11-19-balance-pass-f4.md`.
+
+- **A chief's share is of the take.** Men joined a band while it had a surplus, with the chief's cut taken of that
+  surplus, so the band grew until the surplus was gone and the cut with it: the bands took 4.6 shekels a season and cost
+  5.2, and a chief gained 5 in a game, on the road that should pay most and end worst ("Bold or careful, one goal").
+  Now men join only while the band's steady take, less the chief's cut of it, pays more than its men cost
+  ([23](23-roads-and-reputations.md), "Bands"); `chiefCut` and every other number of the bands stay as they were. How
+  much the roads yield, and how many bands a land holds against the sources, is the next part's ("How many bands").
+- **The roads are told three ways** (money report): by way to a fortune, bold and careful apart (part F3's line, taken
+  here); among those there from the start; and those leading a band at the end. Most who come into play later are
+  bold (a crowd's chief is bold by how he rises), have fewer seasons to gain in, and many lead bands, so the roads'
+  places a head differ by who came late before they differ by road.
+- **The road's use against ignore** (`--band-life-half`, `RoadLife`): half the script persons, by their number and the
+  seed, never take to the hills; everyone whose own reckoning chose the road is counted, those who took it against
+  those who never do.
+- **How par fits at the top** (batch report, under the wins): each Great King's results in the upper quarter and the top
+  tenth of his own par, and the other states' share of theirs. First place takes a result in about the top fiftieth of a
+  position's par, where a par of 100 games holds two results, so which positions stand first in a hundred games follows
+  the draw of par's games more than the positions (the report's halvings); no number was tuned for Arzawa.
