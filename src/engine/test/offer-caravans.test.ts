@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { CaravanOfferData, Dict, OfferCaught, TurnEngine, inboxOf, newCaravan, newDeclaration, newGame, newGameConfig, WorldMap, type Caravan, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll, smallWorld } from "./support.ts";
 
-// #543 (the owner: "Yes to all, expertly!"): a caravan leaving a province for its claimant's land carries the province's
+// #543 (the owner's yes): a caravan leaving a province for its claimant's land carries the province's
 // offer as a traveller going that way would, and carries talk of its leaning along its road. Babylon, Babylonia's
 // capital, leans to Egypt.
 describe("OfferCaravanTests", () => {

@@ -3,7 +3,7 @@
 Branch `item/living-map`, built in passes, each its own pull request into `develop` (pass 1: #201). Stacked on item 17's
 branch (`item/free-cities`, #198) by "pipeline, don't wait"; each pass merges only after #198. The item's text is
 `docs/intent/build-order/item-19.md`, with the owner's words there ("In time I want environmental effects, seasons reflected
-on the map. Characters, armies, fighting shown, etc. Everything you can think of, which makes it a better game for a
+on the map; characters, armies, fighting shown, etc.: everything you can think of which makes it a better game for a
 player or viewer."); its section is "The map in true geography, and its look in time" (under Interface, in
 `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`). As built:
 [`docs/design/43-the-living-map.md`](../design/43-the-living-map.md).
@@ -19,7 +19,7 @@ through the omens in the margin, which read the engine's own tier each season, s
 
 ## The owner's words during the item
 
-Passed on by the orchestrator on 30 October, word for word, with weekly usage at 88%: "I want them to finish what they
+Passed on by the orchestrator on 30 October, cut to its decisions and reasons, with the week's usage running low: "I want them to finish what they
 have started, if we believe they can." And of the design PRs #207 to #215 (items 17+, 17++ and item 18's check): "Build
 none of them now; they're next after the reset." So item 19 was finished as built in its four passes, with `develop`
 merged only to resolve conflicts, and nothing from those PRs built into the map.

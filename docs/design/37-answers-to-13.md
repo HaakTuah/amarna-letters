@@ -1,7 +1,7 @@
 # The owner's answers to item 13 (item 13+)
 
 Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), the owner's answers of 29 October 2026 to item
-13's review: "I agree with all your takes." ("A kingdom falls with its capital" under War.) Report:
+13's review (archive item 55), agreeing with all the design session's takes ("A kingdom falls with its capital" under War.) Report:
 `docs/rounds/2026-10-29-answers-to-13.md`. Save version 33.
 
 ## A realm comes apart as the news arrives (`turn/falls.ts`, `TurnEngine.fall`, `fallsSpread`)

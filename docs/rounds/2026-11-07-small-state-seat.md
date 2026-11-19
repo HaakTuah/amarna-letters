@@ -1,12 +1,13 @@
 # Item 17++++: a small state as a seat
 
-The owner (31 October 2026, in the build order's text): "maybe there should be an option to play as one of the small
-states, even if that's not what represented at the front and adviced", then "Yes, expertly to all!".
+The owner (31 October 2026, in the build order's text): "Maybe there should be an option to play as one of the small
+states, even if that's not what is represented at the front and advised", then he agreed to all of the design session's
+readings.
 
 The item's text: `docs/intent/build-order/item-17.md` ("17++++, a small state as a seat"); its sections: "For every ruler
 played by a model or a human" (the royal council), "One scoreboard for every power" and "Relative score" (Victory). How it
 works: `docs/design/26-city-states-as-powers.md`, "A small state as a seat". The live design document could not be read
-from this session (the owner's second account); the copy on `develop` was read instead, and it had no change in these
+from this session; the copy on `develop` was read instead, and it had no change in these
 sections since the item began.
 
 ## What was there already, and what was built

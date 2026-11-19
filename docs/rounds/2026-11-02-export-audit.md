@@ -6,7 +6,7 @@ Side lane, 2 November 2026. PR #385. Design: Engine and models, "Logging and rep
 ## The owner's words
 
 > And queue a job going fully over what the export function includes, and ensuring it doesn't include anything
-> sensitive, at all. If it does, it must all be fixed, and we must be alerted, so we can remove this file.
+> sensitive at all. If it does, it must all be fixed, and we must be alerted, so we can remove this file.
 
 (2 November 2026; with the export's filters as the design's "Logging and replay" quotes him.)
 

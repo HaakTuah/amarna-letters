@@ -1,5 +1,5 @@
 /**
- * A fast courier, hired (#601; the owner, 3 November 2026: "paying for a courier is always a supply to demand issue, a
+ * A fast courier, hired (#601; the owner, 3 November 2026: "Paying for a courier is always a supply-and-demand issue, a
  * negotiation, no?"): a king hires a person at his court, a job like any other ("Jobs, not wages"), to ride to one far
  * province of his and bring its officials' report home this season. The rider asks his price by what he has heard such a
  * ride pays and by how badly he is wanted (how much sooner the report comes, and how many such rides the court asks for

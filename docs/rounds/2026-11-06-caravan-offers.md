@@ -1,7 +1,7 @@
 # Caravans carry a province's offer and talk along their road (#543, side lane, 6 November 2026)
 
-PR #725. The owner's yes to idea #543 ("Four more ideas from the reviews, accepted" in `docs/BUILD-PROGRESS.md`; his
-words: "Yes to all, expertly!"): a province's offer to an absent king (item 17++, part D) and talk of its leaning
+PR #725. The owner's yes to idea #543 ("Four more ideas from the reviews, accepted" in `docs/BUILD-PROGRESS.md`, where
+he agreed to all): a province's offer to an absent king (item 17++, part D) and talk of its leaning
 travelled only with persons; in the period most word between towns went with goods, on the trade roads the game has.
 
 ## History

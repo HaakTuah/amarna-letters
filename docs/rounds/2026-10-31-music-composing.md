@@ -3,7 +3,7 @@
 Weekly usage: unknown (this session cannot read it). The second session of item 19+++, a lane beside 17a: the first
 (`docs/rounds/2026-10-31-music.md`, #237) built the sound system with placeholder pieces and handed over; this one
 composed the pieces and the fallback's scores, on the branch `music/19-plus3-compose`. Worked from the copy in
-`docs/intent/` (no live design document on this account); the check for changes against `develop` found the owner's
+`docs/intent/` (no live design document in this session); the check for changes against `develop` found the owner's
 answer of 1 November on the default volume (built here, below). Presentation only: no rule, number, script play or save
 version changed; the script games are identical.
 
@@ -39,8 +39,7 @@ Relayed by the orchestrator, 31 October 2026:
 - "Music (#237): one fallback score in the Nippur and Ur modes, built alongside the Empire Earth pieces."
 
 From the design copy (item 19+++, revision 193 of 1 November 2026, answering the first session's question on the default
-volume): "Agreed. Keep them on, regular volume, but don't blast someone when they start up, like say CK2, even though the
-main theme there was epice. SO i didn't really mind."
+volume): "Keep them on, at regular volume, but don't blast someone when they start up, like, say, CK2."
 
 ## What was composed
 

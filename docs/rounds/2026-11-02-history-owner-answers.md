@@ -6,10 +6,10 @@ Lane: "The owner's answers to the history check, 2 November 2026", points 1 to 3
 ## The owner's words
 
 Already quoted in `docs/archive/instructions.md`, item 170 (2 November 2026, 18:54 UTC), to the design session's takes
-on #476, #486, #492, #480 and #502: "Agreed to 1 and 2." On #492: "Why should the previous calls stand if they have no
-grounding? What is their grounding? I want the most plausible possible. In the absence of concrete written references,
-we must make the best educated guesses that we can. Or rather, we find someone who were an expert who has made educated
-estimates, ideally. The more the merrier, and try to get a consensus or average, I think. What do you think, expert?"
+on #476, #486, #492, #480 and #502: the owner agreed to the first two. On #492: "Why should the previous calls stand if
+they have no grounding? What is their grounding? I want the most plausible possible. In the absence of concrete written
+references, we must make the best educated guesses that we can. Or rather, ideally, we find an expert who has made
+educated estimates. The more the merrier, and try to get a consensus or average, I think."
 
 ## What changed
 
@@ -48,7 +48,7 @@ estimates, ideally. The more the merrier, and try to get a consensus or average,
    Karkamish caravan's proceeds follow its larger town. Every check is kept; none is loosened.
 
 6. **The Gulf's head as it stood in the Late Bronze Age** (#527, folded in here by the orchestrator; archive items 175
-   and 176). The owner: "Yes, full agreement with both, expert!" and "But maybe don't prime it to make a assumption
+   and 176). The owner agreed to both, and: "But maybe don't prime it to make an assumption
    instead of consulting the evidence?" The estimates (Sanlaville 1989 and 2005, Pournelle 2003 and 2013, Kennett 2006,
    Heyvaert and Baeteman 2007, Potts 2009, Hansman 1978, Bogemans 2017, Geyer and Sauvage 2020) put the sea at Ur only
    about 4500-2100 BCE. In the second millennium the head ran from about today's shore to an embayment south of Qurna, and

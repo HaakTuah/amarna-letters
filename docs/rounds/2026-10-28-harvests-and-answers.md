@@ -4,8 +4,8 @@ Build order item 11a+ (`docs/intent/build-order/item-11.md`, the 11a+ part), add
 `item/harvests-and-answers`. Save version 20. What was built, file by file: `docs/design/22-harvests-and-answers.md`.
 Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effort: medium, as set.
 
-The owner's words for this item, as the item quotes them (28 October 2026): "You figure all this out, expert. You know me by
-now. But models must be able to alter clauses also. Remember, everyone plays the same game!"
+The owner's words for this item, as the item quotes them (28 October 2026), leaving the reviews' questions to the design
+session's takes: "But models must be able to alter clauses also. Everyone plays the same game."
 
 ## The check for changes
 

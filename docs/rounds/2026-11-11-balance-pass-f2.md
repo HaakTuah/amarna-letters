@@ -148,12 +148,12 @@ king (`soloReport`), a bug fixed here.
 ## Readings taken
 
 - **A character's par is the best five of each game, and the weight is 2** (the stand-in's reading of the owner's
-  words for the five, since no weight met #825's whole test with everyone's par; the design check's for the weight). His words rank the test: "At the very least, the 7 kings should have a
+  words for the five, since no weight met #825's whole test with everyone's par; the design check's for the weight). His words rank the test: "At the very least, the seven kings should have a
   roughly equal shot" (9 November 2026, #825; archive item 236), and "if we can, balance it so characters occasionally
   win" (31 October 2026; archive item 89); and "This should be decided by testing. Any proportion we pick is a shot in
   the dark" (9 November). A higher weight gives up the first for the second; five a game keeps the kings level and
   brings characters to about one game in nine. Among the weights that keep the kings level, 2 comes nearest "all states
-  should roughly have an equal shot" while keeping size in the score ("You weigh 2 things", 31 October); 0 would drop
+  should roughly have an equal shot" while keeping size in the score ("You weigh two things", 31 October); 0 would drop
   it, and 1 is within the noise of 2. It keeps one measure for every person, rank against par for his start, and changes
   only what par is for characters, so that a character's 0.99 means what a realm's does: better than the best of
   nearly every past game, not better than all but the top few of 30,000 men. Five matches "the top five", the top of

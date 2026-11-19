@@ -5,7 +5,7 @@ Branch `item/opening-as-it-stood`, from `develop` at `20850a8` (item 17a merged)
 sources), "Places by their own names" (Voice of the age), "What earns a place" and "Places in their own time" (The map),
 "Attested characters" (Characters). Design note: `docs/design/46-the-opening-as-it-stood.md`. Save version 38.
 
-This account cannot reach the live design document: the copy on `develop` was cut on 2026-11-01 (revision 569 of the
+This session cannot reach the live design document: the copy on `develop` was cut on 2026-11-01 (revision 569 of the
 Overview, 194 of the Build order), the day the item began, and the check before the pull request reads it again by its diff.
 
 ## What was built, in the order built

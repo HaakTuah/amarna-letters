@@ -1,13 +1,12 @@
 # Item 17+++: the season plays out
 
-The owner (31 October 2026): "the player needs to feel the weight of the whole world, or it becomes meaningless to
-him/her.", then "Agreed, 100% sir!"; on zoom, "If you are zoomed in near a unit in the waves, I want to hear it. And if I
-zoom in on the map, I like how Imperator makes the state color more and more transparent and you see the ground and
-effects under more clearly."; on the threads and the director camera, "And yes to" it; on a mind's words, "Yes, I think
-so. And it should maybe store what it looked like at every step? And the narrator should also have its take stored from
-the first time it runs on a game, so it must not be ran each time you watch it potentially afterwards?" and "Yes to both.
-But I think it should only show their name like that when you click on the character? Or di you want it in parenthesis
-in every letter they receive?".
+The owner (31 October 2026): "The player needs to feel the weight of the whole world, or it becomes meaningless to
+him/her.", then he agreed to the design session's shape; on zoom, "If you are zoomed in near a unit in the waves, I want to
+hear it. And if I zoom in on the map, I like how Imperator makes the state color more and more transparent and you see
+the ground and effects under it more clearly."; he agreed to the threads and the director camera; on a mind's words,
+agreeing: "And it should maybe store what it looked like at every step? And the narrator should also have its take stored
+from the first time it runs on a game, so it need not be run each time you potentially watch it afterwards?" and,
+agreeing to both questions: "But I think it should only show their name like that when you click on the character."
 
 The item's text: `docs/intent/build-order/item-17.md` ("17+++, the season plays out"); the section: "The season plays
 out, and zoom shapes what you see and hear" (`docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`).

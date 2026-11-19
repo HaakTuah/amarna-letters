@@ -1,7 +1,7 @@
 ## Harvests in their season, and the answers to items 8 to 10+b (item 11a+)
 
 Build order item 11a+: the owner's answers to the reviews of items 8, 9, 10+a and 10+b where they differ from what was
-built (28 October 2026: "You figure all this out, expert. You know me by now. But models must be able to alter clauses
+built (28 October 2026: "Models must be able to alter clauses
 also. Remember, everyone plays the same game!"), then the harvest in each land's own season. Save version 20. The report
 is `docs/rounds/2026-10-28-harvests-and-answers.md`. Every number is a first guess (item 18 tunes them).
 

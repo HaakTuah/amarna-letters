@@ -4,7 +4,7 @@ A side lane beside the item lane (17+), owning `src/web/src/audio/`, the Music p
 only: no rule, number, script play or save version changes; the script games and replays are identical. Weekly usage:
 unknown (`scripts/usage.sh` cannot read it in this session).
 
-The check for changes: this account has no live document, so the copy on `develop` was read by its diff from the lane's
+The check for changes: this session has no live document, so the copy on `develop` was read by its diff from the lane's
 start (`57c9c8b`, which already carries the design session's two sound entries, "Three layers, the music leading" and
 "What a seat hears is what its own map shows", in item 19+++).
 
@@ -46,12 +46,11 @@ start (`57c9c8b`, which already carries the design session's two sound entries, 
    - A place sounds as the seat last knew it. A city burned seasons ago that the seat still believes thriving plays its
      market until the news arrives, then its ruin.
 
-The owner's words behind them, as the progress file and item 19+++ quote them: "I am actaully impressed! Didn't expect much
-from the music actually! But it is good! ... I want to keep all of it, even "The tuning's scale (a test)"", then "Yes,
-please, expertly!"; "your ears are being assaulted now. It plays dozens of sound effects at any one time", then "But all
-the event stuff is for players only, or if you spectate a player, you hear specifically what they hear"; "Important! The
-music must never reveal what's outside the fog of war."; "you know where a sea is, so some things you can zoom in on and
-hear, without it revealing anything".
+The owner's words behind them, cut to their decisions and reasons (archive items 118 to 122): "I want to keep all of it,
+even "The tuning's scale (a test)"", then agreeing to the design session's take; "It plays dozens of sound effects at any
+one time", then "But all the event stuff is for players only, or if you spectate a player, you hear specifically what they
+hear"; "Important! The music must never reveal what's outside the fog of war."; "you know where a sea is, so some things
+you can zoom in on and hear, without it revealing anything".
 
 ## PR 1: the music answers and the Music page (`sound/music-page`)
 

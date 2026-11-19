@@ -8,14 +8,14 @@ Built from the dossier `docs/history/14-courts-and-free-cities.md`, cited below 
 
 - **At the start**: the live document's Build order (revision 109), War, travel and the seas (66), Land, people and economy
   (33) and Characters (21) tabs had no changes since the copy.
-- **Before the PR**: the item had gained the longer age (#206, revision 111; the owner, 30 October 2026: "Yes to 1."), now
+- **Before the PR**: the item had gained the longer age (#206, revision 111; the owner agreed to it on 30 October 2026), now
   built here.
 - **The design PRs #207 to #215** (the opening and Transjordan, places by their names, what stood, what a king counts, the
   census, the count's age, kings' demands, always an amount, a share or an amount) changed none of item 17's sections.
-  They are items 17+ and 17++, and item 18's check, built after the weekly reset. The owner, 30 October 2026, word for word:
-  "1. Your reading: item 17 is started, so it finishes, and item 18 waits. 2. Your reading: the design PRs #207–#215 are
-  items 17+ and 17++ and item 18's check, not item 17. Build none of them now; they're next after the reset." And
-  earlier: "I want them to finish what they have started, if we believe they can."
+  They are items 17+ and 17++, and item 18's check, built after the weekly reset. The owner, 30 October 2026, cut to his decisions and reasons:
+  "Item 17 is started, so it finishes, and item 18 waits. The design PRs #207–#215 are items 17+ and 17++ and item
+  18's check, not item 17. Build none of them now; they're next after the reset." And earlier: "I want them to finish
+  what they have started, if we believe they can."
 
 ## What was built
 

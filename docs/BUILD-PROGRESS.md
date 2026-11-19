@@ -42,10 +42,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
-- **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
-  especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
-  then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
-  the rules restructure (PR of 2 November). Every file, docs first: what does it say it is for, and does it do that?
+- **The file-by-file review** (the owner, 2 November 2026, archive item 134: "Need a full review and clean-up where we
+  look at every file, especially the documents, and ask what it states that it does, and whether it does it. If
+  something in it doesn't, then it needs to be somewhere else, if anywhere at all.", then agreeing to all of the design
+  session's takes). A side lane, after the rules restructure (PR of 2 November). Every file, docs first: what does it say it is for, and does it do that?
   What doesn't belong moves to where it does, or goes; code is checked against "Split by meaning" and "Keep it lean"
   in `AGENTS.md`. The files every session reads first (`AGENTS.md`, `CLAUDE.md`, this file), then `docs/`, then the
   code, in a few PRs, each with a table of every file it covered and what happened to it, behaviour proven unchanged.
@@ -72,9 +72,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
-- **A letters-only game** (the owner, 11 November 2026, agreeing with the design session's answer to an outside review:
-  "Agreed with all your takes, expertly!"; #927): after item 18, a preset with the letters, envoys and treaties and
-  the other systems off, played by the script kings on the same seeds as the full game, measuring how often kings keep
+- **A letters-only game** (the owner, 11 November 2026, agreeing with all of the design session's answer to an outside
+  review; #927): after item 18, a preset with the letters, envoys and treaties and the other systems off, played by the script kings on the same seeds as the full game, measuring how often kings keep
   and break their word and come to trust or shun each other in each, so the game shows whether its trust comes from the
   letters or from the economy around them.
 
@@ -102,7 +101,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
   Built with the first item whose errands use them; a save version.
 
-- **The owner's answers of 3 November, morning** (archive item 185):
+- **The owner's answers of 3 November** (archive item 185):
   - **Held letters never lapse** (the fallback security review of #733, P2): a letter kept, never bought, or held by a
     court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
     games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is

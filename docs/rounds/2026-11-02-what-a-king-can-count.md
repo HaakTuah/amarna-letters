@@ -8,7 +8,7 @@ their counts where it pays, measured against scripts that never count." Design n
 
 **The sections it names are missing.** The item points to "Counts as the scribes knew them", "A census" and "The king says
 how much he wants" under The world. None of the three is in the repository's copy (`docs/intent/`, cut 1 November 2026),
-on this branch or on `develop`, and the live document refused this account ("forbidden", role), as it did for part A.
+on this branch or on `develop`, and the live document refused this session ("forbidden", role), as it did for part A.
 Part B is built from the item's own text, which says what each does; the readings below fill the rest, and the first
 question for the owner asks for the copy to be refreshed so that the next part, and a later review, can check against them.
 

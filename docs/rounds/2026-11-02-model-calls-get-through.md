@@ -4,10 +4,10 @@ Branch `lane/model-calls-get-through`, PR #386. The design: Engine and models, "
 background" (`docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md`). As built:
 `docs/design/04-models.md`, "Calls that get through" and "Cost estimates".
 
-The owner's words (2 November 2026; archived word for word in `docs/archive/instructions.md`, items 134 and 136), after his Haiku game of
-1 November: "Pretty expensive now if the first 2 round was representative. A little over Half a dollar for those 2
-seasons, and not all of the api calls got through ... Probably should spread them out then? And have it work in the
-background while you do your stuff?", then, to the design session's findings: "Yes, please, expertly to both!"
+The owner's words (2 November 2026; archived, cut to their decisions and reasons, in `docs/archive/instructions/`, items
+134 and 136), after his Haiku game of 1 November: "Pretty expensive now, if the first two seasons were representative,
+and not all of the API calls got through. Probably we should spread them out then, and have it work in the
+background?", then he agreed to both of the design session's findings.
 
 No model games and no real API calls were made. Everything was checked against a stand-in service
 (`src/game/test/stand-in-service.ts`) that refuses calls past a limit on calls in flight, writes a cache copy for every

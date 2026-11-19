@@ -4,7 +4,7 @@ Branch `item-5plus/conversion`, merged into `develop`. Brief: `docs/items/conver
 (the owner's words). This session ran below the high effort the step asks for, and `scripts/usage.sh` reports "unknown" in
 it, so weekly usage could not be checked.
 
-## The owner's instructions for this step, word for word
+## The owner's instructions for this step, cut to their decisions and reasons
 
 From the task that started the session (27 October 2026):
 
@@ -156,7 +156,7 @@ for an error and could touch the new game (`step` in `src/web/src/session/core.t
 
 ## The owner's instruction after the milestone PR
 
-Given at 04:20 UTC, once milestone PR #36 was open and green, word for word:
+Given at 04:20 UTC, once milestone PR #36 was open and green, cut to its decision:
 
 > You merge, always.
 

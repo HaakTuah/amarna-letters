@@ -1,7 +1,7 @@
 /**
  * Zoom shapes the realms' colours (item 17+++, "zoom shapes what you see and hear"; the owner, 31 October 2026: "if I
  * zoom in on the map, I like how Imperator makes the state color more and more transparent and you see the ground and
- * effects under more clearly"). Zoomed out the realms' colours are full, so the board reads as realms at a glance; zoomed in
+ * effects under it more clearly"). Zoomed out the realms' colours are full, so the board reads as realms at a glance; zoomed in
  * they thin to a wash, and then almost to nothing but their borders (the realm bands) and banners (the emblems on the city
  * seals), so the ground, the season and the figures show through. Only the realms' own colour thins: the views (the mood of
  * the land) keep theirs at every zoom, since colour is what they show.

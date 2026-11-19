@@ -1,6 +1,6 @@
 # A fast courier, hired (#601)
 
-The owner (3 November 2026, relayed by the design session on #601): "paying for a courier is always a supply to demand
+The owner (3 November 2026, relayed by the design session on #601): "Paying for a courier is always a supply-and-demand
 issue, a negotiation, no?" The follow-up as queued (archive item 185): "a king may hire a carrier to bring one far
 province's report home this season. It is a job like any other ("Jobs, not wages"): the carrier asks his price by what
 he has heard such a job pays and by how badly he is wanted, and the king may haggle; no fixed price, no menu."

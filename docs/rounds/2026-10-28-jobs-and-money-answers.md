@@ -9,8 +9,8 @@ Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effor
 
 The copy was cut from Build order revision 80, Work and money 15, Overview 566. Asked at the start: nothing had changed.
 Asked again before the pull request: Build order is at revision 81, which adds item **11b+**: first these answers (and
-"carriers' fees paid on delivery by the payer's order", built here), then the owner's answers to item 11b's review ("Agree to
-all, expertly": ransom demands need a carrier, no rule moves a spy whose reports wait, the border hand-over after the walk,
+"carriers' fees paid on delivery by the payer's order", built here), then the owner's answers to item 11b's review (agreeing to
+all the takes: ransom demands need a carrier, no rule moves a spy whose reports wait, the border hand-over after the walk,
 armies hunt bands only on order or standing order, a pardon is words or a sealed promise, a model chief's own request,
 robbers choosing whether to kill, anyone selling what he knows), then patching the script players' hunting and news
 buying. Those later parts are **not built here** (the brief: build only the owner's answers to 11a and 11a+); they are the

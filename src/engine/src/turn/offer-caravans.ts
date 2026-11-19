@@ -1,6 +1,6 @@
 /**
- * Caravans carry word with their goods (#543, the owner's yes, 3 November 2026: "Yes to all, expertly!"; after item 17++
- * part D, `offers.ts`). In the period word between towns went with merchants on the trade roads: Burna-Buriash's
+ * Caravans carry word with their goods (#543, the owner's yes, 3 November 2026; after item 17++ part D,
+ * `offers.ts`). In the period word between towns went with merchants on the trade roads: Burna-Buriash's
  * merchants travelled with his envoy, and he warns that robbers on the road will "kill again, be it a caravan of mine or
  * your own messengers" (EA 8; `docs/history/15-pirates-bandits-tolls.md`, "Merchants killed at Hinnatuna", and
  * `docs/history/09-the-letters.md`, Burna-Buriash's grievance). So a caravan or ship leaving a province for its claimant's

@@ -15,7 +15,7 @@ since 561): nothing new. `docs/BUILD-PROGRESS.md` held no new answers from the o
 72 showed that 10+a's text had gained, after 10+a's check, a list of readings by "Reason from the pillars" that 10+a never
 built (its report does not mention them); since they were 10+a's and this item comes next, they were taken up here, all
 but one (below). Asked again before the pull request (Build order 73; the other tabs unchanged): one new builder rule,
-"The workshop check" at every milestone (the owner: "Yes please, sound good! Do it expertly for both!"). Done for this
+"The workshop check" at every milestone (the owner agreed to it for both games). Done for this
 milestone: the progress file was 44 KB and is now 11 KB, its answered review points, the rows of items 1 to 10 and the
 port's findings moved word for word to `docs/archive/progress-done.md`; the rest is measured in the milestone PR.
 

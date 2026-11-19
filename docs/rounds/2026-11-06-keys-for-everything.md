@@ -1,8 +1,9 @@
 # Item 17+++a: keys for everything
 
-The owner (31 October 2026): "pressing spacebar really needs to pause and unpause the game. Everything should have hotkeys
-for the computer quiet frankly, and Paradox hotkeys is what people are used to, so we should probably use those.", then
-"Agreed to all, expertly!"; and (1 November 2026) "Yes, please! expertly! does the hotkeys become 1, 2, 3, and 4 then?".
+The owner (31 October 2026): "Pressing the spacebar really needs to pause and unpause the game. Everything should have
+hotkeys for the computer, quite frankly, and Paradox hotkeys are what people are used to, so we should probably use
+those.", then he agreed to all of the design session's readings; and (1 November 2026), agreeing to the four paces: "Do
+the hotkeys become 1, 2, 3 and 4 then?".
 
 The item's text: `docs/intent/build-order/item-17.md` ("17+++a, keys for everything"); its section: "Pace of play" under
 Interface, for the pace keys. How it works: `docs/design/54-keys.md`. The live document's copy had no change in these
@@ -88,4 +89,4 @@ gains on the baseline everywhere, and the Great Kings but Arzawa and Alashiya wi
 is a regression of this item, which changes no rule.
 
 Questions for the owner:
-- #754 (closed): are the F-keys and map keys where you expect them from Crusader Kings III? The owner: "Yes to all." (archive item 231).
+- #754 (closed): are the F-keys and map keys where you expect them from Crusader Kings III? The owner agreed to all (archive item 231).

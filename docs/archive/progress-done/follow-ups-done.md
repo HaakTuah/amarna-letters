@@ -152,7 +152,7 @@ Moved word for word on 7 November 2026 (the workshop check: the progress file ha
   never received, not that it came home with the answer. Save version 77. Report: `docs/rounds/2026-11-07-never-received.md`.
 - ~~**Courts by their shown names in the people's lines (bug #797)**~~ (done, branch `fix/797-court-names`): "at the court
   of Gubla", not "of Byblos", in the seat view and the People tab. Save version 80. Report: `docs/rounds/2026-11-07-court-names.md`.
-- **The owner's answers of 3 November, morning** (archive item 185):
+- **The owner's answers of 3 November** (archive item 185):
   - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
@@ -268,8 +268,8 @@ Moved on 12 November 2026, word for word (every part done):
 
 Moved word for word on 19 November 2026 (the progress file past its size mark again):
 
-- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
-  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
+- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code?",
+  then the owner agreed to all).~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
   `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
   imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
   both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node

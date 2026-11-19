@@ -6,10 +6,8 @@ Side lane, 2 November 2026. PR #436, answering #427 and #424. Design: Engine and
 
 ## The owner's words
 
-> Yes to everything, expertly!
-
-(2 November 2026, in the design chat, to the design session's takes on #427 and #424, among others; archived as item
-153 in `docs/archive/instructions.md`.)
+The owner agreed to all the design session's takes on #427 and #424, among others (2 November 2026, in the design chat;
+archived as item 153 in `docs/archive/instructions.md`).
 
 ## What was built
 

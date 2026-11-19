@@ -1,7 +1,7 @@
 /**
  * Every level of what is built, on the map (build order item 19, "Every level of what is built shows"; the owner: "I think
- * every investment level infrastructure reaches should reflect on the map. Docks appear. Roads of the wuality appears.
- * Walls. Etc!"). The levels are the engine's (item 15, `GameState.built`); the look of each is the walls dossier's
+ * every investment level infrastructure reaches should be reflected on the map. Docks appear. Roads of their quality
+ * appear. Walls. Etc."). The levels are the engine's (item 15, `GameState.built`); the look of each is the walls dossier's
  * (`docs/history/12-walls-roads-harbours.md`): a track nobody keeps, a kept track, a road with bridges, wells and posts, a
  * royal road; relay stations along it; a beach, a lesser port with its mole, a great harbour with its quays; a well, then
  * cisterns; and, from the economy, granaries by what they hold and the mines worked.

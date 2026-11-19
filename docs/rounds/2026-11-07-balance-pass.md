@@ -3,7 +3,7 @@
 Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session).
 
 The item's text: `docs/intent/build-order/item-18.md` ("The balance pass"). **The check for changes:** the live design
-document refuses this account (the docs connector answers "forbidden"), so the item is built from the copy cut on
+document refuses this session (the docs connector answers "forbidden"), so the item is built from the copy cut on
 3 November, and the copy on `develop` is read again by its diff before each part's pull request.
 
 **Built in parts,** each its own pull request, since the item holds things a reader looks up apart, and tuning waits on
@@ -83,7 +83,7 @@ Started from `develop` at 4a7be3d (17b's milestone merged, #827).
 ## Part B: the scoreboard
 
 Started from `develop` at dbccc06 (part A's milestone, #829, merged). The check for changes: the live document still
-refuses this account; the copy on `develop` has not changed since part A began.
+refuses this session; the copy on `develop` has not changed since part A began.
 
 ### What was built
 
@@ -155,7 +155,7 @@ refuses this account; the copy on `develop` has not changed since part A began.
 ## Part C: length and war
 
 Started from `develop` at 1f81bfb (part B's milestone, #831, merged). The check for changes: the live document still
-refuses this account; the copy on `develop` has not changed since part A began.
+refuses this session; the copy on `develop` has not changed since part A began.
 
 ### What was built
 
@@ -238,7 +238,7 @@ games exactly, with the same results as the column for them:
 ## Part D: money and characters
 
 Started from `develop` at 922d4b2 (part C's milestone, #834, merged). The check for changes: the live document still
-refuses this account; the copy on `develop` has not changed since part A began.
+refuses this session; the copy on `develop` has not changed since part A began.
 
 ### What was built
 

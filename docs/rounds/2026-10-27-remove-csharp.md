@@ -4,9 +4,9 @@ Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effor
 
 ## The owner's instruction
 
-Word for word (27 October 2026):
+Cut to its decision (27 October 2026):
 
-> "Answer to your question on the C# build: yes, remove it, once the fix pass is merged, in a PR of its own. It is now
+> "Yes, remove the C# build, once the fix pass is merged, in a PR of its own. It is now
 > step 4 of item 5+: the build order, the refreshed copy and the fix-pass brief say so (PR #39). Tag the last commit
 > that has it csharp-final. Delete src/Amarna.*, the C# tests and the solution files. Re-point the design notes in
 > docs/design/ from C# code to the TypeScript equivalents. Run it as its own session after the fix pass, and add its row

@@ -5,10 +5,9 @@ logistics answers of PR #163. Branch `item/map-crossings`, PR #169. Save version
 by file: `docs/design/33-the-rest-of-the-map.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this
 session). Effort: medium, as set. Helpers: one reviewer, in the background; no search helper.
 
-The owner's words (29 October 2026, the item's own text): "Yes, every crossing like this should be included, and such that
-both the map and the game physics reflect the actual terrain that was at the time."; to the design session's list of the
-places the map lacks: "Yes, do it expertly!"; to its takes on logistics: "Yes, agreed with all, expertly!"; and on the
-countryside round a siege: "Yes to all, expertly!".
+The owner's words (29 October 2026, the item's own text): "Yes, every crossing like this should be included, such that
+both the map and the game physics reflect the actual terrain at the time."; and he agreed to the design session's list of
+the places the map lacks, to its takes on logistics, and to its takes on the countryside round a siege.
 
 ## The check for changes
 

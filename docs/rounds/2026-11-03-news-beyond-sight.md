@@ -1,6 +1,6 @@
 # News beyond sight (#618)
 
-The owner (3 November 2026, relayed by the design session on #618): "Agreed to all, expertly!" The follow-up as queued
+The owner (3 November 2026, relayed by the design session on #618) agreed to all the ideas. The follow-up as queued
 (archive item 185): "word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a vassal reports to
 his overlord what his court saw, an ally to the king he is bound to."
 

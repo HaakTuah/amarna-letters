@@ -1,8 +1,8 @@
 # Far provinces' true state and the twin canary (bugs #517 and #520, side lane, 2 November 2026)
 
 Bug #517 (filed while fixing #467): order checks still read a far province's true sieges, walls and men, and a far
-order's outcome was told at court at once. The owner queued the twin canary (#520, archive item 174: "Yes, expertly to
-all!") to be built in this lane.
+order's outcome was told at court at once. The owner queued the twin canary (#520, archive item 174, agreeing to the design
+session's take) to be built in this lane.
 
 ## Step 0
 
