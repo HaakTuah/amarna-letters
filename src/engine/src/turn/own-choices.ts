@@ -168,6 +168,11 @@ P.chiefDecides = function (b, chief) {
     b.men -= away;
     this.peopleOf(b.province).loose += away;
     remember(chief, S.turn, `I sent ${away} of my men away in ${this.map.get(b.province).name}.`);
+    // Too few are left to be a band: it ends here, before its season can rob or draw men again.
+    if (b.men < BandData.least) {
+      this.wayBack(b, "he sent his men away");
+      return "gone";
+    }
   }
   // A ship is bought only where the band stays by the sea: moved inland, it would be left behind at once.
   if (plan.ship && (plan.go === null || plan.go === b.province || this.map.get(plan.go).isCoastal)) this.buyShip(b, chief);

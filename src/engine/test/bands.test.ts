@@ -175,9 +175,14 @@ describe("BandTests", () => {
     season(2000, 100);
     Assert.equal(grown - 100, b.men);
     Assert.contains(chief.memory, (m) => m.text.includes("I sent 100 of my men away"));
-    // More than he has is all he has: the band is no more, and he is on the way back.
-    season(2000, 1000000);
+    // More than he has is all he has: the band is no more, and he is on the way back, though a haul on the roads
+    // lies in its take and the town is rich again, which would have drawn men to an empty band.
+    e.robbedBy(prov, 500);
+    b.took = 500;
+    season(20000, 1000000);
     Assert.false(s.bands.includes(b));
+    Assert.false(s.bands.some((x) => x.leaderId === chief.id));
+    Assert.true(chief.duty !== "Leading");
   });
 
   test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {
