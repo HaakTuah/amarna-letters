@@ -409,10 +409,13 @@ export function batchReport(games: readonly GameSummary[]): string {
     const standing = games.filter((g) => g.growth[p] > 0);
     const survived = standing.length === 0 ? "" : `  survivors ${align(String(standing.length), 3)} at ${fmt(mean(standing.map((g) => g.growth[p])), "0.00")}`;
     const ranked = mean(games.map((g) => standingOf(p, g.growth[p])));
+    // Item 18, part F4 ("every power has about the same chance of first place"): its games in the top tenth of its par's
+    // results (standing 1.8 or more), about a tenth of the games where play is as par's.
+    const top = games.filter((g) => standingOf(p, g.growth[p]) >= 1.8).length;
     // Its final score where it lived (item 11e: size and performance blended).
     const scored = games.filter((g) => g.score?.[p] !== undefined).map((g) => g.score[p]);
     const final = scored.length === 0 ? "" : `  score ${fmt(mean(scored), "0.00")}`;
-    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (standing ${fmt(ranked, "0.00")})${final}${survived}`);
+    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (standing ${fmt(ranked, "0.00")}; top tenth ${top})${final}${survived}`);
   }
   const weakWins = games.filter((g) =>
     g.winners.some((w) => {

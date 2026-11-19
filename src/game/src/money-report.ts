@@ -56,7 +56,16 @@ export interface RoadMeasure {
   safeJobs: number;
   /** Item 18, part F3: by way to a fortune, its characters and how many of them stood in the top five (older summaries have none). */
   ways?: Partial<Record<Strategy, [number, number]>>;
+  /** Item 18, part F4: of its characters, the heads raised by circumstance ({@link raisedByCircumstance}), and how many of them stood in the top five. */
+  heads?: [number, number];
 }
+
+/**
+ * Item 18, part F4: a head the circumstance picked, not a man who chose his road: one who rose to lead loose men, a band,
+ * mutineers, refugees or a town, or led a raid from beyond the map. Their traits lean by how they rose (most of them bold),
+ * and they start with nothing, so they are counted apart when the roads are compared.
+ */
+export const raisedByCircumstance = (c: Character): boolean => c.calling === "raider" || c.facts.some((f) => f.tag === "rose");
 
 /** One window of {@link FeeWindow} seasons. */
 export interface FeeWindowMeasure {
@@ -134,12 +143,18 @@ export class MoneyWatch {
         dangerJobs,
         safeJobs,
         ways: {},
+        heads: [0, 0],
       };
       const top = new Set(living.slice(0, 5).map((x) => x.character.id));
       for (const x of xs) {
+        const at = top.has(x.character.id) ? 1 : 0;
         const w = (r.ways![x.character.strategy] ??= [0, 0]);
         w[0]++;
-        if (top.has(x.character.id)) w[1]++;
+        w[1] += at;
+        if (raisedByCircumstance(x.character)) {
+          r.heads![0]++;
+          r.heads![1] += at;
+        }
       }
       for (const x of xs) addEarnings(r.earned, x.character.earned);
       return r;
@@ -191,15 +206,25 @@ export function moneyReport(ms: readonly MoneyMeasure[]): string[] {
     );
   }
   // Item 18, part F3: each way to a fortune by road, so a gap between the roads can be told from a gap between the ways.
-  const ways = StrategyValues.flatMap((w) => {
-    const of = (bold: boolean): [number, number] => {
-      const rs = ms.flatMap((m) => (m.roads !== undefined ? [bold ? m.roads.bold : m.roads.careful] : []));
-      return [sum(rs, (r) => r.ways?.[w]?.[0] ?? 0), sum(rs, (r) => r.ways?.[w]?.[1] ?? 0)];
-    };
+  const roads = (bold: boolean): RoadMeasure[] => ms.flatMap((m) => (m.roads !== undefined ? [bold ? m.roads.bold : m.roads.careful] : []));
+  const rate = (x: [number, number]): string => (x[0] === 0 ? "-" : fmt((100 * x[1]) / x[0], "0.0"));
+  const both = (of: (bold: boolean) => [number, number]): string => {
     const [b, c] = [of(true), of(false)];
-    const rate = (x: [number, number]): string => (x[0] === 0 ? "-" : fmt((100 * x[1]) / x[0], "0.0"));
-    return b[0] + c[0] === 0 ? [] : [`${w} bold ${b[1]} of ${b[0]} (${rate(b)}), careful ${c[1]} of ${c[0]} (${rate(c)})`];
+    return `bold ${b[1]} of ${b[0]} (${rate(b)}), careful ${c[1]} of ${c[0]} (${rate(c)})`;
+  };
+  const ways = StrategyValues.flatMap((w) => {
+    const of = (bold: boolean): [number, number] => [sum(roads(bold), (r) => r.ways?.[w]?.[0] ?? 0), sum(roads(bold), (r) => r.ways?.[w]?.[1] ?? 0)];
+    return of(true)[0] + of(false)[0] === 0 ? [] : [`${w} ${both(of)}`];
   });
   if (ways.length > 0) lines.push(`  The top five by way to a fortune (of those who never reigned; in a hundred heads): ${ways.join("; ")}.`);
+  // Item 18, part F4: the heads raised by circumstance apart from those who chose their road, so a gap between the roads
+  // can be told from the mix of how men came into play.
+  const heads = (bold: boolean): [number, number] => [sum(roads(bold), (r) => r.heads?.[0] ?? 0), sum(roads(bold), (r) => r.heads?.[1] ?? 0)];
+  const rest = (bold: boolean): [number, number] => {
+    const [n, top] = heads(bold);
+    return [sum(roads(bold), (r) => r.people) - n, sum(roads(bold), (r) => r.top5) - top];
+  };
+  if (heads(true)[0] + heads(false)[0] > 0)
+    lines.push(`  The top five by how they came into play (in a hundred heads): heads raised by circumstance (loose men, a band, mutineers, refugees, a town or a raid) ${both(heads)}; the rest ${both(rest)}.`);
   return lines;
 }
