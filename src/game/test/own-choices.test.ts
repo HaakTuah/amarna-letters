@@ -86,6 +86,8 @@ describe("OwnChoicesTests", () => {
     // A band in its first season has no last season's take to be told of (item 18, part F4).
     Assert.false(rec.calls[0].user.includes("Last season your band took"));
     Assert.contains(`less your own share of ${chiefCutOf(chief.traits.greed)}%`, rec.calls[0].user);
+    // What sending too many away does is told where it is asked ("Requests are rules too").
+    Assert.contains(`a band left with fewer than ${BandData.least} men breaks up`, rec.calls[0].user);
     // No coast, so no ship to buy, and no word of one.
     Assert.false(fields.includes("buy_ship"));
     Assert.false(rec.calls[0].user.includes("ship"));
