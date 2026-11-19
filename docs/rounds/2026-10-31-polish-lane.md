@@ -1,7 +1,7 @@
-# Polish lane, 31 October 2026 (second account)
+# Polish lane, 31 October 2026
 
 Brief: "The polish lane" in `docs/BUILD-PROGRESS.md`. Worked from the copy of the design document in `docs/intent/`
-(no live document on this account). Weekly usage: unknown (this session cannot read it).
+(no live document in this session). Weekly usage: unknown (this session cannot read it).
 
 Each fix is its own PR from `develop`; this file keeps the running list.
 

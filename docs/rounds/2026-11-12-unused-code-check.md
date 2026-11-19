@@ -1,7 +1,7 @@
 # A check for code nothing uses: a workshop lane
 
-The owner, 11 November 2026: "Should we have a rule about removing unused code, expert?", then "Yes, expertly to all,
-expert!". "Keep it lean" forbids leftovers, but nothing held it. Now three checks do, all run by `scripts/test.sh` and by
+The owner, 11 November 2026: "Should we have a rule about removing unused code?", then he agreed to all of the
+design session's proposal. "Keep it lean" forbids leftovers, but nothing held it. Now three checks do, all run by `scripts/test.sh` and by
 the code-PR checks (`npm run typecheck`, `npm run lint`).
 
 ## What changed

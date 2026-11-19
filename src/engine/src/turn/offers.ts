@@ -1,6 +1,6 @@
 /**
- * Who carries a province's offer (item 17++, part D; the owner's answer to #431, 2 November 2026: "Yes, expertly, if you
- * think it is best"; "Whom a province obeys" under War). A province declaring for a power whose troops are not there sends
+ * Who carries a province's offer (item 17++, part D; the owner's answer to #431, 2 November 2026, who agreed; "Whom a
+ * province obeys" under War). A province declaring for a power whose troops are not there sends
  * him its offer only if someone carries it: talk of its leaning spreads at the roads' pace to him, to its holder and to the
  * holder's enemies, but the offer itself is a letter waiting in the province, as a spy's report waits ("Messengers are
  * errands"). His own spy watching it reports it with his reports; a man of his going that way carries it for nothing; and

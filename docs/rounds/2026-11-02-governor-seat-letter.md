@@ -1,6 +1,6 @@
 # A governor's letter says where he now sits (#480)
 
-The owner's words (2 November 2026, in the design chat, archive item 170): on #480, the owner agreed. Queued in "Follow-ups" in `docs/BUILD-PROGRESS.md`: "his seasonal letter says
+The owner's answer (2 November 2026, in the design chat, archive item 170): on #480, he agreed. Queued in "Follow-ups" in `docs/BUILD-PROGRESS.md`: "his seasonal letter says
 where he now sits, truly or not, as he chooses by his stakes", right after item 17++ part C.
 
 ## Built

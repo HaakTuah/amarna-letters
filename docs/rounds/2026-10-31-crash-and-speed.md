@@ -1,7 +1,7 @@
 # Item 17a: the crash and an optimization round
 
 31 October 2026. Branch `item/crash-and-speed`, PR #321 (replacing draft #236, whose thread holds the reviews). The item text is `docs/intent/build-order/item-17.md`
-(the 17a passage). Built from the copy in `docs/intent/` (this account has no live design document); the copy did not change
+(the 17a passage). Built from the copy in `docs/intent/` (this session has no live design document); the copy did not change
 between the item's start (`f1007bc`) and the check before review. Design note: `docs/design/44-the-crash-and-speed.md`.
 
 ## The owner's words in this session
@@ -39,8 +39,8 @@ of up to 600 map scenes at about 2 MB each and a frame a season at about 1 MB.
 
 ## The root: the stream, and the page's own history
 
-The owner, 31 October 2026, to the design session's finding that the page held a full copy of the game for every season:
-"Agreed, 100% sir!". The item's text now asks that "the engine sends the page what happened each season as a stream of
+The owner, 31 October 2026, agreed to the design session's finding that the page held a full copy of the game for every
+season. The item's text now asks that "the engine sends the page what happened each season as a stream of
 events, not a whole new copy of the world, and the page keeps a compact history (each season's events and what each seat
 knew), from which any past season is rebuilt when looked back at; the same events drive item 17+++'s playback and item
 19+++'s sounds."
@@ -176,7 +176,7 @@ below once run.
 ## Smoothness, measured (the bar of 31 October: no frame over about 50 ms)
 
 The owner, 31 October 2026: "The game still doesn't move slowly and smoothly enough. It still hitches. I hope that polish
-pass isn't done already, because it far from sufficed.", then he agreed to all of the design session's bar: frame times
+pass isn't done already, because it far from sufficed.", then he agreed to the design session's bar: frame times
 recorded through a whole game, at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the
 longest frames and the count over 50 ms before and after, and a short recording.
 

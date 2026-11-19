@@ -5,10 +5,8 @@ effort against Opus at high on the phone-frames lane: Fable cost about half and 
 changed model and effort together, and it ran on polish work, not on a numbered item, so it could not say which of the
 two the difference came from, nor whether it holds on the work the rule was written for.
 
-The owner's word, in the design chat (12 November 2026), to one fair pair, Fable at high against Opus at high, on a
-numbered item, after Monday's reset of the week's usage:
-
-> Yes to the test.
+The owner's word, in the design chat (12 November 2026): he agreed to one fair pair, Fable at high against Opus at
+high, on a numbered item, after the week's usage resets.
 
 ## What to do
 

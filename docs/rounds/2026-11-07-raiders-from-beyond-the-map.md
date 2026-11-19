@@ -6,7 +6,7 @@ The item's text: `docs/intent/build-order/item-17.md` ("17++++a, raiders from be
 bands at sea" (War). As built: [`docs/design/56-raiders-from-beyond-the-map.md`](../design/56-raiders-from-beyond-the-map.md).
 Branch `item/raiders`, from `develop` at 38b88679.
 
-**The check for changes:** the live design document refused this account (the docs connector answered "forbidden"), so
+**The check for changes:** the live design document refused this session (the docs connector answered "forbidden"), so
 the item was built from the copy cut on 3 November (War tab revision 112, Build order 354), and the copy on `develop`
 was read again by its diff before the pull request.
 

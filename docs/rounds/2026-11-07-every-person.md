@@ -7,7 +7,7 @@ scoreboard for every person" (Victory), "A realm holds by its ledger" (War), "At
 "Places by their own names" (World and history). As built: [`docs/design/57-every-person.md`](../design/57-every-person.md).
 Started from `develop` at 639bb977.
 
-**The check for changes:** the live design document refused this account (the docs connector answered "forbidden"), so
+**The check for changes:** the live design document refused this session (the docs connector answered "forbidden"), so
 the item is built from the copy cut on 3 November (Build order 354), and the copy on `develop` is read again by its diff
 before each part's pull request.
 
@@ -235,7 +235,7 @@ abroad, the heir an exile with a claim, and word of a death sent on to a court t
 ## Part C2: the court taken, fled, in exile
 
 Started from `develop` at ef4a4626 (C1 merged). As built: [57](../design/57-every-person.md), "Part C2". The live design
-document could not be read from this account (the docs connector refused it); the copy on `develop` has not changed
+document could not be read from this session (the docs connector refused it); the copy on `develop` has not changed
 since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-rules.md` is empty).
 
 ### What was built
@@ -328,7 +328,7 @@ since C1 began (`git diff b9099627..origin/develop -- docs/intent docs/builder-r
 ## Part D: one scoreboard for every person
 
 Started from `develop` at 779fc13 (C2 and its follow-up merged). As built: [57](../design/57-every-person.md), "Part D".
-The live design document could not be read from this account; the copy on `develop` is read again by its diff before
+The live design document could not be read from this session; the copy on `develop` is read again by its diff before
 the pull request.
 
 ### What was built

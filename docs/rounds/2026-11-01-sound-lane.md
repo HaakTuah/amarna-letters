@@ -4,7 +4,7 @@ A side lane beside the item lane (17+), owning `src/web/src/audio/`, the Music p
 only: no rule, number, script play or save version changes; the script games and replays are identical. Weekly usage:
 unknown (`scripts/usage.sh` cannot read it in this session).
 
-The check for changes: this account has no live document, so the copy on `develop` was read by its diff from the lane's
+The check for changes: this session has no live document, so the copy on `develop` was read by its diff from the lane's
 start (`57c9c8b`, which already carries the design session's two sound entries, "Three layers, the music leading" and
 "What a seat hears is what its own map shows", in item 19+++).
 

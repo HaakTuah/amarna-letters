@@ -4,7 +4,7 @@ The third part of part F (`docs/rounds/2026-11-11-balance-pass-f2.md`, "Split, a
 `main` at 8c2baff (#895, save version 94): every feature's use against ignore on seeds 1-100, in halves of 50, and a
 patch for each that does not pay. **Not finished:** the owner asked on 12 November to wrap up ("I think we need to wrap
 up as soon as it is at a point where it can wrap up what it has, and push it all"; before it, "Don't start any new
-tasks after this, but let all already started, fully finish, expertly"), so five features' runs, the war of choice's
+tasks after this, but let all those already started finish fully"), so five features' runs, the war of choice's
 run on the patched play, the par refresh and the benchmarks are not done; each is listed below as not done, not claimed.
 
 **The check for changes:** the live design document answered, at the start and again before the pull request: no

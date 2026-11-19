@@ -98,7 +98,7 @@ commit.
 
 - **"%" for shares.** Taken here because the rulebook's formulas ("5% + …, between 2% and 60%") read badly in words,
   and filed as #735 since notices then said "in a hundred". The owner answered (6 November 2026; archive item 230):
-  "15% sounds to me like the more clear phrasing." The notices, news and reports follow in the slop audit's lane.
+  "15% sounds to me like the clearer phrasing." The notices, news and reports follow in the slop audit's lane.
 - **A rulebook is judged as a rulebook.** Its voice is plain instruction, not the period's. "Voice of the age" governs
   what characters and kings say, not the rules of the game.
 - **Script kings untouched.** They do not read the rulebook, so no benchmark or use-against-ignore measurement applies:

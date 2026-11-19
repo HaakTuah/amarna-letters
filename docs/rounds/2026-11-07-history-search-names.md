@@ -1,18 +1,18 @@
 # Item 17+++b: history, search and names
 
-The owner (2 November 2026, in the design document's "History, search and names"): "Should have some way of viewing a
-titles history? You know, both crusader kings 2 and dwarf fortress have ledgers and history buttons where you can track
-the events of any province, title or character, should we have the same maybe?" and "Need menus to search everything up
-in, like ck2. Titles, characters, etc. To filter everything by. Should use fuzzy search. Should be able to use both modern
-and historic names. Could be settings to have historic or modern names? Separate for each, with the default using
-historic for provinces and modern for realms. Also, should be filters, and so you can search for everything also. And you
-should see count of stuff (a count of how many you know anyways) of characters, realms, and such.", then "Yes ro
-absolutely all pt these! Extra expertly expertly!"; and in "Learn more, and what is invented": "Yes please, expertly!".
+The owner (2 November 2026, in the design document's "History, search and names"): "Should we have some way of viewing a
+title's history? Both Crusader Kings 2 and Dwarf Fortress have ledgers and history buttons where you can track the events
+of any province, title or character." and "Need menus to search everything in, like CK2: titles, characters, etc., to
+filter everything by. They should use fuzzy search, and work with both modern and historic names. There could be settings
+for historic or modern names, separate for each, with the default historic for provinces and modern for realms. There
+should also be filters, so you can search for everything, and you should see counts (of how many you know, anyway) of
+characters, realms and such.", then he agreed to all of the design session's questions; and in "Learn more, and what is
+invented" he agreed too.
 
 The item's text: `docs/intent/build-order/item-17.md` ("17+++b, history, search and names"); its sections: "History,
 search and names" and "Learn more, and what is invented" (Spectator mode), "Places by their own names" (Voice of the age).
-How it works: `docs/design/55-history-search-names.md`. The live design document could not be read from this session (a
-session on the owner's second account: the docs connector refuses it), so the copy on `develop` was read instead, by its
+How it works: `docs/design/55-history-search-names.md`. The live design document could not be read from this session (the
+docs connector refuses it), so the copy on `develop` was read instead, by its
 diff since the item began (8ba8016d), as `docs/intent/INDEX.md` says.
 
 ## What was built

@@ -1,7 +1,7 @@
 # A caught offer is a thing held (#592, side lane, 6 November 2026)
 
-PR #733, built on #725 (#543). The owner's yes to idea #592 ("Follow-ups" in `docs/BUILD-PROGRESS.md`; his words, 3
-November 2026: "Agreed to all, expertly!"): a king who caught the carrier of a province's offer read it (#553), but
+PR #733, built on #725 (#543). The owner's yes to idea #592 ("Follow-ups" in `docs/BUILD-PROGRESS.md`; he agreed to all
+the ideas on 3 November 2026): a king who caught the carrier of a province's offer read it (#553), but
 knowing was all he could do with it. Now the captor holds it and chooses: send it on to its claimant (a favour he can
 trade on), sell it to its claimant or to the land's king, or keep it back ("No menus": the lever is a thing held).
 

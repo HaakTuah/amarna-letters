@@ -1,7 +1,7 @@
 # Improvement audit (31 October 2026)
 
 Branch `audit/improvement` (PR #235), from `develop` at f1007bc. One session, intended at high effort. Worked from the
-copy of the design document in `docs/intent/` (no live document on this account). Weekly usage: unknown in this session.
+copy of the design document in `docs/intent/` (no live document in this session). Weekly usage: unknown in this session.
 
 How the audit looked: the built web app (`npm run build --workspace src/web`) driven with Playwright at 1280 px and at
 390 px, whole games watched at the top speed with memory and season times recorded, a human seat played as Egypt at
@@ -44,7 +44,7 @@ them, never pruned: 13,400 notices, 11,200 resolutions, 4,100 battle reports), `
 2 MB (198 characters at about 10 KB each, mostly `facts` and `payOld`). So each snapshot is several MB and the sum is
 quadratic in the game's length. With the age now lasting about 80 to 160 seasons (item 17), a desktop browser reaches
 the renderer's limit at about season 80 to 110; a phone, with far less memory, much earlier. The owner saw "a white page
-with an error" on the live site: Chrome's own out-of-memory page is exactly that.
+with an error" on the live site: a browser's own out-of-memory page is exactly that.
 
 **Suggested fix (behaviour unchanged).** Stop keeping a full state per season. The frames already carry what the map and
 panels show of past seasons; for the "whose eyes" view of a past season (`stateAt`), keep a snapshot only every k-th

@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { Dict, LetterHeldTerms, OfferTerms, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newGrant, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
-// Item 17++, part D (#431, the owner: "Yes, expertly, if you think it is best"): a province's offer to an absent power
+// Item 17++, part D (#431, the owner's yes): a province's offer to an absent power
 // reaches him only if someone carries it; talk of its leaning spreads at the roads' pace. Babylon, Babylonia's capital,
 // leans to Egypt.
 describe("OfferTests", () => {

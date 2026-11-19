@@ -1,6 +1,6 @@
 /**
- * A caught offer is a thing held (#592, the owner's yes, 3 November 2026: "Agreed to all, expertly!"; after #553 and
- * #543). Whoever catches the carrier of a province's offer (a traveller taken captive on the road, or a caravan his troops
+ * A caught offer is a thing held (#592, the owner's yes, 3 November 2026; after #553 and #543).
+ * Whoever catches the carrier of a province's offer (a traveller taken captive on the road, or a caravan his troops
  * take) reads it and holds it: he may send it on to its claimant, a favour he can trade on; send it to the land's king,
  * who learns his people's own words; ask either of them a price for it; or keep it back. It stands only while the
  * province's people lean the claimant's way ("No menus": the lever is a thing held, not a button). An asking binds: the

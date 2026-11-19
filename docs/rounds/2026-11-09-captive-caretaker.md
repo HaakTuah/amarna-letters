@@ -3,7 +3,7 @@
 Built before item 18 part F2, at the orchestrator's word, since it changes play and F2 measures play. The design: the
 follow-up "A captive king's realm under a caretaker" in `docs/BUILD-PROGRESS.md`; as built:
 [`docs/design/59-a-captive-kings-realm.md`](../design/59-a-captive-kings-realm.md). **The check for changes:** the live
-design document refused this account when the item began (the docs connector answered "forbidden"), so it was built from
+design document refused this session when the item began (the docs connector answered "forbidden"), so it was built from
 the follow-up's text and the copy on `develop` at 1cfdc8f. Asked again on 10 November, after `main` was merged in: the
 owner's answer is now written in Victory, "One scoreboard for every person" (revision 28), and adds that the captor's
 guard watches against an escape, with "what holding him costs" a lever item 18 measures; built below as the captor's
@@ -11,15 +11,15 @@ guard. The Build order tab's changes since revision 354 are process only.
 
 ## The owner's words
 
-Archive item 234 (7 November 2026, on #806): "But every king is a person? But i agree, incentives on both sides are for
-them to go on living. A captured king has 2 options, give in or die, and lose all score. So he can be pressured. That
-incentivices a capture to keep him alive. Meanwhile, a dead king's lands imidately goes to a heir that continues the
-fight. Neither party is served by that the way the game rules are, which is good. My one pickle is that i don't have a
+Archive item 234 (7 November 2026, on #806): "But every king is a person? But I agree, the incentives on both sides are
+for them to go on living. A captured king has two options, give in or die and lose all score. So he can be pressured.
+That incentivises a captor to keep him alive. Meanwhile, a dead king's lands immediately go to an heir who continues the
+fight. Neither party is served by that the way the game rules are, which is good. My one pickle is that I don't have a
 neat solution for how kingdoms continue with no king in the meantime. A script taking over would seem to be the most
-natural way. Because there is no character in the game you want to make a regent. And we have already decided that heirs
-spawn if you die, due to there being no dynastic mechanics or scoring. What is your take, expert?"
+natural way, because there is no character in the game you want to make a regent. And we have already decided that heirs
+spawn if you die, due to there being no dynastic mechanics or scoring."
 
-Archive item 235 (9 November 2026): "Agreed! And there should be possible to increase chance of escape or messages
+Archive item 235 (9 November 2026), agreeing: "It should be possible to increase the chance of escape or of messages
 passing out, like spies and such."
 
 ## What was built

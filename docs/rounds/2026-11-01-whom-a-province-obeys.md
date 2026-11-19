@@ -6,7 +6,7 @@ ledger", "Revolt follows conditions, not dice" and "The people defend their land
 under War, and "Governors" (the commissioners and the town rulers as characters). Design note:
 `docs/design/47-whom-a-province-obeys.md`. Save version 39.
 
-This account cannot reach the live design document (the docs connector refused the read: "forbidden", role). The copy on
+This session cannot reach the live design document (the docs connector refused the read: "forbidden", role). The copy on
 `develop` was read instead, and its diff since `f1de2cd` checked before the pull request: nothing changed.
 
 **17++ in parts.** The item is the largest in the order (the census, the king's demands, counts as the scribes knew them,

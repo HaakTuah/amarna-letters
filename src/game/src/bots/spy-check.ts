@@ -1,6 +1,6 @@
 /**
- * A governor's word checked against the king's own spy (#459, queued into item 17++ part C; the owner, 2 November 2026:
- * "Yes, expertly to both!"). A governor who wants his province for himself may write that its people are quiet while they
+ * A governor's word checked against the king's own spy (#459, queued into item 17++ part C; the owner's yes, 2 November
+ * 2026). A governor who wants his province for himself may write that its people are quiet while they
  * are not; a spy watching it reports their mood as he hears it. Where the spy finds them restless or near revolt and the
  * governor's own report, the newest word the court has of them, calls them quiet, the script king treats the province as
  * restless and stops trusting that governor: he takes the governorship back, unless foreign troops in or beside it would
