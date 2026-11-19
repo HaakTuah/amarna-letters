@@ -167,7 +167,7 @@ describe("City-states as powers (item 11+)", () => {
     const best = near(longest).flatMap((i) => CharacterPar[i]).sort((a, b) => a - b);
     Assert.equal(rankAmong(best, 300), characterStanding(300, longest));
     // Par's games and each power's results are kept in one order: one result per game.
-    Assert.all(Object.values(ParResults), (xs) => xs.length === ParSeasons.length);
+    Assert.all(Object.values(ParResults), (xs) => xs!.length === ParSeasons.length);
     Assert.equal(ParSeasons.length, CharacterPar.length);
   });
 
