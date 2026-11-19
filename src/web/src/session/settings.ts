@@ -136,8 +136,9 @@ export function newSettings(): GameSettings {
 
 export function choicesOf(s: GameSettings): SeatChoices {
   const c = new SeatChoices();
-  for (const p of FixedPowers) c.leaders.set(p, s.leaders[p]);
+  // An absent power's seat (item 18b) is a script seat that plays nothing: no model, key or bridge is asked for it.
   c.absent = [...absentFrom(s.game)];
+  for (const p of FixedPowers) c.leaders.set(p, c.absent.includes(p) ? "Script" : s.leaders[p]);
   c.characters = s.characters;
   c.narrator = s.narrator;
   c.leaderEffort = s.leaderEffort;

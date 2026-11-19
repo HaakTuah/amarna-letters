@@ -80,7 +80,10 @@ export function narratorModel(k: NarratorKind): string | null {
 /** Who plays what: each king's seat, the envoys and spies, and the narrator. */
 export class SeatChoices {
   leaders = new Dict<Power, LeaderKind>(AllPowers.map((p) => [p, "Script"] as const));
-  /** The powers absent from the table's game (item 18b, "The first game"): their seats play nothing, and cost nothing. */
+  /**
+   * The powers absent from the table's game (item 18b, "The first game"): their seats are always script seats that play
+   * nothing (`choicesOf` on the page), so they need no model, key or bridge and cost nothing; a preset matches without them.
+   */
   absent: Power[] = [];
   characters: CharacterKind = "Script";
   narrator: NarratorKind = "Template";

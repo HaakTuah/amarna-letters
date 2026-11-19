@@ -53,7 +53,8 @@ export class Preset {
     // By the models named, so a shorthand and the model it stands for are the same choice.
     const same = (a: string, b: string, model: (k: string) => string | null): boolean => (model(a) ?? a) === (model(b) ?? b);
     return (
-      [...c.leaders.values()].filter((v) => v !== "Human").every((v) => same(v, this.leaders, leaderModel)) &&
+      // An absent power's seat (item 18b, the first game) plays nothing, whatever a preset gives it.
+      [...c.leaders.entries()].filter(([p, v]) => v !== "Human" && !c.absent.includes(p)).every(([, v]) => same(v, this.leaders, leaderModel)) &&
       same(c.characters, this.characters, characterModel) &&
       same(c.narrator, this.narrator, narratorModel) &&
       // The other rungs count only where they are in play: a Free table has no small rung to differ by.

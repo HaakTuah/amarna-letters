@@ -56,7 +56,7 @@ export const CostEstimate = {
     const light = new Map<string, number>();
     const plans = new Map<string, number>();
     const add = (m: Map<string, number>, model: string | null, n: number): void => void (model !== null && m.set(model, (m.get(model) ?? 0) + n));
-    for (const p of AllPowers.filter((x) => !c.absent.includes(x))) {
+    for (const p of AllPowers) {
       const model = leaderModel(c.leaders.get(p));
       if (model === null) continue;
       const small = smallModel(c, p);

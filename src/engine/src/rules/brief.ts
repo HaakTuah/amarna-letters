@@ -49,8 +49,8 @@ const places = (ids: readonly string[]): string => {
   return ns.length <= 1 ? (ns[0] ?? "") : `${ns.slice(0, -1).join(", ")} and ${ns[ns.length - 1]}`;
 };
 const kind = (o: OrderOutcome): string => (o.unitKind === "Army" ? "army" : "fleet");
-/** " from Hatti" after a place taken, or nothing where the place bears its holder's name (Halab, of Halab). */
-const from = (id: string, p: Power): string => (powerName(p).replace(/^the /u, "") === name(id) ? "" : ` from ${powerName(p)}`);
+/** ", held by Hatti" after a place entered, or nothing where the place bears its holder's name (Halab, of Halab). */
+const heldBy = (id: string, p: Power): string => (powerName(p).replace(/^the /u, "") === name(id) ? "" : `, held by ${powerName(p)}`);
 
 /** The season brief of a seat's view: at most {@link MaxBrief} lines, most urgent first. */
 export function seasonBrief(v: SeatView): BriefLine[] {
@@ -80,15 +80,16 @@ export function seasonBrief(v: SeatView): BriefLine[] {
   for (const [p, us] of byPower(foreign.filter(border)))
     add("Threat", `${upper(whose(p))} ${troops(us)} came to your border, to ${places(us.map((u) => u.province))}.`, us[0].province, "Troops");
 
-  // A battle of its own last season: its troops beaten or lost, its attacks, and attacks on it.
+  // A battle of its own last season: its troops beaten or lost, its attacks, and attacks on it. A move that got in has
+  // entered the land, never taken it: land changes hands as the next season begins, or by a siege, and the walls may hold.
   for (const o of v.lastSeason) {
     if (o.power === me) {
       if (o.destroyed) add("Battle", `Your ${kind(o)} in ${name(o.province)} was destroyed.`, o.province, "Troops");
       else if (o.fellBack !== null) add("Battle", `Your ${kind(o)} was beaten from ${name(o.province)} and fell back to ${name(o.fellBack)}.`, o.fellBack, "Troops");
       else if (o.order === "move" && o.target !== null && !o.guest && o.targetOwner !== null && o.targetOwner !== me)
-        add("Battle", o.succeeded ? `Your ${kind(o)} took ${name(o.target)}${from(o.target, o.targetOwner)}.` : `Your ${kind(o)}'s attack from ${name(o.province)} on ${name(o.target)} failed.`, o.target, "Troops");
+        add("Battle", o.succeeded ? `Your ${kind(o)} entered ${name(o.target)}${heldBy(o.target, o.targetOwner)}.` : `Your ${kind(o)}'s attack from ${name(o.province)} on ${name(o.target)} failed.`, o.target, "Troops");
     } else if (o.order === "move" && o.target !== null && !o.guest && o.targetOwner === me)
-      add("Battle", o.succeeded ? `${upper(whose(o.power))} ${kind(o)} took ${name(o.target)} from you.` : `${upper(whose(o.power))} ${kind(o)} attacked ${name(o.target)} and was held off.`, o.target, "Troops");
+      add("Battle", o.succeeded ? `${upper(whose(o.power))} ${kind(o)} entered ${name(o.target)}, your land.` : `${upper(whose(o.power))} ${kind(o)} attacked ${name(o.target)} and was held off.`, o.target, "Troops");
   }
 
   // The season's news that waits on the king: a letter or envoy, a promise kept or broken, an errand done.
@@ -101,9 +102,10 @@ export function seasonBrief(v: SeatView): BriefLine[] {
   // Gold or grain running short.
   const due = v.upkeep + v.worksUpkeep + v.fees;
   if (due > 0 && v.gold < due) add("Short", `Your treasury holds ${formatMoney(v.gold)}, less than a season's pay of your troops, works and servants (${formatMoney(due)}).`, null, "Treasury");
-  const hungry = v.units.filter((u) => u.power === me && (u.hungry > 0 || u.unpaid > 0));
+  // As the court knows them now: an old report of a far troop or province is not this season's news.
+  const hungry = v.units.filter((u) => u.power === me && u.reported === 0 && (u.hungry > 0 || u.unpaid > 0));
   if (hungry.length > 0) add("Short", `Your ${troops(hungry)} in ${places(hungry.map((u) => u.province))} went ${hungry.every((u) => u.unpaid > 0 && u.hungry === 0) ? "unpaid" : "hungry"} last season.`, hungry[0].province, "Troops");
-  const unfed = v.provinces.filter((x) => mine.has(x.province) && x.fed < 1000);
+  const unfed = v.provinces.filter((x) => mine.has(x.province) && x.reported === null && x.fed < 1000);
   if (unfed.length > 0) add("Short", `Your people went short of grain last season in ${places(unfed.map((x) => x.province))}.`, unfed[0].province, "Treasury");
 
   // The same line twice is one line, with how many times ("Word from Haya, a spy's report (twice).").

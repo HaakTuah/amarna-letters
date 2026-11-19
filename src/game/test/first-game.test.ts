@@ -22,6 +22,9 @@ describe("FirstGameTests", () => {
     // No court is told an absent power fell: it was never in the age.
     Assert.empty(Views.for(s, "Egypt").fallen);
     Assert.contains("Egypt, Hatti and Mitanni hold their thrones", s.events[0].text);
+    // The pool's baseline is the people in play, as in the full game, so no newcomers come to fill the absent courts' places.
+    Assert.equal(s.characters.length, s.baseline);
+    Assert.equal(newGame(1).characters.length, newGame(1).baseline);
     // The short curve, with a cap near thirty.
     Assert.true(s.finalSeason !== null && s.finalSeason <= 32);
   });

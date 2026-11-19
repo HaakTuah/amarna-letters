@@ -44,14 +44,15 @@ brought the seat, from its own view alone (`seasonBrief` in `src/engine/src/rule
 
 1. **Threat:** a city of its own under siege; foreign troops in its land, by power; foreign troops that came next to its
    land last season (troops that merely stand at its border, in their own land or another's, are no news).
-2. **Battle:** last season's, its own: a unit destroyed or beaten back, its attacks that took land or failed, and attacks
-   on its land, held off or not.
+2. **Battle:** last season's, its own: a unit destroyed or beaten back, its attacks that got in or failed, and attacks
+   on its land, held off or not (a move that got in has entered the land, never taken it: land changes hands as the next
+   season begins, or by a siege).
 3. **Word:** an envoy received at its court, an envoy home with a report, a spy's word ("Your spy Tahmaya at Hatti sent
    word"), a tablet ready.
 4. **Promise:** a debt repaid, to it or by it, or past its season unpaid; a servant's fee paid, or fallen due unpaid.
 5. **Errand:** a servant home or gone, an envoy let go, gold brought home, a candidate seeking service.
-6. **Short:** the treasury below a season's pay of troops, works and servants; its troops hungry or unpaid; its people
-   short of grain.
+6. **Short:** the treasury below a season's pay of troops, works and servants; its troops hungry or unpaid, and its
+   people short of grain, as the court knows them this season (an old report of a far province is not news).
 
 Past six lines, the sixth says how many more wait in this season's news. Each line names its place, for the map (the court's
 seat for word and errands), and what

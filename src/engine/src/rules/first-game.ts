@@ -94,7 +94,11 @@ export function leaveOut(s: GameState, m: WorldMap, absent: readonly Power[]): v
   s.debts = s.debts.filter((d) => !gone(d.lender) && !gone(d.borrower) && !gone(d.holder));
   s.claims = s.claims.filter((c) => !gone(c.power)).map((c) => (gone(c.overlord) ? { ...c, overlord: null } : c));
   // Their people go with them; a present court's servant at an absent court is at his own instead.
+  const before = s.characters.length;
   s.characters = s.characters.filter((c) => !gone(c.employer) && !(c.employer === null && gone(c.at)));
+  // The pool's baseline is the people of the world in play: those who left with the absent courts leave it too, so the
+  // newcomers do not come to fill their places.
+  s.baseline -= before - s.characters.length;
   for (const c of s.characters) {
     if (gone(c.at)) c.at = c.employer;
     c.ties = c.ties.filter((t) => !gone(t.court));

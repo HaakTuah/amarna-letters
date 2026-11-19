@@ -158,10 +158,10 @@ export function Home() {
   };
   const set = <K extends keyof GameSettings>(k: K, v: GameSettings[K]): void => setSettings({ ...settings, [k]: v });
   // The ending sets how long a game runs, and so what it is likely to cost.
-  /** Which game: its own ending with it, and a seat it has no place for given up. */
+  /** Which game: its own ending with it; a seat it has no place for given up, and one it brings back played as the rest. */
   const chooseGame = (g: GameKind): void => {
     const leaders = { ...settings.leaders };
-    for (const p of absentFrom(g)) if (leaders[p] === "Human") leaders[p] = (selected ?? Presets.Free).leaders;
+    for (const p of absentFrom("first")) if (g === "full" || leaders[p] === "Human") leaders[p] = (selected ?? Presets.Free).leaders;
     setSettings(recost({ ...settings, game: g, leaders, ...EndingOf[g] }));
   };
   const setEnding = (v: Partial<Pick<GameSettings, "endMedian" | "capped" | "capMin" | "capMax" | "openAge">>): void => setSettings(recost({ ...settings, ...v }));

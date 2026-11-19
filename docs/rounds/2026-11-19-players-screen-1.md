@@ -100,6 +100,12 @@ Unsure first.
   two comments that still said "unruled", a test that a first game and a full game in one process each play on their own
   map, and the owed work queued in the progress file. Left for later parts: a word line opening its own report rather than
   the inbox's top (with "What waits for my answer").
+- **Codex's code review** (four findings, each checked against the code and fixed, with a test): a move that got in said
+  "took" though land changes hands only as the next season begins, or by a siege (now "entered", either way round); an
+  old report of a far troop or province shown as last season's shortage (now only what the court knows this season); the
+  pool's baseline still counting the people who left with the absent courts, so newcomers came to fill their places
+  (now the baseline is the people in play, as in the full game); and an absent seat given a model asking for a key (an
+  absent seat is now always a script seat that plays nothing, and a preset matches without it).
 - **The stand-in's notes:** no ending numbers on the start page; the absent Great Kings named on the first game's card;
   the brief's place said as it is (under the tabs, not above); a spy's line saying whose spy and where ("Your spy Haya
   in Amurru sent word"); the tapped picture retaken on a battle line. The stand-in agreed with every reading but the
