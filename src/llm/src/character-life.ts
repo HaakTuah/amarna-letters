@@ -65,7 +65,7 @@ export function lifeText(v: LifeView): string {
   }
   if (v.free && v.crowds.length > 0)
     sb.appendLine(
-      `Loose men you could gather into a band of your own, turning outlaw: ${v.crowds.map((x) => `${x.name} (${x.province}), some ${Math.round(x.loose / 100) * 100}${x.band > 0 ? `, where bands of ${x.band} men already work` : ""}`).join("; ")}. A band robs the land and the roads, and keeps only as many men as its takings pay and feed; the land's armies hunt it. Your share is yours, and the hidden fact that you rode with the Habiru goes with you.`,
+      `Loose men you could gather into a band of your own, turning outlaw: ${v.crowds.map((x) => `${x.name} (${x.province}), some ${Math.round(x.loose / 100) * 100}${x.band > 0 ? `, where bands of ${x.band} men already work` : ""}`).join("; ")}. A band robs the land and the roads; men join it while its takings, less its chief's share of them, pay and feed more than it has, and leave it when they go unpaid; the land's armies hunt it. Your share is yours, and the hidden fact that you rode with the Habiru goes with you.`,
     );
   sb.appendLine(
     "Choose for yourself. Everything you leave as it is stays as it is, except an offer to lend, which you name anew each time you decide. Gold you give away or lend leaves your purse; weigh what it buys you, and when, against what you may lose. Words bind nobody; gold and tablets move only when both sides agree, at once.",
