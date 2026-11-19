@@ -97,16 +97,21 @@ most of it: how much the roads yield, and how many bands a land holds, is F5's (
 
 **Taking the road, use against ignore** (`--band-life-half`, new: half the script persons, by their number and the
 seed, never take to the hills; everyone whose own reckoning chose the road, long without work and near the end of his
-purse, is counted). Seeds 1-100, both changes, the new par:
+purse, is counted). Seeds 1-100, on the baseline's play (the switch alone on 5280231) and on the final play with the
+new par:
 
 | Whose reckoning chose the road | Persons | Top five, in a hundred | Top twenty | The living gained a head | Dead |
 |---|---|---|---|---|---|
-| Took it | 594 | 2.9 (17) | 10.4 (62) | 37 | 9% |
-| Never took it (held back) | 577 | 0.2 (1) | 4.5 (26) | 13 | 10% |
+| Before: took it | 648 | 2.2 (14) | 7.7 (50) | 29 | 9% |
+| Before: never took it (held back) | 706 | 0.3 (2) | 3.5 (25) | 11 | 13% |
+| After: took it | 594 | 2.9 (17) | 10.4 (62) | 37 | 9% |
+| After: never took it (held back) | 577 | 0.2 (1) | 4.5 (26) | 13 | 10% |
 
-It pays, by more than chance: three times the gain and more than twice the places in the top twenty, at the same
-deaths. The same measure on the baseline's play (the switch alone on 5280231) is running as this is written and is
-added under "Finished" (PENDING-BEFORE).
+Taking the road paid before this part too, by more than chance: a man at the end of his purse does better on the road
+than waiting on at court, and most who take it leave it again for service (which is why those still leading a band at
+the end gained 5 while those who ever took the road gained 29). It pays more now: a quarter more gained a head, and a
+third more of them in the top twenty. What the changes mended is the chief who stays on the road, not the choice to
+take it.
 
 ### Arzawa
 
@@ -268,7 +273,9 @@ A run not in this table does not exist.
 | Benchmarks after, seeds 1-2 | `--versus solo --games 2 --seed 1` | 2aa0eab | 15 minutes. Growth alone / all-baseline: Egypt 1.65 / 0.80, Hatti 2.78 / 1.00, Babylonia 1.59 / 0.59, Mitanni 2.32 / 0.91, Assyria 1.44 / 0.81, Arzawa 0.97 / 0.65, Alashiya 1.55 / 0.72; all kings 2.50 / 0.98, wins alone 26% / 2% |
 | Benchmarks after, seeds 3-4 | `--versus solo --games 2 --seed 3` | 2aa0eab | 11 minutes. Egypt 1.35 / 0.88, Hatti 1.16 / 0.88, Babylonia 1.45 / 0.66, Mitanni 2.29 / 0.91, Assyria 2.01 / 0.86, Arzawa 0.96 / 0.74, Alashiya 1.15 / 0.77; all kings 1.73 / 1.02, wins alone 14% / 1% |
 | The same play after the design check's rework | `--games 2 --seed 7 --max-turns 70 --out <dir>`, on 2aa0eab and on the reworked code | 2aa0eab and the head | The final states and logs of seeds 7 and 8 are the same to the byte (70 seasons, 25 bands at the end of seed 7): sending men away as the script chief's choice plays as the band's own rule did, so par and every run above hold |
+| The road on the baseline's play, seeds 1-50 | `--games 50 --seed 1 --band-life-half --out <dir>` | 5280231 with the switch and the report's lines alone (12daa84 and 0cbafbd picked onto it in a scratch worktree, not pushed) | 21 minutes. Took the road 298 persons, 7 of the top five, 25 of the top twenty, 31 a head, 8% dead; never took it 347, 1, 8, 8 a head, 13% dead. Leading a band at the end: bold 1,330, gained 6 a head; careful 379, 4 |
+| The road on the baseline's play, seeds 51-100 | `--games 50 --seed 51 --band-life-half --out <dir>` | the same | 22 minutes. Took the road 350, 7 and 25, 28 a head, 9% dead; never took it 359, 1 and 17, 14 a head, 14% dead. Leading a band at the end: bold 1,495, gained 3; careful 494, 2 |
 
-### Still to do, in order
+### Still to do
 
-1. The road's use against ignore on the baseline's play (the switch alone on 5280231), seeds 1-100, running.
+Nothing: every run of this part is finished and above.
