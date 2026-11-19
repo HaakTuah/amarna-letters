@@ -143,7 +143,8 @@ The report, with every run: `docs/rounds/2026-11-19-balance-pass-f4.md`.
   tenth of his own par, and the other states' share of theirs. First place takes a result in about the top fiftieth of a
   position's par, where a par of 100 games holds two results, so which positions stand first in a hundred games follows
   the draw of par's games more than the positions, and the age's length decides which can (the report's halvings;
-  #1028); no number was tuned for Arzawa.
+  #1028); no number was tuned for Arzawa, and the weight of size, halved again at 0 to 5 on the new play, stays 2
+  (it does not reach a realm of Arzawa's size at any value; the report).
 - **Par refreshed** from 100 games (seeds 101-200) on that play: the best characters gain more (the median of par's
   best five 490 shekels for 455), so on the old par a character stood first in 17 games of a hundred.
 - Save version 97: a band's men join by its steady take less its chief's share, a chief may send men away, and par

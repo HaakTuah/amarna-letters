@@ -150,8 +150,10 @@ the same 200 games were halved at other weights (200 halvings each; firsts in a 
 
 No weight moves Arzawa: a realm a ninth of the largest gets nothing from size at any of them, and stands first three
 times in a hundred throughout. The weight moves Egypt, Hatti and Babylonia, which without it stand below a city-state
-(they cannot win a short age: below). At 1 and 2 the Great Kings are nearest each other; the weight stays at 2, the
-owner's test of #825 as F2 read it ("the seven Great Kings have roughly an equal shot at the least").
+(they cannot win a short age: below). The Great Kings are nearest each other at 1 (2.4 to 4.0, a Great King 3.0 for a
+city-state's 1.8) and a little wider at 2 (2.5 to 4.8, 3.5 for 1.8); the difference is well inside what one par's draw
+does, so the weight stays at 2, where F2 set it by the owner's test of #825 ("the seven Great Kings have roughly an
+equal shot at the least"), with 1 named as the evener value for the owner.
 
 **What the halvings did show: the age's length.** Par takes a position's results at the end of ages of every length
 together, and the realms move one way with time: on the baseline Egypt's mean rank against its par is 0.19 of 1 in ages
@@ -198,6 +200,10 @@ Unsure first.
 - **Unsure: the steady take is two seasons,** the lesser of this season's and the last's, a first guess: one season let
   a single haul on the roads draw men the band could not keep. Principle: "Numbers are first guesses until play tunes
   them".
+- **Unsure: the weight of size stays 2,** measured again on the new play by the halvings (above). It does not reach
+  Arzawa at any value. At 1 the Great Kings stand a little nearer each other and nearer the city-states than at 2;
+  F2 found 1 "within the noise of 2" and chose 2 to keep size in the score, and the halvings give no reason to move
+  it, but 1 is the evener value if the owner would rather. Principle: the owner's test of #825.
 - **Unsure: the script chief's sending away was added on the first change's measure, and checked on eight games before
   par,** not on its own hundred: the first change's bands still cost what they took, and its hundred games are the par
   run and the road's run (the table's last two columns), where it is mixed with the new par and, on seeds 1-100, the
@@ -207,8 +213,6 @@ Unsure first.
   road to a city needs one), and the script chief's formula uses the same choice a model chief is asked. A script
   chief always keeps his share by it and never pays for a larger band to reach for a city: that is his play, for F5
   with the bands. Principle: "Nothing happens unless someone orders it"; "No feature only people use".
-- **The weight of size stays 2,** measured again on the new play by the halvings (above): it does not reach Arzawa at
-  any value, and at 1 or 2 the Great Kings are nearest each other. Principle: the owner's test of #825.
 - **The bands' yield and number are F5's** ("banditry ... against the sources"): this part changes who keeps what a band
   takes, not how much the roads give. Bands at a game's end fell from 42 to about 20 as the splits of unpaid bands
   stopped; F5 measures them against "most bands from tens of men to a few hundred". Principle: the split of part F.
