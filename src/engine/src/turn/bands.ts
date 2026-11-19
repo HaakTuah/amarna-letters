@@ -427,7 +427,6 @@ P.bandsSeason = function () {
     }
     // The grain it eats; what it robbed of gold, and on the roads, is the chief's, who pays his men from it.
     gain(chief, gold, "Loot");
-    let got = gold + b.take;
     const cost = bandCost(b.men);
     const food = Math.ceil(cost / 2);
     const fed = Math.min(food, grainWorth(grain + country));
@@ -439,11 +438,8 @@ P.bandsSeason = function () {
       const worth = Math.min(m.purse, idiv(spare * priceAt(m.stock, needOf(here)), 100));
       m.purse -= worth;
       gain(chief, worth, "Loot");
-      got += worth;
     }
-    // The men are paid from what the band took this season, never from what its chief kept of seasons past: his share
-    // is his own gold (item 18, part F4).
-    const paid = Math.min(pay, got, chief.purse);
+    const paid = Math.min(pay, chief.purse);
     chief.purse -= paid;
     chief.earned.spent += paid;
     // Its men spend their share where they stand.
