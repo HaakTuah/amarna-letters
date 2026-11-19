@@ -181,7 +181,8 @@ export class SvgMapRenderer implements MapRenderer {
       }
       after?.();
     };
-    if (update !== undefined && this.drawn.has(name)) {
+    // Written in place only once the layer has been drawn whole (a first draw dropped half way is drawn again).
+    if (update !== undefined && this.written.has(name)) {
       const r = update(layer);
       if (typeof r === "boolean") {
         done(r);
@@ -212,6 +213,8 @@ export class SvgMapRenderer implements MapRenderer {
       performance.measure(`map:${name}`, { start: t });
       return;
     }
+    // What stands is no longer what was written: a render that drops this write and asks for that markup again writes it.
+    this.written.delete(name);
     this.drawn.set(name, Pending);
     return this.slices(name, patchSteps(layer, html), finish, layer, t);
   }
@@ -225,7 +228,11 @@ export class SvgMapRenderer implements MapRenderer {
   private slices(name: string, work: Generator<void, boolean | void>, done: (wrote: boolean) => void, layer?: SVGGElement, since = performance.now()): Step | void {
     // The first slice is timed from when its step began (what drew its markup counts), each later one from its own start.
     let began: number | null = since;
+    // A layer written again (a render that dropped this one, the zoom writing the works whole) takes over: this one goes no further.
+    const mine = (this.sliced.get(name) ?? 0) + 1;
+    this.sliced.set(name, mine);
     const go: Step = () => {
+      if (this.sliced.get(name) !== mine) return;
       const t = began ?? performance.now();
       began = null;
       const r = work.next();
@@ -236,6 +243,9 @@ export class SvgMapRenderer implements MapRenderer {
     };
     return go();
   }
+
+  /** How many writes in slices each layer has begun: the last is the one that goes on. */
+  private readonly sliced = new Map<string, number>();
 
   /** The markup each layer was last written with. */
   private readonly written = new Map<string, string>();

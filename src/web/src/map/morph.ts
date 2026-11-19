@@ -83,7 +83,7 @@ export function patchChildren(live: Node, next: Node): void {
   removeFrom(live, a);
 }
 
-/** `patchChildren`, stopping after each child of `live` (only: what stands within a child is patched whole). */
+/** `patchChildren`, stopping after each child of `next` written (only: what stands within a child is patched whole). */
 export function* patchChildrenSteps(live: Node, next: Node): Generator<void> {
   let a: Node | null = live.firstChild;
   let b: Node | null = next.firstChild;

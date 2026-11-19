@@ -224,7 +224,7 @@ describe("A layer patched", () => {
     const whole_ = cities(["a", "b", "c"]);
     patched(whole_, cities(["a", "b2", "c", "d"]));
     const r = whole(patchChildrenSteps(live as unknown as Node, next as unknown as Node));
-    Assert.equal(4, r.slices); // one for each child written
+    Assert.equal(4, r.slices); // one for each of the new markup's children, the unchanged ones too
     Assert.equal(show(whole_), show(live));
   });
 

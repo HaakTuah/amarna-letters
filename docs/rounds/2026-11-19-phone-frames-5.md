@@ -31,9 +31,12 @@ in slices of the budget's size across frames:
   children, `patchChildrenSteps`), and `patchParts` as a generator that stops after each part written anew. The patch's
   one-child step is shared with the whole patch (`patchOne`).
 - `map/land-layers.ts`: `retint` stops after each 16 provinces' tints and before the governors' blocs.
-- `map/svg-renderer.ts`: `layer()` writes the cities, the memory, the works at the cities, the bands and the tints in slices;
+- `map/svg-renderer.ts`: `layer()` writes the tints, the cities, the memory and every other layer it draws (the fog, the roads,
+  the life marks, the outlaws) in slices, and `drawWorks` and `drawBands` the works at the cities and the bands;
   the key of a layer is taken as drawn when its last slice is written (before that it stands as `Pending`), so a render that
-  drops the steps still waiting writes it over where it stood, even to a key the layer had been drawn with before. Each
+  drops the steps still waiting writes it over where it stood, even to a key the layer had been drawn with before (what was
+  written is forgotten when a write begins, and the tints are written in place only once drawn whole); a later write of a
+  layer takes over from one still waiting (the zoom's writing the works whole). Each
   slice is timed as `map:<layer>` (the soak's table: counts rise, the worst is a slice), and adds its layer to those the view's
   pass looks at that frame. The works layer, when the zoom changes, is still written whole in that frame.
 
