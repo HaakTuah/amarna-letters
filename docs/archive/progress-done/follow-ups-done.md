@@ -265,3 +265,22 @@ Moved on 12 November 2026, word for word (every part done):
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
   #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
   and measured in its report.
+
+Moved word for word on 19 November 2026 (the progress file past its size mark again):
+
+- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
+  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
+  `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
+  imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
+  both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node
+  scripts/unused-code.mjs --all`).
+
+- ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
+  Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
+  own (#721) gave way to them.
+
+- ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
+  devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
+  writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
+  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547; Node, all it held, is now the core's
+  one exact pin (`core/.node-version`), so the game's own list and check are gone.
