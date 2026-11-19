@@ -13,6 +13,7 @@ import {
   setNameClaims,
   setNameViewer,
   setRisen,
+  WorldMap,
   serialize,
   type AudienceView,
   type GameState,
@@ -27,6 +28,7 @@ import { seasonPlay, type SeasonPlay } from "../map/moments.ts";
 import { speedIndex } from "../ui/keys.ts";
 import { IncrementalReader, ReadReplaced } from "./incremental.ts";
 import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
+import { absentFrom } from "./settings.ts";
 import { closingLedger, type LedgerLine } from "./ledger.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
@@ -228,6 +230,8 @@ export class Session {
     }
     // The names claimed (item 17+), and a lone human seat's court naming them as it gives them.
     if (m.live.hasRunner) {
+      // The map of the game in play (item 18b): the first game's part of it, for the page's orders and views.
+      WorldMap.play(absentFrom(m.live.settings.game));
       setNameClaims(m.live.names.claims, m.live.names.fallen, m.live.names.given, m.live.names.heard, m.live.names.falls);
       setCrowned(m.live.crowned);
       setNameViewer(m.live.humans.length === 1 ? m.live.humans[0] : null);

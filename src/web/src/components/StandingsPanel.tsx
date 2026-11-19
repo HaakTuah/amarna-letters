@@ -1,4 +1,4 @@
-import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
+import { AllPowers, TurnEngine, WorldMap, Views, Wealth, courtDecided, isAlive, landGrowth, ledger, openingTroops, openings, ownedBy, shortDate, type GameState, type Power } from "@amarna/engine";
 import { highlights, personalityOf } from "@amarna/game";
 import { color, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
@@ -12,6 +12,8 @@ const F = (v: number): string => v.toFixed(1);
 /** Who stands where: growth, land, the scoreboard of every person at the end, the opening positions and (in god view) the kings. */
 export function StandingsPanel({ state, viewer, seats, onHistory }: { state: GameState; viewer: Power | null; seats: Record<string, string> | null; onHistory: (h: HistoryOf) => void }) {
   const engine = new TurnEngine(state);
+  // The powers in the game: a power absent from it (item 18b, the first game) has no standing.
+  const powers = AllPowers.filter((p) => !WorldMap.default.isAbsent(p));
   const latest = state.scores.length === 0 ? 0 : Math.max(...state.scores.map((s) => s.turn));
   const known = viewer === null;
   // The estimate every court can make from who holds what: the same figures a model king reads on its LAND STANDINGS line.
@@ -28,7 +30,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
     const start = state.startStrength.getOrDefault(p, 0);
     return start > 0 && isAlive(state, p) ? seatView.strength / start : 0;
   };
-  const order = [...AllPowers].sort((a, b) => {
+  const order = [...powers].sort((a, b) => {
     const k = (p: Power): number => (known ? engine.growth(p) : land.get(p)!.fallen ? -1 : landGrowth(land.get(p)!));
     return k(b) - k(a);
   });
@@ -184,7 +186,7 @@ export function StandingsPanel({ state, viewer, seats, onHistory }: { state: Gam
             whenever a call to the model fails.
           </p>
           <ul className="kings">
-            {AllPowers.map((p) => {
+            {powers.map((p) => {
               const seat = seats?.[p] ?? "";
               // Item 17b: the king on the throne, his traits as this game drew them, which a script seat plays by.
               const t = personalityOf(p, state.reigns.tryGet(p)?.traits ?? []);
@@ -240,6 +242,7 @@ function sleepSummary(sleep: NonNullable<ReturnType<GameState["sleep"]["tryGet"]
 
 function GrowthChart({ state, latest, viewer }: { state: GameState; latest: number; viewer: Power | null }) {
   const max = Math.max(1.5, ...state.scores.map((s) => s.growth));
+  const powers = AllPowers.filter((p) => !WorldMap.default.isAbsent(p));
   const w = 600;
   const h = 200;
   return (
@@ -250,7 +253,7 @@ function GrowthChart({ state, latest, viewer }: { state: GameState; latest: numb
         <text x="2" y={Y(1, max, h) - 4} fontSize="11" fill="var(--muted)">
           start
         </text>
-        {AllPowers.map((p) => {
+        {powers.map((p) => {
           const rows = state.scores.filter((s) => s.power === p).sort((a, b) => a.turn - b.turn);
           const pts = rows.map((r) => `${F(X(r.turn, latest, w))},${F(Y(r.growth, max, h))}`).join(" ");
           return <polyline key={p} points={pts} fill="none" stroke={color(p)} strokeWidth="2.2" />;
@@ -263,7 +266,7 @@ function GrowthChart({ state, latest, viewer }: { state: GameState; latest: numb
         </text>
       </svg>
       <div className="row">
-        {AllPowers.map((p) => (
+        {powers.map((p) => (
           <span className="pill" key={p}>
             <Emblem power={p} />
             {powerName(p)}

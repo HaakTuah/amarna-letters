@@ -83,11 +83,13 @@ P.raidersCome = function () {
   const S = this.s;
   for (const door of Doors) {
     const peoples = door.beyond.filter((b) => (b.raids?.weight ?? 0) > 0);
-    if (door.raids <= 0 || peoples.length === 0) continue;
+    // Item 18b: only the coasts on the map in play (a setup's absent land lies beyond its edge).
+    const coasts = door.provinces.filter((x) => !this.map.outside.has(x));
+    if (door.raids <= 0 || peoples.length === 0 || coasts.length === 0) continue;
     const rng = this.r("raiders", door.id);
     // They make for the richest of the door's coasts that are least guarded, as far as they know them: a raider hears where
     // the pickings are, and where the king's troops and police are not.
-    const landing = rng.weighted(door.provinces, (id) => Math.max(1, Math.floor((worth(this, id) * policedShare(S, id)) / 100)));
+    const landing = rng.weighted(coasts, (id) => Math.max(1, Math.floor((worth(this, id) * policedShare(S, id)) / 100)));
     if (!rng.chance(this.raidChance(door, landing) / 100)) continue;
     const beyond = rng.weighted(peoples, (b) => b.raids!.weight);
     const men = door.bySea ? rng.range(1, RaiderData.ships) * BandData.shipMen : rng.range(RaiderData.landMen.least, RaiderData.landMen.most);

@@ -37,7 +37,10 @@ import {
 import { seasonsLeft } from "./ending-belief.ts";
 
 export class Board {
-  static readonly Map: WorldMap = WorldMap.default;
+  /** The map of the game in play (item 18b: a setup plays on part of it), read when used. */
+  static get Map(): WorldMap {
+    return WorldMap.default;
+  }
   /**
    * The map a script king plans its season on, for the season the last board was made for: in winter without the
    * crossings winter makes dangerous (item 9: the passes and the open sea, which may cost the troop), so that its plan,
@@ -76,7 +79,7 @@ export class Board {
       [(u: UnitView) => u.province, cmpStr],
     );
     this.others = this.units.filter((u) => u.power !== this.me);
-    this.alive = new HSet(AllPowers.filter((p) => !v.fallen.includes(p)));
+    this.alive = new HSet(AllPowers.filter((p) => !v.fallen.includes(p) && !Board.Map.isAbsent(p)));
     // Seasons the game can still be expected to run, as this king reads the rule.
     this.horizon = seasonsLeft(v.turn, v.openAge, v.ageBand);
   }

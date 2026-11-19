@@ -52,15 +52,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
-  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
-  `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
-  imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
-  both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node
-  scripts/unused-code.mjs --all`).
-- ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done as the core's, shared with
-  Barkstreet Snakes (core #69): the copies workflow runs them, with this game's marks in `scripts/sizes.json`; the lane's
-  own (#721) gave way to them.
 - **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390,
   #392-#394, #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused
   imports and locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it
@@ -75,6 +66,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   two things, in a PR of its own when no open lane touches it, behaviour proven unchanged; generated data and the
   files judged one thing above stay whole. The list and what waits: `docs/rounds/2026-11-12-split-the-big-files.md`.
   Split so far: `turn/plans.ts`, `turn/intel.ts`, `model/map.ts`, `turn/resolve.ts`, `llm/src/rules.ts`, `game/src/batch.ts`, `batch/src/main.ts` (the report has each).
+- **The code audit** (#1013; stand-in's sure yes, 19 November 2026): one session, no code changed; its numbers kept
+  as the baseline and its measures as scripts.
+- **The prune of the records of the owner's words** (#1014; stand-in's sure yes, 19 November 2026): as the idea says.
 
 ## Follow-ups
 
@@ -123,8 +117,14 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   [the idea](https://github.com/HaakTuah/amarna-letters/issues/672)), after item 18's current parts: the king's own
   standing order, like paying troops (archive item 96). A new save version, the script kings' use and a measurement.
 
+- **Each person's past drawn by calling** (#766; stand-in's sure yes, 19 November 2026), after the entry above; a save
+  version.
+
+- **Follow the core's `main` for its next batch** (#1015; stand-in's sure yes, 19 November 2026): the trusted builder's,
+  as the idea says; moot once that release is cut.
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
-the workshop check, and again on 7 November): among them the history check's lines still unclear for a reader with the editions.
+the workshop check, and again on 7 and 19 November): among them the history check's lines still unclear for a reader with the editions.
 
 - **The slop audit** (the owner, 2 November 2026; archive item 178): done kind by kind; its brief and record are in
   `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 7 November 2026). **Still open, one game-wide decision:** one
@@ -149,12 +149,6 @@ the workshop check, and again on 7 November): among them the history check's lin
      `docs/rounds/2026-11-02-governor-seat-letter.md`.
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
-
-- ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
-  devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
-  writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
-  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547; Node, all it held, is now the core's
-  one exact pin (`core/.node-version`), so the game's own list and check are gone.
 
 Points a review moved out of its PR, each with its reason (`core/modules/reviews.md`, point 5); struck when
 fixed.
@@ -200,7 +194,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 |---|---|---|---|---|
 | 18 | The balance pass | in progress, in parts: A to F2 merged (#828 to #845, #895; save version 94), F3 merged (#899: use against ignore; grain sold at any price; a paying vassal weighed as any king); F3's rest done (save version 95; par again on 938ba68, the features left, 17++ A and D, seeds 101-200 for the close rows; a small king keeps a plain peace as a bar to his war of choice; vassal play still behind); next, by the F3 report's "Split, and where to pick up" and the F3 rest report's "Left to the next part": F4 (the bold road, commit f2e973c; Arzawa), F5 (17+'s people, positions, banditry, commanders), then stop for review | `item/balance-f3-rest` | `docs/rounds/2026-11-12-balance-pass-f3-rest.md` |
 | 18a | The world in graphs | not started | | |
-| 18b | The player's screen (a lane beside item 18) | not started | | |
+| 18b | The player's screen (a lane beside item 18) | in progress, in the parts "The player's screen" gives: part 1, the first game and the season brief; owed: the changed request tried with the free local model, the absent land drawn as beyond the map (with "The map does the showing"); for item 18: every first-game winner a city-state (8 of 8) | `item/players-screen-1` | `docs/rounds/2026-11-19-players-screen-1.md` |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |
 

@@ -34,12 +34,15 @@ import { courtReads, courtSpeaks, peopleSpeak } from "../model/languages.ts";
 import { newGovernor } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { chooseStrategy } from "./strategy.ts";
+import { leaveOut } from "./first-game.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
   // A new game starts with the powers the map gives; powers rise in play only (item 13+).
   setRisen([]);
   setNameClaims([], []);
   setCrowned([]);
+  // The whole world is set up first (item 18b): a setup's absent powers are left out after, their land beyond its map.
+  WorldMap.play([]);
   const m = map ?? WorldMap.default;
   const s = newGameState({ seed, config: config ?? newGameConfig(), turn: 1 });
   // The last season, drawn once in secret from its own stream before anything else is rolled.
@@ -103,12 +106,22 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   engine.courtsSee();
   // Item 17b, part B: each king a person, reigning.
   engine.seatKings();
+  // Item 18b: the powers absent from this game left out, before anyone is reckoned or told anything.
+  leaveOut(s, m, s.config.absent);
+  if (map === null) WorldMap.play(s.config.absent);
   for (const p of AllPowers) {
     s.startStrength.set(p, engine.strength(p));
   }
   // Each court's state of the realm, from the data by one rule for all (item 11+).
-  for (const p of AllPowers) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));
-  logEvent(s, "start", "The age begins. Seven Great Kings hold their thrones, and the city-states and chiefs between them their own.");
+  for (const p of AllPowers.filter((x) => !s.eliminated.includes(x))) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));
+  const kings = AllPowers.filter((p) => isGreatKing(p) && !s.eliminated.includes(p));
+  logEvent(
+    s,
+    "start",
+    kings.length === 7
+      ? "The age begins. Seven Great Kings hold their thrones, and the city-states and chiefs between them their own."
+      : `The age begins on part of the world. ${kings.map((p) => land(p)).join(", ").replace(/, ([^,]*)$/u, " and $1")} hold their thrones, and the city-states and chiefs between them their own; the other powers are absent from this age.`,
+  );
   return s;
 }
 
