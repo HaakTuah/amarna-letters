@@ -9,7 +9,7 @@ script-king finds (`docs/rounds/2026-10-31-improvement-audit.md`, finds 3, 3b, 4
 "Governors" (War, `docs/intent/war-travel-and-the-seas/command-at-a-distance.md`) and "Who holds what, and the mood of the
 land" (Interface, `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`); and "every change of hands is
 taken up, never thrust on anyone" (War, "Whom a province obeys", `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md`;
-decided 2 November 2026, the owner: "Yes ro absolutely all pt these! Extra expertly expertly!"; the item's text: "built in part C,
+decided 2 November 2026, the owner agreeing to all the design session's questions; the item's text: "built in part C,
 or in a part of its own if part C has merged"). Save version 44 (the governor's seat, the declarations, the mood reads, and #467's change merged from `develop`).
 
 ## Built
@@ -56,15 +56,15 @@ or in a part of its own if part C has merged"). Save version 44 (the governor's 
     province card (looking back too: frames keep each count's season), the orders panel, the town marker, the model's
     prompt and the rulebook follow; god view stays exact. Tests: `counts.test.ts`, `map-known.test.ts`,
     `people-play.test.ts` (Hatti's old count now asks a share, Egypt's fresh one an amount).
-13. **The corvée as a share** (#411; the owner, 2 November 2026: "Yes, agreed to all expertly!", to the design session's
+13. **The corvée as a share** (#411; the owner, 2 November 2026, agreeing to the design session's
     take that "the corvée is asked as a share as well as an amount, as the design already says ("for grain, levy and work
     gangs alike")"): order `build` by corvée with a share of the men at home (model action `build_corvee_share`, the
     web's share box), less what the province hides at its count's age; the work goes as fast as the men who come, a
     share short of a project's need doing part of a season's work (`WorkPlan.done`), carried on. Script kings name the
     men by a fresh count and ask a share by an old one (`corveeShares`, within `--count-play-half`). Rulebook
     (`rules-works.ts`), design note 48, README. Test: `works.test.ts`.
-14. **A governor's word checked against the king's own spy** (#459; queued into this part by the owner's answer, 2
-    November 2026: "Yes, expertly to both!"): where a spy's report this season finds the people of a governed
+14. **A governor's word checked against the king's own spy** (#459; queued into this part by the owner's yes, 2
+    November 2026): where a spy's report this season finds the people of a governed
     province restless or near revolt under him while the newest word of them is the governor's own report calling them
     quiet, a script king
     treats it as restless (relief) and takes the governorship back unless foreign troops stand in or beside it
@@ -160,12 +160,12 @@ other court.
 
 ## Design questions
 
-- #431, answered by the owner (2 November 2026, 13:10 UTC, archive item 157): "Yes, expertly, if you think it is best."
-  And on who carries the offer (13:14 to 13:19 UTC, archive item 158): "Is the messenger a character it hires then?",
-  "But characters don't live anywhere, so it has to be a character who is paid or for some reason takes the mission for
-  free on his own accord?", and "Agreed, expertly. Though this is also information he can pass on or sell. I guess even
-  just a rumor can spread? Maybe the town must be really into someone and have the means, if they commission a message
-  and courier? And this is valuable information for the king of the land, or his enemies." Written into "Whom a
+- #431, answered by the owner (2 November 2026, 13:10 UTC, archive item 157), agreeing "if you think it is best."
+  And on who carries the offer (13:14 to 13:19 UTC, archive item 158): "Is the messenger a character it hires, then?",
+  "But characters don't live anywhere, so it has to be a character who is paid, or who for some reason takes the mission
+  for free of his own accord?", and "Though this is also information he can pass on or sell. I guess even just a rumour
+  can spread? Maybe the town must be really into someone and have the means, if they commission a message and courier?
+  And this is valuable information for the king of the land, or his enemies." Written into "Whom a
   province obeys" (War, revision 95). Not built here: a declaration's word still reaches its power by `tell` at the
   roads' pace, which the new text replaces with talk, a commissioned courier, a willing character or the claimant's own
   envoy or spy. That is more than an hour's work, so it is part D, built next from `develop` before 17++a (the orchestrator's decision).

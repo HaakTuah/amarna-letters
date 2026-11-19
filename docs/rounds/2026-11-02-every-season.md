@@ -1,7 +1,7 @@
 # Item 17++a: something happens every season
 
-The owner's words (2 November 2026): "Still feel like almost nothing has happened in a game now that went to 50 seasons",
-then "Yes ro absolutely all pt these! Extra expertly expertly!". The item: "first measure, then fix", under the builder
+The owner's words (2 November 2026): "Still, it feels like almost nothing has happened in a game that went to 50
+seasons", then he agreed to all of the design session's questions. The item: "first measure, then fix", under the builder
 rules' exception for anything that makes games unplayable for testing; and the four powers' land names follow their
 provinces' proper names (#403).
 

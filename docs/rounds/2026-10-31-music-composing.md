@@ -39,8 +39,7 @@ Relayed by the orchestrator, 31 October 2026:
 - "Music (#237): one fallback score in the Nippur and Ur modes, built alongside the Empire Earth pieces."
 
 From the design copy (item 19+++, revision 193 of 1 November 2026, answering the first session's question on the default
-volume): "Agreed. Keep them on, regular volume, but don't blast someone when they start up, like say CK2, even though the
-main theme there was epice. SO i didn't really mind."
+volume): "Keep them on, at regular volume, but don't blast someone when they start up, like, say, CK2."
 
 ## What was composed
 

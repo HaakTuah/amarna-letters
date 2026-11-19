@@ -268,8 +268,8 @@ Moved on 12 November 2026, word for word (every part done):
 
 Moved word for word on 19 November 2026 (the progress file past its size mark again):
 
-- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code,
-  expert?", then "Yes, expertly to all, expert!").~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
+- ~~**A check for code nothing uses** (the owner, 11 November 2026: "Should we have a rule about removing unused code?",
+  then the owner agreed to all).~~ Done (12 November 2026, `docs/rounds/2026-11-12-unused-code-check.md`):
   `noUnusedLocals` and `noUnusedParameters` in `tsconfig.base.json`; `scripts/unused-code.mjs` (files and exports nothing
   imports; the reached-indirectly list is `scripts/unused-code.json`) and a lint rule against skipped or narrowed tests,
   both in `npm run lint`. Left for a later lane if wanted: the ~400 exports only their own file uses (`node

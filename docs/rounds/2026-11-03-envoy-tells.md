@@ -6,7 +6,7 @@ of the slop audit raised (#558, #585), which "Follow-ups" in `docs/BUILD-PROGRES
 ## The owner's words
 
 In the design chat, 3 November 2026, 06:58 UTC (archive item 185), to the design session's take on #591 and the others:
-"Yes to all but number 2. I assume with number 1, we are only talking about the script characters." The take on #591,
+"Yes to all but number 2. I assume with number 1 we are only talking about the script characters." The take on #591,
 as the design session relayed it on the issue: honest script envoys at warm courts sometimes say "kindly" and "friend"
 too, and the bribed or frightened lines borrow honest wording, so no phrasing marks one state. It needs a new save
 version, and a check that the script kings' trust readings still behave.

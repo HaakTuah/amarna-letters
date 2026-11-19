@@ -2,8 +2,9 @@
 
 PR #635. The lane "Gold travels both ways" under "Follow-ups" in `docs/BUILD-PROGRESS.md` (archive item 186). The design
 is "One treasury, many stores" under Land, people and economy (revision 35; the live document had no change since). The
-owner, 3 November 2026: "Contracts with characters can stipulate one pay upfront and one after. Paying infrastructure
-work would presumably require pay or labour as tax upfront, no?", then "Yes, expertly". The full rule as built is
+owner, 3 November 2026: "Contracts with characters can stipulate one pay upfront and one after. Paying for
+infrastructure work would presumably require pay, or labour as tax, upfront, no?", then he agreed to the design session's
+take. The full rule as built is
 `docs/design/53-gold-travels-both-ways.md`.
 
 ## Step 0

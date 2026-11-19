@@ -1,11 +1,11 @@
 # Item 17++, part D: who carries a province's offer
 
-The owner's words (2 November 2026, in the design chat, archive items 157 and 158), on #431: "Yes, expertly, if you think
-it is best."; then "Is the messenger a character it hires then?", "But characters don't live anywhere, so it has to be a
-character who is paid or for some reason takes the mission for free on his own accord?", and, to the design session's
-take: "Agreed, expertly. Though this is also information he can pass on or sell. I guess even just a rumor can spread?
-Maybe the town must be really into someone and have the means, if they commission a message and courier? And this is
-valuable information for the king of the land, or his enemies." Written into "Whom a province obeys" under War
+The owner's words (2 November 2026, in the design chat, archive items 157 and 158), on #431, agreeing "if you think
+it is best."; then "Is the messenger a character it hires, then?", "But characters don't live anywhere, so it has to be a
+character who is paid, or who for some reason takes the mission for free of his own accord?", and, to the design session's
+take: "Though this is also information he can pass on or sell. I guess even just a rumour can spread? Maybe the town must
+be really into someone and have the means, if they commission a message and courier? And this is valuable information for
+the king of the land, or his enemies." Written into "Whom a province obeys" under War
 (revision 95). Built here, from `develop` after part C, as the orchestrator decided. Design note 51. Save version 45.
 
 ## Built
@@ -32,8 +32,8 @@ valuable information for the king of the land, or his enemies." Written into "Wh
 
 ## Readings taken
 
-1. **The offer rides the letter machinery** (`letters.ts`, item 11b): "a character who is paid or for some reason takes
-   the mission for free on his own accord", as a spy's report is carried. Principle: "Messengers are errands"; "One fact,
+1. **The offer rides the letter machinery** (`letters.ts`, item 11b): "a character who is paid, or who for some reason
+   takes the mission for free of his own accord", as a spy's report is carried. Principle: "Messengers are errands"; "One fact,
    one place".
 2. **"Far gone"**: the power's weight in the province past its holder's by 40 (first guess, item 18), well past the
    margin that makes it declare at all. Principle: first guesses during the build.
