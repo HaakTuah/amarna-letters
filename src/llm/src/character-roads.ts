@@ -30,7 +30,7 @@ export function chiefText(v: ChiefView): string {
     `Your purse holds ${v.purse} shekels; what your band robs of gold is yours, and you pay your men from it. Your men cost about ${v.cost > 0 ? v.cost : bandCost(v.men)} shekels' worth a season in pay and food.${v.short > 0 ? ` For ${v.short} season${v.short === 1 ? "" : "s"} in a row you could not pay them all: men leave a band that does not pay, and a large band long unpaid turns on its chief.` : ""}`,
   );
   sb.appendLine(
-    `${v.took > 0 ? `Last season your band took about ${v.took} shekels' worth. ` : ""}Men join it while what it takes two seasons running, less your own share of ${v.cut}%, would pay and feed more men than you have. Men you pay stay, at your cost when the takings fall; you may send men away, back to the loose men of the land, but a band left with fewer than ${BandData.least} men breaks up, as if you gave up the road.`,
+    `${v.took > 0 ? `Last season your band took about ${v.took} shekels' worth. ` : ""}Men join it while what it takes two seasons running, less your own share of ${v.cut}%, would pay and feed more men than you have. Men you pay stay, at your cost when the takings fall; you may send men away, back to the loose men of the land, ${v.home === null ? `but a band left with fewer than ${BandData.least} men breaks up, as if you gave up the road` : `but a band left with fewer than ${BandData.least} men goes home if it can from where it stands, and otherwise breaks up`}.`,
   );
   sb.appendLine("The land where you work and the land next door, as you hear of it:");
   sb.appendLine(landLine(v.here, true));
@@ -66,7 +66,7 @@ export function chiefSchema(v: ChiefView): ReplySchema {
   if (v.next.length > 0) f.push(["go", z.enum(["", ...v.next.map((l) => l.name)] as [string, ...string[]]).describe("Land next door to move your band to, or empty to stay.")]);
   if (v.shipCost !== null && v.purse >= v.shipCost) f.push(["buy_ship", z.boolean().describe("True to buy a ship here from your purse.")]);
   f.push(["kill", z.enum([KillWords.none, KillWords.servants, KillWords.all]).describe("Whom your men kill of the travellers they rob, until you say otherwise.")]);
-  f.push(["send_away", z.int().min(0).max(v.men).describe(`How many of your men to send away now; 0 to keep them all. Fewer than ${BandData.least} left and your band breaks up.`)]);
+  f.push(["send_away", z.int().min(0).max(v.men).describe(`How many of your men to send away now; 0 to keep them all. Fewer than ${BandData.least} left and your band ${v.home === null ? "breaks up" : "goes home if it can, else breaks up"}.`)]);
   if (v.home === null) f.push(["give_up_the_road", z.boolean().describe("True to give up the road now.")]);
   else if (v.canGoHome) f.push(["go_home", z.boolean().describe("True to go home now with your men, captives and purse.")]);
   return object(...f);

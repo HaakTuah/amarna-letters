@@ -1,7 +1,8 @@
 import { describe, test } from "vitest";
-import { BandData, LetterData, TurnEngine, chiefCutOf, WorldMap, first, newGame, newMindReply, trustIn, type GameState, type MindRequest } from "@amarna/engine";
+import { BandData, LetterData, TurnEngine, chiefCutOf, WorldMap, first, newChiefView, newGame, newMindReply, trustIn, type GameState, type MindRequest } from "@amarna/engine";
 import { ScriptMind, newMindContext } from "@amarna/game";
 import { LlmCharacterMind, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
+import { chiefText } from "../../llm/src/character-roads.ts";
 import { Assert } from "../../engine/test/support.ts";
 import { Recorder } from "./recorder.ts";
 
@@ -93,6 +94,14 @@ describe("OwnChoicesTests", () => {
     Assert.false(rec.calls[0].user.includes("ship"));
     Assert.false(rec.calls[0].user.includes(b.id));
     Assert.false(rec.calls[0].user.includes(chief.id));
+  });
+
+  test("A chief is told what a band left too small does: it breaks up, or a raider's goes home", () => {
+    const view = newChiefView({ men: 60, cut: 30 });
+    Assert.contains(`a band left with fewer than ${BandData.least} men breaks up, as if you gave up the road`, chiefText(view));
+    const raider = chiefText({ ...view, home: "the western isles, beyond the western sea" });
+    Assert.contains(`a band left with fewer than ${BandData.least} men goes home if it can from where it stands, and otherwise breaks up`, raider);
+    Assert.false(raider.includes("as if you gave up the road"));
   });
 
   test("A model chief's choices are taken next season instead of the formula: he moves where he chose, and kills whom he chose", async () => {
