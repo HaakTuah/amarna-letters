@@ -31,8 +31,8 @@ in slices of the budget's size across frames:
   children, `patchChildrenSteps`), and `patchParts` as a generator that stops after each part written anew. The patch's
   one-child step is shared with the whole patch (`patchOne`).
 - `map/land-layers.ts`: `retint` stops after each 16 provinces' tints and before the governors' blocs.
-- `map/svg-renderer.ts`: `layer()` writes the tints, the cities, the memory and every other layer it draws (the fog, the roads,
-  the life marks, the outlaws) in slices, and `drawWorks` and `drawBands` the works at the cities and the bands;
+- `map/svg-renderer.ts`: `layer()` writes the tints, the cities, the memory and every other layer it draws (the fog, the roads of the
+  land and of the season, the life marks, the outlaws; the season's ground when first drawn) in slices, and `drawWorks` and `drawBands` the works at the cities and the bands;
   the key of a layer is taken as drawn when its last slice is written (before that it stands as `Pending`), so a render that
   drops the steps still waiting writes it over where it stood, even to a key the layer had been drawn with before (what was
   written is forgotten when a write begins, and the tints are written in place only once drawn whole); a later write of a
@@ -85,8 +85,16 @@ The bar is not met: phone at Fast about one frame in 45; desktop Normal and Slow
 
 ## Readings taken
 
+- **The names' placement moved into its own file** (`map/names.ts`, `placeNamesNow`), a pure move with the same body, in this
+  PR and not its own: the slices pushed `svg-renderer.ts` (48 KB on `main`) past the size marks' split mark (51,200), which
+  `scripts/test.sh` fails, and "a file past the mark is split before it is changed" read as a PR of its own would have
+  conflicted with this one over the same file. Proven unchanged by the hole check (104 checks, none) and a soak with no errors.
+
 - **Unsure: slicing kept for a modest gain.** Two runs each, the branch's two inside nothing of `main`'s three: the long
   tasks (70 against 99 to 108) are the clearer sign than the frames' percentage.
+- **A render that arrives mid-write writes what is left of that layer to its end** (`open` in the renderer) before it drops the
+  steps still waiting, so a layer is never left part of one season and part of the last until the land's results land (the
+  second code review's note; one frame's cost, at most one layer's remainder).
 - **A layer is partly written for a frame or two** between slices (some cities with this season's colours, the rest with the
   last's); the layers were already written in different frames, so the map was never all of one season in a frame.
 - **The first slice is timed from the start of its step** (what builds the markup counts) and each later one from its own.

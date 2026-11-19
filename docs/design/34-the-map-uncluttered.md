@@ -5,7 +5,7 @@ web app's drawing and its drawing scripts only: no rule, number or save version 
 ([`32-the-map-at-a-glance.md`](32-the-map-at-a-glance.md)); the land drawn and its sources are in the dossier
 [`history/13-the-land-drawn.md`](../history/13-the-land-drawn.md).
 
-## Markers never overlap (`svg-renderer.ts`, `placeNames`; `styles/map-uncluttered.css`)
+## Markers never overlap (`svg-renderer.ts`, `placeNames`, `names.ts`, `placeNamesNow`; `styles/map-uncluttered.css`)
 
 - After every render and every zoom, once whatever slides has stopped, the renderer measures every marker as drawn
   (each seal with its rim, half its stroke past its fill) and places them greedily, most important first. A city comes
