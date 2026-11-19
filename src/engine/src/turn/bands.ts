@@ -4,9 +4,10 @@
  *
  * A band is men a chief gathered from a province's loose people. It robs its province's purse and stores and the
  * travellers on its roads (and, with a ship, the sea beside its coast), feeds and pays its men from what it takes, and
- * keeps only as many as it can pay: men join it while it has a surplus to pay them and leave when it is short, so no
- * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
- * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
+ * keeps only as many as it can pay: men join it while what it takes, less its chief's share, pays more than they cost,
+ * and leave when it is short, so no number sets how many bands a land holds or how large they grow. A chief's share is
+ * his own gold. Its holder's armies hunt it where they stand on his order or standing order. Everything is drawn from
+ * seeded streams ("Deterministic").
  */
 import { listed } from "../rules/wording.ts";
 import { UnrestData } from "../model/unrest.ts";
@@ -426,6 +427,7 @@ P.bandsSeason = function () {
     }
     // The grain it eats; what it robbed of gold, and on the roads, is the chief's, who pays his men from it.
     gain(chief, gold, "Loot");
+    let got = gold + b.take;
     const cost = bandCost(b.men);
     const food = Math.ceil(cost / 2);
     const fed = Math.min(food, grainWorth(grain + country));
@@ -437,15 +439,19 @@ P.bandsSeason = function () {
       const worth = Math.min(m.purse, idiv(spare * priceAt(m.stock, needOf(here)), 100));
       m.purse -= worth;
       gain(chief, worth, "Loot");
+      got += worth;
     }
-    const paid = Math.min(pay, chief.purse);
+    // The men are paid from what the band took this season, never from what its chief kept of seasons past: his share
+    // is his own gold (item 18, part F4).
+    const paid = Math.min(pay, got, chief.purse);
     chief.purse -= paid;
     chief.earned.spent += paid;
     // Its men spend their share where they stand.
     this.spendAt(b.province, paid);
     b.cost = cost;
+    // What it took in both of its last two seasons: a single haul on the roads draws no men.
+    const steady = Math.min(take, b.took);
     b.took = take;
-    const surplus = take - cost;
     b.take = 0;
 
     if (paid < pay) {
@@ -478,9 +484,12 @@ P.bandsSeason = function () {
       }
     } else {
       b.short = 0;
-      // Men join while it pays: as many of the loose here as its surplus, less the chief's share, could pay a season.
+      // Men join while it pays them: as many of the loose here as what its steady take leaves, after the chief's share
+      // of it and the cost of the men he has, could pay a season. So a band stops growing where its men's part of the
+      // take pays them, and the chief's share stays his (item 18, part F4: taken of the surplus, it shrank to nothing as
+      // men joined, and no chief gained by the road).
       const cut = BandData.chiefCut.least + idiv((BandData.chiefCut.most - BandData.chiefCut.least) * chief.traits.greed, 100);
-      const spareGold = idiv(Math.max(0, surplus) * (100 - cut), 100);
+      const spareGold = Math.max(0, steady - idiv(steady * cut, 100) - cost);
       const could = idiv(spareGold * 1000, BandData.menCost);
       const x = this.peopleOf(b.province);
       const join = Math.min(x.loose, idiv(could * BandData.joinPercent, 100));
