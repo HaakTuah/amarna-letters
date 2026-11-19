@@ -41,6 +41,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   setRisen([]);
   setNameClaims([], []);
   setCrowned([]);
+  // The whole world is set up first (item 18b): a setup's absent powers are left out after, their land beyond its map.
+  WorldMap.play([]);
   const m = map ?? WorldMap.default;
   const s = newGameState({ seed, config: config ?? newGameConfig(), turn: 1 });
   // The last season, drawn once in secret from its own stream before anything else is rolled.
@@ -106,6 +108,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   engine.seatKings();
   // Item 18b: the powers absent from this game left out, before anyone is reckoned or told anything.
   leaveOut(s, m, s.config.absent);
+  if (map === null) WorldMap.play(s.config.absent);
   for (const p of AllPowers) {
     s.startStrength.set(p, engine.strength(p));
   }

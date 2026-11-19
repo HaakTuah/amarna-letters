@@ -9,7 +9,8 @@ import {
   type UnitKind,
 } from "@amarna/engine";
 
-export const map = WorldMap.default;
+/** The map of the game in play, read when used (item 18b: a setup plays on part of it). */
+export const map = (): WorldMap => WorldMap.default;
 export const clamp = (x: number, lo: number, hi: number): number => Math.min(Math.max(x, lo), hi);
 export const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 export const unitLetter = (k: UnitKind): string => (k === "Army" ? "A" : "F");

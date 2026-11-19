@@ -48,7 +48,8 @@ import { debtLeft, isPowerParty, standsForBorrower } from "../model/money.ts";
 function landStandings(owner: Dict<string, Power | null>, fallen: Iterable<Power>, map: WorldMap | null = null): LandStanding[] {
   const m = map ?? WorldMap.default;
   const gone = new Set(fallen);
-  const list = AllPowers.map((p) => ({
+  // A power absent from the game (item 18b) has no standing in it.
+  const list = AllPowers.filter((p) => !m.isAbsent(p)).map((p) => ({
     power: p,
     yield: sum([...owner.entries()].filter(([, v]) => v === p), ([k]) => m.get(k).yield),
     startYield: sum(m.homeOf(p), (x) => x.yield),
@@ -317,7 +318,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null, court = f
   v.letters = letters(s, p, v.court, s.config.sleepingSeats && asleep !== undefined ? asleep.lastCalled : s.turn - 1, lag);
 
   // Every court it has not heard has fallen (item 7b).
-  for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x))) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
+  for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x) && !m.isAbsent(x))) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
 
   v.prices.set("army", s.config.armyCost);
   v.prices.set("fleet", s.config.fleetCost);

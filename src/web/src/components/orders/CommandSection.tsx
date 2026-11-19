@@ -57,7 +57,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
   const crownable = [...new Set(v.governors.map((g) => g.character))].filter((id) => !v.crowning.includes(id) && governs(id).length > 0);
   const own = v.units.filter((u) => u.power === me).sort((a, b) => byName(a.province, b.province));
   const name = (id: string | null): string => v.court.find((x) => x.id === id)?.name ?? id ?? "";
-  const lands = map.landProvinces.map((p) => p.id).sort(byName);
+  const lands = map().landProvinces.map((p) => p.id).sort(byName);
   return (
     <div className="section">
       <h3>Command at a distance</h3>
@@ -241,7 +241,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         <select value={gov.province} onChange={(e) => setGov({ ...gov, province: e.target.value })}>
           <option value="">— province? —</option>
           {mine
-            .filter((p) => !map.get(p).isSea && !v.governors.some((g) => g.province === p))
+            .filter((p) => !map().get(p).isSea && !v.governors.some((g) => g.province === p))
             .sort(byName)
             .map((p) => (
               <option key={p} value={p}>
@@ -257,7 +257,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
             </option>
           ))}
           {/* Item 17++: a governor of ours may take a province beside those he holds, from his seat. */}
-          {[...new Set(v.governors.filter((g) => !g.relieving && (gov.province === "" || map.neighbors(g.province).includes(gov.province))).map((g) => g.character))].map((id) => (
+          {[...new Set(v.governors.filter((g) => !g.relieving && (gov.province === "" || map().neighbors(g.province).includes(gov.province))).map((g) => g.character))].map((id) => (
             <option key={`gov-${id}`} value={id}>
               {name(id)} (governor, from his seat)
             </option>

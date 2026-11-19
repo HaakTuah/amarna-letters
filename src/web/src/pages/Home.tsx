@@ -22,7 +22,8 @@ import { takeResume } from "../ui/update.ts";
 import { Emblem } from "../components/Emblem.tsx";
 import { ModelPicker, ProvidersPanel, RungsPanel } from "../components/ModelSettings.tsx";
 import { session } from "../session/client.ts";
-import { choicesOf, estimate, handLimitNeeded, newSettings, randomSeed, usesModels, withChoices, type GameSettings } from "../session/settings.ts";
+import { EndingOf, absentFrom, choicesOf, estimate, handLimitNeeded, newSettings, randomSeed, usesModels, withChoices, type GameKind, type GameSettings } from "../session/settings.ts";
+import { GameChoice } from "../components/GameChoice.tsx";
 import { deleteLog, getSessionKey, listLogs, loadLog, setSessionKey, type SavedLog } from "../session/storage.ts";
 import { powerName } from "../ui/format.ts";
 import { navigate } from "../ui/router.ts";
@@ -142,7 +143,9 @@ export function Home() {
 
   const choices = choicesOf(settings);
   const selected = shownPresets.find((p) => p.matches(choices)) ?? null;
-  const seat = FixedPowers.find((p) => settings.leaders[p] === "Human") ?? null;
+  // The powers in the chosen game (item 18b): the first game's absent powers have no seat to take.
+  const inGame = FixedPowers.filter((p) => !absentFrom(settings.game).includes(p));
+  const seat = inGame.find((p) => settings.leaders[p] === "Human") ?? null;
   const est = estimate(settings);
 
   function recost(next: GameSettings): GameSettings {
@@ -155,6 +158,12 @@ export function Home() {
   };
   const set = <K extends keyof GameSettings>(k: K, v: GameSettings[K]): void => setSettings({ ...settings, [k]: v });
   // The ending sets how long a game runs, and so what it is likely to cost.
+  /** Which game: its own ending with it, and a seat it has no place for given up. */
+  const chooseGame = (g: GameKind): void => {
+    const leaders = { ...settings.leaders };
+    for (const p of absentFrom(g)) if (leaders[p] === "Human") leaders[p] = (selected ?? Presets.Free).leaders;
+    setSettings(recost({ ...settings, game: g, leaders, ...EndingOf[g] }));
+  };
   const setEnding = (v: Partial<Pick<GameSettings, "endMedian" | "capped" | "capMin" | "capMax" | "openAge">>): void => setSettings(recost({ ...settings, ...v }));
 
   const estimateFor = (p: Preset): number => {
@@ -178,7 +187,7 @@ export function Home() {
 
   const summary = (): string => {
     const counts = new Map<LeaderKind, number>();
-    for (const p of FixedPowers) if (settings.leaders[p] !== "Human") counts.set(settings.leaders[p], (counts.get(settings.leaders[p]) ?? 0) + 1);
+    for (const p of inGame) if (settings.leaders[p] !== "Human") counts.set(settings.leaders[p], (counts.get(settings.leaders[p]) ?? 0) + 1);
     const kings = [...counts].map(([k, n]) => `${n} ${kindName(k)}`);
     return `kings ${kings.join(", ")}; envoys ${jobName(settings.characters, "Script")}; narrator ${jobName(settings.narrator, "Template")}`;
   };
@@ -311,6 +320,11 @@ export function Home() {
       </p>
 
       <div className="card">
+        <h2>Which game?</h2>
+        <GameChoice game={settings.game} onChange={chooseGame} />
+      </div>
+
+      <div className="card">
         <h2>How do you want to play?</h2>
         <div className="presets" role="radiogroup" aria-label="Game presets">
           {shownPresets.map((p) => {
@@ -354,8 +368,8 @@ export function Home() {
           <span>Your seat</span>
           <select value={seat ?? ""} onChange={(e) => changeSeat(e.target.value)}>
             <option value="">Watch the kings (spectator)</option>
-            <optgroup label="The seven Great Kings (the advised start)">
-              {FixedPowers.filter(isGreatKing).map((p) => (
+            <optgroup label={`The ${["", "one", "two", "three", "four", "five", "six", "seven"][inGame.filter(isGreatKing).length]} Great Kings (the advised start)`}>
+              {inGame.filter(isGreatKing).map((p) => (
                 <option key={p} value={p}>
                   Play as {powerName(p)} ({tier(p).toLowerCase()})
                 </option>
@@ -363,7 +377,7 @@ export function Home() {
             </optgroup>
             {/* Item 17++++: any city-state's or chief's seat, by the same rules, judged against its own start: harder. */}
             <optgroup label="A small state: harder, not the advised start">
-              {FixedPowers.filter((p) => !isGreatKing(p)).map((p) => (
+              {inGame.filter((p) => !isGreatKing(p)).map((p) => (
                 <option key={p} value={p}>
                   Play as {powerName(p)}
                   {rulerNamed(p) ? `, under ${king(p)}` : ""} ({rulerStyle(p) === "chief" ? "a chief's land" : "a small kingdom"})
@@ -392,7 +406,7 @@ export function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {FixedPowers.map((p) => (
+                  {inGame.map((p) => (
                     <tr key={p}>
                       <td>
                         <Emblem power={p} /> {powerName(p)}

@@ -54,12 +54,12 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
     .sort((a, b) => a.label.localeCompare(b.label));
   return (
     <>
-    <div className="section">
+    <div className="section" id="orders-treasury">
       <h3>Treasury and land</h3>
       <div className="row">
         <select value={f.raiseAt} onChange={(e) => set({ raiseAt: e.target.value })}>
           <option value="">Raise troops in…</option>
-          {map
+          {map()
             .homeOf(me)
             .filter((p) => v.owner.tryGet(p.id) === me && v.units.every((u) => u.province !== p.id))
             .map((p) => (
@@ -176,7 +176,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
         {f.grainAction === "caravan" && (
           <select value={f.grainTo} onChange={(e) => set({ grainTo: e.target.value })}>
             <option value="">to…</option>
-            {[...new Set([...v.provinces.map((x) => x.province), ...v.units.filter((u) => u.power === me && !map.get(u.province).isSea).map((u) => u.province)])]
+            {[...new Set([...v.provinces.map((x) => x.province), ...v.units.filter((u) => u.power === me && !map().get(u.province).isSea).map((u) => u.province)])]
               .filter((id) => id !== f.grainAt)
               .sort(byName)
               .map((id) => (
@@ -229,7 +229,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
         <select value={f.peopleAt} onChange={(e) => set({ peopleAt: e.target.value, peopleTo: "" })}>
           <option value="">{f.peopleAction === "deport" ? "from…" : "in…"}</option>
           {v.provinces
-            .filter((x) => (f.peopleAction === "deport" ? map.get(x.province).home !== me : f.peopleAction === "expel" ? v.sieges.some((s) => s.province === x.province) : f.peopleAction === "returnRunaways" ? x.runaways.size > 0 : x.loose > 0))
+            .filter((x) => (f.peopleAction === "deport" ? map().get(x.province).home !== me : f.peopleAction === "expel" ? v.sieges.some((s) => s.province === x.province) : f.peopleAction === "returnRunaways" ? x.runaways.size > 0 : x.loose > 0))
             .map((x) => x.province)
             .sort(byName)
             .map((id) => {
@@ -297,7 +297,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="">from…</option>
           {v.provinces
             .map((x) => x.province)
-            .filter((id) => !f.tradeAction.startsWith("ship") || (harbourOf(map.get(id)) > 0 && v.units.some((u) => u.power === me && u.kind === "Fleet" && (u.province === id || u.province === map.get(id).waters))))
+            .filter((id) => !f.tradeAction.startsWith("ship") || (harbourOf(map().get(id)) > 0 && v.units.some((u) => u.power === me && u.kind === "Fleet" && (u.province === id || u.province === map().get(id).waters))))
             .sort(byName)
             .map((id) => (
               <option key={id} value={id}>
@@ -307,7 +307,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
         </select>
         <select value={f.tradeTo} onChange={(e) => set({ tradeTo: e.target.value })}>
           <option value="">to…</option>
-          {map.landProvinces
+          {map().landProvinces
             .filter((x) => !x.kingless && x.id !== f.tradeFrom && (f.tradeAction === "shipDeliver" || !v.provinces.some((y) => y.province === x.id)) && (!f.tradeAction.startsWith("ship") || harbourOf(x) > 0))
             .map((x) => x.id)
             .sort(byName)
@@ -329,7 +329,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           onClick={() => {
             const grain = Math.max(0, Math.floor(Number(f.tradeGrain) || 0));
             const gold = f.tradeAction === "shipDeliver" ? 0 : Math.max(0, Math.floor(Number(f.tradeGold) || 0));
-            const fleet = v.units.find((u) => u.power === me && u.kind === "Fleet" && u.province === f.tradeFrom)?.province ?? map.get(f.tradeFrom).waters ?? f.tradeFrom;
+            const fleet = v.units.find((u) => u.power === me && u.kind === "Fleet" && u.province === f.tradeFrom)?.province ?? map().get(f.tradeFrom).waters ?? f.tradeFrom;
             add(
               f.tradeAction === "trade" || f.tradeAction === "smuggle"
                 ? trade(f.tradeFrom, f.tradeTo, grain, gold, f.tradeAction === "smuggle")
@@ -391,7 +391,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           {f.sallyCity !== "" && (
             <select value={f.sallyFrom} onChange={(e) => set({ sallyFrom: e.target.value })}>
               <option value="">supporting the attack from…</option>
-              {[...new Set(map.neighbors(f.sallyCity))].sort(byName).map((n) => (
+              {[...new Set(map().neighbors(f.sallyCity))].sort(byName).map((n) => (
                 <option key={n} value={n}>
                   {provinceName(n)}
                 </option>

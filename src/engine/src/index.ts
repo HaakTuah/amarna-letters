@@ -14,6 +14,7 @@ export * from "./rules/clauses.ts";
 export * from "./rules/conditions.ts";
 export * from "./rules/ending.ts";
 export * from "./rules/first-game.ts";
+export * from "./rules/brief.ts";
 export * from "./rules/omens.ts";
 export * from "./rules/factory.ts";
 export * from "./rules/greeting.ts";

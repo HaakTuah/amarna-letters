@@ -17,7 +17,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
   const payOnDone = [...new Map([...v.court, ...v.known].filter((s) => s.ours && s.payOnDone).map((s) => [s.id, s])).values()];
   return (
     <>
-    <div className="section">
+    <div className="section" id="orders-troops">
       <h3>Troops</h3>
       {draft.units.size === 0 && <p className="muted">You have no troops.</p>}
       {[...draft.units]
@@ -25,7 +25,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
         .map(([at, d]) => {
           const unit = draft.unitAt(at)!;
           // Item 17++: the troops of its own kind next to it that it may join.
-          const foldsInto = (from: string): string[] => [...draft.units.keys()].filter((x) => x !== from && draft.unitAt(x)?.kind === unit.kind && map.canMove(unit.kind, from, x));
+          const foldsInto = (from: string): string[] => [...draft.units.keys()].filter((x) => x !== from && draft.unitAt(x)?.kind === unit.kind && map().canMove(unit.kind, from, x));
           const change = (patch: Partial<typeof d>): void => {
             Object.assign(d, patch);
             onChanged();
@@ -42,10 +42,10 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                 <option value="move">Move</option>
                 <option value="force">Move by forced march</option>
                 <option value="support">Support</option>
-                {unit.kind === "Fleet" && map.get(at).isSea && <option value="convoy">Convoy</option>}
+                {unit.kind === "Fleet" && map().get(at).isSea && <option value="convoy">Convoy</option>}
                 {unit.kind === "Army" && v.walls.getOrDefault(at, 0) > 0 && v.owner.tryGet(at) !== me && <option value="besiege">Besiege the city</option>}
                 <option value="disband">Disband</option>
-                {!map.get(at).isSea && v.owner.tryGet(at) === me && <option value="settle">Disband and settle its men here</option>}
+                {!map().get(at).isSea && v.owner.tryGet(at) === me && <option value="settle">Disband and settle its men here</option>}
                 {unit.commander === null && foldsInto(at).length > 0 && <option value="fold">Join the troops next to it</option>}
               </select>
               <span className="row" style={{ gap: ".3rem" }}>
@@ -65,7 +65,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                     {draft.movesFor(at).map((to) => (
                       <option key={to} value={to}>
                         {provinceName(to)}
-                        {map.canMove(unit.kind, at, to) ? "" : " (by sea)"}
+                        {map().canMove(unit.kind, at, to) ? "" : " (by sea)"}
                       </option>
                     ))}
                   </select>
@@ -85,7 +85,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                     {d.target !== null && (
                       <select value={d.to ?? ""} onChange={(e) => change({ to: e.target.value })}>
                         <option value="">to hold</option>
-                        {map
+                        {map()
                           .movesFrom(unit.kind, at)
                           .filter((x) => x !== d.target)
                           .map((to) => (
@@ -102,7 +102,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                     <select value={d.target ?? ""} onChange={(e) => change({ target: e.target.value })}>
                       <option value="">— which army? —</option>
                       {visibleUnits
-                        .filter((u) => u.kind === "Army" && map.get(u.province).isCoastal)
+                        .filter((u) => u.kind === "Army" && map().get(u.province).isCoastal)
                         .map((u) => (
                           <option key={u.province} value={u.province}>
                             {powerName(u.power)} A {provinceName(u.province)}
@@ -111,7 +111,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                     </select>
                     <select value={d.to ?? ""} onChange={(e) => change({ to: e.target.value })}>
                       <option value="">— to? —</option>
-                      {map.landProvinces
+                      {map().landProvinces
                         .filter((p) => p.isCoastal)
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((p) => (
@@ -205,7 +205,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                       {provinceName(at)}
                     </option>
                   ))
-                : [...map.provinces]
+                : [...map().provinces]
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((p) => (
                       <option key={p.id} value={p.id}>
@@ -245,7 +245,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
             {f.stUnit !== "" && f.stKind === "move" && (
               <select value={f.stTarget} onChange={(e) => set({ stTarget: e.target.value })}>
                 <option value="">— where? —</option>
-                {map
+                {map()
                   .movesFrom(draft.unitAt(f.stUnit)!.kind, f.stUnit)
                   .sort(byName)
                   .map((to) => (
@@ -270,7 +270,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                 {f.stTarget !== "" && (
                   <select value={f.stTo} onChange={(e) => set({ stTo: e.target.value })}>
                     <option value="">to hold</option>
-                    {map
+                    {map()
                       .movesFrom(draft.unitAt(f.stUnit)!.kind, f.stUnit)
                       .filter((x) => x !== f.stTarget)
                       .sort(byName)

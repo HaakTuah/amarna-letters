@@ -80,6 +80,8 @@ export function narratorModel(k: NarratorKind): string | null {
 /** Who plays what: each king's seat, the envoys and spies, and the narrator. */
 export class SeatChoices {
   leaders = new Dict<Power, LeaderKind>(AllPowers.map((p) => [p, "Script"] as const));
+  /** The powers absent from the table's game (item 18b, "The first game"): their seats play nothing, and cost nothing. */
+  absent: Power[] = [];
   characters: CharacterKind = "Script";
   narrator: NarratorKind = "Template";
   leaderEffort = "medium";
@@ -155,6 +157,7 @@ export class SeatChoices {
   copy(): SeatChoices {
     const c = new SeatChoices();
     c.leaders = this.leaders.clone();
+    c.absent = [...this.absent];
     c.characters = this.characters;
     c.narrator = this.narrator;
     c.leaderEffort = this.leaderEffort;
