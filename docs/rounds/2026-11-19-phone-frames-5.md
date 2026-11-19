@@ -17,7 +17,7 @@ real phone is available here**, so, as the earlier steps, all of it is a slowed 
   works at the cities 9, the bands 9, the cities 8, the memory 8. Each ends its frame, and the browser's own work on what it
   wrote (style, layout, layerization, paint, 30 ms and more) comes in the same frame: one such step is a frame over 50 ms.
 - No one layer is the cost. With the season, the roads and works, or the tints hidden (`display: none`, one run each) the
-  frames over 50 ms stay at 3.0 to 3.4% of 3.0% (the soak's spread is about a point); with the whole map hidden, 1.0%. So it
+  frames over 50 ms stay at 3.0 to 3.4%, against 3.0% (the soak's spread is about a point); with the whole map hidden, 1.0%. So it
   is the many writes together, in the frames they come in.
 - The page's own panels: with `aside.side` hidden, 2.2% became 1.8%, inside the noise. Those panels are item 18b's and are
   not touched.
