@@ -223,9 +223,11 @@ export class SvgMapRenderer implements MapRenderer {
    * frame it was made.
    */
   private slices(name: string, work: Generator<void, boolean | void>, done: (wrote: boolean) => void, layer?: SVGGElement, since = performance.now()): Step | void {
+    // The first slice is timed from when its step began (what drew its markup counts), each later one from its own start.
+    let began: number | null = since;
     const go: Step = () => {
-      const t = since;
-      since = performance.now();
+      const t = began ?? performance.now();
+      began = null;
       const r = work.next();
       performance.measure(`map:${name}`, { start: t });
       if (layer !== undefined) this.wrote.add(layer);
