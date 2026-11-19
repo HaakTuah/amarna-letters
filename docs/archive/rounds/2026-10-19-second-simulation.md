@@ -183,7 +183,7 @@ None. Neither fix adds a time, cost, chance or threshold.
 
 ## Fix (d): an id counter per kind
 
-The owner's instruction, word for word:
+The owner's instruction, cut to its decision and reason:
 
 > One more fix for item 4, alongside the three at its start: item 3's report found that new tablets take ids from the
 > shared counter, which shifts later dice rolls and changed the winner in 13-14% of benchmark seeds. Give each kind of
@@ -517,8 +517,8 @@ the web app, and the JSON, regular-expression and HTTP libraries it uses).
    requests, replies and JSON) and compare every decision and the final state with the game played in the page, seed
    5 season by season, and check the fallbacks and a replay of a worker-played log. In the browser, a whole watch game of seed 7 played through the
    worker matched a native game of seed 7 with the web app's settings in 573 of its 580 logged decisions (19 seasons, Egypt
-   winning, as item 2 found); the other seven, the chronicles, differ only in line endings, `\n` in the browser against `\r\n` on
-   Windows (the template narrator writes `Environment.NewLine`; it was so before this change, and replays read the
+   winning, as item 2 found); the other seven, the chronicles, differ only in line endings, `\n` in the browser against `\r\n` in
+   the native build (the template narrator writes `Environment.NewLine`; it was so before this change, and replays read the
    chronicles from the log).
 3. **Bot-visible behaviour is unchanged,** so the bot benchmarks were not rerun: no rule or bot code changed (the one
    change outside the web app and the SDK project is how the log writes its text, which stays the same), and the
@@ -792,7 +792,7 @@ No agent was started and no model call was spent.
 Commit `56be282` (the seat type, the bridge, the kit, the start prompt, the tests and the notes), with this section in
 a second. The last part of item 4: "Local play on a Claude subscription", so that at the review the owner can start playing model
 kings himself. A human seat in the locally running web app against kings answered by the simulation's guarded,
-isolated king agents in a Claude Code session, on the subscription instead of paid API calls. No engine rule, script
+isolated king agents in a Claude Code session, on a Claude subscription instead of paid API calls. No engine rule, script
 king or number of the game changed, so the save version stays at 4 and script games play exactly as before. No agent
 was started and no model call was spent: the plumbing was proved with the stub replier.
 
@@ -937,7 +937,7 @@ No agent was started and no model call was spent.
   agents' words apart.
 - **A count or names of the kings being waited on.** Left out on purpose, as above.
 - **Line endings.** The bridge's requests have Unix line endings, because the page builds the text; the batch
-  runner's on Windows have Windows line endings. The words are the same, and agents read both.
+  runner's have the native platform's line endings. The words are the same, and agents read both.
 - **Merging with fix (b).** The phone-performance branch moves the script kings into a Web Worker in `SeatFactory`.
   Local agent kings are model leader seats, which stay in the page as API kings do, so this part does not touch
   `SeatFactory`. It changes `SeatSetup`, `Home.razor` and `Play.razor` instead.
@@ -1103,8 +1103,8 @@ carries events.
      flagged nothing there.
 9. **If the worker stops mid-game, the script kings lose their memory (no change).** This is documented in
    DESIGN-NOTES, and replays stay exact.
-10. **`mkdir -p` on a PowerShell-first machine (fixed).** Step 3 of the simulation prompt now says to run the game
-    commands with the Bash tool (Git Bash), where `mkdir -p` and the redirection work as written.
+10. **`mkdir -p` where the default shell is not Bash (fixed).** Step 3 of the simulation prompt now says to run the game
+    commands with the Bash tool, where `mkdir -p` and the redirection work as written.
 
 `setup.js` output is not affected by any of this and was not regenerated. Regenerating it would change the folders
 and secret words and need yet another new session.

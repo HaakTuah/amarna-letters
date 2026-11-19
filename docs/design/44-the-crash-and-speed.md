@@ -19,7 +19,7 @@ walls and sight, maps of the whole board a court that seldom change.
 
 ## The stream: the state travels as its changes, and the page keeps the history
 
-The owner (31 October 2026, "Agreed, 100% sir!") named the root of the stutter and the crash: the page held a full copy of the
+The owner agreed (31 October 2026) on the root of the stutter and the crash: the page held a full copy of the
 world for every season. Now the engine's worker sends the page what changed, and the page keeps a compact history of its own:
 
 - **The cut.** After each season the state's JSON is cut into pieces at the items of its lists and dictionaries, three levels
@@ -83,7 +83,7 @@ With the results unchanged (every seed replays exactly; the suites pass):
 
 ## Smoothness, measured: the 50 ms bar (31 October 2026)
 
-The owner: "The game still doesn't move slowly and smooth enough. Still hicks." The bar: frame times recorded through whole
+The owner (archive item 97): "The game still doesn't move slowly and smoothly enough. It still hitches." The bar: frame times recorded through whole
 games at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the longest frames and the count
 over 50 ms before and after, with a short recording. Measured by `soak.mjs` (every frame drawn is timed; `--trace` adds
 the browser's own timeline of the main thread, and the page's steps are timed with `performance.measure`: `page:receive`,

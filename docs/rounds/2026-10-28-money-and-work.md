@@ -15,10 +15,10 @@ their JSX the old lines unchanged) and `rules.ts` (56 KB to 34 KB, two parts int
 Asked at the start (Build order since 73; Work, money and lending since 11; Characters since 20): nothing new. Asked again
 before the pull request (the same tabs, and Victory and the ending since 9, Land, people and economy since 29): the Build
 order is now at revision 75 and has a new item, **11a+, "Harvests in their season, and the answers to items 8 to 10+b"**,
-added after this item was begun. It carries the owner's answer to the reviews of items 8, 9, 10+a and 10+b, word for word:
+added after this item was begun. It carries the owner's answer to the reviews of items 8, 9, 10+a and 10+b, which left them to the design session's
+takes, cut to its decision and reason (archive item 21):
 
-> "You figure all this out, expert. You know me by now. But models must be able to alter clauses also. Remember,
-> everyone plays the same game!"
+> "But models must be able to alter clauses also. Everyone plays the same game."
 
 Item 11a+ builds what that answer changes (model envoys altering clauses, winter by an army's size, passage by order,
 script kings posting province spies and sailing winter strokes, levies by the men a province has, runaways by what the

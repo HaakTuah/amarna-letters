@@ -6,10 +6,10 @@ between the item's start (`f1007bc`) and the check before review. Design note: `
 
 ## The owner's words in this session
 
-Relayed by the orchestrator, 31 October 2026, word for word: "Before anything else: every lane commits and pushes what it
-has now, unfinished work included, as a work-in-progress commit on its branch (a draft PR if it has none). From now on, push
-after every commit, not only at gates or hourly. We're near this account's limit for the next few hours: when it resets,
-carry on from the pushed branches."
+Relayed by the orchestrator, 31 October 2026, cut to its decision and reason: before anything else, every lane commits
+and pushes what it has now, unfinished work included, as a work-in-progress commit on its branch (a draft PR if it has
+none), and from now on pushes after every commit, not only at gates or hourly, since usage was near its limit; once it
+resets, each carries on from the pushed branches.
 
 And for item 17++, from the same message: "the owner answered the audit's tiny-troops question, and it is now written into item
 17++ as 'A handful holds nothing by itself' (War tab). There is no size threshold. A move into a far weaker unit is a battle
@@ -22,7 +22,7 @@ See "Where it stands (31 October 2026, 19:30 UTC)" at the end.
 
 ## The crash, reproduced
 
-The owner: "Got a white page with an error. Was on github", watching a game at high speed on the live site.
+The owner: "Got a white page with an error. Was on GitHub", watching a game at high speed on the live site.
 
 `node src/web/soak.mjs` watches a whole Free game (seed 1) at Fast speed in the built app and records the season, the page's
 and the worker's heap, seconds a season and the frames. On this 16 GB machine nothing crashed, desktop or phone profile (CPU
@@ -175,8 +175,8 @@ below once run.
 
 ## Smoothness, measured (the bar of 31 October: no frame over about 50 ms)
 
-The owner, 31 October 2026: "The game still doesn't move slowly and smooth enough. Still hicks. hope that polish pass isn't
-done already, because it far from sufficed.", then "Agreed to all, expertly!" to the design session's bar: frame times
+The owner, 31 October 2026: "The game still doesn't move slowly and smoothly enough. It still hitches. I hope that polish
+pass isn't done already, because it far from sufficed.", then he agreed to all of the design session's bar: frame times
 recorded through a whole game, at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the
 longest frames and the count over 50 ms before and after, and a short recording.
 
@@ -272,7 +272,7 @@ summary identical (wars, falls, press, standing orders, risen seats, characters'
 
 ## Where it stands (31 October 2026, 19:30 UTC)
 
-The owner (via the orchestrator): "We are running out of usage. 97 percent. commit and push." Stopped here. Done and pushed:
+The owner (via the orchestrator), with usage at 97 percent: commit and push. Stopped here. Done and pushed:
 everything above, the review's fixes, the suite (1264 passed), the smoke test, the benchmarks. Left: the throttled-phone
 soak after the fixes (`node src/web/soak.mjs --phone`, one row of the table above), then mark PR #236 ready, CI green, merge
 into develop, the milestone PR (check `merged_at` first), and the report to the orchestrator.

@@ -1,8 +1,8 @@
 ## Gold travels both ways (follow-up, #587)
 
-From "One treasury, many stores" under Land, people and economy (revision 35; the owner, 3 November 2026: "Contracts
-with characters can stipulate one pay upfront and one after. Paying infrastructure work would presumably require pay or
-labour as tax upfront, no?", then "Yes, expertly"). What is done far off is paid only from gold that is there, never from
+From "One treasury, many stores" under Land, people and economy (revision 35; the owner, 3 November 2026, archive item 186:
+"Contracts with characters can stipulate one pay upfront and one after. Paying for infrastructure work would presumably
+require pay, or labour as tax, upfront, no?", then agreeing to the design session's take). What is done far off is paid only from gold that is there, never from
 the treasury at a distance, so the treasury never shows a far outcome before word of it could come. Code:
 `turn/coffers.ts`, `model/coffers.ts`; the script kings' part in `game/src/bots/coffers.ts`. Save version 61.
 

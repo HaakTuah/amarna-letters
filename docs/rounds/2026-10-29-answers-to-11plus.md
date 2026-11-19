@@ -5,8 +5,8 @@ and 11c (#143). Branch `item/answers-to-11plus`, PR #145. Save version 25. What 
 `docs/design/29-answers-to-11plus.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session).
 Effort: medium, as set.
 
-The owner's words (29 October 2026, the item's own text): "Agree to all. Though a character based on the incentive
-structure we have now should never say yes to point 6, as it is essentially game over."
+The owner's words (29 October 2026, the item's own text), agreeing to all: "though a character, under the incentive
+structure we have now, should never say yes to point 6, as it is essentially game over."
 
 ## The check for changes
 

@@ -76,7 +76,7 @@ fixed, unless noted):
    from the design document" and "Not built yet").
 6. Create `develop` from `main`, merge the item, and update this file.
 
-**Update, 19 October, 07:40.** Parts G and E were resumed from the work above. Two duplicate writers ran for a few
+**Update, 19 October.** Parts G and E were resumed from the work above. Two duplicate writers ran for a few
 minutes and were all stopped: yesterday's restarted workflow was still alive (its log showed only "started"), a second
 workflow was launched over it, and messages to its agents started second copies of them. Nothing was lost:
 `f1a6a18` and `9fa3f26` (G1) and `f03986e` (G2, the capital trigger) are committed and passed the full suite and the

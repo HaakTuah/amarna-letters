@@ -98,8 +98,8 @@ benchmark (40 seeds) did not confirm (above): two seeds do not tell these change
 
 ## Readings taken
 
-Each is settled by "The game in one page" or the item's own text (the owner, 29 October 2026: "settled questions are
-readings").
+Each is settled by "The game in one page" or the item's own text (the owner agreed on 29 October 2026 that settled
+questions are readings).
 
 1. **Old talk is kept per party at its mean season**, not promise by promise, once a person holds more than it keeps one
    by one: the weighting by age is then reckoned from the mean season. ("Memory": never lost; a script character's own

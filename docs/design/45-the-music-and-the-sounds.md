@@ -3,9 +3,9 @@
 Presentation only: no rule, number, script play or save version changes, and the script games are identical. The game
 had no sound before this item.
 
-The owner, 31 October 2026 (relayed by the orchestrator): "Keep the music lane (19+++) running. When the improvement audit
-is done, restart the music lane on Fable 5.1 at high effort for the composing; the current Opus session builds the sound
-system (playback, the layers that switch with the situation, the samples) until then and hands over what it built." The
+The owner, 31 October 2026 (archive item 82): the music lane (19+++) keeps running, and moves to Fable for the composing
+once the improvement audit is done, the Opus session building the sound system (playback, the layers that switch with
+the situation, the samples) until then and handing over what it built. The
 sound system was built first with placeholder pieces (handover in `docs/rounds/2026-10-31-music.md`); the pieces and
 the fallback's scores were then composed in a session of their own (`docs/rounds/2026-10-31-music-composing.md`).
 
@@ -129,8 +129,8 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## The sounds
 
-**Three layers, the music leading** (the owner, 1 November 2026: "your ears are being assaulted now. It plays dozens of
-sound effects at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
+**Three layers, the music leading** (the owner, 1 November 2026: "it plays dozens of sound effects at
+any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
 specifically what they hear"; the sound lane, `docs/rounds/2026-11-01-sound-lane.md`), in the manner of Crusader Kings II:
 
 1. **The music**, above everything (bus level 0.9).
@@ -205,8 +205,9 @@ moment of its own on screen, `Cue.t` is the one number to take from it instead o
 
 ## The shade: a darker or brighter mode within a piece
 
-The owner, 31 October 2026 (relayed): "Build the Civilization-style fallback alongside the Empire Earth pieces, and make
-some of each piece's variations a darker or brighter mode chosen as the situation worsens or improves." `shadeAt` (`mood.ts`) gives
+The owner, 31 October 2026 (archive item 95): the Civilization-style fallback is built alongside the Empire Earth pieces,
+and some of each piece's variations are the same piece in a darker or brighter mode, chosen as the situation worsens or
+improves. `shadeAt` (`mood.ts`) gives
 the shade from what the seat knows, by the season's heat (item 19+++b): -2 at a real battle of its own or its own land
 besieged (a heat of 8), or within three seasons of its own capital or king fallen (mourning); -1 with a heat of war (a
 siege it lays; several Great Kings at war, in god view) or a skirmish in the last three seasons, on grave omens, or with
@@ -283,9 +284,8 @@ back online or another version is chosen.
 - **Switches**: Music and Sound, each with a volume, in the game's menu and on the listening page, kept in this browser
   (`amarna-audio`). On by default at a regular volume (both at 70%), the first music of a visit rising from
   silence over six seconds from the moment it is first heard (a stage of its own, so the switches never undo it; the
-  listening page plays at once), so it never blasts at start-up (the owner, 1 November 2026: "Agreed. Keep them on, regular
-  volume, but don't blast someone when they start up, like say CK2, even though the main theme there was epice. SO i
-  didn't really mind."). A browser that saved other volumes on an earlier visit keeps them. The pieces are
+  listening page plays at once), so it never blasts at start-up (the owner, 31 October 2026, archive item 114: "Keep them
+  on, at regular volume, but don't blast someone when they start up, like, say, CK2."). A browser that saved other volumes on an earlier visit keeps them. The pieces are
   mastered to one loudness for it, and the Hymn to Nikkal, the first piece heard, opens 7 dB under its height, so the
   fade lands on a quiet lyre and drone.
 - **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with its mood and when it plays;

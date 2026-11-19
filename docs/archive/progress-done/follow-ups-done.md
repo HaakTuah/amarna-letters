@@ -152,7 +152,7 @@ Moved word for word on 7 November 2026 (the workshop check: the progress file ha
   never received, not that it came home with the answer. Save version 77. Report: `docs/rounds/2026-11-07-never-received.md`.
 - ~~**Courts by their shown names in the people's lines (bug #797)**~~ (done, branch `fix/797-court-names`): "at the court
   of Gubla", not "of Byblos", in the seat view and the People tab. Save version 80. Report: `docs/rounds/2026-11-07-court-names.md`.
-- **The owner's answers of 3 November, morning** (archive item 185):
+- **The owner's answers of 3 November** (archive item 185):
   - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script

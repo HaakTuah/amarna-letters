@@ -19,8 +19,8 @@ Each fix is its own PR from `develop`; this file keeps the running list.
 waiting PRs as CI goes green; then Space and the speed keys; then the remaining finds). Added: #293 (Space and the pace keys), #294 (the design note on province ownership), #295 (the audience panel's pointer to standing answers, audit 15),
 #296 ("(season 4)" dated on screen).
 
-**State when usage ran out (31 October, about 19:30 UTC; the owner: "We are running out of usage. 97 percent. commit and
-push.").** Merged into `develop`: #238, #256, #255 (and #239 if its merge below went through); milestone PR #260 carries
+**State when usage ran out (31 October, about 19:30 UTC, at 97 percent usage; the owner: commit and
+push).** Merged into `develop`: #238, #256, #255 (and #239 if its merge below went through); milestone PR #260 carries
 them to `main`. Every other PR above is pushed, reviewed by one Opus reviewer with its findings fixed, and waiting on CI
 (congested): merge each once green, then this PR (#234), which carries every fix's progress line. #273 is not yet
 reviewed. Pictures for the PRs are on the branch `polish/pictures` (never merged).
@@ -150,9 +150,9 @@ away, checked in play: the order drafts and seals alone, and now reads "give the
 
 ## Space and the pace keys (#293)
 
-The owner, 1 November 2026, on speeds: "I don't feel we should introduce 5, just to have 5. Paradox games have them because
-they tick time. but we have rounds, akin to civilization.", then "Yes, please! expertly!" ("Pace of play" under
-Interface). The first version of #293 read "1 to 5 set the speed" as five speeds and added Very slow and Fast; that
+The owner, 1 November 2026, on speeds: "I don't feel we should introduce five, just to have five. Paradox games have them because
+they tick time, but we have rounds, akin to Civilization.", then he agreed to the design session's take ("Pace of play"
+under Interface). The first version of #293 read "1 to 5 set the speed" as five speeds and added Very slow and Fast; that
 reading is dropped. Built: 1 Slow, 2 Normal (the default), 3 Fast, the game's three existing speeds as paces; + and −
 step between them; Space does what the play button shows. Left to items 17+++ and 17+++a, as "Pace of play" puts them,
 and noted in the key table (`src/web/src/ui/keys.ts`): 4 for Simulate, Space pausing mid-playout, Enter ending one's

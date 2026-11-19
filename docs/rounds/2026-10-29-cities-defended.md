@@ -5,13 +5,13 @@ review. Branch `item/cities-defended`, PR #154. Save version 28. What was built,
 `docs/design/31-cities-defended.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effort:
 medium, as set.
 
-The owner's words (29 October 2026, the item's own text): "didn't you say the millitary age male population will defend
-their city when someone storms, or? Is it still that easy to storm?", and "Agreed to all! Implement expertly!" Added
-while it was built (PRs #152 and #153, the item's text and "One scoreboard for every power"): "I want to have a true
-winner, but I want each player to optimize to get the best positioning they can. Screwing over the one at the top isn't
-neseecarily the best start always then, if you want to jump from 8th place, to say 5th. I think the degree of the
-coalition problem is acceptable then." and "They can even be told the propotion of each weighing in their scoring, they
-still have no way to accurately measure how much each state fulfill each aggregated to those propotions."
+The owner's words (29 October 2026, the item's own text): "Didn't you say the military-age male population will defend
+their city when someone storms it? Is it still that easy to storm?", and he agreed to all the design session's takes.
+Added while it was built (PRs #152 and #153, the item's text and "One scoreboard for every power"): "I want to have a true
+winner, but I want each player to optimize to get the best position they can. Screwing over the one at the top isn't
+necessarily always the best start, then, if you want to jump from 8th place to, say, 5th. I think the degree of the
+coalition problem is acceptable then." and "They can even be told the proportion of each weight in their scoring; they
+still have no way to measure accurately how much each state fulfils each, aggregated to those proportions."
 
 ## The check for changes
 

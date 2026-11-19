@@ -18,8 +18,8 @@ export const Styles: readonly MusicStyle[] = ["orchestra", "period", "chip"];
 const Key = "amarna-audio";
 
 /**
- * On by default at a regular volume (the owner, 1 November 2026: "Keep them on, regular volume, but don't blast someone when
- * they start up"); nothing sounds before the reader's first touch (the browser's own rule), and the first music fades in
+ * On by default at a regular volume (the owner, 31 October 2026: "Keep them on, at regular volume, but don't blast someone
+ * when they start up"); nothing sounds before the reader's first touch (the browser's own rule), and the first music fades in
  * (`StartFade`).
  */
 export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.7, soundVolume: 0.7, style: "orchestra" };

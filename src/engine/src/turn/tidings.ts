@@ -1,5 +1,5 @@
 /**
- * News beyond sight (#618; the owner, 3 November 2026: "Agreed to all, expertly!"): word of a change of hands travels
+ * News beyond sight (#618; the owner agreed, 3 November 2026): word of a change of hands travels
  * beyond sight by the road. A vassal reports to his overlord what his own court saw, an ally to the king he is bound to,
  * each as he knows the bond. The report sets out from the reporter's court at the season's end and reaches the other court
  * when word from there could come (`TurnEngine.heardAt`, the couriers' clock for a road), and the province's holder in

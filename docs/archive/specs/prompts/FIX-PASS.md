@@ -1,6 +1,6 @@
-# Fix pass: item 4's follow-up (the owner, 20 October 2026, word for word)
+# Fix pass: item 4's follow-up (the owner, 20 October 2026)
 
-Review of item 4: accepted. From now on, build the whole Build order, item by item, reading each item and the builder rules fresh from the live document at https://claude.ai/code/artifact/7f857750-39dc-464a-a739-c9f59dfe3dcd. The document changed a lot tonight, including items 5, 6, 7, 8, 10, 11, 13, 16 and 18 and the builder rules, so do not rely on anything you read earlier.
+Review of item 4: accepted. From now on, build the whole Build order, item by item, reading each item and the builder rules fresh from the live design document. The document has changed a lot, including items 5, 6, 7, 8, 10, 11, 13, 16 and 18 and the builder rules, so do not rely on anything you read earlier.
 
 Builder rules to note (all in the document):
 - Review points no longer stop the build: finish the item, write its review questions and your readings in the report, list them at the top of BUILD-PROGRESS, and go on.

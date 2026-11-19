@@ -1,9 +1,9 @@
 # Item 11c++: the map uncluttered (29 October 2026)
 
 A lane beside item 11f (#169), PR #180, branch `item/map-uncluttered`. The item's text is
-`docs/intent/build-order/item-11.md` ("11c++"), with the owner's words there ("Yes, to all, expertly!"; "Yes, please!
-Expertly!"; "Yes, please, expertly! If it needs access to something it can't get right now, then we will get it as soon as
-I am home."). Item 11c+'s report is [`2026-10-29-map-at-a-glance.md`](2026-10-29-map-at-a-glance.md). As built:
+`docs/intent/build-order/item-11.md` ("11c++"), with the owner's words there (agreeing to all the design session's takes, to finer geography as the
+map is zoomed in, and to real relief and rivers: "If it needs access to something it can't get right now, then we will
+get it."). Item 11c+'s report is [`2026-10-29-map-at-a-glance.md`](2026-10-29-map-at-a-glance.md). As built:
 [`docs/design/34-the-map-uncluttered.md`](../design/34-the-map-uncluttered.md); the land drawn and its sources:
 [`docs/history/13-the-land-drawn.md`](../history/13-the-land-drawn.md).
 
