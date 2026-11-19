@@ -7,7 +7,7 @@ One of the two builds of model trial 2 (`docs/rounds/2026-11-12-model-trial-2.md
 
 **The check for changes:** the docs connector refused this session's read of the live design document (a session on
 another account), so the copy on `main` stands in, as `docs/intent/INDEX.md` allows; its diff since c5cda6b was read
-again at 03:17 UTC on 19 November, before the pull request was made ready, and is empty (`main` had moved on by item
+again at 04:45 UTC on 19 November, before the pull request was made ready, and is empty (`main` had moved on by item
 18b's first part, which took save version 96 and leaves a full script game as it was: seed 101 played on the merged
 code ends in the same state but for the version and the new settings).
 
