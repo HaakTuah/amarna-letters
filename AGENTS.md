@@ -33,7 +33,7 @@ when a task needs them; each module says when. A safety rule of this game's own,
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, the follow-ups, use against ignore. |
 | The historical sources | `docs/history/` (start at `README.md`) | Dossiers on 1346 BCE; cite them when an item builds from them. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
-| History | `docs/archive/` (build log; the owner's instructions word for word; the design document's history) | Read only when a task points there. |
+| History | `docs/archive/` (build log; the owner's instructions, each cut to its decision and reason; the design document's history) | Read only when a task points there. |
 
 ## Starting a task
 
