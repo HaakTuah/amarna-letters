@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/how-to-work.md: No one is asked before a read",
+  "behind": [218]
+}

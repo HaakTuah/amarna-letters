@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/repositories.md: A repository may take the core through a dependency that carries it",
+  "holder": "check: .github/workflows/core.yml, in part",
+  "behind": [241]
+}

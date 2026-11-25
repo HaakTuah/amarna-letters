@@ -1,0 +1,7 @@
+{
+  "rule": "tasks/reviews.md: Which",
+  "holder": [
+    "check: scripts/security-review.mjs, in part",
+    "check: GitHub's ruleset on the default branch, in part"
+  ]
+}

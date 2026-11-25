@@ -1,4 +1,4 @@
-# Dependabot version updates of the workflows' GitHub actions (floor rules 3 and 17).
+# Dependabot version updates of the workflows' GitHub actions and of the core's own packages (floor rules 3, 7 and 17).
 # A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first (floor rule 7).
 version: 2
 updates:
@@ -13,3 +13,28 @@ updates:
       actions:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+  # The packages of other publishers the core's scripts run, in its package.json and lock file in .packages/ (#654), and
+  # the parser's in .packages/parser/ (#719): each update's licence read from the lock by the core's licence check, its
+  # arrival by the lookup.
+  - package-ecosystem: "npm"
+    directories: ["/.packages", "/.packages/parser"]
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    groups:
+      packages:
+        patterns: ["*"]
+        update-types: ["minor", "patch"] # a new major is its own PR (tasks/updates.md)
+  # The code scan's engine, in .packages/requirements.txt, PyPI's lock form, each wheel by its hash (#546, #654): each
+  # update read against its release notes and licence, its hashes taken anew, its wheels' PyPI attestation published by
+  # the same as 1.185.0's (GitHub, semgrep/semgrep-proprietary, pro-release.yml; PyPI's integrity API), and the scan's
+  # test run on its samples (floor rule 7).
+  - package-ecosystem: "pip"
+    directory: "/.packages"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7

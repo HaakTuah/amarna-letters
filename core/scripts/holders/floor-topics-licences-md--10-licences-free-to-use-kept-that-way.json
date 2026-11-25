@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/licences.md: 10. Licences: free to use, kept that way",
+  "holder": "check: scripts/licences.mjs, in part",
+  "behind": [41, 198, 201, "#456"]
+}

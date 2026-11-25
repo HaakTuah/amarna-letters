@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/screens.md: Motion with a purpose",
+  "holder": "check: scripts/screens.mjs, in part"
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: No feature only people use",
+  "behind": [87, 88, 89]
+}

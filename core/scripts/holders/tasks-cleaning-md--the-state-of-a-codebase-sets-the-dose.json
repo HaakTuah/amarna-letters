@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/cleaning.md: The state of a codebase sets the dose",
+  "holder": "check: scripts/look.mjs, in part"
+}

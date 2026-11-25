@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/hosts.md: Each host's part",
+  "behind": [236]
+}

@@ -1,0 +1,27 @@
+{
+  "description": "The core's work-saved hook (the core's roles/shared/work-flow.md, \"Push after every commit\"; tasks/tools.md): at a session's start, work left unpushed and the owner's stop switch; at its stop, work not yet pushed keeps it going once. Runs the copy merged into main.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.codex/hooks.json\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:core/scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved start'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.codex/hooks.json\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:core/scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved stop'",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

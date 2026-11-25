@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/game-design.md: A game's own scene is no desktop program's window",
+  "behind": ["#484.1"],
+  "number": "correction: misread; outcome: asked"
+}

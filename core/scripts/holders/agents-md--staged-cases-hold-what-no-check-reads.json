@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: Staged cases hold what no check reads",
+  "holder": ["check: tests/staged-test.mjs", "check: scripts/look.mjs, in part"],
+  "behind": [228]
+}

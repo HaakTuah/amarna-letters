@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/teams.md: The higher right gives the floor's yeses",
+  "holder": "check: scripts/pr-description.mjs, in part",
+  "behind": [236]
+}

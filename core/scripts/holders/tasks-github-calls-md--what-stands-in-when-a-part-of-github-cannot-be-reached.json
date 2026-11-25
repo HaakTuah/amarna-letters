@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/github-calls.md: What stands in when a part of GitHub cannot be reached",
+  "behind": [232]
+}

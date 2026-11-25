@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: Rules are pruned by their numbers",
+  "holder": "check: tests/pruning-test.mjs, in part",
+  "behind": [249, 254, "#887"],
+  "number": "correction: misread; outcome: asked"
+}

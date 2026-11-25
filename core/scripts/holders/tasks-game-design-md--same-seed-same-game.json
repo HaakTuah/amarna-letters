@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/game-design.md: Same seed, same game",
+  "holder": "check: a game's own tests, which replay its seeds, in part",
+  "behind": [112, 114, 143]
+}

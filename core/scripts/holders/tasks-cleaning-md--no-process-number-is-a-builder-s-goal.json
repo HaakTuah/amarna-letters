@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/cleaning.md: No process number is a builder's goal",
+  "behind": [244]
+}

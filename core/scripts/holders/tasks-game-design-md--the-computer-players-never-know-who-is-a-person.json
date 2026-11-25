@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: The computer players never know who is a person",
+  "behind": [87, 114, "#484.1"]
+}

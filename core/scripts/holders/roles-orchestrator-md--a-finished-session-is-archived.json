@@ -1,0 +1,4 @@
+{
+  "rule": "roles/orchestrator.md: A finished session is archived",
+  "behind": [185, "#306"]
+}

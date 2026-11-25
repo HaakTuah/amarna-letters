@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/work-flow.md: The owner's stop switch",
+  "behind": [201]
+}

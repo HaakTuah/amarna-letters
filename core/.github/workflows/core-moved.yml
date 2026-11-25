@@ -10,6 +10,9 @@
 # project's own core/scripts/core-moved.mjs on the core's one exact Node; Node's own modules only, no package installed.
 # Nothing is checked out but the calling repository's default branch; the two commits are 40 hex characters before they
 # are used, and no other text reaches a command. It may write issues, and nothing else.
+# It then runs the scheduled look (core/scripts/look.mjs) with the same token, which reads no pull request, check or
+# status with it and says so: a project calls look.yml in its place, which grants those reads and runs both
+# (core/setup/template/workflows/look.yml.tmpl), and this one stays for the projects that have not moved.
 name: core-moved
 
 on:
@@ -32,11 +35,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }} # the project's own state, not a sync branch's
-          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+          persist-credentials: false # gh below takes its token from GH_TOKEN, and core-moved.mjs reads the public core with none
+      - name: Where the core's copy stands, for the daily look (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        run: |
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >>"$GITHUB_ENV" # (as look.yml, which takes its place)
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock files for the daily look at the core (#654; the parser's too, since the dose reads C#'s functions on it, #719)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then if [ -f "${CORE_AT}.packages/parser/package.json" ]; then node "${CORE_AT}scripts/install.mjs" all; else node "${CORE_AT}scripts/install.mjs"; fi; fi
       - name: One issue while the core is ahead of the project's copy
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node core/scripts/core-moved.mjs
+        run: node "$CORE_AT"scripts/core-moved.mjs
+      - name: The scheduled look, reading no pull request, check or status here (look.yml grants those reads)
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node "$CORE_AT"scripts/look.mjs

@@ -1,24 +1,14 @@
-// What the commands in a project's files fetch, for the licence scan (licence-scan.mjs, beside this file, which says
-// what it needs of each). It reads each npx, npm exec (Windows' npx.cmd and npm.cmd too), npm install (and its other
-// spellings), npm link, npm pack, npm diff, npm cache add and npm publish, past any redirection, in a file's text
-// (commands: a line of its own for each, nested ones too, as in npx -c '...', and each command written as an array,
-// execFileSync("npx", [...]), or by a path to the program), and in a JSON value (commandLines: package.json's
-// "scripts", a hook's "command", a task's program with its arguments). For each it says what it fetches (fetched): the
-// packages it names, or why that cannot be read. npx --no-install (or --no) never fetches. A word that is no command,
-// straight after an option, is read as that option's value. What cannot be read: a variable, npx naming nothing to run
-// here ("npx -y" in a variable), npm init or create, which fetch by another name, npm update or npm audit fix, which
-// take the newest a range allows, another registry or npm config, npm install without its lockfile, a word that is no
-// npm command where npm stands as one (atCommand), a command running on past 16 KB. Other fetchers (curl, wget, pip,
-// pnpm, yarn, bun, playwright install, git clone and the like): OTHER_FETCHER, and Windows' and .NET's: WINDOWS_FETCHER.
-// Node's own modules only (none).
+// Where the commands in a project's files stand, for the licence scan (licence-scan.mjs, beside this file, which says
+// what it needs of each): each npx, npm exec (Windows' npx.cmd and npm.cmd too), npm install (and its other spellings),
+// npm link, npm pack, npm diff, npm cache add and npm publish, past any redirection, in a file's text (commands: a line
+// of its own for each, nested ones too, as in npx -c '...', and each command written as an array, execFileSync("npx",
+// [...]), or by a path to the program), and in a JSON value (commandLines: package.json's "scripts", a hook's
+// "command", a task's program with its arguments). What each line fetches is read apart, in licence-npm.mjs
+// (fetched), and the fetchers of other kinds in licence-fetchers.mjs. What cannot be read here: a command running on
+// past 16 KB.
+// Node's own modules only, and licence-npm.mjs, beside this file.
+import { CONFIG, NO_FETCH, RUN, whole } from "./licence-npm.mjs";
 
-// npm's commands that fetch a package, by every spelling npm takes; those that fetch nothing new (the lockfile's own,
-// or none); and options known to take a value. A word that is no command, straight after an option, is read as that
-// option's value, so an option it does not know cannot hide the command after it.
-const INSTALL = new Set(["install", "i", "in", "ins", "inst", "insta", "instal", "isnt", "isnta", "isntal", "isntall", "add", "install-test", "it", "pack"]);
-const RUN = new Set(["exec", "x"]);
-const BY_OTHER_NAME = new Set(["create", "init", "innit"]);
-const UPDATE = new Set(["update", "up", "upgrade", "udpate"]);
 // The words that run another program, given among their arguments (sudo -Hu root npm, timeout --signal KILL 60 npm,
 // flock /tmp/lock npm, npx cross-env A=1 npm); those that run a string as a command line (eval "npm ...", sh -c,
 // concurrently "npm run a" "npm run b", nodemon --exec "..."); and the words after which a command starts.
@@ -32,190 +22,6 @@ const RUNNERS = new Set([
 const STRING_RUNNERS = /^(?:-c|--command|--exec|run:|eval|concurrently|watch|cross-env-shell|parallel|su)$/u;
 const KEYWORDS = new Set(["if", "elif", "while", "until", "then", "do", "else"]);
 const SPACE = new Set([" ", "\t", "\r", "\v", "\f"]);
-// (an argument of a list keeps its own spaces as this mark when the list is written as one line, so it stays one word)
-const KEPT = "\u0000";
-const whole = (argument) => argument.replace(/\s/gu, KEPT);
-const LINK = new Set(["link", "ln"]);
-const CONFIG = new Set(["config", "c", "set"]);
-const NO_FETCH = new Set([
-  "access", "adduser", "add-user", "audit", "author", "bugs", "issues", "cache", "ci", "clean-install", "ic", "install-clean", "isntall-clean", "install-ci-test",
-  "cit", "clean-install-test", "completion", "config", "c", "get", "set", "dedupe", "ddp", "deprecate", "diff", "dist-tag", "dist-tags",
-  "docs", "home", "doctor", "edit", "explain", "why", "explore", "find-dupes", "fund", "help", "hlp", "help-search", "hook",
-  "ll", "la", "login", "logout", "ls", "list", "org", "outdated", "owner", "ping", "pkg", "prefix", "profile",
-  "prune", "publish", "query", "rebuild", "rb", "repo", "restart", "root", "run", "run-script", "rum", "urn", "sbom",
-  "search", "find", "s", "se", "shrinkwrap", "star", "stars", "start", "stop", "team", "test", "t", "tst", "token",
-  "undeprecate", "uninstall", "unlink", "remove", "rm", "r", "un", "unpublish", "unstar", "version", "verison", "v",
-  "view", "info", "show", "whoami",
-]);
-const VALUED = new Set([
-  "-C", "-w", "-L", "--access", "--auth-type", "--before", "--browser", "--ca", "--cache", "--cafile", "--call", "-c",
-  "--cert", "--cidr", "--cpu", "--depth", "--diff", "--diff-dst-prefix", "--diff-src-prefix", "--diff-unified",
-  "--editor", "--expect-result-count", "--fetch-retries", "--fetch-retry-factor", "--fetch-retry-maxtimeout",
-  "--fetch-retry-mintimeout", "--fetch-timeout", "--globalconfig", "--heading", "--https-proxy", "--include",
-  "--init-author-email", "--init-author-name", "--init-author-url", "--init-license", "--init-module", "--init-version",
-  "--install-strategy", "--key", "--libc", "--local-address", "--location", "--lockfile-version", "--loglevel",
-  "--logs-dir", "--logs-max", "--maxsockets", "--message", "-m", "--node-options", "--noproxy", "--omit", "--os", "--otp",
-  "--pack-destination", "--preid", "--prefix", "--provenance-file", "--proxy", "--registry", "--replace-registry-host",
-  "--save-prefix", "--sbom-format", "--sbom-type", "--scope", "--script-shell", "--searchexclude", "--searchlimit",
-  "--searchopts", "--searchstaleness", "--shell", "--tag", "--tag-version-prefix", "--umask", "--userconfig", "--viewer",
-  "--which", "--workspace",
-]);
-// Other fetchers, as a command (at a line's or command's start, or as a program named in quotes before its arguments),
-// past any options before their subcommand (pip --isolated install, git -C "vendor dir" clone, cargo +nightly
-// install), each word read with its quoted parts, eight at most: past eight, a fetcher with options counts as a fetch.
-// A program's name may stand as a word, or as a quoted word of its own, by its path too ("pip" install,
-// "$here/node_modules/.bin/playwright" install, or \"pip\" in a string of code), and so may its subcommand (pip "install").
-// bunx counts only before what can start an argument, so code that names "bunx" in a comparison or a list passes.
-const PART = String.raw`(?:[^\s"']|"[^"\n]*"|'[^'\n]*')`;
-const OPTION = String.raw`(?:\s+[-+]${PART}+(?:\s+(?:[^\s"'+-]|"[^"\n]*"|'[^'\n]*')${PART}*)?)`;
-const program = (name) => String.raw`(?:\b${name}|\\?"(?:[^"\n]*[/\\])?${name}\\?"|\\?'(?:[^'\n]*[/\\])?${name}\\?')`;
-const fetcher = (name, then) => `${program(name)}(?:${OPTION}{0,8}\\s+\\\\?["']?${then}|${OPTION}{8})`;
-export const OTHER_FETCHER = new RegExp(
-  "(?:(?:^|[\\s;&|(`$\'\"/\\\\])(?:curl|wget)|\\\\?\"(?:[^\"\\n]*[/\\\\])?(?:curl|wget)\\\\?\"|\\\\?\'(?:[^\'\\n]*[/\\\\])?(?:curl|wget)\\\\?\')" +
-    "\\s+(?:-[-a-zA-Z]|https?://|[\'\"$])|['\"`](?:[^'\"`\\s]*[/\\\\])?(?:curl|wget|pip3?|pipx|pnpm|yarn|bunx|bun|gem|cargo|deno)['\"`]\\s*,\\s*\\[|" +
-    "['\"`](?:[^'\"`\\s]*[/\\\\])?git['\"`]\\s*,\\s*\\[\\s*['\"`]clone|" +
-    `(?:${fetcher("pipx?3?", "install")}|${fetcher("pnpm", "(?:dlx|add|install|i)[\"']?\\s")}|${fetcher("yarn", "(?:dlx|add)[\"']?\\s")}|${program("bunx")}\\s+[\\w@./"'$~\`\\\\-]|` +
-    `${fetcher("bun", "(?:add|x|install)[\"']?\\s")}|${fetcher("playwright", "install")}|${fetcher("git", "clone")}|${fetcher("gem", "install")}|` +
-    `${fetcher("cargo", "install")}|${fetcher("go", "install")}|${fetcher("apt(?:-get)?", "install")}|${fetcher("brew", "install")}|` +
-    `${fetcher("deno", "(?:install|run)")})`,
-  "mu",
-);
-// Windows' and .NET's fetchers, in any case, as PowerShell reads its commands: dotnet's installs and updates of a tool,
-// a workload, a template or a package (dotnet package add and update too, and dotnet new -i, the spelling before
-// .NET 7) and its one-off runs of a tool (dotnet tool exec, dnx), but not dotnet restore or what else reads the
-// project's own package list, which the project's own check holds; nuget, choco, winget and scoop installing or
-// updating; PowerShell's installs and its downloads (Invoke-WebRequest and the like, iwr and irm, of an address with or
-// without its scheme, or a variable), each before an argument: a name standing alone, as a label or a comparison holds
-// it, fetches nothing. Written as a program and its array of arguments too, as OTHER_FETCHER reads its own.
-export const WINDOWS_FETCHER = (() => {
-  const Q = "['\"`]", FIRST = String.raw`\s*,\s*\[\s*(?:${Q}-[^'"` + "`" + String.raw`\n]*${Q}\s*,\s*){0,8}${Q}`; // (a program, then its array, past options)
-  const named = (name) => String.raw`${Q}(?:[^'"` + "`" + String.raw`\s]*[/\\])?${name}(?:\.exe)?${Q}${FIRST}`;
-  return new RegExp(
-    `(?:${fetcher(String.raw`dotnet(?:\.exe)?`, String.raw`(?:(?:tool|workload|new)["']?\s+["']?(?:install|update)\b|tool["']?\s+["']?exec\b|new\s+(?:-i|--install)\b|package["']?\s+["']?(?:add|update)\b|add["']?\s+(?:${PART}+\s+)?["']?package["']?\s)`)}|` +
-      `${fetcher(String.raw`(?:nuget|choco|winget|scoop)(?:\.exe)?`, String.raw`(?:install|upgrade|update)["']?\s`)}|${fetcher(String.raw`winget(?:\.exe)?`, String.raw`add["']?\s`)}|` +
-      String.raw`${program("dnx")}\s+[\w@./"'$~` + "`" + String.raw`\\-]|${Q}(?:[^'"` + "`" + String.raw`\s]*[/\\])?dnx${Q}\s*,\s*\[|` +
-      String.raw`${named("(?:nuget|choco|winget|scoop)")}(?:install|upgrade|update)${Q}|${named("winget")}add${Q}|` +
-      String.raw`${named("dotnet")}(?:(?:tool|workload|new)${Q}\s*,\s*${Q}(?:install|update)|tool${Q}\s*,\s*${Q}exec|package${Q}\s*,\s*${Q}(?:add|update)|add${Q}\s*,\s*(?:${Q}[^'"` + "`" + String.raw`\n]*${Q}\s*,\s*)?${Q}package)${Q}|` +
-      String.raw`(?:^|[\s;&|({` + "`" + String.raw`$'"/\\])(?:Install-(?:Module|Package|Script|PSResource)\s+(?:-[a-zA-Z]|['"$(@]|[\w.])|` +
-      String.raw`(?:Invoke-WebRequest|Invoke-RestMethod|Start-BitsTransfer|iwr|irm)\s+(?:-[a-zA-Z]|https?://|['"$(@]|[\w-]+\.[a-z]{2,})))`,
-    "imu",
-  );
-})();
-/** The first fetch in text by a fetcher the scan cannot read, or undefined. */
-export const otherFetch = (text) => (OTHER_FETCHER.exec(text) ?? WINDOWS_FETCHER.exec(text))?.[0];
-
-/**
- * What one command line fetches: { specs, unreadable, packs } where specs are the packages written for npx, npm exec,
- * npm install (and its other spellings) or npm pack, unreadable says why a fetch could not be read, and packs that it
- * is npm pack, which only fetches.
- * Others: { specs: [] }.
- */
-export function fetched(line, atCommand = false, literal = false) {
-  // (a comment after the command, and a redirection, ">log", "2> log", "&>log", "<in", with its target wherever it
-  // stands, are known by the word as written and only outside quotes: a quoted '#x', "release #1" or '>' is an
-  // argument; in a line built from an argument list, where no shell reads it, every word is one. Quotes are followed
-  // twice, a backslash escaping the next character and not, since it may belong to a string around the command
-  // ("npm i --cache \"a #c\" x" in code); a word counts as outside only where both readings say so)
-  const raw = line.trim().split(/\s+/u);
-  const inside = (escapes) => {
-    let quote = "";
-    return raw.map((w) => {
-      const was = quote !== "";
-      for (let k = 0; k < w.length; k++) {
-        if (escapes && w[k] === "\\" && quote !== "'") k++;
-        else if (quote) { if (w[k] === quote) quote = ""; } else if ("'\"`".includes(w[k])) quote = w[k];
-      }
-      return was;
-    });
-  };
-  const escaped = inside(true), plain = inside(false), quoted = raw.map((w, k) => escaped[k] || plain[k]);
-  const end = literal ? -1 : raw.findIndex((w, k) => !quoted[k] && (w.startsWith("#") || w.startsWith("//")));
-  const operator = (k) => !literal && !quoted[k] && /^\d*[<>&]/u.test(raw[k] ?? "");
-  const kept = (end < 0 ? raw : raw.slice(0, end)).filter((w, k) => !operator(k) && !(operator(k - 1) && /^\d*[<>&]+$/u.test(raw[k - 1])));
-  // (then each word loses the quotes, brackets and commas of the string or call it sits in; a "+" between the pieces of
-  // a string built in code joins them: npm ' + 'install x)
-  const words = kept.map((w) => w.replace(/^['"`([{]+|['"`),;\]}]+$/gu, "").replaceAll(KEPT, " ")).filter((w) => w && w !== "+");
-  if (/^(npx|npm)\.cmd$/iu.test(words[0] ?? "")) words[0] = words[0].slice(0, 3).toLowerCase(); // (Windows' spelling)
-  // (an audited name means the npm registry's package: a command that fetches from elsewhere cannot be audited by it)
-  if (/^(npx|npm)$/u.test(words[0] ?? "") && words.some((w) => /^--?(@[^=]*:)?registry\b|^--replace-registry-host\b|^--(user|global)config\b|^npm_config_.*(registry|config)/iu.test(w)))
-    return { specs: [], unreadable: "it fetches from another registry than npm's, or reads another npm config that may name one" };
-  let i = 0, args = words.slice(1);
-  const options = () => { while (i < words.length && words[i].startsWith("-")) i += VALUED.has(words[i]) ? 2 : 1; };
-  let runs = false, npx = false, local = false, packs = false, linking = false;
-  if (words[0] === "npx") { runs = npx = true; i = 1; } else if (words[0] === "npm") {
-    // (after npm, its options; a word that is no command, straight after an option, is taken as that option's value)
-    const fetching = (w) => INSTALL.has(w) || RUN.has(w) || BY_OTHER_NAME.has(w) || UPDATE.has(w) || LINK.has(w);
-    i = 1;
-    let command;
-    for (let afterOption = false; i < words.length; ) {
-      const w = words[i++];
-      if (w.startsWith("-")) { if (VALUED.has(w)) i++; afterOption = !VALUED.has(w) && !w.includes("="); continue; }
-      if (fetching(w) || NO_FETCH.has(w) || !afterOption) { command = w; break; }
-      afterOption = false;
-    }
-    // (npm reads the options before its command as its config, as it reads those after: npm --diff=x diff)
-    const early = command === undefined ? [] : words.slice(1, i - 1);
-    // (npm config set registry, and the like, points every later fetch at another registry; npm audit fix installs
-    // releases the lockfile does not hold)
-    const sets = command === "set" || words.slice(i).some((w) => w === "set" || w === "edit");
-    if (CONFIG.has(command) && sets && words.slice(i).some((w) => /(^|:)registry\b|^replace-registry-host\b|^(user|global)config\b/iu.test(w)))
-      return { specs: [], unreadable: "it points npm at another registry or config, so no audited name can be trusted after it" };
-    if (command === "audit" && words.slice(i).includes("fix")) return { specs: [], unreadable: "npm audit fix installs releases the lockfile does not hold" };
-    // (npm diff --diff=<spec>, npm cache add <spec> and npm publish <spec> fetch what they name, and prepare a git
-    // package, running its scripts: each but a local folder or tarball is a package to audit)
-    if (command === "diff" || command === "cache" || command === "publish") {
-      // (a local folder or tarball: a path, never an address, https://x/y.tgz, or a git remote)
-      const localSpec = (w) => (w.includes(":") ? w.startsWith("file:") : /^(\.|\/|~)/u.test(w) || /\.(tgz|tar\.gz)$/iu.test(w));
-      const rest = command === "diff" ? [...early, ...words.slice(i)] : words.slice(i), specs = [];
-      let adding = command !== "cache";
-      for (let k = 0; k < rest.length; k++) {
-        const w = rest[k], diff = /^--diff(?:=(.*))?$/u.exec(w);
-        if (diff) { const v = diff[1] ?? rest[++k]; if (command === "diff" && v !== undefined && !localSpec(v)) specs.push(v); continue; }
-        if (w.startsWith("-")) { if (VALUED.has(w)) k++; continue; }
-        if (!adding) { if (w !== "add") break; adding = true; continue; }
-        if (command !== "diff" && !localSpec(w)) specs.push(w);
-      }
-      return { specs };
-    }
-    // (where npm stands as a command, a word after it that is no npm command cannot be read: a variable, a string
-    // built in code; elsewhere, in prose, it is only a word)
-    if (atCommand && command !== undefined && !fetching(command) && !NO_FETCH.has(command))
-      return { specs: [], unreadable: `npm ${command}: no npm command, so what it runs cannot be read` };
-    if (INSTALL.has(command) && command !== "pack" && [...early, ...words.slice(i)].some((w, k, rest) => /^--no-(package-lock|shrinkwrap)$|^--(package-lock|shrinkwrap)=false$/iu.test(w) || (/^--(package-lock|shrinkwrap)$/iu.test(w) && /^false$/iu.test(rest[k + 1] ?? ""))))
-      return { specs: [], unreadable: "it installs without the lockfile, so what it installs is not what the lockfile's check read" };
-    if (command === undefined || !fetching(command)) return { specs: [] };
-    if (UPDATE.has(command)) return { specs: [], unreadable: `npm ${command} fetches the newest release a range allows, which cannot be audited` };
-    if (RUN.has(command)) { runs = true; args = [...early, ...words.slice(i)]; } else args = words.slice(i);
-    if (LINK.has(command)) linking = true; // (npm link <package> installs it if missing; a folder is linked as it is)
-    else if (BY_OTHER_NAME.has(command)) { options(); return words[i] ? { specs: [], unreadable: `npm ${command} fetches a package by another name` } : { specs: [] }; }
-    else packs = command === "pack";
-  } else return { specs: [] };
-  // (npx reads its options up to the command it runs; npm exec reads them, --package among them, up to "--", and
-  // those before "exec" too)
-  const specs = [];
-  let command, called = false;
-  for (i = 0; i < args.length; i++) {
-    const w = args[i];
-    if (w === "--") { if (runs && !npx) { command ??= args[i + 1]; break; } continue; }
-    if (w === "-p" || w === "--package") { specs.push(args[++i] ?? ""); continue; }
-    if (w.startsWith("--package=") || w.startsWith("-p=")) { specs.push(w.slice(w.indexOf("=") + 1)); continue; }
-    // (--no-install is --yes=false; --yes, -y or --yes=<anything but false> installs; the last one given counts)
-    const yes = /^(?:--yes|-y)(?:=(.*))?$/u.exec(w), no = /^(?:--no-install|--no|--no-yes)(?:=(.*))?$/u.exec(w);
-    if (runs && yes) { local = yes[1] === "false"; continue; }
-    if (runs && no) { local = no[1] !== "false"; continue; }
-    if (runs && /^(-c|--call)(=|$)/u.test(w)) { called = true; if (!w.includes("=")) i++; continue; } // (the shell line it runs: read as a line of its own)
-    if (VALUED.has(w)) { i++; continue; }
-    if (w.startsWith("-")) continue;
-    if (!runs) { if (!(linking && /^(\.|\/|~|file:)/u.test(w))) specs.push(w); continue; }
-    command ??= w;
-    if (npx) break;
-  }
-  if (runs && !specs.length && command !== undefined && !local && !called) specs.push(command);
-  // (npx with no package and nothing to run here takes them from elsewhere: a variable, "npx -y" + a package later)
-  const asks = args.length > 0 && args.every((w) => /^(--version|-v|--help|-h)$/u.test(w)); // (npx --version)
-  if (runs && !specs.length && command === undefined && !called && !asks) return { specs: [], unreadable: "it names nothing to run here, so what it runs comes from elsewhere" };
-  return { specs, packs };
-}
 
 /** Whether the word at `words[k]` runs another program: a runner (by any path), npm exec, or a variable ($SUDO). */
 function runnerAt(words, k) {
@@ -239,27 +45,34 @@ function prefixes(words) {
  * between (concurrently -k "npm run a" "npm run b"). It reads at most 4096 characters back, and past those, counts.
  */
 function opensCommand(text, k, lineStart) {
-  for (let budget = 4096; budget > 0; ) {
+  const reach = { left: 4096 };
+  while (reach.left > 0) {
     if (lineStart(k) || "({[=:,".includes(text[k - 1])) return true;
-    const q = text[k - 1];
-    let start = k - 1;
-    if ("'\"`".includes(q)) {
-      while (start > 0 && text[start - 1] !== q && text[start - 1] !== "\n" && budget-- > 0) start--;
-      if (budget <= 0) return true; // (read no further: it counts)
-      if (start === 0 || text[start - 1] !== q) return false;
-      start--;
-    } else {
-      start = k;
-      while (!lineStart(start) && !SPACE.has(text[start - 1]) && budget-- > 0) start--;
-      if (budget <= 0) return true;
-      const w = text.slice(start, k).replace(/^.*[\/\\]/u, "");
-      if (STRING_RUNNERS.test(w)) return true;
-      if (!w.startsWith("-")) return false;
-    }
-    k = start;
-    while (!lineStart(k) && SPACE.has(text[k - 1]) && budget-- > 0) k--;
+    const before = "'\"`".includes(text[k - 1]) ? quotedBefore(text, k, reach) : wordBefore(text, k, lineStart, reach);
+    if ("opens" in before) return before.opens;
+    k = before.from;
+    while (!lineStart(k) && SPACE.has(text[k - 1]) && reach.left-- > 0) k--;
   }
   return true;
+}
+
+// (what stands before `k` for opensCommand: either its answer, { opens }, or where the walk goes on, { from }; `reach`
+// counts the characters it may still read)
+function quotedBefore(text, k, reach) {
+  const q = text[k - 1];
+  let start = k - 1;
+  while (start > 0 && text[start - 1] !== q && text[start - 1] !== "\n" && reach.left-- > 0) start--;
+  if (reach.left <= 0) return { opens: true }; // (read no further: it counts)
+  return start === 0 || text[start - 1] !== q ? { opens: false } : { from: start - 1 };
+}
+
+function wordBefore(text, k, lineStart, reach) {
+  let start = k;
+  while (!lineStart(start) && !SPACE.has(text[start - 1]) && reach.left-- > 0) start--;
+  if (reach.left <= 0) return { opens: true };
+  const w = text.slice(start, k).replace(/^.*[\/\\]/u, "");
+  if (STRING_RUNNERS.test(w)) return { opens: true };
+  return w.startsWith("-") ? { from: start } : { opens: false };
 }
 
 /**
@@ -405,20 +218,27 @@ export function commands(text, code = false, literal = false) {
  */
 const COMMAND = /command|cmd|script|exec|args|^run$/iu;
 const PROSE = /^(\$?comment|about|description|summary|how|used|why|notes?|help|message|text|title|label|keywords|author|contributors|maintainers|homepage|repository|bugs|funding|licen[cs]e|url)$/iu;
+// (each list joined a value at a time, never spread into one call, which a long list would overflow; the caller bounds
+// how deep a value nests, as the scan does with tooDeep, in guards.mjs)
+const add = (to, list) => { for (const x of list) to.push(x); };
 const strings = (v) => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(strings) : []);
 export function commandLines(v) {
   if (!v || typeof v !== "object") return typeof v === "string" ? [v] : [];
-  const programs = [], args = [], out = [];
+  const programs = [], args = [], out = [], keyed = !Array.isArray(v);
   for (const [k, x] of Object.entries(v)) {
-    if (!Array.isArray(v) && PROSE.test(k)) continue;
-    const listed = Array.isArray(x) && x.every((y) => typeof y === "string");
-    if (!Array.isArray(v) && COMMAND.test(k) && typeof x === "string") programs.push(x);
-    else if (!Array.isArray(v) && COMMAND.test(k) && listed) args.push(...x);
-    else if (!Array.isArray(v) && COMMAND.test(k)) out.push(...strings(x)); // (package.json's "scripts": every one, a "help" too)
-    else out.push(...commandLines(x));
+    if (keyed && PROSE.test(k)) continue;
+    const command = keyed && COMMAND.test(k);
+    if (command && typeof x === "string") programs.push(x);
+    else if (command && Array.isArray(x) && x.every((y) => typeof y === "string")) add(args, x);
+    else if (command) add(out, strings(x)); // (package.json's "scripts": every one, a "help" too)
+    else add(out, commandLines(x));
   }
-  // (one program with its arguments, as a task or a launch writes them; several, each its own line, as scripts are,
-  // each with any arguments beside them)
+  return withArguments(programs, args, out);
+}
+
+// (one program with its arguments, as a task or a launch writes them; several, each its own line, as scripts are,
+// each with any arguments beside them)
+function withArguments(programs, args, out) {
   // (a line built from an argument list is literal: no shell reads it, so "#" or ">" there is an argument)
   const line = (words) => (args.length ? Object.assign(new String(words.join(" ")), { literal: true }) : words.join(" "));
   // (an argument holding spaces is kept whole for the list's program, and also read as a command line of its own,

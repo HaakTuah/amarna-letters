@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/how-to-work.md: Match effort to the task",
+  "behind": [25]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: A tool that only runs is fetched at set-up, as its own program",
+  "holder": "check: scripts/licence-scan.mjs, in part",
+  "behind": ["#534.1"],
+  "number": "findings; outcome: robust"
+}

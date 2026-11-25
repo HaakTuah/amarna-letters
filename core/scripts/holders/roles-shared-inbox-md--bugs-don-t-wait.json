@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/inbox.md: Bugs don't wait",
+  "holder": "check: GitHub's closing of an issue whose \"Fixes #n\" reaches the default branch, in part"
+}

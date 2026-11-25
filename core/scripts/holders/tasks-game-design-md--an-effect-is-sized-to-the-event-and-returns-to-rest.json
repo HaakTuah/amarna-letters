@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: An effect is sized to the event and returns to rest",
+  "holder": "check: scripts/screens.mjs, in part"
+}

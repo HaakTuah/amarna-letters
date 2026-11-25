@@ -2,37 +2,40 @@
 
 FILL IN: what this project is, in two or three lines: what it does, who uses it and what it is built in.
 
-The owner decides; builders like you build it. A builder of another provider: read `core/modules/other-builders.md` at
-the start of every task.
+The owner decides; builders like you build it. A session of any tool but Claude Code: read
+`core/tools/other-builders.md` at the start of every task.
 
 ## The core
 
-This project takes the shared rules in `core/` by `core-manifest.md`, whose slots and names fill the core's words. Read
-these whole at the start of every task (Claude Code imports them; any other builder: read each file named):
+This project takes the shared rules in `core/` by `core-manifest.md`, whose slots and names fill the core's words. A
+builder reads these whole at the start of every task (Claude Code, Kiro and Antigravity pull them in through their
+entry files; any other tool: open each file named):
 
+<!-- The core's part: a sync writes it; write yours outside. -->
 @core-manifest.md
 @core/floor/security.md
-@core/modules/how-to-work.md
-@core/modules/inbox.md
-@core/modules/work-flow.md
-@core/modules/git.md
+@core/roles/builder.md
+@core/roles/shared/how-to-work.md
+@core/roles/shared/inbox.md
+@core/roles/shared/work-flow.md
+<!-- The core's part ends. -->
 
-The other files of the core are read when a task needs them, each module saying when, among them `core/floor/topics.md`
-(when: the floor's opening says).
+What else a task calls for, and what another role reads, one command prints:
+`node core/scripts/reading.mjs <role> --issue <its issue>`.
 
 ## Where things are
 
 | What | Where |
 | --- | --- |
-| What is done and the queue, in order | `docs/PROGRESS.md` |
+| The queue, in order: what is next and in flight | `docs/PROGRESS.md` |
 | Security: what this project adds to the floor; who might attack it | `SECURITY.md`, `docs/threat-model.md` |
 
 ## Starting a task
 
-A builder of another provider starts from its brief instead (`core/modules/other-builders.md`).
+A session handed a brief starts from it instead (`core/tools/other-builders.md`).
 
-1. Take the main lane's next entry in `docs/PROGRESS.md`. Its text there is the spec.
-2. Read only what that entry names.
+1. Take the main lane's next entry in `docs/PROGRESS.md`. Its issue is the spec; a stage with no issue, its text there.
+2. Read what that command prints for it, as a builder, and what that entry names.
 
 ## Commands
 
@@ -40,5 +43,5 @@ FILL IN: the commands that set the project up, run its tests and build it, each 
 
 ## Review guidelines
 
-Every reviewer, the code reviewers and the security reviewer included, reads `core/modules/review-guidelines.md` whole
+Every reviewer, the code reviewers and the security reviewer included, reads `core/roles/shared/review-guidelines.md` whole
 and judges the change by it, with `SECURITY.md` and the floor.

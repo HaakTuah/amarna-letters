@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/screens.md: One system",
+  "holder": "check: scripts/screens.mjs, in part"
+}

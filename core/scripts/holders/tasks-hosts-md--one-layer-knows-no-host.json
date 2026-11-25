@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/hosts.md: One layer knows no host",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": [236]
+}

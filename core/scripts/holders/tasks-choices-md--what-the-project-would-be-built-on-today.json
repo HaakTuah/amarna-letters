@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/choices.md: What the project would be built on today",
+  "holder": "check: scripts/steps.mjs, in part",
+  "behind": [251],
+  "number": "correction: looks wrong; outcome: robust"
+}

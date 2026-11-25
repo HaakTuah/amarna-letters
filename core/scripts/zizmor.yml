@@ -1,0 +1,21 @@
+# The core's policy for zizmor, the workflow check's auditor (scripts/workflow-tools.mjs; #580): every audit of its
+# regular persona that needs no network, but where floor rule 2 decides otherwise, each with its reason. A finding a
+# project judges safe on one line is allowed by a comment "# zizmor: ignore[<audit>]" there, with why beside it, which
+# the reviews read; one the base already held is noted and fails nothing (AGENTS.md, "Nothing locks a project").
+rules:
+  # (the triggers are the core's own reading: workflows.mjs fails pull_request_target wherever the word stands, which
+  # neither a comment that ignores this audit nor zizmor's pass for a workflow whose one step is actions/labeler gets
+  # past, since rule 2 says never; workflow_run and issue_comment rule 2 allows, and what they may run the other audits
+  # and the reviews hold: the run's head repository checked, no untrusted text in a script, the fewest permissions)
+  dangerous-triggers:
+    disable: true
+  # (a call to a workflow of the same repository by ./ is how the core calls its own; what rule 2 asks of a call to
+  # another's is its pin, which unpinned-uses reads)
+  self-repository:
+    disable: true
+  # (rule 2: GitHub's own actions, actions/*, at any reference; any other pinned to a full commit SHA)
+  unpinned-uses:
+    config:
+      policies:
+        "actions/*": any
+        "*": hash-pin

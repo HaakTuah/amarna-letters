@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Every action is answered within a tenth of a second",
+  "holder": "check: scripts/screens.mjs, in part"
+}

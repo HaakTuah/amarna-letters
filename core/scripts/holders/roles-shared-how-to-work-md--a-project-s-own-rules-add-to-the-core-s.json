@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/how-to-work.md: A project's own rules add to the core's",
+  "holder": "check: .github/workflows/core.yml, in part",
+  "behind": [161, 249]
+}

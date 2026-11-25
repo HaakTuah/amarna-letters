@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/code-shape.md: A comment says why the code is so, never what changed",
+  "holder": "check: scripts/shape.mjs",
+  "behind": ["#458"],
+  "number": "check fires; outcome: readable"
+}

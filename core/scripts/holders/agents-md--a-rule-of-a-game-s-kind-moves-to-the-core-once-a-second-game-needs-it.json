@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A rule of a game's kind moves to the core once a second game needs it",
+  "behind": ["#459", "#484.8"],
+  "number": "correction: rule missing; outcome: asked"
+}

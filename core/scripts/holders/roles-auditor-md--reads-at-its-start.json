@@ -1,0 +1,5 @@
+{
+  "rule": "roles/auditor.md: Reads at its start",
+  "holder": "check: scripts/reading.mjs, in part",
+  "behind": ["#464"]
+}

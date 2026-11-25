@@ -1,0 +1,41 @@
+{
+  "baseline": ".github/shape-baseline.json",
+  "code": ["scripts"],
+  "tests": ["tests/*-test.mjs"],
+  "select": {
+    "whole": ["tests/init-test.mjs", "tests/init-dotnet-test.mjs", "tests/upgrade-test.mjs", "tests/staged-test.mjs", "tests/core-yml-test.mjs", "tests/pure-sync-test.mjs", "tests/copy-tree-test.mjs", "tests/copy-left-out-test.mjs"],
+    "none": ["QUEUE.md", "archive/", ":(glob)reports/*.md"]
+  },
+  "wait": 1200,
+  "systems": {
+    "tools": { "domain": "tools", "paths": ["scripts/", "tests/"] }
+  },
+  "suites": {
+    "suites-kit-core-licences": { "linux": 240 },
+    "suites": { "linux": 240 },
+    "suites-rest-steps": { "linux": 240 },
+    "suites-projects": { "win32": 600 },
+    "suites-sync": { "win32": 300 },
+    "suites-converge": { "win32": 450 },
+    "suites-hostile": { "win32": 300 },
+    "suites-kit": { "win32": 600 },
+    "suites-steps": { "win32": 450 },
+    "suites-writes": { "win32": 450 },
+    "suites-core": { "win32": 450 },
+    "suites-core-places": { "win32": 450 },
+    "suites-licences": { "win32": 450 },
+    "suites-rest": { "win32": 480 },
+    "suites-rest-two": { "win32": 480 },
+    "suites-rest-three": { "win32": 480 },
+    "suites-scans": { "win32": 450 },
+    "suites-tools": { "win32": 450 },
+    "suites-network": { "linux": 240, "win32": 600 },
+    "upgrade": { "linux": 240, "win32": 700 },
+    "upgrade-older-npm": { "win32": 1200 },
+    "upgrade-older-dotnet": { "win32": 900 },
+    "upgrade-older-pre": { "win32": 500 },
+    "upgrade-newer-npm": { "win32": 1200 },
+    "upgrade-newer-dotnet": { "win32": 900 },
+    "staged": { "linux": 240, "win32": 900 }
+  }
+}

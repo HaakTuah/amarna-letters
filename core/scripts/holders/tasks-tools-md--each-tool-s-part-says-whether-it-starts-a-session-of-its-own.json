@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tools.md: Each tool's part says whether it starts a session of its own",
+  "holder": "check: scripts/tools-offer.mjs, in part",
+  "behind": ["#492.14"],
+  "number": "check fires; outcome: usable"
+}

@@ -1,0 +1,8 @@
+{
+  "rule": "floor/topics/weaknesses.md: In a PR's own change",
+  "holder": [
+    "check: scripts/security-review.mjs, in part",
+    "check: GitHub's ruleset on the default branch, in part"
+  ],
+  "behind": [130]
+}

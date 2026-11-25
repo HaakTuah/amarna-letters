@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/cleaning.md: A project is read against the core once, then for what each release changes",
+  "holder": "check: scripts/steps/770-a-project-read-against-the-core.mjs, in part",
+  "behind": ["#464"],
+  "number": "check fires; outcome: robust"
+}

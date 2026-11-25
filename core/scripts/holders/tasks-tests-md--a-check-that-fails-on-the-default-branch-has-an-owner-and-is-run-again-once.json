@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A check that fails on the default branch has an owner, and is run again once",
+  "holder": "check: scripts/look.mjs, in part",
+  "behind": ["#542.1"],
+  "number": "check fires; outcome: fast"
+}

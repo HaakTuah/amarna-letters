@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/updates.md: CodeQL",
+  "holder": ["check: .github/workflows/codeql.yml", "check: scripts/code-scan.mjs"],
+  "behind": ["#546"],
+  "number": "check fires; outcome: robust; rare harm"
+}

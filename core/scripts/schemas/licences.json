@@ -1,0 +1,68 @@
+{
+  "$comment": "The form of the licence check's config (licences.mjs, which reads it, says what each key means; the NuGet check reads it too, with \"nuget\", which nuget.mjs checks itself, as agent-tools.mjs checks \"agentTools\" and licence-yes.mjs \"accepted\"). What a schema cannot say stays with the script: that the config names something to check, that a scan's path is written as git lists it, that a path lies in the project, and what holds between \"ships\" and \"lockfiles\". Where ajv is not installed the script's own checks of this form read it instead (licences.mjs, configLists, configPaths and configScan), so the check needs no install. Each rule's mend is what a failure of it says (scripts/schemas.mjs).",
+  "title": "the config",
+  "type": "object",
+  "mend": "write it as one, as the starter kit writes it",
+  "mendFor": {
+    "additionalProperties": "take them out, or correct their spelling",
+    "required": "add \"ships\", the package.json of each lockfile whose packages reach users, or \"ships\": [] if none does",
+    "dependencies": "name the audit's file in \"audit\", which holds what \"notices\" and \"scan\" name, or take them out"
+  },
+  "required": ["ships"],
+  "additionalProperties": false,
+  "dependencies": {
+    "notices": ["audit"],
+    "scan": ["audit"]
+  },
+  "$defs": {
+    "names": {
+      "type": "array",
+      "mend": "correct it in the config: a list of non-empty strings",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "paths": {
+      "type": "array",
+      "mend": "list each as a path from the project's root",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "properties": {
+    "lockfiles": { "$ref": "#/$defs/names" },
+    "ships": { "$ref": "#/$defs/names" },
+    "data": { "$ref": "#/$defs/names" },
+    "fonts": { "$ref": "#/$defs/names" },
+    "ignoreScriptsIn": { "$ref": "#/$defs/names" },
+    "audit": {
+      "type": "string",
+      "minLength": 1,
+      "mend": "name the audit's file, or take \"audit\" out"
+    },
+    "notices": {
+      "type": "string",
+      "minLength": 1,
+      "mend": "name the notices file by its path, beside an \"audit\", or take \"notices\" out"
+    },
+    "scan": {
+      "type": "object",
+      "mend": "write it as one: { \"served\": [...], \"skip\": [...] }",
+      "mendFor": {
+        "additionalProperties": "take them out, or correct their spelling",
+        "required": "add \"served\", the folders whose files reach users, or \"served\": [] if none does"
+      },
+      "required": ["served"],
+      "additionalProperties": false,
+      "properties": {
+        "served": {
+          "type": "array",
+          "mend": "list each as a path from the project's root, \"\" for the whole project",
+          "items": { "type": "string" }
+        },
+        "tools": { "$ref": "#/$defs/paths" },
+        "skip": { "$ref": "#/$defs/paths" }
+      }
+    },
+    "nuget": { "$comment": "the NuGet check's own (nuget.mjs)" },
+    "accepted": { "$comment": "the owner's yeses (licence-yes.mjs)" },
+    "agentTools": { "$comment": "the agent tools check's own (agent-tools.mjs)" }
+  }
+}

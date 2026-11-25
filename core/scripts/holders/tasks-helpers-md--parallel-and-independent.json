@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/helpers.md: Parallel and independent",
+  "behind": [60]
+}

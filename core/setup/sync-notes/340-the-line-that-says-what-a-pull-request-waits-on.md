@@ -1,0 +1,1 @@
+- **16 November 2026, the line that says what a pull request waits on.** Done when each pull request opened after this sync ends its description with its `Waits on:` line (`core/roles/shared/work-flow.md`, "Nothing waits silently"): the description check asks it of those alone, its failure saying the mend, an edit of the description.

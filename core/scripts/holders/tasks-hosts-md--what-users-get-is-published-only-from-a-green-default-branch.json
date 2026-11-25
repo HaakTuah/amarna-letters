@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/hosts.md: What users get is published only from a green default branch",
+  "holder": "check: .github/workflows/release.yml, in part",
+  "behind": [261, "#733.8"],
+  "number": "findings; outcome: fast"
+}

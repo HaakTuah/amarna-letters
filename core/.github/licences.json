@@ -1,8 +1,68 @@
 {
+  "lockfiles": [".packages/package-lock.json", ".packages/parser/package-lock.json", "tests/mutation/package-lock.json"],
+  "ignoreScriptsIn": [".packages/.npmrc", ".packages/parser/.npmrc", "tests/mutation/.npmrc"],
   "ships": [],
+  "data": ["spdx-exceptions", "caniuse-lite"],
   "audit": ".github/licences-audit.json",
   "scan": {
     "served": [],
-    "skip": ["scripts/licence-scan.mjs", "scripts/licence-commands.mjs", "scripts/licence-scan-stage.mjs", "scripts/licence-scan-test.mjs", "scripts/licence-fetch-test.mjs"]
-  }
+    "skip": [
+      "scripts/licence-scan.mjs",
+      "scripts/licence-commands.mjs",
+      "scripts/licence-npm.mjs",
+      "scripts/licence-scan-stage.mjs",
+      "scripts/stages/821-pip-s-download-and-wheel-read-as-its-install.mjs",
+      "tests/licence-scan-test.mjs",
+      "tests/licence-yes-test.mjs",
+      "tests/licence-scan-limits-test.mjs",
+      "tests/licence-scan-pins-test.mjs",
+      "tests/licence-fetch-test.mjs",
+      "tests/licence-fetch-places-test.mjs",
+      "tests/licence-fetch-other-test.mjs",
+      "tests/licence-fetch-pages-test.mjs",
+      "scripts/agent-tools-pins.mjs",
+      "tests/agent-tools-kiro-codex-test.mjs",
+      "tests/agent-tools-links-test.mjs",
+      "tests/agent-tools-pins-test.mjs",
+      "tests/agent-tools-source-test.mjs",
+      "scripts/npm-once.mjs"
+    ]
+  },
+  "agentTools": [
+    {
+      "kind": "hook",
+      "name": "SessionStart startup|resume: bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:scripts/work-saved.sh 2>/dev/null) || { echo \"Not run: the work-saved hook runs only its copy merged into main, and refs/remotes/origin/main has none. Fetch main (git fetch origin main), and it runs from the next reply on.\"; exit 0; }; bash -c \"$f\" work-saved start'",
+      "publisher": "this project"
+    },
+    {
+      "kind": "hook",
+      "name": "PreToolUse Agent|Task: bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:scripts/helper-call.mjs 2>/dev/null) || exit 0; node --input-type=module -e \"$f\"'",
+      "publisher": "this project"
+    },
+    {
+      "kind": "hook",
+      "name": "Stop: bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/main:scripts/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved stop'",
+      "publisher": "this project"
+    },
+    {
+      "kind": "hook",
+      "name": "Kiro SessionStart: bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.kiro/hooks/work-saved.json\" ] || exit 0; [ ! -f \"$r/core-manifest.md\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved start'",
+      "publisher": "this project"
+    },
+    {
+      "kind": "hook",
+      "name": "Kiro Stop: bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.kiro/hooks/work-saved.json\" ] || exit 0; [ ! -f \"$r/core-manifest.md\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved stop'",
+      "publisher": "this project"
+    },
+    {
+      "kind": "hook",
+      "name": "Codex SessionStart: bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.codex/hooks.json\" ] || exit 0; [ ! -f \"$r/core-manifest.md\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved start'",
+      "publisher": "this project"
+    },
+    {
+      "kind": "hook",
+      "name": "Codex Stop: bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.codex/hooks.json\" ] || exit 0; [ ! -f \"$r/core-manifest.md\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved stop'",
+      "publisher": "this project"
+    }
+  ]
 }

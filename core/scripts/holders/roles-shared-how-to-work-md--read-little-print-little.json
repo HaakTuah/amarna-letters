@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/how-to-work.md: Read little, print little",
+  "holder": "check: scripts/reading-size.mjs, in part"
+}

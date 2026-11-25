@@ -1,0 +1,14 @@
+{
+  "name": "agent-core-parser",
+  "private": true,
+  "description": "The parser and its grammars, the packages of other publishers the core's readers of other languages run (scripts/parser.mjs; #529, #530), each at one exact version, installed from package-lock.json into node_modules/ beside it, which git does not track: only in the jobs that run such a reader, as `install.mjs parser`, by the sync and at set-up, never in every job, since a grammar's package carries far more than the reader runs (#719).",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "tree-sitter-bash": "0.25.1",
+    "tree-sitter-c-sharp": "0.23.5",
+    "tree-sitter-javascript": "0.25.0",
+    "tree-sitter-python": "0.25.0",
+    "tree-sitter-typescript": "0.23.2",
+    "web-tree-sitter": "0.27.2"
+  }
+}

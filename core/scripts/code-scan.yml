@@ -1,0 +1,178 @@
+# The core's own rules for the code scan of a private project (code-scan.mjs beside this file; #546), in the rule format
+# of Semgrep's engine: input that reaches a shell command, eval, an SQL string or a file path, and unsafe
+# deserialization, in JavaScript and TypeScript, C# and Python. The core's own work, none of Semgrep's or Opengrep's
+# rules copied (CHOICES.md, "Choice: a private project's code is scanned by Semgrep's engine, with the core's own
+# rules"). Input is a request's query, body, parameters, headers or cookies in JavaScript, and a method's or function's
+# parameter in C# and Python. Each rule's planted and safe samples are in tests/code-scan-test.mjs, which fails where a rule
+# misses one or flags the other.
+rules:
+- id: js-command
+  languages: [javascript, typescript]
+  severity: ERROR
+  message: input reaches a shell command
+  mode: taint
+  pattern-sources:
+  - pattern: $REQ.query
+  - pattern: $REQ.body
+  - pattern: $REQ.params
+  - pattern: $REQ.headers
+  - pattern: $REQ.cookies
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: $CP.exec($CMD, ...)
+      - pattern: $CP.execSync($CMD, ...)
+      - pattern: exec($CMD, ...)
+      - pattern: execSync($CMD, ...)
+    - focus-metavariable: $CMD
+- id: js-eval
+  languages: [javascript, typescript]
+  severity: ERROR
+  message: input reaches eval
+  mode: taint
+  pattern-sources:
+  - pattern: $REQ.query
+  - pattern: $REQ.body
+  - pattern: $REQ.params
+  - pattern: $REQ.headers
+  - pattern: $REQ.cookies
+  pattern-sinks:
+  - pattern: eval(...)
+  - pattern: new Function(...)
+- id: js-sql
+  languages: [javascript, typescript]
+  severity: ERROR
+  message: input is built into an SQL string
+  mode: taint
+  pattern-sources:
+  - pattern: $REQ.query
+  - pattern: $REQ.body
+  - pattern: $REQ.params
+  - pattern: $REQ.headers
+  - pattern: $REQ.cookies
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: $DB.query($Q, ...)
+      - pattern: $DB.execute($Q, ...)
+    - focus-metavariable: $Q
+- id: js-path
+  languages: [javascript, typescript]
+  severity: ERROR
+  message: input reaches a file's path
+  mode: taint
+  pattern-sources:
+  - pattern: $REQ.query
+  - pattern: $REQ.body
+  - pattern: $REQ.params
+  - pattern: $REQ.headers
+  - pattern: $REQ.cookies
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: fs.readFile($P, ...)
+      - pattern: fs.readFileSync($P, ...)
+      - pattern: fs.writeFile($P, ...)
+      - pattern: fs.writeFileSync($P, ...)
+      - pattern: fs.createReadStream($P, ...)
+      - pattern: $RES.sendFile($P, ...)
+    - focus-metavariable: $P
+- id: cs-command
+  languages: [csharp]
+  severity: ERROR
+  message: a parameter reaches a process's command
+  mode: taint
+  pattern-sources:
+  - patterns:
+    - pattern-inside: "$T $M(..., string $X, ...) { ... }"
+    - pattern: $X
+  pattern-sinks:
+  - pattern: Process.Start(...)
+- id: cs-sql
+  languages: [csharp]
+  severity: ERROR
+  message: a parameter is built into an SQL string
+  mode: taint
+  pattern-sources:
+  - patterns:
+    - pattern-inside: "$T $M(..., string $X, ...) { ... }"
+    - pattern: $X
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: new SqlCommand($Q, ...)
+      - pattern: new SqliteCommand($Q, ...)
+    - focus-metavariable: $Q
+- id: cs-path
+  languages: [csharp]
+  severity: ERROR
+  message: a parameter reaches a file's path
+  mode: taint
+  pattern-sources:
+  - patterns:
+    - pattern-inside: "$T $M(..., string $X, ...) { ... }"
+    - pattern: $X
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: File.ReadAllText($P, ...)
+      - pattern: File.ReadAllBytes($P, ...)
+      - pattern: File.WriteAllText($P, ...)
+      - pattern: File.OpenRead($P, ...)
+    - focus-metavariable: $P
+- id: cs-deserialize
+  languages: [csharp]
+  severity: ERROR
+  message: BinaryFormatter deserializes what it is given, which can run code
+  pattern: new BinaryFormatter().Deserialize(...)
+- id: py-command
+  languages: [python]
+  severity: ERROR
+  message: a parameter reaches a shell command
+  mode: taint
+  pattern-sources:
+  - patterns:
+    - pattern-inside: "def $F(..., $X, ...): ..."
+    - pattern: $X
+  pattern-sinks:
+  - pattern: os.system(...)
+  - pattern: os.popen(...)
+  - patterns:
+    - pattern-either:
+      - pattern: subprocess.run($C, ..., shell=True, ...)
+      - pattern: subprocess.call($C, ..., shell=True, ...)
+      - pattern: subprocess.check_output($C, ..., shell=True, ...)
+      - pattern: subprocess.Popen($C, ..., shell=True, ...)
+    - focus-metavariable: $C
+- id: py-sql
+  languages: [python]
+  severity: ERROR
+  message: a parameter is built into an SQL string
+  mode: taint
+  pattern-sources:
+  - patterns:
+    - pattern-inside: "def $F(..., $X, ...): ..."
+    - pattern: $X
+  pattern-sinks:
+  - patterns:
+    - pattern: $C.execute($Q)
+    - focus-metavariable: $Q
+- id: py-eval
+  languages: [python]
+  severity: ERROR
+  message: a parameter reaches eval or exec
+  mode: taint
+  pattern-sources:
+  - patterns:
+    - pattern-inside: "def $F(..., $X, ...): ..."
+    - pattern: $X
+  pattern-sinks:
+  - pattern: eval(...)
+  - pattern: exec(...)
+- id: py-deserialize
+  languages: [python]
+  severity: ERROR
+  message: pickle loads what it is given, which can run code
+  pattern-either:
+  - pattern: pickle.loads(...)
+  - pattern: pickle.load(...)

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A test reaches a real clock or another process only where it guards it",
+  "holder": "check: scripts/shape.mjs",
+  "behind": [260],
+  "number": "check fires; outcome: fast"
+}

@@ -1,0 +1,19 @@
+{
+  "$comment": "The copies check's config (scripts/copies.mjs), as the starter kit writes it (setup/template/copies.json.tmpl). Each rule's mend is what a failure of it says (scripts/schemas.mjs).",
+  "type": "object",
+  "mend": "write the config as the starter kit does ({core}setup/template/copies.json.tmpl): a JSON object with \"baseline\", the baseline's path, \"code\" and \"prose\", lists of git pathspecs, and \"proseFromSecurity\": true or false",
+  "mendFor": {
+    "additionalProperties": "take it out; the config holds \"baseline\", \"code\", \"prose\", \"proseFromSecurity\", \"tests\" and \"twice\" alone",
+    "required": "name the baseline's path in \"baseline\", as the starter kit writes it ({core}setup/template/copies.json.tmpl)"
+  },
+  "required": ["baseline"],
+  "additionalProperties": false,
+  "properties": {
+    "baseline": { "type": "string", "minLength": 1, "mend": "name the baseline's path in \"baseline\", as the starter kit writes it ({core}setup/template/copies.json.tmpl)" },
+    "code": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "write it as a list of git pathspecs, each a non-empty string" },
+    "prose": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "write it as a list of git pathspecs, each a non-empty string" },
+    "proseFromSecurity": { "type": "boolean", "mend": "set it to true, to read the project's rule files, or false" },
+    "tests": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "write it as a list of git pathspecs, each a non-empty string: the files that are tests, whose values the check leaves out (copies-values.mjs)" },
+    "twice": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "mend": "write it as an object of each value written in two files, a pin or a pattern as it stands, to why both must hold it, a non-empty string" }
+  }
+}

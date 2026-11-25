@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A test asserts no time measured on a real clock",
+  "holder": "audit",
+  "behind": [257],
+  "number": "findings; outcome: robust"
+}

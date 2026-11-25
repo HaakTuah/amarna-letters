@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: The core's address stands in one place",
+  "holder": "check: tests/core-address-test.mjs, in part",
+  "behind": [192]
+}

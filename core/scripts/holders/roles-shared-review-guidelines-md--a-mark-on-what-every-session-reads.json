@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/review-guidelines.md: A mark on what every session reads",
+  "holder": ["check: scripts/size.mjs, in part", "check: .github/workflows/size.yml, in part"],
+  "behind": [182, 184, 188]
+}

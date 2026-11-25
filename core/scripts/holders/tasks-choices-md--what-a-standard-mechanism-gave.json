@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: what a standard mechanism gave",
+  "behind": ["#652"],
+  "number": "correction: rule missing; outcome: robust"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "roles/shared/work-flow.md: Sessions",
+  "holder": "check: scripts/work-saved.sh, in part",
+  "behind": [143, 178, 187, "#306"],
+  "number": "correction: does not work; outcome: fast"
+}

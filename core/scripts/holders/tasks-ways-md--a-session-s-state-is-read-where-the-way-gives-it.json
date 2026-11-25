@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/ways.md: A session's state is read where the way gives it",
+  "holder": "check: scripts/stalled.mjs, in part",
+  "behind": ["#397.5"],
+  "number": "correction: does not work; outcome: fast"
+}

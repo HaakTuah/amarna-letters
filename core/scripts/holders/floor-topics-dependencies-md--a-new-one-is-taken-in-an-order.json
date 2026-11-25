@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/dependencies.md: A new one is taken in an order",
+  "behind": [252],
+  "number": "findings; outcome: robust"
+}

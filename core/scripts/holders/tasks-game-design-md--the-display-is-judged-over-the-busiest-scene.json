@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: The display is judged over the busiest scene",
+  "holder": "check: scripts/screens.mjs, in part"
+}

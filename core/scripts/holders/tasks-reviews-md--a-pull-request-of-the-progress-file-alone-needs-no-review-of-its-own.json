@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/reviews.md: A pull request of the *progress file* alone needs no review of its own",
+  "holder": "check: scripts/queue-only.mjs",
+  "behind": ["#750.2"],
+  "number": "findings; outcome: fast"
+}

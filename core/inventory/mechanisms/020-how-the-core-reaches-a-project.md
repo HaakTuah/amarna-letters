@@ -1,0 +1,1 @@
+- **How the core reaches a project:** the copy, its check and its sync, in the lines above. **Keep**, #519's record.

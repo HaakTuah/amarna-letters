@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/cleaning.md: A role's start holds what any of its tasks can break",
+  "behind": ["#469"],
+  "number": "findings; outcome: fast"
+}

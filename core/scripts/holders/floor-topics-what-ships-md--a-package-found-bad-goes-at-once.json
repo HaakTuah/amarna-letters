@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/what-ships.md: A package found bad goes at once",
+  "behind": [252],
+  "number": "correction: rule missing; outcome: robust; rare harm"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "floor/security.md: 11. Nothing personal, ever",
+  "holder": ["check: .github/workflows/personal-terms.yml, in part", "check: scripts/issue-terms.mjs, in part"],
+  "behind": [30, 43, 202, 221, "#783"]
+}

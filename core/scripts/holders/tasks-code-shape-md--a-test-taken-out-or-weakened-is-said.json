@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/code-shape.md: A test taken out or weakened is said",
+  "holder": "check: scripts/pr-description.mjs, in part",
+  "behind": ["#307"],
+  "number": "correction: does not work; outcome: robust"
+}

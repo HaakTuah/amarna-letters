@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/screens.md: Every control has its states",
+  "holder": "check: scripts/screens.mjs, in part"
+}

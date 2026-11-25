@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/done-when.md",
+  "behind": [240]
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "AGENTS.md: Never create a repository named `agent-rules`",
+  "behind": [121]
+}

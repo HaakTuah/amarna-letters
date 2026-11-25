@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/reviews.md: Ask by the first way there is",
+  "holder": "check: scripts/tools-offer.mjs, in part",
+  "behind": ["#397.1"],
+  "number": "check fires; outcome: fast"
+}

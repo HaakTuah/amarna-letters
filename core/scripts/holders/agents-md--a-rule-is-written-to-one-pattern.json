@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A rule is written to one pattern",
+  "holder": ["check: scripts/general.mjs, in part", "check: scripts/pattern.mjs, in part"],
+  "behind": [214, "#887"]
+}

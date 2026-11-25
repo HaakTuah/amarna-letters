@@ -1,7 +1,7 @@
 // The core has moved (README.md, "How a project takes the core", point 5), for a project whose orchestrator does not
 // wake every day: it compares the commit the project's core-manifest.md pins with the newest of what the project
-// follows (releases.mjs, beside this file: the newest commit of the core's main, or the core's newest release, which
-// has moved only where it is past the pin) and keeps one issue open for the owner while the project is behind, saying
+// follows (releases.mjs, beside this file: the newest commit of the core's main whose checks all passed, or the core's newest release, which
+// has moved only where it is past the pin and changes something the project takes) and keeps one issue open for the owner while the project is behind, saying
 // what changed and how a session takes it; once the project holds it again, it closes that issue. It opens no pull
 // request and changes no file: a session makes the sync (sync.mjs, beside this file), since a pull request a workflow
 // opens gets no checks without a stored token. Run once a day by the core-moved workflow
@@ -14,19 +14,20 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { aRepository } from "./guards.mjs";
 import { CORE } from "./core-address.mjs";
-import { fetchCore, followsOf, newestRelease, ownerOf } from "./releases.mjs";
+import { readCore } from "./core-path.mjs";
+import { fetchCore, followsOf, greenMain, hostSaid, newestRelease, ownerOf, past, staysAt } from "./releases.mjs";
 import { started } from "./started.mjs";
 
-const SHA = /^[0-9a-f]{40}$/;
 // The one issue it keeps: found again by this title among the issues the workflow itself opened.
 export const TITLE = "The core has moved past this project's copy";
 const BOT = "github-actions[bot]";
 
-// The commit the manifest pins (the line sync.mjs moves), or null where the manifest has no one such line.
+// The commit the manifest pins (the line sync.mjs moves), at whatever path it names (core-path.mjs), or null where the
+// manifest has no one such line, a carried core's among them, which pins nothing here.
 export function pinOf(manifest) {
-  const found = [...manifest.matchAll(new RegExp(`^Core: ${CORE} at ([0-9a-f]{40}), copied whole under core/`, "gm"))];
-  return found.length === 1 ? found[0][1] : null;
+  return readCore(manifest).pin ?? null;
 }
 
 // What to do: nothing, close the open issue, bring it up to date, or open one. `moved`: whether what the project
@@ -69,49 +70,87 @@ export function openIssue(lines) {
   return null;
 }
 
-function main(dry) {
-  const fail = msg => { console.error(`FAIL: ${msg}`); process.exit(1); };
-  const run = (cmd, args) => execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
-  let manifest;
-  try { manifest = fs.readFileSync("core-manifest.md", "utf8"); } catch { fail("run it from a project's root, beside core-manifest.md"); }
-  const pin = pinOf(manifest);
-  if (!pin) fail(`core-manifest.md has no one "Core: ${CORE} at <full commit SHA>, copied whole under core/" line`);
-  const follows = followsOf(manifest);
-  if (!follows) fail("core-manifest.md does not say what the project follows: its *follows* row is `main` or `releases`, once, or left out beside one *owner's account* row");
-  let newest, moved, release = "";
+// The pin of the project's own copy; null, said, where a library carries the core, which moves with the library, whose
+// own repository keeps this issue (tasks/repositories.md).
+function pinHere(manifest, fail) {
+  const line = readCore(manifest);
+  if (line.wrong) fail(line.wrong);
+  if (line.form === "copied") return line.pin;
+  console.log(`the core here is the one the library at ${line.library} carries: the library's own repository says when the core has moved, and a sync there reaches this one with the library. Nothing to do.`);
+  return null;
+}
+
+// Whose account holds the repository, asked of the host once, and only where the manifest has no row that says it.
+const host = hostSaid();
+
+const fail = msg => { console.error(`FAIL: ${msg}`); process.exit(1); };
+const run = (cmd, args) => execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
+
+// The core's newest commit the project follows, as { newest, moved, release, stays }: its main, or its newest release.
+function newestOf(follows, pin, manifest) {
+  let newest, moved, release = "", stays = false;
   if (follows === "main") {
-    newest = run("git", ["ls-remote", `https://github.com/${CORE}`, "refs/heads/main"]).split(/\s/)[0];
-    if (!SHA.test(newest)) fail("the core's main gave no commit");
-    moved = newest !== pin;
+    // (main's newest commit whose checks all passed, which needs its history: fetched as the releases' is; #733)
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-main-"));
+    let green = null;
+    try { fetchCore(dir); green = greenMain(dir); moved = !!green.sha && green.sha !== pin && past(pin, green.sha, dir); }
+    catch { /* (said below, once the folder is gone) */ } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    if (!green) fail("the core's main could not be fetched");
+    console.log(green.said);
+    newest = green.sha ?? pin;
+    if (!green.sha) return { newest, moved: false, release, stays, unread: true };
   } else {
     // (which commit is past which takes the core's history: fetched into a folder of its own, removed again)
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "core-releases-"));
     let found, fetched = true;
-    try { fetchCore(dir); found = newestRelease(pin, dir); } catch { fetched = false; } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    try { fetchCore(dir); found = newestRelease(pin, dir); stays = !!found?.moved && staysAt(pin, manifest, dir); } catch { fetched = false; } finally { fs.rmSync(dir, { recursive: true, force: true }); }
     if (!fetched) fail("the core's main and releases could not be fetched");
     ({ sha: newest, moved, name: release } = found ?? { sha: pin, moved: false, name: "" });
+    if (stays) moved = false; // (a release that changes nothing the project takes asks no sync: #242)
   }
-  const repo = process.env.GITHUB_REPOSITORY;
-  if (!dry && !/^[\w.-]+\/[\w.-]+$/.test(repo ?? "")) fail("GITHUB_REPOSITORY names no repository");
-  const open = dry ? null : openIssue(run("gh", ["api", "--paginate",
-    `repos/${repo}/issues?state=open&labels=enhancement&per_page=100`,
-    "--jq", ISSUES]));
-  const what = plan(moved, open);
-  console.log(follows === "main"
-    ? `the project holds ${pin.slice(0, 7)}, the core's main is at ${newest.slice(0, 7)}: ${what}`
-    : release
-      ? `the project holds ${pin.slice(0, 7)}, the core's newest release, ${release}, is at ${newest.slice(0, 7)}: ${what}`
-      : `the project holds ${pin.slice(0, 7)}, and the core has cut no release yet: ${what}`);
-  if (dry || what === "nothing") return;
+  return { newest, moved, release, stays };
+}
+
+// What the project and the core stand at, in a line.
+const standing = (follows, pin, { newest, release, stays, unread }, what) => follows === "main"
+  ? unread ? `the project holds ${pin.slice(0, 7)}, and no commit of the core's main was read to pass: ${what}` : `the project holds ${pin.slice(0, 7)}, the core's main is at ${newest.slice(0, 7)}: ${what}`
+  : release
+    ? `the project holds ${pin.slice(0, 7)}, the core's newest release, ${release}, is at ${newest.slice(0, 7)}${stays ? " and changes nothing the project takes" : ""}: ${what}`
+    : `the project holds ${pin.slice(0, 7)}, and the core has cut no release yet: ${what}`;
+
+// What the plan says to do to the open issue: close it, update it or open it.
+function settle(what, { pin, manifest, repo, open, found }) {
   if (what === "close") {
-    run("gh", ["issue", "close", open, "--repo", repo, "--comment", "The project holds the core's newest commit again."]);
+    run("gh", ["issue", "close", open, "--repo", repo, "--comment", found.stays
+      ? "The core's newest release changes nothing this project takes: it stays at its pin until the next release."
+      : "The project holds the core's newest commit again."]);
     return;
   }
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "core-moved-")), "body.md");
-  fs.writeFileSync(file, body(pin, newest, release));
+  fs.writeFileSync(file, body(pin, found.newest, found.release));
   if (what === "update") { run("gh", ["issue", "edit", open, "--repo", repo, "--body-file", file]); return; }
-  const owner = ownerOf(manifest) ?? fail("core-manifest.md has no one *owner's account* row");
+  const owner = ownerOf(manifest, host) ?? fail("core-manifest.md has no one *owner's account* row, and the host says no person holds the repository");
   run("gh", ["issue", "create", "--repo", repo, "--title", TITLE, "--body-file", file, "--label", "enhancement", "--assignee", owner]);
+}
+
+function main(dry) {
+  let manifest;
+  try { manifest = fs.readFileSync("core-manifest.md", "utf8"); } catch { fail("run it from a project's root, beside core-manifest.md"); }
+  const pin = pinHere(manifest, fail);
+  if (!pin) return;
+  const follows = followsOf(manifest, host);
+  if (!follows) fail("core-manifest.md does not say what the project follows: its *follows* row is `main` or `releases`, once, or left out where the owner's account is read: its one row, or the repository's own account where the host says a person holds it");
+  const found = newestOf(follows, pin, manifest);
+  const repo = process.env.GITHUB_REPOSITORY;
+  if (!dry && !aRepository(repo)) fail("GITHUB_REPOSITORY names no repository as <owner>/<name>. Mend: run the check in the workflow, where GitHub sets it, or with --dry");
+  const open = dry ? null : openIssue(run("gh", ["api", "--paginate",
+    `repos/${repo}/issues?state=open&labels=enhancement&per_page=100`,
+    "--jq", ISSUES]));
+  // (where no commit of main was read to pass, an open issue is left as it stands: nothing says the project holds it)
+  const what = found.unread ? "nothing" : plan(found.moved, open);
+  console.log(standing(follows, pin, found, what));
+  if (dry || what === "nothing") return;
+  settle(what, { pin, manifest, repo, open, found });
 }
 
 if (started(import.meta.url)) main(process.argv.includes("--dry"));

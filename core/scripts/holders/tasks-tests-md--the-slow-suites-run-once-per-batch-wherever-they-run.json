@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: The slow suites run once per batch, wherever they run",
+  "holder": ["check: .github/workflows/tests.yml, in part", "check: scripts/release.mjs, in part"],
+  "behind": ["#733.2", "#954"],
+  "number": "findings; outcome: fast"
+}

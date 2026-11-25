@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/inbox.md: The *progress file* holds order only",
+  "behind": [216, "#750.1"],
+  "number": "check fires; outcome: fast"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/reviews.md: What a posted review declares",
+  "holder": "check: scripts/code-review-wait.mjs, in part",
+  "behind": [155, 235],
+  "number": "check fires; outcome: readable"
+}

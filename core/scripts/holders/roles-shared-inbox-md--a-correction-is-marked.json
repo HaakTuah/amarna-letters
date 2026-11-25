@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/inbox.md: A correction is marked",
+  "holder": ["check: scripts/labels.mjs, in part", "audit"],
+  "behind": [244]
+}

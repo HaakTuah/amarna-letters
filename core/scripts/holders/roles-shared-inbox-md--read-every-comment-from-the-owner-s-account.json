@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/inbox.md: Read every comment from the *owner's account*",
+  "behind": [216]
+}

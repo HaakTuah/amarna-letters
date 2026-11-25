@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/reviews.md: The reviewers are tested",
+  "behind": ["#307", "#1134.6"],
+  "number": "correction: does not work; outcome: robust"
+}

@@ -1,20 +1,73 @@
 # The copy of the core ("How a project takes the core" in README.md, points 1 and 5), for every project that takes it:
-# fails a change whose core/ is not this repository, whole and unchanged, at the commit its core-manifest.md pins (a
-# folder, compared as scripts/copy-tree.mjs compares: core archive 201), whose pin, or the pin of a call to one of its
+# fails a change whose copy (core/, or the path its core-manifest.md's "Core:" line names: tasks/repositories.md) is not
+# this repository, whole and unchanged, at the commit its core-manifest.md pins (a folder, compared as scripts/copy-tree.mjs compares: core archive 201), whose pin, or the pin of a call to one of its
 # workflows, is not a commit of this repository's main (so what a project takes passed the core's reviews; floor rule 8;
 # the call to this workflow itself: scripts/pure-sync.mjs), or whose calls to the core's workflows are pinned to a
 # commit where the called workflow differs from the one at that pin, or whose manifest does not fill the *owner's
-# account* with one GitHub login, or whose default branch is not main, or whose manifest lists a difference
-# ("Differences") from the floor or the review guidelines.
-# A project calls it (workflow_call) on every pull request and push to main, docs-only changes included,
-# pinned to a full commit SHA. Reads only, with no secret: it fetches this public repository at the pin it reads, which
+# account* with one GitHub login where the host does not say a person's account holds the repository (#481), or whose
+# default branch is not main, or whose manifest lists a difference
+# ("Differences") from the floor or the review guidelines. Where a library of the project's carries the core (that line's
+# second form), it reads the pin from the library's own manifest, its files committed here or its submodule's commit
+# fetched with no token from an https address, holds the copy there to that pin, and fails a library it cannot read; and, while an agent tool has not passed the staged
+# cases carried and no-floor (the core's reports/staged-cases.json and scripts/staged-tools.json on its main, read as
+# data; a tool that never ran them has not passed), it fails a repository without its own copy of the floor ("Floor
+# copy:"), and a copy that differs from the floor at the pin.
+# A project calls it (workflow_call) on every pull request and push to main, docs-only changes included, pinned to a
+# full commit SHA. Its own check reads only, with no secret: it fetches this public repository at the pin it reads, which
 # must be a full commit SHA before it is used, and runs nothing from either repository. Its own shell is tested in the
-# core before any project runs it: scripts/core-yml-test.mjs runs this job on scratch projects, and
-# scripts/pure-sync-test.mjs on every way a copy can differ.
+# core before any project runs it: tests/core-yml-test.mjs runs this job on scratch projects, and
+# tests/pure-sync-test.mjs on every way a copy can differ.
+# Given its inputs, the same job then runs the core's other checks that need no secret, as steps of its own (#376):
+# copies.yml's (copies, sizes), pr-description.yml's (description, parts), signatures.yml's (signatures) and nuget.yml's
+# (nuget, advisory), each through the copy's scripts/checks.mjs, which holds their steps and says what each holds, as
+# those workflows run it. They run only where every step of its own check passed, so a copy not proved the core runs
+# nothing here; then each runs even where one of them before it failed, so every failure is said; the code scan of a
+# project the host's CodeQL does not scan follows them, with any of those inputs and none of its own, its engine
+# installed from the core's .packages/requirements.txt by its hashes in a step before it (scripts/code-scan.mjs; #546, #654); the
+# package checks go last, each in a step of its own, and the NuGet check, which runs the pull request's build files,
+# after all.
+# One job bills one runner's minutes where four or five did (#377); with no such input it runs its own check alone, as
+# before.
 name: core
 
 on:
   workflow_call:
+    inputs:
+      copies:
+        description: The copies check's config, a JSON file of the caller's (core/scripts/copies.mjs); given, the copies, pointer, reading-size, workflow, entry-file, manifest, shape, choice records' and core's files' checks run.
+        required: false
+        type: string
+        default: ""
+      sizes:
+        description: The reading-size check's marks, a JSON file of the caller's (core/scripts/reading-size.mjs), with copies.
+        required: false
+        type: string
+        default: ""
+      description:
+        description: Whether the description check runs, on a pull request that is no draft and not Dependabot's.
+        required: false
+        type: boolean
+        default: false
+      parts:
+        description: The headings a description must have, separated by |. Left out, the core's two.
+        required: false
+        type: string
+        default: ""
+      signatures:
+        description: The folder that holds package-lock.json, from the root; given, the signature check runs on a pull request.
+        required: false
+        type: string
+        default: ""
+      nuget:
+        description: The licence check's config, with its "nuget"; given, the NuGet check runs on a pull request.
+        required: false
+        type: string
+        default: ""
+      advisory:
+        description: Whether the NuGet check only says what it would fail (true, while a fault of the check's own is mended).
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,7 +75,13 @@ permissions:
 jobs:
   core:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # (each part's own: this check 5 minutes, those of the copy's scripts 5, the code scan 5, each package check 10)
+    timeout-minutes: ${{ (inputs.signatures != '' && inputs.nuget != '') && 35 || (inputs.signatures != '' || inputs.nuget != '') && 25 || (inputs.copies != '' || inputs.description) && 15 || 5 }}
+    # (a pull request's run gives way to a newer one for the same pull request, whose head it no longer is; a run on
+    # main, a schedule or a start by hand is its own group and is never cancelled; #388)
+    concurrency:
+      group: core-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     env:
       # the core's address, written here once (and once for the scripts: scripts/core-address.mjs, whose test holds the
       # two to each other); never read from the copy this workflow checks
@@ -31,6 +90,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
+          fetch-depth: 2 # the merge commit and its parents: the base the copies, description and package checks read the change against
       - name: The default branch is main
         env:
           DEFAULT: ${{ github.event.repository.default_branch }}
@@ -38,7 +98,7 @@ jobs:
           # (both hooks read their scripts from main's copy, so where the default branch has another name they stop
           # nothing, and say nothing: README, "The default branch is main")
           if [ -n "$DEFAULT" ] && [ "$DEFAULT" != main ]; then
-            echo "The default branch here is $DEFAULT. The core's hooks read their scripts from main, so here they stop nothing: rename the default branch to main."; exit 1
+            echo "FAIL The default branch here is $DEFAULT, and the core's hooks read their scripts from main, so here they stop nothing. Mend: rename the default branch to main."; exit 1
           fi
       - name: The manifest's differences name no floor rule and not the review guidelines
         run: |
@@ -57,59 +117,138 @@ jobs:
             }
             depth && letters($0) ~ /floor|reviewguidelines/' core-manifest.md)
           if [ -n "$bad" ]; then
-            echo "core-manifest.md lists a difference that names the floor or the review guidelines, which no project differs from:"
+            echo "FAIL core-manifest.md lists a difference that names the floor or the review guidelines, which no project differs from (below). Mend: take each such line out of its differences; a project differs from a module's rule alone."
             printf '%s\n' "$bad" | sed 's/^/> /'; exit 1
           fi
-      - name: The core pin
+      - name: The core pin, and where the copy stands
         id: pin
+        env:
+          # (whose account holds the repository, as the host says: "User" where a person holds it; #481)
+          HELD_BY: ${{ github.repository_owner }}
+          HELD_AS: ${{ github.event.repository.owner.type }}
         run: |
           set -euo pipefail
-          core=${CORE//./\\.} # (in a pattern, a dot of the address is a dot)
-          pin=$(sed -n "s|^Core: $core at \([0-9a-f]\{40\}\), copied whole under core/.*|\1|p" core-manifest.md)
-          if [ "$(printf '%s' "$pin" | grep -c .)" -ne 1 ]; then
-            echo "core-manifest.md has no one \"Core: $CORE at <full commit SHA>, copied whole under core/\" line"; exit 1
+          # (the manifest's one "Core:" line, in either form: a copy of the project's own at a path, or the core a
+          # library of the project's carries; the core's scripts/core-path.mjs reads it alike, and says why each part)
+          seg='[A-Za-z0-9_][A-Za-z0-9._-]*'
+          forms="\"Core: $CORE at <full commit SHA>, copied whole under <path>/\" or \"Core: $CORE, carried by <library>/ under <path>/\""
+          lines=$(grep -c '^Core: ' core-manifest.md || true) line=$(grep -m 1 '^Core: ' core-manifest.md || true)
+          pin="" at="" library="" lib="" src=. copy=""
+          if [ "$lines" = 1 ] && [[ "$line" =~ ^Core:\ "$CORE"\ at\ ([0-9a-f]{40}),\ copied\ whole\ under\ (($seg/)+)(\ |$) ]]; then
+            pin=${BASH_REMATCH[1]} at=${BASH_REMATCH[2]}
+          elif [ "$lines" = 1 ] && [[ "$line" =~ ^Core:\ "$CORE",\ carried\ by\ (($seg/)+)\ under\ (($seg/)+)(\ |$) ]]; then
+            library=${BASH_REMATCH[1]} at=${BASH_REMATCH[3]}
+          else
+            echo "FAIL core-manifest.md has no one $forms line. Mend: write that one line, as the sync writes it: the commit of the core's main the copy holds, and its path (core/ as a rule)."; exit 1
           fi
-          # whose word counts (floor rule 4) is never left to a guess: the slot is filled, one GitHub login
-          if [ "$(grep -cE "^\| \*owner's account\* \| \`[A-Za-z0-9-]+\` \|$" core-manifest.md)" -ne 1 ]; then
-            echo "core-manifest.md has no one \"| *owner's account* | \`<GitHub login>\` |\" row"; exit 1
+          case "/$at" in */.git/*|*/node_modules/*) echo "FAIL core-manifest.md names the core under $at, where no checkout holds the files. Mend: name a folder of the repository's own files (core/ as a rule)."; exit 1 ;; esac
+          if [ -n "$library" ]; then
+            # (a carried core: tasks/repositories.md. Its files are in the checkout, the library's folder committed or a
+            # submodule; never ones an install writes)
+            [[ "$at" == "$library"?* ]] || { echo "FAIL core-manifest.md: the core is carried by $library, and $at is no folder inside it. Mend: name the folder of the library that holds the core, as the library's own manifest names it."; exit 1; }
+            lib=${library%/} kind=$(git ls-tree HEAD -- "$lib" | cut -d ' ' -f 1-2)
+            if [ "$kind" = "160000 commit" ]; then
+              # (the library's commit this one pins, fetched with no token from the https address .gitmodules gives it,
+              # and read as a committed library is: its manifest's pin, and its copy and the floor's own copy against
+              # the core at that pin, below)
+              src=.lib-at-pin rev=$(git ls-tree HEAD -- "$lib" | cut -d ' ' -f 3 | cut -f 1)
+              name=$(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null | awk -v p="$lib" '$2 == p { sub(/^submodule\./, "", $1); sub(/\.path$/, "", $1); print $1; exit }' || true)
+              url=""; [ -z "$name" ] || url=$(git config -f .gitmodules --get "submodule.$name.url" 2>/dev/null || true)
+              if [[ ! "$url" =~ ^https://[A-Za-z0-9.-]+/[A-Za-z0-9._/-]+$ ]] || ! git init -q "$src" || ! git -C "$src" fetch -q --no-auto-maintenance --depth 1 --no-tags "$url" "$rev"; then
+                echo "FAIL the library $lib, a submodule that carries the core, could not be fetched at the commit pinned here, $rev, from an https address .gitmodules names, so the core it carries cannot be checked. Mend: give the submodule an https address this check can fetch with no token, or commit the library's files in this repository."; exit 1
+              fi
+            elif [ "$kind" = "040000 tree" ]; then
+              src=. rev=HEAD
+            else
+              echo "FAIL the library $lib, which core-manifest.md says carries the core, is no folder or submodule of this commit. Mend: commit the library's files there, or add it as a submodule (git submodule add <its https address> $lib), so they are in the checkout when a session starts."; exit 1
+            fi
+            [ "$src" = . ] && inlib=$library || inlib=""
+            own=$(git -C "$src" show "$rev:${inlib}core-manifest.md" 2>/dev/null || true)
+            lines=$(printf '%s\n' "$own" | grep -c '^Core: ' || true) line=$(printf '%s\n' "$own" | grep -m 1 '^Core: ' || true)
+            if [ "$lines" = 1 ] && [[ "$line" =~ ^Core:\ "$CORE"\ at\ ([0-9a-f]{40}),\ copied\ whole\ under\ (($seg/)+)(\ |$) ]]; then
+              pin=${BASH_REMATCH[1]}
+              [ "$library${BASH_REMATCH[2]}" = "$at" ] || { echo "FAIL core-manifest.md names the carried core under $at, and the library's manifest under $library${BASH_REMATCH[2]}. Mend: name $library${BASH_REMATCH[2]} in the \"Core:\" line."; exit 1; }
+              copy="$rev:$inlib${BASH_REMATCH[2]%/}"
+            else
+              echo "FAIL ${library}core-manifest.md has no one \"Core: $CORE at <full commit SHA>, copied whole under <path>/\" line, so the core the library carries has no pin. Mend: carry the core from a library that copies it, with its manifest committed beside it."; exit 1
+            fi
           fi
-          echo "sha=$pin" >> "$GITHUB_OUTPUT"
+          # whose word counts (floor rule 4) is never left to a guess: the slot's one row, one GitHub login, or, with no
+          # row at all, read: the repository's own account, where the host says a person holds it (README.md, "Slots")
+          # (the one row of its form decides, as before #481; with none, any row whose first cell names the owner's account,
+          # however spelt, is still a row, and fails below: never read past)
+          one=$(grep -cE "^\| \*owner's account\* \| \`[A-Za-z0-9-]+\` \|$" core-manifest.md || true)
+          rows=$(grep -ciE "^\|[^|]*owner('|’|\`)?s[[:space:]]+account[^|]*\|" core-manifest.md || true)
+          if [ "$one" = 1 ]; then
+            :
+          elif [ "$rows" = 0 ] && [ "$HELD_AS" = User ] && [[ "$HELD_BY" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "The owner's account is read: $HELD_BY, a person's account, holds this repository, and core-manifest.md has no row that says otherwise."
+          elif [ "$rows" = 0 ]; then
+            echo "FAIL core-manifest.md has no row \"| *owner's account* | \`<GitHub login>\` |\", and the host does not say that a person's account holds this repository, so whose word counts cannot be read. Mend: write that one row among its slots, with the GitHub login of the project's owner (in a team's project, one of its owners)."; exit 1
+          else
+            echo "FAIL core-manifest.md has no one \"| *owner's account* | \`<GitHub login>\` |\" row. Mend: write that one row among its slots, with the GitHub login of the project's owner, or, where a person's account holds the repository, take the row out and it is read."; exit 1
+          fi
+          # (the floor's own copy a repository keeps while its core is carried and a tool has not passed: below)
+          fl=$(grep -m 1 '^Floor copy: ' core-manifest.md || true) floor=""
+          if [ -n "$fl" ]; then
+            [[ "$fl" =~ ^Floor\ copy:\ (($seg/)+)(\ |$) ]] || { echo "FAIL core-manifest.md has a \"Floor copy:\" line that names no folder. Mend: write it \"Floor copy: <folder>/\", the folder that holds the copy."; exit 1; }
+            floor=${BASH_REMATCH[1]}
+          fi
+          [ -n "$copy" ] || copy="HEAD:${at%/}" # (where the copy is read: a repository's git folder, and a commit's folder)
+          { echo "sha=$pin"; echo "at=$at"; echo "library=$library"; echo "floor=$floor"; echo "src=$src"; echo "copy=$copy"; } >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        # (its fetch of the core's whole history starts no upkeep of git's own, which would go on writing the folder behind
+        # the check and race the step that removes it; #802)
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: maintenance.auto
+          GIT_CONFIG_VALUE_0: "false"
         with:
           repository: ${{ env.CORE }}
           ref: ${{ steps.pin.outputs.sha }}
           path: .core-at-pin
           fetch-depth: 0 # (the workflow pins are older commits of it)
           persist-credentials: false
-      - name: core/ is the core at its pin, the pin is on the core's main, and each call to a core workflow is pinned where that workflow is the same
+      - name: The copy is the core at its pin, the pin is on the core's main, and each call to a core workflow is pinned where that workflow is the same
+        if: steps.pin.outputs.sha != ''
         env:
           PIN: ${{ steps.pin.outputs.sha }}
+          AT: ${{ steps.pin.outputs.at }}
+          LIBRARY: ${{ steps.pin.outputs.library }}
+          SRC: ${{ steps.pin.outputs.src }}
+          COPY: ${{ steps.pin.outputs.copy }}
         run: |
           set -euo pipefail
           bad=0 core=${CORE//./\\.} # (in a pattern, a dot of the address is a dot)
+          # (how the copy is mended: written again by the sync, or, carried, taken again as the library holds it)
+          again="write it whole at the pin again, from a clone of the core (node <the clone>/scripts/sync.mjs $PIN); a change to the core is made in the core's own repository."
+          [ -z "$LIBRARY" ] || again="take the library's files under $LIBRARY again as its own repository holds them, whose sync writes its copy; a change to the core is made in the core's own repository."
           # (what the core keeps to itself is no part of a copy: its own .gitattributes says which folder)
-          # (core/ a folder, and entry by entry as the core's scripts/copy-tree.mjs compares, which says why; each path
+          # (the copy a folder, and entry by entry as the core's scripts/copy-tree.mjs compares, which says why; each path
           # quoted as git quotes it, so none prints raw or passes for two entries)
           entries() { git -C "$1" -c core.quotePath=true ls-tree -r --full-tree "$2" | sed 's/^100755 blob /100644 blob /'; }
-          # (the pin's tree without its top-level reports entry, built as scripts/copy-tree.mjs builds it, so that no
-          # name inside that folder, however git quotes it, is taken for part of the copy)
+          # (the pin's tree without each top-level entry its .gitattributes keeps in the core, reports, words and tests,
+          # built as scripts/copy-tree.mjs builds it, from the same list, so that no name inside such a folder, however
+          # git quotes it, is taken for part of the copy)
           tree=$PIN
-          if grep -q -s -x '/reports export-ignore' .core-at-pin/.gitattributes; then
-            # (the whole entry matched, its name after the first tab exactly "reports"; grep's "none left" is no fault,
-            # any other failure is)
-            tree=$(git -C .core-at-pin ls-tree -z "$PIN" | { grep -z -v -x -e $'[^\t]*\treports' || [ $? -eq 1 ]; } | git -C .core-at-pin mktree -z)
-          fi
-          want=$(entries .core-at-pin "$tree") id=$(git rev-parse -q --verify HEAD:core || true)
-          if [ -n "$id" ] && [ "$(git ls-tree HEAD -- core)" = "040000 tree $id"$'\t'"core" ]; then have=$(entries . HEAD:core)
-          else echo "core/ is no folder of this commit (a submodule, a file, a link or nothing)"; have=""; bad=1; fi
+          for kept in reports words tests; do
+            if grep -q -s -x "/$kept export-ignore" .core-at-pin/.gitattributes; then
+              # (the whole entry matched, its name after the first tab exactly that folder's; grep's "none left" is no
+              # fault, any other failure is)
+              tree=$(git -C .core-at-pin ls-tree -z "$tree" | { grep -z -v -x -e "[^"$'\t'"]*"$'\t'"$kept" || [ $? -eq 1 ]; } | git -C .core-at-pin mktree -z)
+            fi
+          done
+          rev=${COPY%%:*} dir=${COPY#*:} want=$(entries .core-at-pin "$tree") id=$(git -C "$SRC" rev-parse -q --verify "$COPY" || true)
+          if [ -n "$id" ] && [ "$(git -C "$SRC" ls-tree "$rev" -- "$dir")" = "040000 tree $id"$'\t'"$dir" ]; then have=$(entries "$SRC" "$COPY")
+          else echo "FAIL $AT is no folder of this commit (a submodule, a file, a link or nothing). Mend: $again"; have=""; bad=1; fi
           if [ "$want" != "$have" ]; then
-            echo "core/ differs from the core at its pin, by git's object ids (< the core's, > core/'s):"
+            echo "FAIL $AT differs from the core at its pin, by git's object ids (below; < the core's, > $AT's). Mend: $again"
             diff <(printf '%s\n' "$want") <(printf '%s\n' "$have") | grep '^[<>]' | head -n 20 || true
             bad=1
           fi
-          if ! git -C .core-at-pin fetch -q --no-tags origin refs/heads/main \
+          if ! git -C .core-at-pin fetch -q --no-auto-maintenance --no-tags origin refs/heads/main \
             || ! git -C .core-at-pin merge-base --is-ancestor "$PIN" FETCH_HEAD; then
-            echo "the pin $PIN is not a commit of the core's main"; bad=1
+            echo "FAIL the pin $PIN is not a commit of the core's main. Mend: sync to a commit of the core's main (node ${AT}scripts/sync.mjs), which moves the pin and the copy together."; bad=1
           fi
           # (every mention outside a comment, in whatever form the YAML writes the call)
           calls=$(sed 's/#.*//' .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null \
@@ -117,13 +256,159 @@ jobs:
           while IFS= read -r call; do
             [ -n "$call" ] || continue
             if ! [[ "$call" =~ ^"$CORE"/\.github/workflows/([A-Za-z0-9._-]+\.ya?ml)@([0-9a-f]{40})$ ]]; then
-              echo "a call to the core not written $CORE/.github/workflows/<name>.yml@<full commit SHA>: $call"; bad=1; continue
+              echo "FAIL a call to the core not written $CORE/.github/workflows/<name>.yml@<full commit SHA>: $call. Mend: write it so, pinned to the core's pin, $PIN."; bad=1; continue
             fi
             name=${BASH_REMATCH[1]} sha=${BASH_REMATCH[2]}
             if ! git -C .core-at-pin cat-file -e "$sha^{commit}" 2>/dev/null \
-              || ! git -C .core-at-pin merge-base --is-ancestor "$sha" FETCH_HEAD; then echo "$name: $sha is not a commit of the core's main"; bad=1
+              || ! git -C .core-at-pin merge-base --is-ancestor "$sha" FETCH_HEAD; then echo "FAIL $name: $sha is not a commit of the core's main. Mend: pin the call to the core's pin, $PIN."; bad=1
             elif ! git -C .core-at-pin diff --quiet "$sha" HEAD -- ".github/workflows/$name"; then
-              echo "$name at $sha differs from the core's at its pin: the sync PR moves this pin"; bad=1
+              echo "FAIL $name at $sha differs from the core's at its pin. Mend: pin the call to $PIN, as the sync pull request does."; bad=1
             fi
           done <<< "$calls"
           exit "$bad"
+      - name: A carried core, and the floor's own copy kept until every agent tool has passed the staged cases carried and no-floor
+        if: steps.pin.outputs.library != '' || steps.pin.outputs.floor != ''
+        env:
+          PIN: ${{ steps.pin.outputs.sha }}
+          AT: ${{ steps.pin.outputs.at }}
+          FLOOR: ${{ steps.pin.outputs.floor }}
+        run: |
+          set -euo pipefail
+          # (tasks/repositories.md, "Proven tool by tool". The core's main's record of the staged cases and its list of
+          # the agent tools they run in, read as data: each tool named there, and its last verdict of each of the two; a
+          # tool that has never run them has not passed)
+          record='{"runs":[]}' tools='{"tools":[]}'
+          if git -C .core-at-pin fetch -q --no-auto-maintenance --no-tags origin refs/heads/main; then
+            record=$(git -C .core-at-pin show FETCH_HEAD:reports/staged-cases.json 2>/dev/null || echo '{"runs":[]}')
+            tools=$(git -C .core-at-pin show FETCH_HEAD:scripts/staged-tools.json 2>/dev/null || echo '{"tools":[]}')
+          fi
+          # (read by the runner's own node, with no file of either repository's: the code is this step's own)
+          open=$(RECORD="$record" TOOLS="$tools" node -e '
+            const read = (text, key) => { try { return JSON.parse(text)[key] ?? []; } catch { return []; } };
+            const norm = t => String(t ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+            const runs = read(process.env.RECORD, "runs"), tools = read(process.env.TOOLS, "tools"), open = [];
+            for (const t of tools) for (const c of ["carried", "no-floor"]) {
+              const last = runs.filter(x => norm(x.tool ?? tools[0]) === norm(t) && x.cases?.[c]).map(x => x.cases[c]).at(-1);
+              if (last?.verdict !== "pass" || last.wrong) open.push(`${t} (${c})`); // (a verdict found wrong proves nothing)
+            }
+            console.log(tools.length ? open.join(", ") : "every tool (their list could not be read)");')
+          if [ -z "$FLOOR" ]; then
+            if [ -n "$open" ]; then
+              echo "FAIL the core here is carried by a library, and not every agent tool has passed the staged cases that prove a session finds its rules there: $open. Mend: keep a copy of the core's floor/ in a folder of this repository's own, committed, and name it on a line \"Floor copy: <folder>/\" under the \"Core:\" line of core-manifest.md."; exit 1
+            fi
+            exit 0
+          fi
+          bad=0 dir=${FLOOR%/}
+          id=$(git rev-parse -q --verify "HEAD:$dir" || true)
+          if [ -z "$id" ] || [ "$(git ls-tree HEAD -- "$dir")" != "040000 tree $id"$'\t'"$dir" ]; then
+            echo "FAIL $FLOOR, the floor's own copy core-manifest.md names, is no folder of this commit. Mend: commit a copy of the core's floor/ there, from the core the library carries."; exit 1
+          fi
+          # (and a session reads it at every start: AGENTS.md names it, as every entry file pulls in what AGENTS.md names)
+          if ! grep -q -F "${FLOOR}security.md" AGENTS.md 2>/dev/null; then
+            echo "FAIL AGENTS.md does not name ${FLOOR}security.md, the floor's own copy, among the files read at every start. Mend: add the line @${FLOOR}security.md beside the other files a builder reads at the start of every task, and the same to each entry file that pulls them in."; bad=1
+          fi
+          entries() { git -C "$1" -c core.quotePath=true ls-tree -r --full-tree "$2" | sed 's/^100755 blob /100644 blob /'; }
+          if [ "$(entries .core-at-pin "$PIN:floor")" != "$(entries . "HEAD:$dir")" ]; then
+            echo "FAIL $FLOOR differs from the floor of the core at its pin, $PIN, which the library carries (< the core's, > the copy's). Mend: copy the floor/ under $AT over it, whole, in this pull request."
+            diff <(entries .core-at-pin "$PIN:floor") <(entries . "HEAD:$dir") | grep '^[<>]' | head -n 20 || true
+            bad=1
+          fi
+          exit "$bad"
+      # The core's other checks that need no secret, where the caller's inputs name them (#376): each step runs the copy's
+      # scripts/checks.mjs, which holds their steps, only once this check has proved the copy the core, and then even
+      # where one of them before it failed, so every failure is said. The package checks run last, the NuGet check after all: it runs the pull request's build files.
+      - name: Where the core's copy stands, for the checks of its scripts (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        # (only where every step of this check passed: a copy not proved the core runs nothing here)
+        if: ${{ success() && (inputs.copies != '' || inputs.description || inputs.signatures != '' || inputs.nuget != '') }}
+        run: |
+          # (each fetch into them starts no upkeep of git's own, which would go on writing there behind the step and race
+          # this removal; #802)
+          rm -rf .core-at-pin .lib-at-pin # (this check's own fetches, which no check after it reads as the project's)
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' }}
+        with:
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock file for the core's checks (#654), and the parser's where the copies checks run the shape check (#719)
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' }}
+        env:
+          COPIES: ${{ inputs.copies }}
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then if [ -n "$COPIES" ] && [ -f "${CORE_AT}.packages/parser/package.json" ]; then node "${CORE_AT}scripts/install.mjs" all; else node "${CORE_AT}scripts/install.mjs"; fi; fi
+      # (the two tools the workflow check runs, fetched at their pins into the runner's temporary folder, outside the
+      # repository, as their own programs: zizmor by pip from PyPI by the sums the copy's .packages/requirements.txt names,
+      # actionlint from its maker's releases by the sums its script holds; where one cannot be fetched, the check says it
+      # did not run it and decides nothing by it; #580)
+      - name: zizmor and actionlint, which the workflow check runs, fetched at their pins (the core's scripts/workflow-tools.sh)
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && inputs.copies != '' }}
+        timeout-minutes: 5
+        continue-on-error: true
+        run: if [ -f "${CORE_AT}scripts/workflow-tools.sh" ]; then bash "${CORE_AT}scripts/workflow-tools.sh" >> "$GITHUB_ENV"; fi
+      # (the link checker the pointer check runs, fetched at its pin into the runner's temporary folder, outside the
+      # repository, as its own program, from its maker's releases by the sums its script holds; where it cannot be fetched,
+      # the check says it did not run it and reads the links its own way; #582)
+      - name: lychee, which the pointer check runs, fetched at its pin (the core's scripts/lychee.sh)
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && inputs.copies != '' }}
+        timeout-minutes: 5
+        continue-on-error: true
+        run: if [ -f "${CORE_AT}scripts/lychee.sh" ]; then bash "${CORE_AT}scripts/lychee.sh" >> "$GITHUB_ENV"; fi
+      - name: The copies, pointer, reading-size, workflow, entry-file, manifest, shape, choice records' and core's files' checks
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && inputs.copies != '' }}
+        timeout-minutes: 5
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }} # (the merge's first parent, which the checkout holds: a fetch here has no token; #674)
+          COPIES: ${{ inputs.copies }}
+          SIZES: ${{ inputs.sizes }}
+        run: node "$CORE_AT"scripts/checks.mjs copies --copies "$COPIES" --sizes "$SIZES" --base "$BASE"
+      - name: The description has its parts
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && inputs.description && github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        timeout-minutes: 5
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_CREATED: ${{ github.event.pull_request.created_at }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GH_TOKEN: ${{ github.token }} # (read only: the base's commits and copy, and the issues a pull request queues or closes)
+          PARTS: ${{ inputs.parts }}
+        run: node "$CORE_AT"scripts/checks.mjs description --parts "$PARTS"
+      # (the code scan of a private project, #546: where no workflow of the base calls the core's codeql.yml, Semgrep's
+      # engine is installed from the core's .packages/requirements.txt by its wheels' hashes, with the runner's pip, before the scan
+      # runs and only where the change adds or alters a file the scan reads (#654), and reads those files with the core's
+      # rules, failing a finding the base did not hold; an engine not installed fails the scan, saying how to install it)
+      - name: The code scan, which a call with no input does not run
+        if: ${{ success() && steps.core-at.outcome == 'skipped' }}
+        run: 'echo "code scan: not run: core.yml was called with none of its inputs, so the copy''s scripts do not run here; the one job of the core''s setup/sync-notes.md, \"17 November 2026, the checks as one job\", runs it"'
+      - name: The code scan's engine, installed from the core's lock file where the host's CodeQL does not scan the project
+        id: scan-engine
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
+        run: node "$CORE_AT"scripts/code-scan.mjs --install ${BASE:+--base "$BASE"}
+      - name: The code scan
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && steps.scan-engine.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node "$CORE_AT"scripts/code-scan.mjs ${BASE:+--base "$BASE"}
+      - name: The signature check
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && inputs.signatures != '' && github.event_name == 'pull_request' }}
+        timeout-minutes: 10
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CALLER: ${{ github.workflow_ref }} # the calling workflow, by its own path, whatever it is named
+          FOLDER: ${{ inputs.signatures }}
+        run: node "$CORE_AT"scripts/checks.mjs signatures --signatures "$FOLDER"
+      # (last of all: the NuGet check runs the pull request's build files, so no step runs after it)
+      - name: The NuGet check, last
+        if: ${{ !cancelled() && steps.core-at.outcome == 'success' && inputs.nuget != '' && github.event_name == 'pull_request' }}
+        timeout-minutes: 10
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CALLER: ${{ github.workflow_ref }} # the calling workflow, by its own path, whatever it is named
+          CONFIG: ${{ inputs.nuget }}
+          ADVISORY: ${{ inputs.advisory }}
+        run: |
+          set -- nuget --nuget "$CONFIG"; [ "$ADVISORY" != true ] || set -- "$@" --advisory
+          node "$CORE_AT"scripts/checks.mjs "$@"

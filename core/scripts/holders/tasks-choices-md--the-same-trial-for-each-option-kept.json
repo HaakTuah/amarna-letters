@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: the same trial for each option kept",
+  "behind": [251],
+  "number": "correction: misread; outcome: asked"
+}

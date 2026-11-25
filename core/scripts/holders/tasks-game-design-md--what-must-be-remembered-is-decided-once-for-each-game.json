@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/game-design.md: What must be remembered is decided once for each game",
+  "holder": "check: a game's own test, where it has one, which compares what the computer players are shown with what the game shows a person, in part",
+  "behind": [242]
+}

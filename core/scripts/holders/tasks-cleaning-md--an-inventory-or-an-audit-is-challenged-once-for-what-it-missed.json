@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/cleaning.md: An inventory or an audit is challenged once for what it missed",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": ["#593.1"],
+  "number": "correction: rule missing; outcome: robust"
+}

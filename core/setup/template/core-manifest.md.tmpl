@@ -1,8 +1,8 @@
 # Core manifest
 
 Core: {{core}} at {{pin}}, copied whole under core/ (never edited here).
-Paths: in the core's files, one into floor/, modules/, scripts/, setup/ or archive/ is under core/; any other is ours.
-Floor: whole. Modules: {{modules}}.
+Paths: in the core's files, one into floor/, roles/, tasks/, tools/, scripts/, setup/ or archive/ is under core/; any other is ours.
+Floor: whole. Modules: {{modules}}.{{declined}}
 
 ## Names
 - A task: an entry of the queue in `docs/PROGRESS.md`.
@@ -25,7 +25,17 @@ Floor: whole. Modules: {{modules}}.
 | *planning design* | none yet |
 | *hard work* | an entry's hardest problems |
 | *major version checks* | the project's own tests |
-| *other builders' checks* | the project's own tests |
+| *other builders' checks* | the project's own tests |{{games}}
+{{mutation}}
+
+## Tools
+The core's default (`core/tasks/roles.md`, "Tools are preferences"), save each role a row orders otherwise.
+
+| Role | Preferred | When it is not at hand |
+| --- | --- | --- |
+
+## Pace
+None set: no session slows work to save usage (`core/roles/orchestrator.md`, "The pace is the owner's").
 
 ## Differences
 None.

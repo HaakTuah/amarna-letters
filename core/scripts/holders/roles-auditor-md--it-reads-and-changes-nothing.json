@@ -1,0 +1,5 @@
+{
+  "rule": "roles/auditor.md: It reads, and changes nothing",
+  "behind": ["#464"],
+  "number": "correction: looks wrong; outcome: readable"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/tools.md: Each tool's part",
+  "holder": "check: scripts/tools-offer.mjs, in part",
+  "behind": [232, "#397.1"]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: No test run on a draft",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": ["#733.2"],
+  "number": "findings; outcome: fast"
+}

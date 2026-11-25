@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/work-flow.md: An exemption leaves a mark",
+  "holder": "check: scripts/pr-description.mjs, in part",
+  "behind": [244]
+}

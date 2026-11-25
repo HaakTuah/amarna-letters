@@ -1,0 +1,5 @@
+{
+  "rule": "roles/auditor.md: Only counts and conclusions leave the project",
+  "behind": ["#464"],
+  "number": "findings; outcome: robust; rare harm"
+}

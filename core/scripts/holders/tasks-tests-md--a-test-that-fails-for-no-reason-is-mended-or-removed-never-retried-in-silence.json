@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/tests.md: A test that fails for no reason is mended or removed, never retried in silence",
+  "holder": "audit"
+}

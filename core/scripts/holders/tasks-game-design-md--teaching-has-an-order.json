@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/game-design.md: Teaching has an order",
+  "holder": "check: scripts/screens.mjs, in part",
+  "behind": [242]
+}

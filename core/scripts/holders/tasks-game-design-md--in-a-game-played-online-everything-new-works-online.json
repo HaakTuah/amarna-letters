@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: In a game played online, everything new works online",
+  "behind": [106]
+}

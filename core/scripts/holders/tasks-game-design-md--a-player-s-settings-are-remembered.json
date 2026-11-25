@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: A player's settings are remembered",
+  "holder": "check: scripts/screens.mjs, in part"
+}

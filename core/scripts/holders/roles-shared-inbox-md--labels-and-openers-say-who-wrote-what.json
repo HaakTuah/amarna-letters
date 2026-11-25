@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/inbox.md: Labels and openers say who wrote what",
+  "holder": "check: scripts/labels.mjs, in part",
+  "behind": [217]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/code-shape.md: Only the owner turns the shape check off",
+  "holder": ["check: scripts/shape.mjs, in part", "check: scripts/read-nothing.mjs, in part"],
+  "behind": ["#1107"],
+  "number": "findings; outcome: robust"
+}

@@ -1,0 +1,23 @@
+# A game's pull-request previews (the core's README, "How a project takes the core", point 5, "A game served by GitHub
+# Pages"): once the game's build has run on a pull request and uploaded the artifact "preview" (the file pr-number and,
+# unless the pull request closed, the built site in site/), the core's preview.yml publishes it at pr-<number>/ on the
+# gh-pages branch, links it in one comment and removes it when the pull request closes. workflow_run runs main's copy of
+# this file, never a pull request's, and the core's job runs none of the pull request's code. Its job may push gh-pages,
+# read the build's artifact and comment on the pull request, and nothing else.
+name: preview
+
+on:
+  workflow_run:
+    workflows: [{{build}}]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    permissions:
+      contents: write # the core's preview.yml pushes each preview to gh-pages
+      actions: read # the artifact the build run left
+      pull-requests: write # the pull request's one comment with its preview's address
+    uses: {{core}}/.github/workflows/preview.yml@{{pin}}

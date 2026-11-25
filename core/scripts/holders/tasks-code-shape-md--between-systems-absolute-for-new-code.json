@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/code-shape.md: Between systems, absolute for new code",
+  "holder": "check: scripts/shape.mjs, in part"
+}

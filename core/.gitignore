@@ -1,0 +1,23 @@
+# The packages of other publishers the core's scripts run, installed from .packages/package-lock.json, the parser's
+# from .packages/parser/package-lock.json (#719), and the code scan's engine from .packages/requirements.txt (#546), by
+# scripts/install.mjs: never tracked, here or in a project's copy, where this file stands at the copy's root (#654), nor
+# a link in their place; nor the folder an install before they moved into .packages/ left at the root, which a clone
+# made then still holds. The copy's package lists, lock files and .npmrc files, in the dot folder .packages/ so that no
+# workspace pattern of a project's own package list takes them in, are tracked there even where the project's own
+# .gitignore leaves such files, or dot folders, out.
+!/.packages/
+/.packages/node_modules
+# (and, in the core's own repository alone, the install of its own mutation tool from tests/mutation/, a folder no copy
+# carries; #581)
+/tests/mutation/node_modules
+/.packages/parser/node_modules
+/.packages/pypi
+/node_modules
+!/.packages/.npmrc
+!/.packages/package.json
+!/.packages/package-lock.json
+!/.packages/parser/
+!/.packages/parser/.npmrc
+!/.packages/parser/package.json
+!/.packages/parser/package-lock.json
+!/.packages/requirements.txt

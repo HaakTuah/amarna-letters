@@ -1,0 +1,5 @@
+{
+  "rule": "roles/auditor.md: It runs on the strongest tier",
+  "behind": ["#464"],
+  "number": "correction: misread; outcome: asked"
+}

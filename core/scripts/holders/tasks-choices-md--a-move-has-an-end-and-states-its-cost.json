@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: A move has an end and states its cost",
+  "behind": [251],
+  "number": "correction: does not work; outcome: robust"
+}

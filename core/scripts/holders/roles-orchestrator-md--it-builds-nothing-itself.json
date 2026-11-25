@@ -1,0 +1,4 @@
+{
+  "rule": "roles/orchestrator.md: It builds nothing itself",
+  "behind": [27]
+}

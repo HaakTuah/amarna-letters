@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: A record pull requests add to is a folder of one file per entry",
+  "holder": ["check: tests/mend-test.mjs", "check: tests/steps-test.mjs", "check: tests/holders-test.mjs", "check: scripts/holders.mjs", "check: tests/choices-folder-test.mjs"],
+  "behind": ["#750.1"],
+  "number": "check fires; outcome: fast"
+}

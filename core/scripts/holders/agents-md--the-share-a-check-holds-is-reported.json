@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: The share a check holds is reported",
+  "holder": ["check: tests/look-test.mjs", "check: tests/holders-test.mjs"],
+  "behind": ["#459"],
+  "number": "findings; outcome: robust"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tools.md: What the core offers one tool, it offers each",
+  "holder": "check: scripts/tools-offer.mjs, in part",
+  "behind": ["#467"],
+  "number": "check fires; outcome: usable"
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Code decides facts; models phrase them",
+  "behind": [105, 112, "#484.1"]
+}

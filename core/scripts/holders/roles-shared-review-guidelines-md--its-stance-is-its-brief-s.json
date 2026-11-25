@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/review-guidelines.md: Its stance is its brief's",
+  "behind": ["#397.1"],
+  "number": "correction: does not work; outcome: robust"
+}

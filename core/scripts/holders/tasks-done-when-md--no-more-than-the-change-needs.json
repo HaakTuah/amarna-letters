@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/done-when.md: No more than the change needs",
+  "holder": "check: scripts/pr-description.mjs, in part"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: The default branch is tested at its newest commit",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": ["#733.2", "#810"],
+  "number": "findings; outcome: fast"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/reviews.md: The order follows cost",
+  "holder": "check: scripts/stage-order.mjs, in part",
+  "behind": ["#397.9"],
+  "number": "findings; outcome: fast"
+}

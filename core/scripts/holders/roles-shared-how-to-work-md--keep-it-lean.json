@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/how-to-work.md: Keep it lean",
+  "behind": [24, 255]
+}

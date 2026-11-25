@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: An idea is built only from a line, and a line joins in a PR of its own",
+  "holder": ["check: .github/workflows/own-description.yml, in part", "check: scripts/meaning-kept.mjs, in part"],
+  "behind": [211, "#750.1", "#886.2"],
+  "number": "check fires; outcome: fast"
+}

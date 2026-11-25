@@ -1,0 +1,22 @@
+# The versions check (the core's tasks/updates.md, "The newest stable version, unless there is a reason"): once a
+# month the core's versions.yml compares each version this project's config names, one Dependabot cannot see, with its
+# registry's newest stable release old enough to take, and opens an enhancement issue for each one behind, unless one
+# it opened is still open. Its job may read the repository and write issues, and nothing else.
+name: versions
+
+on:
+  schedule:
+    - cron: '23 6 4 * *' # (the 4th of each month, 06:23 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  versions:
+    permissions:
+      contents: read # the config the check reads
+      issues: write # an enhancement issue for each version behind
+    uses: {{core}}/.github/workflows/versions.yml@{{pin}}
+    with:
+      config: {{versions}}

@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: Its hand-off stays current",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

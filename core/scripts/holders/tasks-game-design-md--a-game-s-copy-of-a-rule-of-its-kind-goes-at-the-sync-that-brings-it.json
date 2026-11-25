@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/game-design.md: A game's copy of a rule of its kind goes at the sync that brings it",
+  "holder": "check: scripts/copies.mjs, in part",
+  "behind": ["#484.8"],
+  "number": "correction: rule missing; outcome: asked"
+}

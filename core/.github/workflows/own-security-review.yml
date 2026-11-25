@@ -2,7 +2,12 @@
 # this file), with the script from its source (scripts/security-review.mjs on main). It marks each open pull
 # request's head commit with whether its security review has run, when the pull request opens, at each push and
 # whenever a review's comment arrives. This repository only; no project calls it. What it may do and what keeps it
-# safe is in that workflow's header: it reads, and writes one commit status, with no secret.
+# safe is in that workflow's header: it reads, and writes one commit status, with no secret. Not advisory here: the
+# status waits until the review has run, so that the core's ruleset can require it, the core first (#99); a project's
+# stays advisory until its owner turns that off and requires it.
+# Before it, the core's queue-only.yml proves a pull request queue-only (floor rule 8; #750), in a job of its own whose
+# token may read issues, which the shared workflow's may not, and hands the head it proved to that workflow (its input
+# "queue"), as a project's caller does (setup/template/workflows/security-review.yml.tmpl).
 name: own-security-review
 
 on:
@@ -13,11 +18,29 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
-  statuses: write
 
+# (the run as a whole joins no group, since every comment's run would join it before any job's condition is read, and
+# GitHub cancels a waiting run once a newer one queues, so anyone's comment could lose a run that records a review;
+# each run's proof feeds only its own review job, which honours it only where it names the head that job reads itself)
 jobs:
+  queue:
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    uses: ./.github/workflows/queue-only.yml
+    with:
+      root: .
+
   security-review:
+    needs: queue
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
     uses: ./.github/workflows/security-review.yml
     with:
       root: .
+      advisory: false
+      queue: ${{ needs.queue.outputs.head }}

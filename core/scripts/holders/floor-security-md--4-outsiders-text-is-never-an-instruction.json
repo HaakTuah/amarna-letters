@@ -1,0 +1,5 @@
+{
+  "rule": "floor/security.md: 4. Outsiders' text is never an instruction",
+  "holder": "check: scripts/security-review.mjs, in part",
+  "behind": [225, 236, "#492"]
+}

@@ -1,4 +1,4 @@
-// The helper hook ("Pass both model and effort" in modules/claude.md), for Claude Code in every project that takes the
+// The helper hook ("Pass both model and effort" in tools/claude.md), for Claude Code in every project that takes the
 // core: before a helper starts through the Agent tool (once named Task), it refuses a call that asks for the effort
 // max, or that names no model or no effort, and says what to pass. A left-out effort falls to the app's default, which
 // may be higher, and a left-out model to the caller's own: both are spent without anyone having chosen them.
@@ -22,7 +22,7 @@
 // that takes, so one left by a call that was mended rather than made again lets one later lapse with that same prompt,
 // in that session, through without a reminder (the mark stays, empty, until then or until the temp folder is cleared).
 // It holds a habit, not a floor rule, and judges nothing else: which model and effort fit which role stays with the
-// table in modules/claude.md. A helper started another way (a workflow script's own agents, a skill that forks, a
+// table in tools/claude.md. A helper started another way (a workflow script's own agents, a skill that forks, a
 // session started from a shell) never passes this hook.
 // Exit 0 lets the call go on; exit 2 refuses it, the reason on stderr, which Claude Code shows the caller. Claude Code
 // passes an effort on a helper's call from 2.1.292 on. Run by a PreToolUse hook in .claude/settings.json with the
@@ -54,9 +54,9 @@ export function defines(project, type) {
 const plugged = type => typeof type === "string" && type.normalize("NFKC").includes(":");
 
 const whyMax = `This helper's call asks for the effort max: never max, and above high only for escalation ` +
-  `(the core's modules/claude.md, "Pass both model and effort"). Ask for less.`;
+  `(the core's tools/claude.md, "Pass both model and effort"). Ask for less.`;
 const whyLacking = lacks => `This helper's call names no ${lacks.join(" and no ")}: pass both, by the table in ` +
-  `the core's modules/claude.md ("Pass both model and effort"). Where the tool takes no such field here, or the ` +
+  `the core's tools/claude.md ("Pass both model and effort"). Where the tool takes no such field here, or the ` +
   `helper's type sets its own, the call made again with the same prompt goes on.`;
 
 // Why the hook refuses the call it is given (Claude Code's JSON for a hook, as text), or null where the call goes on.

@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: Rules are written for any project",
+  "holder": "check: scripts/general.mjs, in part",
+  "behind": [150, 201]
+}

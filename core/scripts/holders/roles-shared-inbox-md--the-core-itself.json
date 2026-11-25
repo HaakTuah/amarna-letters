@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/inbox.md: The core itself",
+  "behind": [159]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: A writer of the core's and its readers meet in a round trip",
+  "holder": "check: tests/round-trip-test.mjs",
+  "behind": ["#1108"],
+  "number": "correction: does not work; outcome: robust"
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "floor/security.md: 14. Nothing waits for the owner but the yeses the floor names",
+  "behind": [76, 134, 195, 236]
+}

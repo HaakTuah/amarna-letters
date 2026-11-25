@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: It starts orchestrators, on the owner's word, and nothing else",
+  "behind": ["#492"],
+  "number": "correction: does not work; outcome: robust; rare harm"
+}

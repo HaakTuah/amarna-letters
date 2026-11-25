@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/code-shape.md: Near-copies are reported",
+  "holder": "check: scripts/copies.mjs, in part"
+}

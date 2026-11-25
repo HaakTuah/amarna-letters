@@ -1,0 +1,4 @@
+{
+  "rule": "roles/orchestrator.md: Hand over at once",
+  "behind": [10, "#750.7"]
+}

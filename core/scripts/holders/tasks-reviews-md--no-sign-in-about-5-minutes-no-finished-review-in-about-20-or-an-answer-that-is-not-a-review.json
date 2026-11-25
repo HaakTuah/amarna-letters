@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/reviews.md: No sign in about 5 minutes, no finished review in about 20, or an answer that is not a review",
+  "behind": [19, 20]
+}

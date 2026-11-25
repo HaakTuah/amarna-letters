@@ -2,7 +2,8 @@
 # each project file git knows from its lock file alone and holds every package to its licence list and to one exact
 # version, reading the licence check's config and its "nuget". Read-only, and no secrets. It fails from the first
 # day; "advisory: true" beside the config makes it say what it would fail and pass, only while a fault of the check's
-# own is reported to the core and mended.
+# own is reported to the core and mended. In a private repository, as the starter kit writes it, it starts only once a
+# pull request is no draft (core/scripts/init.mjs, READY_ONLY).
 name: nuget
 
 on:

@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/game-design.md: A game whose rules are given is built as given",
+  "behind": ["#484.1"],
+  "number": "correction: misread; outcome: asked"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: The builders",
+  "behind": [122, 154, 158, 162, 163, 169, 232, 248, "#471"],
+  "number": "correction: does not work; outcome: asked"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "roles/auditor.md: Hands over, gets back",
+  "holder": "describes",
+  "behind": ["#464"]
+}

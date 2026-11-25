@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/repositories.md: Before a split, one repository",
+  "holder": "check: scripts/shape.mjs, in part",
+  "behind": [241]
+}

@@ -1,0 +1,7 @@
+{
+  "rule": "tasks/reviews.md: Loops end by themselves",
+  "behind": [
+    "#1134.5"
+  ],
+  "number": "findings; outcome: fast"
+}

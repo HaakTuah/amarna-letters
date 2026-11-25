@@ -1,0 +1,4 @@
+{
+  "rule": "roles/orchestrator.md: It asks the owner nothing",
+  "behind": [133, 134, 137, "#594"]
+}

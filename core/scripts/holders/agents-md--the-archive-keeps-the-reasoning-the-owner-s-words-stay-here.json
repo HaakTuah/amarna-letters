@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: The archive keeps the reasoning; the owner's words stay here",
+  "holder": ["check: scripts/holders.mjs, in part", "check: .github/workflows/core.yml, in part"],
+  "behind": [246, "#744", "#773"]
+}

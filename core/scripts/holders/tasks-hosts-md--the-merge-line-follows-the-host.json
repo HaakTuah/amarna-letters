@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/hosts.md: The merge line follows the host",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": [259],
+  "number": "findings; outcome: fast"
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/review-guidelines.md: Text users read",
+  "behind": [49, 141]
+}

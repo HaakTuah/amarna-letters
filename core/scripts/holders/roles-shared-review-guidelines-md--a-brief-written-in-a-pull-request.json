@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/review-guidelines.md: A brief written in a pull request",
+  "behind": [229]
+}

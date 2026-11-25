@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: An issue for a choice names no candidate",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

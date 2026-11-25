@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/updates.md: A question or difference about a rule of the core starts from its reasons",
+  "holder": ["check: scripts/pr-description.mjs, in part", "check: scripts/reasons-said.mjs, in part"],
+  "behind": ["#756.1"],
+  "number": "findings; outcome: asked"
+}

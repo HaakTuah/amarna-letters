@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: No solutions, only trade-offs",
+  "behind": [91, 93, 143]
+}

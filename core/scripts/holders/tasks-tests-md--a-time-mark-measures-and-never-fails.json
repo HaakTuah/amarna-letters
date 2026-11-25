@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A time mark measures and never fails",
+  "holder": ["check: scripts/shape.mjs, in part", "audit, in part"],
+  "behind": ["#733.2"],
+  "number": "findings; outcome: fast"
+}

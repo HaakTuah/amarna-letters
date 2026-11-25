@@ -1,0 +1,7 @@
+{
+  "rule": "tasks/reviews.md: A finding that does not block starts no round",
+  "behind": [
+    "#1134.2"
+  ],
+  "number": "findings; outcome: fast"
+}

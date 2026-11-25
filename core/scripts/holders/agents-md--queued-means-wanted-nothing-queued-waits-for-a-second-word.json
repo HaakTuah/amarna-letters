@@ -1,0 +1,4 @@
+{
+  "rule": "AGENTS.md: Queued means wanted: nothing queued waits for a second word",
+  "behind": [211]
+}

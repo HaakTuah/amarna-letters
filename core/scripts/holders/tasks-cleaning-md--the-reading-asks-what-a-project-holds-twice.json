@@ -1,0 +1,8 @@
+{
+  "rule": "tasks/cleaning.md: The reading asks what a project holds twice",
+  "holder": ["check: tests/twice-test.mjs, in part", "check: tests/twice-kept-test.mjs, in part"],
+  "behind": [
+    "#1087"
+  ],
+  "number": "correction: misread; outcome: readable"
+}

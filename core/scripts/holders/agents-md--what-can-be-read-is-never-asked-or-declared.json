@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: What can be read is never asked or declared",
+  "holder": "check: scripts/manifest-reads.mjs, in part",
+  "behind": [248]
+}

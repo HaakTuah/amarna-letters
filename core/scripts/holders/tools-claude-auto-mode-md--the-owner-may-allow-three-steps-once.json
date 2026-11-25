@@ -1,0 +1,5 @@
+{
+  "rule": "tools/claude-auto-mode.md: The owner may allow three steps once",
+  "behind": ["#1086"],
+  "number": "findings; outcome: fast"
+}

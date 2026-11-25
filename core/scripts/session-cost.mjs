@@ -1,15 +1,16 @@
 // What this session has spent so far, as the one line a PR's description ends with ("Work from main" in
-// modules/git.md): the tokens of every answer in Claude Code's own record of the session and of the helpers it
+// roles/shared/work-flow.md): the tokens of every answer in Claude Code's own record of the session and of the helpers it
 // started, each answer counted once. That record can lose answers while the session goes on, so the script keeps a
 // tally of its own beside it, `session-cost/<the session's id>.json` in Claude Code's folder: every answer it has
 // counted, by its id, with its four counts and its model's family. Each run adds what the record holds now, and the
 // line is the tally's, so it never drops within a session while the tally stands (a tally lost, or answers that came
 // and went between two runs, and it is a floor again). Where it cannot tell (another tool, no session id, no record
-// and no tally), it prints nothing and exits 0, so no session works this out by hand or writes that it could not. It
-// reads the record and writes the tally, nothing else: no prompt, answer or path leaves it, only ids, counts and the
+// and no tally), it prints nothing and exits 0, so no session works this out by hand: the description says "No cost
+// line: the script printed none." in its place (pr-description.mjs, beside this file; #302). It reads the record and writes the tally, nothing else: no prompt, answer or path leaves it, only ids, counts and the
 // models' families; a tally no run has touched for 90 days is removed. Node's own modules only.
 //
 //   node core/scripts/session-cost.mjs
+//   node core/scripts/session-cost.mjs --context    the tokens of context the session's newest answer was given
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -95,6 +96,26 @@ export function records(home, session) {
   return found;
 }
 
+/** The tokens of context the newest answer in a session's own record was given (its input, cache written and cache
+ *  read), which "A builder hands over by its context" reads (roles/shared/work-flow.md, "Sessions"); 0 where it holds
+ *  none. */
+export function context(text) {
+  let last = 0;
+  for (const [, counts] of answersIn([text])) last = counts[0] + counts[1] + counts[2];
+  return last;
+}
+
+/** A session's own record under Claude Code's folder, without its helpers', or "". */
+export function ownRecord(home, session) {
+  if (!SESSION.test(session ?? "")) return "";
+  let folders = [];
+  try { folders = fs.readdirSync(path.join(home, "projects"), { withFileTypes: true }).filter((e) => e.isDirectory()); } catch { return ""; }
+  for (const folder of folders) {
+    try { return fs.readFileSync(path.join(home, "projects", folder.name, `${session}.jsonl`), "utf8"); } catch { /* (not this project's) */ }
+  }
+  return "";
+}
+
 /** A session's tally under Claude Code's folder, or null for a session id of another shape. */
 export const tallyOf = (home, session) => (SESSION.test(session ?? "") ? path.join(home, "session-cost", `${session}.json`) : null);
 
@@ -122,7 +143,10 @@ if (started(import.meta.url)) {
   try {
     const home = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
     const file = tallyOf(home, process.env.CLAUDE_CODE_SESSION_ID);
-    if (file) {
+    if (process.argv.includes("--context")) {
+      const now = context(ownRecord(home, process.env.CLAUDE_CODE_SESSION_ID));
+      if (now) console.log(`Context now: ${now.toLocaleString("en-US")} tokens.`);
+    } else if (file) {
       const counted = cost(records(home, process.env.CLAUDE_CODE_SESSION_ID), keptIn(tallyText(file)));
       const out = line(counted);
       if (out) { console.log(out); keep(file, counted.all); }

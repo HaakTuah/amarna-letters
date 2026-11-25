@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/cleaning.md: The audit's reader has a fixed brief and fixed questions",
+  "behind": [257, 262, "#534.12"],
+  "number": "correction: looks wrong; outcome: readable"
+}

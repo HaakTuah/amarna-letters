@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/planning.md: Milestones, named in order",
+  "holder": "check: scripts/pr-description.mjs, in part"
+}

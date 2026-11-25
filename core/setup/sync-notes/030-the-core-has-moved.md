@@ -1,0 +1,1 @@
+- **12 November 2026, the core has moved.** Done when a project whose orchestrator does not wake every day has a `core-moved.yml` of its own (`core/README.md`, "How a project takes the core", point 5); from 16 November 2026, a `look.yml` in its place (the entry of that day).

@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/choices.md: What reopens a choice",
+  "holder": "check: scripts/look.mjs, in part"
+}

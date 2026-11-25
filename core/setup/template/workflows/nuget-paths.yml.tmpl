@@ -1,0 +1,27 @@
+    # (no longer written by the starter kit, whose NuGet check is a step of core.yml's one job (#376); kept for a project
+    # that keeps a call of its own to the core's nuget.yml, as core/scripts/steps.mjs reads it. A private repository, where
+    # each job is a billed minute: the job starts only on a pull request that changes a
+    # file NuGet reads by name, the names the core's nuget.yml looks at first, in any case, as Windows takes them. A
+    # file a build file brings in under another name is added here by its exact path: core/scripts/steps.mjs lists
+    # each. What is left to the next such pull request: a lock file a build no longer matches through a property
+    # alone. The licence check's config and audit stand at the kit's paths: a project that moves them, or names a
+    # folder of its own as a source, names them here. With no job, no status: a ruleset that requires "nuget" waits on
+    # the other pull requests, so a project with one takes these lines out.)
+    paths:
+      - '**/*.[Cc][Ss][Pp][Rr][Oo][Jj]'
+      - '**/*.[Ff][Ss][Pp][Rr][Oo][Jj]'
+      - '**/*.[Vv][Bb][Pp][Rr][Oo][Jj]'
+      - '**/*.[Pp][Rr][Oo][Pp][Ss]'
+      - '**/*.[Tt][Aa][Rr][Gg][Ee][Tt][Ss]'
+      - '**/*.[Rr][Ss][Pp]'
+      - '**/*.[Uu][Ss][Ee][Rr]'
+      - '**/[Pp][Aa][Cc][Kk][Aa][Gg][Ee][Ss].*[Jj][Ss][Oo][Nn]'
+      - '**/[Pp][Aa][Cc][Kk][Aa][Gg][Ee][Ss].[Cc][Oo][Nn][Ff][Ii][Gg]'
+      - '**/[Nn][Uu][Gg][Ee][Tt].[Cc][Oo][Nn][Ff][Ii][Gg]'
+      - '**/[Gg][Ll][Oo][Bb][Aa][Ll].[Jj][Ss][Oo][Nn]'
+      - '**/[Dd][Oo][Tt][Nn][Ee][Tt]-[Tt][Oo][Oo][Ll][Ss].[Jj][Ss][Oo][Nn]'
+      - '**/*.[Nn][Uu][Pp][Kk][Gg]'
+      - 'checks/licences.json'
+      - 'checks/licences-audit.json'
+      - 'core/.node-version'
+      - '.github/workflows/nuget.yml'

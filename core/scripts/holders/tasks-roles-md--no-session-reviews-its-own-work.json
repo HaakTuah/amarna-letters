@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/roles.md: No session reviews its own work",
+  "behind": [232]
+}

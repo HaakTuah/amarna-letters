@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/code-shape.md: Never worse",
+  "holder": "check: scripts/shape.mjs, in part",
+  "behind": ["#750.5"],
+  "number": "check fires; outcome: fast"
+}

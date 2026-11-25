@@ -1,0 +1,26 @@
+{
+  "languages": [
+    { "name": "JavaScript", "endings": [".js", ".mjs", ".cjs", ".jsx"], "tool": "Stryker" },
+    { "name": "TypeScript", "endings": [".ts", ".mts", ".cts", ".tsx"], "tool": "Stryker" },
+    { "name": "C#", "endings": [".cs"], "tool": "Stryker.NET" },
+    { "name": "Python", "endings": [".py"], "tool": "mutmut" }
+  ],
+  "tools": {
+    "Stryker": {
+      "registry": "npm", "package": "@stryker-mutator/core", "version": "10.1.1", "licence": "Apache-2.0",
+      "overrides": { "mutation-testing-report-schema": "3.9.0", "qs": "6.16.1" },
+      "data": ["caniuse-lite"],
+      "folder": "checks/mutation",
+      "command": "node {copy}scripts/stryker.mjs --tool checks/mutation{runner} --report {report} {lines}",
+      "runners": { "node": { "words": "", "named": "node <file>" }, "vitest": { "words": " --runner vitest", "named": "vitest run <file>", "locked": "vitest", "plain": ["vitest", "vitest run"] } }
+    },
+    "Stryker.NET": {
+      "registry": "nuget", "package": "dotnet-stryker", "licence": "Apache-2.0",
+      "none": "Stryker.NET, the core's tool for C#, names the code to fault by its characters, not its lines, and no script of the core's gives it a pull request's lines yet"
+    },
+    "mutmut": {
+      "registry": "pypi", "package": "mutmut", "licence": "BSD-3-Clause",
+      "none": "mutmut, the core's tool for Python, writes no report in the mutation-testing-elements schema and faults whole functions, not lines, and no script of the core's reads its results yet"
+    }
+  }
+}

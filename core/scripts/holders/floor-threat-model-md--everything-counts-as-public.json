@@ -1,0 +1,4 @@
+{
+  "rule": "floor/threat-model.md: Everything counts as public",
+  "holder": "describes"
+}

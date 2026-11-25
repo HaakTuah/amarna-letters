@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: The order of resolution never decides",
+  "behind": [105]
+}

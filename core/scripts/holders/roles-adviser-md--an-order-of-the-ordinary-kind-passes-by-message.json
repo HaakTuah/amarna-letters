@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: An order of the ordinary kind passes by message",
+  "behind": ["#492"],
+  "number": "correction: does not work; outcome: fast"
+}

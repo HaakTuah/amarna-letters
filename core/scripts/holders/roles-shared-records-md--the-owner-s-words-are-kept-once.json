@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/records.md: The owner's words are kept once",
+  "behind": [131, 246, "#773", "#492"]
+}

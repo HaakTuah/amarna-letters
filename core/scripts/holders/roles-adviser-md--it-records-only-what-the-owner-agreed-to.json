@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: It records only what the owner agreed to",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

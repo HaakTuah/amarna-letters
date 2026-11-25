@@ -1,0 +1,15 @@
+{
+  "rule": "AGENTS.md: One process takes the core in",
+  "holder": [
+    "check: tests/converge-test.mjs",
+    "check: tests/pure-sync-test.mjs, in part",
+    "check: tests/upgrade-test.mjs, in part",
+    "check: scripts/converge.mjs, in part",
+    "check: tests/steps-write-test.mjs, in part"
+  ],
+  "behind": [
+    "#1083",
+    "#1095"
+  ],
+  "number": "correction: does not work; outcome: robust"
+}

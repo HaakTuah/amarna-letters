@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/how-to-work.md: Rule files state rules",
+  "holder": "check: scripts/size.mjs, in part",
+  "behind": [74]
+}

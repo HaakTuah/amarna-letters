@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/how-to-work.md: A question from the owner is a question",
+  "behind": [25]
+}

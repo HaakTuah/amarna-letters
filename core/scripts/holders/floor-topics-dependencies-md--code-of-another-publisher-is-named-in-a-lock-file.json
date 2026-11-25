@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/dependencies.md: Code of another publisher is named in a lock file",
+  "behind": [258],
+  "number": "correction: rule missing; outcome: robust; rare harm"
+}

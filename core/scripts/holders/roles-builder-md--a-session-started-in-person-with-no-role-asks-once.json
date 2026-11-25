@@ -1,0 +1,5 @@
+{
+  "rule": "roles/builder.md: A session started in person with no role asks once",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

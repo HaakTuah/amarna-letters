@@ -1,11 +1,16 @@
-# The description check ("Each PR has the headings" in modules/git.md), for every project that takes the core: it fails
+# The description check ("Each PR has the headings" in roles/shared/work-flow.md), for every project that takes the core: it fails
 # a pull request whose description lacks a heading for one of its parts, "What the owner can try" and "Readings taken",
-# or the parts the project names. A draft is not asked (it claims a lane and says little), nor Dependabot's own PRs
-# (floor rule 17). A project calls it (workflow_call) from a workflow of its own of the same name, on pull_request
+# or the parts the project names, and one opened since the copy on its base gained the line whose description does not
+# end saying what it waits on ("Nothing waits silently" in the core's roles/shared/work-flow.md), or does not list what its changed
+# paths called for ("One script says what to read" in the core's tasks/tools.md; the change is read from git alone,
+# the merge commit against its first parent, the base). A draft is not asked (it claims a
+# lane and says little), nor Dependabot's own PRs (floor rule 17). A project calls it (workflow_call) from a workflow of its own of the same name, on pull_request
 # with the types opened, edited, reopened, synchronize and ready_for_review, so that a description put right is checked
-# again by itself, pinned to a full commit SHA ("How a project takes the core" in README.md, point 5). It runs the
-# project's own core/scripts/pr-description.mjs on the core's one exact Node; Node's own modules only, no package
-# installed. Read-only, with no secret: the description, which anyone who opens a pull request writes, reaches the
+# again by itself, pinned to a full commit SHA ("How a project takes the core" in README.md, point 5); or it calls core.yml with
+# description: true, which runs the same in its one job (#376). It runs the project's own core/scripts/pr-description.mjs,
+# through its checks.mjs, which holds the step, on the core's one exact Node; gh and Node's own modules only, no package
+# installed. Read-only, with no secret, its token reading only the base's commits and copy and, where it can, the
+# issues the pull request queues or closes, a dozen at most (the core's tasks/done-when.md): the description, which anyone who opens a pull request writes, reaches the
 # script through env and is never written into a run line (floor rule 2).
 name: pr-description
 
@@ -26,19 +31,30 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.user.login != 'dependabot[bot]' }}
     # an older run never ends after a newer one: two quick edits of a description leave the newer one's result
     concurrency:
-      group: pr-description-${{ github.repository }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+      group: pr-description-${{ github.repository }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false # nothing after the checkout needs the token
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+          fetch-depth: 2 # the merge commit and its parents: the paths the pull request changes are read against the base
+      - name: Where the core's copy stands, for the description check (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        run: |
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock file for the description check (#654)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then node "${CORE_AT}scripts/install.mjs"; fi
       - name: The description has its parts
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_CREATED: ${{ github.event.pull_request.created_at }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GH_TOKEN: ${{ github.token }} # (read only: the base's commits and copy, for the day it gained a line, and the issues a pull request queues or closes)
           PARTS: ${{ inputs.parts }}
-        run: node core/scripts/pr-description.mjs "$PARTS"
+        run: node "$CORE_AT"scripts/checks.mjs description --parts "$PARTS"

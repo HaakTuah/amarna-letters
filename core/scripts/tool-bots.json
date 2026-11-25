@@ -1,0 +1,9 @@
+{
+  "about": "The logins of each agent tool's own bot account, under which it opens pull requests (#901): scripts/tools-read.mjs counts a merged pull request a bot's account opened as built by the tool whose login it is here, in any case, never by its body, and any other bot's as built by no tool named; it gives the pull request no trust (floor rule 4). Each tool is one of scripts/staged-tools.json; one with no bot of its own (Antigravity) has no entry. Each login is the app its or the host's documentation names, as GitHub's search (author:app/<its name>) showed it opening pull requests on 20 November 2026; where a documentation page or a reading adds or renames one, it changes here.",
+  "bots": {
+    "Claude Code": ["claude[bot]"],
+    "Codex": ["chatgpt-codex-connector[bot]"],
+    "GitHub Copilot": ["Copilot", "copilot-swe-agent[bot]"],
+    "Kiro": ["kiro-agent[bot]"]
+  }
+}

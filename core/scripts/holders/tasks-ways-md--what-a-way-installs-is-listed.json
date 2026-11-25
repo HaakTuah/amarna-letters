@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/ways.md: What a way installs is listed",
+  "holder": "check: scripts/agent-tools.mjs, in part",
+  "behind": ["#397.6"],
+  "number": "check fires; outcome: robust"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "floor/topics/dependencies.md: A new one is looked up in its registry",
+  "holder": "check: scripts/lookup.mjs",
+  "behind": [252],
+  "number": "check fires; outcome: robust; rare harm"
+}

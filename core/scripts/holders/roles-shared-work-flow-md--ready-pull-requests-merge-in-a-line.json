@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/work-flow.md: Ready pull requests merge in a line",
+  "behind": [259],
+  "number": "findings; outcome: fast"
+}

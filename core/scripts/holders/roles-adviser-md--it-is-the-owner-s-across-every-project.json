@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: It is the owner's, across every project",
+  "behind": ["#492"],
+  "number": "correction: rule missing; outcome: usable"
+}

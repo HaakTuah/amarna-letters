@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/ways.md: A staged run through each way",
+  "holder": "check: scripts/staged.mjs, in part",
+  "behind": ["#397.8"],
+  "number": "correction: does not work; outcome: usable"
+}
