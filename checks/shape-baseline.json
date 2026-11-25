@@ -1,0 +1,2130 @@
+{
+  "reads": [
+    "javascript",
+    "jsx",
+    "javascript-tree",
+    "csharp",
+    "csharp-tree",
+    "python",
+    "python-tree",
+    "scripts",
+    "screens",
+    "clocks",
+    "processes",
+    "changes"
+  ],
+  "listed": {
+    "cycle: src/engine/src/model/command.ts -> src/engine/src/model/sleep.ts": true,
+    "cycle: src/engine/src/model/order-schema.ts -> src/engine/src/model/command.ts": true,
+    "cycle: src/engine/src/model/order-schema.ts -> src/engine/src/model/records.ts": true,
+    "cycle: src/engine/src/model/records.ts -> src/engine/src/model/word.ts": true,
+    "cycle: src/engine/src/model/sleep.ts -> src/engine/src/model/order-schema.ts": true,
+    "cycle: src/engine/src/model/trade.ts -> src/engine/src/model/works.ts": true,
+    "cycle: src/engine/src/model/views.ts -> src/engine/src/model/command.ts": true,
+    "cycle: src/engine/src/model/views.ts -> src/engine/src/model/order-schema.ts": true,
+    "cycle: src/engine/src/model/views.ts -> src/engine/src/model/records.ts": true,
+    "cycle: src/engine/src/model/views.ts -> src/engine/src/model/sleep.ts": true,
+    "cycle: src/engine/src/model/views.ts -> src/engine/src/model/trade.ts": true,
+    "cycle: src/engine/src/model/views.ts -> src/engine/src/model/word.ts": true,
+    "cycle: src/engine/src/model/word.ts -> src/engine/src/model/trade.ts": true,
+    "cycle: src/engine/src/model/works.ts -> src/engine/src/model/views.ts": true,
+    "cycle: src/engine/src/rules/known-land.ts -> src/engine/src/rules/province-reports.ts": true,
+    "cycle: src/engine/src/rules/people-views.ts -> src/engine/src/turn/turn-engine.ts": true,
+    "cycle: src/engine/src/rules/province-reports.ts -> src/engine/src/rules/known-land.ts": true,
+    "cycle: src/engine/src/rules/province-reports.ts -> src/engine/src/turn/core.ts": true,
+    "cycle: src/engine/src/rules/validator-economy.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/rules/validator-people.ts -> src/engine/src/rules/validator.ts": true,
+    "cycle: src/engine/src/rules/validator.ts -> src/engine/src/rules/validator-economy.ts": true,
+    "cycle: src/engine/src/rules/validator.ts -> src/engine/src/rules/validator-people.ts": true,
+    "cycle: src/engine/src/rules/validator.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/rules/views.ts -> src/engine/src/rules/people-views.ts": true,
+    "cycle: src/engine/src/rules/views.ts -> src/engine/src/turn/turn-engine.ts": true,
+    "cycle: src/engine/src/turn/archives.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/authentication.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/bands.ts -> src/engine/src/turn/own-choices.ts": true,
+    "cycle: src/engine/src/turn/bands.ts -> src/engine/src/turn/raiders.ts": true,
+    "cycle: src/engine/src/turn/borders.ts -> src/engine/src/turn/economy.ts": true,
+    "cycle: src/engine/src/turn/borders.ts -> src/engine/src/turn/people.ts": true,
+    "cycle: src/engine/src/turn/captives.ts -> src/engine/src/rules/validator.ts": true,
+    "cycle: src/engine/src/turn/captives.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/caravans.ts -> src/engine/src/turn/economy.ts": true,
+    "cycle: src/engine/src/turn/caravans.ts -> src/engine/src/turn/trade.ts": true,
+    "cycle: src/engine/src/turn/caravans.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/coffers.ts -> src/engine/src/turn/trade.ts": true,
+    "cycle: src/engine/src/turn/core.ts -> src/engine/src/rules/province-reports.ts": true,
+    "cycle: src/engine/src/turn/counts.ts -> src/engine/src/turn/people.ts": true,
+    "cycle: src/engine/src/turn/couriers.ts -> src/engine/src/turn/plans.ts": true,
+    "cycle: src/engine/src/turn/couriers.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/court.ts -> src/engine/src/turn/jobs.ts": true,
+    "cycle: src/engine/src/turn/court.ts -> src/engine/src/turn/rides.ts": true,
+    "cycle: src/engine/src/turn/covers.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/covers.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/declarations.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/economy.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/economy.ts -> src/engine/src/turn/coffers.ts": true,
+    "cycle: src/engine/src/turn/envoys-home.ts -> src/engine/src/turn/envoys.ts": true,
+    "cycle: src/engine/src/turn/envoys-home.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/envoys.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/envoys.ts -> src/engine/src/turn/sleep.ts": true,
+    "cycle: src/engine/src/turn/events.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/falls.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/falls.ts -> src/engine/src/turn/people.ts": true,
+    "cycle: src/engine/src/turn/falls.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/intel.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/jobs.ts -> src/engine/src/turn/court.ts": true,
+    "cycle: src/engine/src/turn/kings.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/letters.ts -> src/engine/src/turn/own-choices.ts": true,
+    "cycle: src/engine/src/turn/letters.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/movement-news.ts -> src/engine/src/turn/sleep.ts": true,
+    "cycle: src/engine/src/turn/news.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/news.ts -> src/engine/src/turn/intel.ts": true,
+    "cycle: src/engine/src/turn/offers.ts -> src/engine/src/turn/letters.ts": true,
+    "cycle: src/engine/src/turn/offers.ts -> src/engine/src/turn/news.ts": true,
+    "cycle: src/engine/src/turn/offers.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/own-choices.ts -> src/engine/src/turn/letters.ts": true,
+    "cycle: src/engine/src/turn/people.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/plans.ts -> src/engine/src/rules/validator.ts": true,
+    "cycle: src/engine/src/turn/plans.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/plans.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/plans.ts -> src/engine/src/turn/sleep.ts": true,
+    "cycle: src/engine/src/turn/plans.ts -> src/engine/src/turn/standing.ts": true,
+    "cycle: src/engine/src/turn/raiders.ts -> src/engine/src/turn/people.ts": true,
+    "cycle: src/engine/src/turn/resolve.ts -> src/engine/src/rules/validator.ts": true,
+    "cycle: src/engine/src/turn/resolve.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/rides.ts -> src/engine/src/turn/court.ts": true,
+    "cycle: src/engine/src/turn/rulers.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/sieges.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/sieges.ts -> src/engine/src/turn/trade.ts": true,
+    "cycle: src/engine/src/turn/sleep.ts -> src/engine/src/turn/archives.ts": true,
+    "cycle: src/engine/src/turn/sleep.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/standing.ts -> src/engine/src/rules/validator.ts": true,
+    "cycle: src/engine/src/turn/standing.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/standing.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/standing.ts -> src/engine/src/turn/sleep.ts": true,
+    "cycle: src/engine/src/turn/trade.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/trade.ts -> src/engine/src/turn/coffers.ts": true,
+    "cycle: src/engine/src/turn/trade.ts -> src/engine/src/turn/economy.ts": true,
+    "cycle: src/engine/src/turn/trade.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/travel.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/travel.ts -> src/engine/src/turn/trade.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/archives.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/authentication.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/bands.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/borders.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/captives.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/caravans.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/coffers.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/counts.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/couriers.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/covers.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/declarations.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/economy.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/envoys-home.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/envoys.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/events.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/falls.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/intel.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/kings.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/letters.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/movement-news.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/news.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/offers.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/people.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/plans.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/raiders.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/resolve.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/rulers.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/sieges.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/sleep.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/standing.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/trade.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/travel.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/unrest.ts": true,
+    "cycle: src/engine/src/turn/turn-engine.ts -> src/engine/src/turn/works.ts": true,
+    "cycle: src/engine/src/turn/unrest.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/engine/src/turn/unrest.ts -> src/engine/src/turn/rulers.ts": true,
+    "cycle: src/engine/src/turn/works.ts -> src/engine/src/rules/views.ts": true,
+    "cycle: src/game/src/bots/brain.ts -> src/game/src/bots/statecraft-clauses.ts": true,
+    "cycle: src/game/src/bots/council.ts -> src/game/src/bots/script-leader.ts": true,
+    "cycle: src/game/src/bots/errands.ts -> src/game/src/bots/statecraft-court.ts": true,
+    "cycle: src/game/src/bots/investment.ts -> src/game/src/bots/brain.ts": true,
+    "cycle: src/game/src/bots/rides.ts -> src/game/src/bots/errands.ts": true,
+    "cycle: src/game/src/bots/script-leader.ts -> src/game/src/bots/council.ts": true,
+    "cycle: src/game/src/bots/statecraft-clauses.ts -> src/game/src/bots/investment.ts": true,
+    "cycle: src/game/src/bots/statecraft-court.ts -> src/game/src/bots/errands.ts": true,
+    "cycle: src/game/src/bots/statecraft-court.ts -> src/game/src/bots/rides.ts": true,
+    "cycle: src/web/src/map/memory.ts -> src/web/src/map/scene.ts": true,
+    "cycle: src/web/src/map/scene.ts -> src/web/src/map/memory.ts": true,
+    "function: scripts/design-copy.py#check_references": {
+      "lines": 18,
+      "depth": 5,
+      "branches": 12
+    },
+    "function: scripts/map-borders.ts#road": {
+      "lines": 41,
+      "depth": 3,
+      "branches": 16
+    },
+    "function: scripts/map-dem.mjs#decodePng": {
+      "lines": 42,
+      "depth": 3,
+      "branches": 22
+    },
+    "function: scripts/music/parts.py#melody": {
+      "lines": 28,
+      "depth": 3,
+      "branches": 16
+    },
+    "function: scripts/music/pieces_peace.py#hymn_theme": {
+      "lines": 79,
+      "depth": 1,
+      "branches": 6
+    },
+    "function: scripts/music/pieces_peace.py#kings": {
+      "lines": 107,
+      "depth": 1,
+      "branches": 6
+    },
+    "function: scripts/music/pieces_peace.py#last": {
+      "lines": 78,
+      "depth": 0,
+      "branches": 4
+    },
+    "function: scripts/music/pieces_peace.py#river": {
+      "lines": 84,
+      "depth": 0,
+      "branches": 13
+    },
+    "function: scripts/music/pieces_peace.py#triumph": {
+      "lines": 61,
+      "depth": 1,
+      "branches": 11
+    },
+    "function: scripts/music/pieces_war.py#battle": {
+      "lines": 120,
+      "depth": 0,
+      "branches": 8
+    },
+    "function: scripts/music/pieces_war.py#chariots": {
+      "lines": 106,
+      "depth": 0,
+      "branches": 5
+    },
+    "function: scripts/music/pieces_war.py#enmity": {
+      "lines": 127,
+      "depth": 1,
+      "branches": 10
+    },
+    "function: scripts/music/pieces_war.py#envoys": {
+      "lines": 102,
+      "depth": 0,
+      "branches": 6
+    },
+    "function: scripts/music/pieces_war.py#fallen": {
+      "lines": 88,
+      "depth": 0,
+      "branches": 10
+    },
+    "function: scripts/music/pieces_war.py#shadows": {
+      "lines": 78,
+      "depth": 0,
+      "branches": 4
+    },
+    "function: scripts/music/pieces_war.py#siege": {
+      "lines": 69,
+      "depth": 0,
+      "branches": 0
+    },
+    "function: scripts/unused-code.mjs#examine": {
+      "lines": 95,
+      "depth": 2,
+      "branches": 9
+    },
+    "function: scripts/unused-code.mjs#visit": {
+      "lines": 53,
+      "depth": 4,
+      "branches": 34
+    },
+    "function: sim/bridge.js#handle": {
+      "lines": 83,
+      "depth": 2,
+      "branches": 45
+    },
+    "function: sim/check-isolation.js#dry": {
+      "lines": 81,
+      "depth": 2,
+      "branches": 38
+    },
+    "function: sim/check-isolation.js#live": {
+      "lines": 54,
+      "depth": 3,
+      "branches": 40
+    },
+    "function: sim/guard.js#(anonymous)": {
+      "lines": 32,
+      "depth": 1,
+      "branches": 26
+    },
+    "function: sim/stub-replier.js#siegeOrders": {
+      "lines": 50,
+      "depth": 3,
+      "branches": 42
+    },
+    "function: src/batch/src/options.ts#parseArgs": {
+      "lines": 596,
+      "depth": 3,
+      "branches": 156
+    },
+    "function: src/batch/src/play.ts#playOne": {
+      "lines": 177,
+      "depth": 2,
+      "branches": 150
+    },
+    "function: src/engine/src/core/json.ts#quote": {
+      "lines": 50,
+      "depth": 4,
+      "branches": 27
+    },
+    "function: src/engine/src/core/json.ts#readAny": {
+      "lines": 39,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/engine/src/core/json.ts#write": {
+      "lines": 49,
+      "depth": 2,
+      "branches": 25
+    },
+    "function: src/engine/src/model/command.ts#mandateText": {
+      "lines": 21,
+      "depth": 0,
+      "branches": 17
+    },
+    "function: src/engine/src/model/map.ts#buildMap": {
+      "lines": 301,
+      "depth": 0,
+      "branches": 8
+    },
+    "function: src/engine/src/model/order-reading.ts#describe": {
+      "lines": 167,
+      "depth": 1,
+      "branches": 134
+    },
+    "function: src/engine/src/model/people.ts#newCharacter": {
+      "lines": 84,
+      "depth": 0,
+      "branches": 0
+    },
+    "function: src/engine/src/model/state.ts#newGameState": {
+      "lines": 132,
+      "depth": 0,
+      "branches": 0
+    },
+    "function: src/engine/src/model/state.ts#notify": {
+      "lines": 18,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/engine/src/model/travel.ts#cheapestRoute": {
+      "lines": 38,
+      "depth": 3,
+      "branches": 17
+    },
+    "function: src/engine/src/model/travel.ts#legPointsOf": {
+      "lines": 36,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/engine/src/model/vassals.ts#vassalTerms": {
+      "lines": 17,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/model/views.ts#newSeatView": {
+      "lines": 103,
+      "depth": 0,
+      "branches": 0
+    },
+    "function: src/engine/src/model/works.ts#worksOfPower": {
+      "lines": 33,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/rules/adjudicator.ts#adjudicate": {
+      "lines": 30,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/engine/src/rules/adjudicator.ts#collect": {
+      "lines": 82,
+      "depth": 3,
+      "branches": 52
+    },
+    "function: src/engine/src/rules/adjudicator.ts#fightOf": {
+      "lines": 20,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/rules/adjudicator.ts#run": {
+      "lines": 62,
+      "depth": 2,
+      "branches": 14
+    },
+    "function: src/engine/src/rules/adjudicator.ts#voidMismatched": {
+      "lines": 33,
+      "depth": 3,
+      "branches": 18
+    },
+    "function: src/engine/src/rules/adjudicator.ts#whyFailed": {
+      "lines": 40,
+      "depth": 2,
+      "branches": 28
+    },
+    "function: src/engine/src/rules/brief.ts#newsLine": {
+      "lines": 25,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/engine/src/rules/brief.ts#seasonBrief": {
+      "lines": 73,
+      "depth": 2,
+      "branches": 49
+    },
+    "function: src/engine/src/rules/clauses.ts#clauseError": {
+      "lines": 65,
+      "depth": 1,
+      "branches": 73
+    },
+    "function: src/engine/src/rules/clauses.ts#named": {
+      "lines": 56,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/engine/src/rules/clauses.ts#renderClause": {
+      "lines": 84,
+      "depth": 1,
+      "branches": 56
+    },
+    "function: src/engine/src/rules/court.ts#courtMoveRefusal": {
+      "lines": 16,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/rules/factory.ts#more": {
+      "lines": 50,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/engine/src/rules/factory.ts#newGame": {
+      "lines": 88,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/engine/src/rules/factory.ts#openingLoyalties": {
+      "lines": 101,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/engine/src/rules/first-game.ts#leaveOut": {
+      "lines": 33,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/engine/src/rules/history.ts#provinceLines": {
+      "lines": 15,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/engine/src/rules/legends.ts#characterLegend": {
+      "lines": 26,
+      "depth": 2,
+      "branches": 27
+    },
+    "function: src/engine/src/rules/legends.ts#courtLegend": {
+      "lines": 43,
+      "depth": 1,
+      "branches": 43
+    },
+    "function: src/engine/src/rules/legends.ts#tabletLegends": {
+      "lines": 43,
+      "depth": 2,
+      "branches": 38
+    },
+    "function: src/engine/src/rules/people-views.ts#characterView": {
+      "lines": 76,
+      "depth": 0,
+      "branches": 81
+    },
+    "function: src/engine/src/rules/people-views.ts#dutyText": {
+      "lines": 33,
+      "depth": 1,
+      "branches": 20
+    },
+    "function: src/engine/src/rules/people-views.ts#timingText": {
+      "lines": 28,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/engine/src/rules/realm.ts#stateOfRealm": {
+      "lines": 41,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/engine/src/rules/tongues.ts#drawTongues": {
+      "lines": 35,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/engine/src/rules/validator-armies.ts#checkArmyOrder": {
+      "lines": 181,
+      "depth": 1,
+      "branches": 149
+    },
+    "function: src/engine/src/rules/validator-command.ts#checkCommandOrder": {
+      "lines": 130,
+      "depth": 3,
+      "branches": 105
+    },
+    "function: src/engine/src/rules/validator-command.ts#mandateRefusal": {
+      "lines": 14,
+      "depth": 0,
+      "branches": 20
+    },
+    "function: src/engine/src/rules/validator-economy.ts#checkEconomyOrder": {
+      "lines": 199,
+      "depth": 2,
+      "branches": 191
+    },
+    "function: src/engine/src/rules/validator-letters.ts#checkLetterOrder": {
+      "lines": 30,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/rules/validator-people.ts#checkPeopleOrder": {
+      "lines": 262,
+      "depth": 2,
+      "branches": 217
+    },
+    "function: src/engine/src/rules/validator.ts#errandFits": {
+      "lines": 19,
+      "depth": 1,
+      "branches": 20
+    },
+    "function: src/engine/src/rules/validator.ts#errandRefusal": {
+      "lines": 27,
+      "depth": 1,
+      "branches": 28
+    },
+    "function: src/engine/src/rules/validator.ts#hireRefusal": {
+      "lines": 27,
+      "depth": 1,
+      "branches": 31
+    },
+    "function: src/engine/src/rules/validator.ts#validate": {
+      "lines": 232,
+      "depth": 2,
+      "branches": 36
+    },
+    "function: src/engine/src/rules/views.ts#seatView": {
+      "lines": 301,
+      "depth": 2,
+      "branches": 116
+    },
+    "function: src/engine/src/turn/answers.ts#assignAnswers": {
+      "lines": 36,
+      "depth": 3,
+      "branches": 20
+    },
+    "function: src/engine/src/turn/answers.ts#keepAnswers": {
+      "lines": 42,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/authentication.ts#finishAuthentication": {
+      "lines": 46,
+      "depth": 4,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/authority.ts#grantByOrder": {
+      "lines": 29,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/authority.ts#repudiate": {
+      "lines": 19,
+      "depth": 0,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/bands.ts#bandsSeason": {
+      "lines": 239,
+      "depth": 3,
+      "branches": 81
+    },
+    "function: src/engine/src/turn/bands.ts#naturalLosses": {
+      "lines": 19,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/battles.ts#battles": {
+      "lines": 114,
+      "depth": 2,
+      "branches": 54
+    },
+    "function: src/engine/src/turn/borders.ts#deport": {
+      "lines": 41,
+      "depth": 1,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/borders.ts#robbing": {
+      "lines": 42,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/captives.ts#captive": {
+      "lines": 101,
+      "depth": 2,
+      "branches": 37
+    },
+    "function: src/engine/src/turn/caravans.ts#caravanArrives": {
+      "lines": 58,
+      "depth": 2,
+      "branches": 36
+    },
+    "function: src/engine/src/turn/caravans.ts#caravansTravel": {
+      "lines": 192,
+      "depth": 4,
+      "branches": 90
+    },
+    "function: src/engine/src/turn/coffers.ts#coffersSettle": {
+      "lines": 39,
+      "depth": 3,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/coffers.ts#goldArrives": {
+      "lines": 98,
+      "depth": 4,
+      "branches": 27
+    },
+    "function: src/engine/src/turn/command.ts#commandSeason": {
+      "lines": 97,
+      "depth": 3,
+      "branches": 46
+    },
+    "function: src/engine/src/turn/core.ts#arrivals": {
+      "lines": 76,
+      "depth": 3,
+      "branches": 28
+    },
+    "function: src/engine/src/turn/counts.ts#censusSeason": {
+      "lines": 41,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/couriers.ts#placeOf": {
+      "lines": 36,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/couriers.ts#send": {
+      "lines": 50,
+      "depth": 2,
+      "branches": 26
+    },
+    "function: src/engine/src/turn/couriers.ts#sendOrders": {
+      "lines": 72,
+      "depth": 1,
+      "branches": 6
+    },
+    "function: src/engine/src/turn/court.ts#dismiss": {
+      "lines": 55,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/court.ts#hireAll": {
+      "lines": 126,
+      "depth": 3,
+      "branches": 72
+    },
+    "function: src/engine/src/turn/court.ts#renew": {
+      "lines": 60,
+      "depth": 1,
+      "branches": 40
+    },
+    "function: src/engine/src/turn/court.ts#resolveCourt": {
+      "lines": 92,
+      "depth": 2,
+      "branches": 54
+    },
+    "function: src/engine/src/turn/court.ts#tasksDue": {
+      "lines": 75,
+      "depth": 3,
+      "branches": 35
+    },
+    "function: src/engine/src/turn/covers.ts#coverFor": {
+      "lines": 28,
+      "depth": 0,
+      "branches": 22
+    },
+    "function: src/engine/src/turn/crowns.ts#crownsSeason": {
+      "lines": 76,
+      "depth": 3,
+      "branches": 36
+    },
+    "function: src/engine/src/turn/declarations.ts#declareIn": {
+      "lines": 44,
+      "depth": 2,
+      "branches": 32
+    },
+    "function: src/engine/src/turn/economy.ts#feedTroops": {
+      "lines": 141,
+      "depth": 4,
+      "branches": 46
+    },
+    "function: src/engine/src/turn/economy.ts#harvestSeason": {
+      "lines": 108,
+      "depth": 5,
+      "branches": 36
+    },
+    "function: src/engine/src/turn/economy.ts#payTroops": {
+      "lines": 50,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/economy.ts#settleMarkets": {
+      "lines": 141,
+      "depth": 3,
+      "branches": 41
+    },
+    "function: src/engine/src/turn/envoys-home.ts#envoyArrivesHome": {
+      "lines": 46,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/envoys-home.ts#fulfil": {
+      "lines": 108,
+      "depth": 3,
+      "branches": 63
+    },
+    "function: src/engine/src/turn/envoys.ts#applyAudience": {
+      "lines": 229,
+      "depth": 4,
+      "branches": 99
+    },
+    "function: src/engine/src/turn/envoys.ts#buildAudienceView": {
+      "lines": 58,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/engine/src/turn/envoys.ts#dispatch": {
+      "lines": 207,
+      "depth": 2,
+      "branches": 70
+    },
+    "function: src/engine/src/turn/envoys.ts#observe": {
+      "lines": 34,
+      "depth": 1,
+      "branches": 22
+    },
+    "function: src/engine/src/turn/events.ts#worldEvents": {
+      "lines": 71,
+      "depth": 2,
+      "branches": 21
+    },
+    "function: src/engine/src/turn/falls.ts#fall": {
+      "lines": 103,
+      "depth": 3,
+      "branches": 42
+    },
+    "function: src/engine/src/turn/governors.ts#governorsSeason": {
+      "lines": 87,
+      "depth": 4,
+      "branches": 38
+    },
+    "function: src/engine/src/turn/governors.ts#grantGovernorship": {
+      "lines": 46,
+      "depth": 1,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/held-king.ts#captiveWrites": {
+      "lines": 47,
+      "depth": 3,
+      "branches": 26
+    },
+    "function: src/engine/src/turn/held-king.ts#heldSeason": {
+      "lines": 32,
+      "depth": 2,
+      "branches": 24
+    },
+    "function: src/engine/src/turn/held-king.ts#inMandate": {
+      "lines": 47,
+      "depth": 1,
+      "branches": 40
+    },
+    "function: src/engine/src/turn/intel.ts#placeSpy": {
+      "lines": 43,
+      "depth": 1,
+      "branches": 27
+    },
+    "function: src/engine/src/turn/intel.ts#resolveIntelligence": {
+      "lines": 47,
+      "depth": 2,
+      "branches": 22
+    },
+    "function: src/engine/src/turn/intel.ts#spyObserve": {
+      "lines": 58,
+      "depth": 3,
+      "branches": 36
+    },
+    "function: src/engine/src/turn/intel.ts#spyReportArrives": {
+      "lines": 26,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/intel.ts#watchAndReport": {
+      "lines": 77,
+      "depth": 3,
+      "branches": 33
+    },
+    "function: src/engine/src/turn/jobs.ts#jobFits": {
+      "lines": 20,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/jobs.ts#jobsDone": {
+      "lines": 88,
+      "depth": 2,
+      "branches": 44
+    },
+    "function: src/engine/src/turn/kings-fate.ts#courtFlees": {
+      "lines": 46,
+      "depth": 1,
+      "branches": 32
+    },
+    "function: src/engine/src/turn/kings-fate.ts#heirClaimHeard": {
+      "lines": 20,
+      "depth": 1,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/kings-fate.ts#kingsHeld": {
+      "lines": 35,
+      "depth": 2,
+      "branches": 20
+    },
+    "function: src/engine/src/turn/kings-fate.ts#kingsInBattle": {
+      "lines": 33,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/kings-fate.ts#nextHeir": {
+      "lines": 29,
+      "depth": 0,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/kings.ts#kingsTravel": {
+      "lines": 65,
+      "depth": 3,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/knowledge.ts#questionedSays": {
+      "lines": 48,
+      "depth": 1,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/languages.ts#settleSpeech": {
+      "lines": 120,
+      "depth": 2,
+      "branches": 26
+    },
+    "function: src/engine/src/turn/letters.ts#carryLetters": {
+      "lines": 165,
+      "depth": 3,
+      "branches": 115
+    },
+    "function: src/engine/src/turn/letters.ts#lettersGo": {
+      "lines": 39,
+      "depth": 3,
+      "branches": 27
+    },
+    "function: src/engine/src/turn/life.ts#applyLife": {
+      "lines": 130,
+      "depth": 2,
+      "branches": 99
+    },
+    "function: src/engine/src/turn/life.ts#deal": {
+      "lines": 52,
+      "depth": 2,
+      "branches": 38
+    },
+    "function: src/engine/src/turn/life.ts#lifeView": {
+      "lines": 99,
+      "depth": 0,
+      "branches": 26
+    },
+    "function: src/engine/src/turn/life.ts#travellerArrives": {
+      "lines": 24,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/life.ts#wantsLife": {
+      "lines": 15,
+      "depth": 0,
+      "branches": 20
+    },
+    "function: src/engine/src/turn/marching.ts#paceMoves": {
+      "lines": 44,
+      "depth": 3,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/money.ts#debtsSeason": {
+      "lines": 33,
+      "depth": 3,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/money.ts#goldAndTabletsTaken": {
+      "lines": 49,
+      "depth": 3,
+      "branches": 28
+    },
+    "function: src/engine/src/turn/money.ts#livingSeason": {
+      "lines": 32,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/movement-news.ts#movementNews": {
+      "lines": 92,
+      "depth": 3,
+      "branches": 55
+    },
+    "function: src/engine/src/turn/movement-news.ts#whyMoveFailed": {
+      "lines": 30,
+      "depth": 1,
+      "branches": 21
+    },
+    "function: src/engine/src/turn/names.ts#declare": {
+      "lines": 36,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/names.ts#impostors": {
+      "lines": 16,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/news.ts#buyNewsOrder": {
+      "lines": 46,
+      "depth": 2,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/news.ts#newsSeason": {
+      "lines": 56,
+      "depth": 2,
+      "branches": 28
+    },
+    "function: src/engine/src/turn/offers.ts#carryOffer": {
+      "lines": 80,
+      "depth": 3,
+      "branches": 41
+    },
+    "function: src/engine/src/turn/people.ts#climateSeason": {
+      "lines": 50,
+      "depth": 3,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/people.ts#peopleSeason": {
+      "lines": 180,
+      "depth": 3,
+      "branches": 47
+    },
+    "function: src/engine/src/turn/plans.ts#asItStands": {
+      "lines": 27,
+      "depth": 1,
+      "branches": 19
+    },
+    "function: src/engine/src/turn/plans.ts#asShown": {
+      "lines": 25,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/plans.ts#bind": {
+      "lines": 33,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/plans.ts#compose": {
+      "lines": 104,
+      "depth": 3,
+      "branches": 35
+    },
+    "function: src/engine/src/turn/plans.ts#marches": {
+      "lines": 52,
+      "depth": 3,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/plans.ts#planSeason": {
+      "lines": 49,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/plans.ts#scheduledPlace": {
+      "lines": 24,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/pool.ts#newcomer": {
+      "lines": 69,
+      "depth": 1,
+      "branches": 30
+    },
+    "function: src/engine/src/turn/press.ts#recordGreeting": {
+      "lines": 29,
+      "depth": 1,
+      "branches": 21
+    },
+    "function: src/engine/src/turn/raiders.ts#payOffBand": {
+      "lines": 45,
+      "depth": 1,
+      "branches": 29
+    },
+    "function: src/engine/src/turn/raiders.ts#raiderChooses": {
+      "lines": 25,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/engine/src/turn/resolve.ts#resolveMovement": {
+      "lines": 119,
+      "depth": 2,
+      "branches": 65
+    },
+    "function: src/engine/src/turn/resolve.ts#resolveSeason": {
+      "lines": 160,
+      "depth": 2,
+      "branches": 63
+    },
+    "function: src/engine/src/turn/rides.ts#ridersBack": {
+      "lines": 29,
+      "depth": 1,
+      "branches": 21
+    },
+    "function: src/engine/src/turn/rulers.ts#ruleOwn": {
+      "lines": 86,
+      "depth": 1,
+      "branches": 31
+    },
+    "function: src/engine/src/turn/sieges.ts#sieges": {
+      "lines": 140,
+      "depth": 3,
+      "branches": 65
+    },
+    "function: src/engine/src/turn/sleep.ts#digestLine": {
+      "lines": 32,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/sleep.ts#wakeReason": {
+      "lines": 24,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/sleep.ts#wakeReasons": {
+      "lines": 68,
+      "depth": 2,
+      "branches": 25
+    },
+    "function: src/engine/src/turn/standing.ts#keepStanding": {
+      "lines": 50,
+      "depth": 3,
+      "branches": 28
+    },
+    "function: src/engine/src/turn/standing.ts#standingFires": {
+      "lines": 47,
+      "depth": 4,
+      "branches": 22
+    },
+    "function: src/engine/src/turn/standing.ts#standingRuns": {
+      "lines": 28,
+      "depth": 0,
+      "branches": 26
+    },
+    "function: src/engine/src/turn/tidings.ts#sendTidings": {
+      "lines": 61,
+      "depth": 3,
+      "branches": 24
+    },
+    "function: src/engine/src/turn/trade.ts#atBorder": {
+      "lines": 57,
+      "depth": 2,
+      "branches": 29
+    },
+    "function: src/engine/src/turn/trade.ts#caravanHome": {
+      "lines": 78,
+      "depth": 2,
+      "branches": 36
+    },
+    "function: src/engine/src/turn/trade.ts#seeMarkets": {
+      "lines": 39,
+      "depth": 3,
+      "branches": 23
+    },
+    "function: src/engine/src/turn/trade.ts#sendTraders": {
+      "lines": 67,
+      "depth": 3,
+      "branches": 32
+    },
+    "function: src/engine/src/turn/trade.ts#tradeTogether": {
+      "lines": 70,
+      "depth": 0,
+      "branches": 8
+    },
+    "function: src/engine/src/turn/transfers.ts#raise": {
+      "lines": 55,
+      "depth": 2,
+      "branches": 20
+    },
+    "function: src/engine/src/turn/travel.ts#caughtOnRoad": {
+      "lines": 41,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/travel.ts#roadOdds": {
+      "lines": 36,
+      "depth": 1,
+      "branches": 43
+    },
+    "function: src/engine/src/turn/travel.ts#stopped": {
+      "lines": 67,
+      "depth": 3,
+      "branches": 33
+    },
+    "function: src/engine/src/turn/travel.ts#travelOne": {
+      "lines": 111,
+      "depth": 4,
+      "branches": 44
+    },
+    "function: src/engine/src/turn/travel.ts#wordArrives": {
+      "lines": 70,
+      "depth": 1,
+      "branches": 26
+    },
+    "function: src/engine/src/turn/unrest.ts#askLeaders": {
+      "lines": 38,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/unrest.ts#changeHands": {
+      "lines": 101,
+      "depth": 2,
+      "branches": 34
+    },
+    "function: src/engine/src/turn/unrest.ts#lawlessRulers": {
+      "lines": 53,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/engine/src/turn/unrest.ts#obeySeason": {
+      "lines": 66,
+      "depth": 2,
+      "branches": 39
+    },
+    "function: src/engine/src/turn/unrest.ts#risingWins": {
+      "lines": 49,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/engine/src/turn/winter.ts#loseToWinter": {
+      "lines": 52,
+      "depth": 2,
+      "branches": 22
+    },
+    "function: src/engine/src/turn/works.ts#worksSeason": {
+      "lines": 178,
+      "depth": 9,
+      "branches": 79
+    },
+    "function: src/game/src/batch-report.ts#batchReport": {
+      "lines": 99,
+      "depth": 1,
+      "branches": 29
+    },
+    "function: src/game/src/batch-report.ts#characterReport": {
+      "lines": 77,
+      "depth": 1,
+      "branches": 13
+    },
+    "function: src/game/src/batch.ts#playGame": {
+      "lines": 93,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/game/src/batch.ts#pressOf": {
+      "lines": 50,
+      "depth": 2,
+      "branches": 29
+    },
+    "function: src/game/src/bots/afield.ts#kingAfield": {
+      "lines": 36,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/game/src/bots/authority.ts#counterFor": {
+      "lines": 29,
+      "depth": 2,
+      "branches": 37
+    },
+    "function: src/game/src/bots/authority.ts#keepMoving": {
+      "lines": 19,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/game/src/bots/authority.ts#leaveByOrder": {
+      "lines": 17,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/game/src/bots/authority.ts#repudiations": {
+      "lines": 12,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/game/src/bots/authority.ts#stagingFor": {
+      "lines": 18,
+      "depth": 2,
+      "branches": 20
+    },
+    "function: src/game/src/bots/baseline-leader.ts#court": {
+      "lines": 106,
+      "depth": 2,
+      "branches": 48
+    },
+    "function: src/game/src/bots/baseline-leader.ts#diplomacy": {
+      "lines": 145,
+      "depth": 4,
+      "branches": 45
+    },
+    "function: src/game/src/bots/baseline-leader.ts#economy": {
+      "lines": 38,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/game/src/bots/baseline-leader.ts#hostAudience": {
+      "lines": 52,
+      "depth": 2,
+      "branches": 34
+    },
+    "function: src/game/src/bots/baseline-leader.ts#learn": {
+      "lines": 18,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/game/src/bots/baseline-leader.ts#military": {
+      "lines": 87,
+      "depth": 2,
+      "branches": 49
+    },
+    "function: src/game/src/bots/borders.ts#peopleAcrossBorders": {
+      "lines": 56,
+      "depth": 2,
+      "branches": 38
+    },
+    "function: src/game/src/bots/brain.ts#learn": {
+      "lines": 214,
+      "depth": 4,
+      "branches": 128
+    },
+    "function: src/game/src/bots/brain.ts#learnOfPeople": {
+      "lines": 61,
+      "depth": 3,
+      "branches": 42
+    },
+    "function: src/game/src/bots/commander.ts#commanderOrder": {
+      "lines": 85,
+      "depth": 2,
+      "branches": 69
+    },
+    "function: src/game/src/bots/contingencies.ts#plan": {
+      "lines": 224,
+      "depth": 3,
+      "branches": 42
+    },
+    "function: src/game/src/bots/contingencies.ts#unsound": {
+      "lines": 57,
+      "depth": 1,
+      "branches": 46
+    },
+    "function: src/game/src/bots/council.ts#reading": {
+      "lines": 38,
+      "depth": 1,
+      "branches": 21
+    },
+    "function: src/game/src/bots/council.ts#reason": {
+      "lines": 38,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/game/src/bots/credit.ts#creditOrders": {
+      "lines": 58,
+      "depth": 2,
+      "branches": 31
+    },
+    "function: src/game/src/bots/crowns.ts#crownOrders": {
+      "lines": 46,
+      "depth": 2,
+      "branches": 33
+    },
+    "function: src/game/src/bots/errands.ts#jobsForErrands": {
+      "lines": 44,
+      "depth": 3,
+      "branches": 27
+    },
+    "function: src/game/src/bots/freedom.ts#supplyOrders": {
+      "lines": 33,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/game/src/bots/generals.ts#commandOrders": {
+      "lines": 49,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/game/src/bots/generals.ts#governorOrders": {
+      "lines": 39,
+      "depth": 1,
+      "branches": 26
+    },
+    "function: src/game/src/bots/grain.ts#grainOrders": {
+      "lines": 115,
+      "depth": 2,
+      "branches": 52
+    },
+    "function: src/game/src/bots/life-mind.ts#accepts": {
+      "lines": 25,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/game/src/bots/life-mind.ts#scriptLife": {
+      "lines": 123,
+      "depth": 2,
+      "branches": 118
+    },
+    "function: src/game/src/bots/outlaws.ts#huntBands": {
+      "lines": 22,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/game/src/bots/remnants.ts#foldRemnants": {
+      "lines": 30,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/game/src/bots/roads.ts#roadPolicy": {
+      "lines": 18,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/game/src/bots/script-leader.ts#decideNow": {
+      "lines": 103,
+      "depth": 1,
+      "branches": 22
+    },
+    "function: src/game/src/bots/script-mind.ts#pitch": {
+      "lines": 34,
+      "depth": 1,
+      "branches": 27
+    },
+    "function: src/game/src/bots/script-mind.ts#react": {
+      "lines": 54,
+      "depth": 2,
+      "branches": 38
+    },
+    "function: src/game/src/bots/script-mind.ts#report": {
+      "lines": 90,
+      "depth": 2,
+      "branches": 51
+    },
+    "function: src/game/src/bots/search.ts#alternatives": {
+      "lines": 36,
+      "depth": 2,
+      "branches": 21
+    },
+    "function: src/game/src/bots/search.ts#improve": {
+      "lines": 91,
+      "depth": 4,
+      "branches": 35
+    },
+    "function: src/game/src/bots/search.ts#picture": {
+      "lines": 109,
+      "depth": 2,
+      "branches": 42
+    },
+    "function: src/game/src/bots/search.ts#pictured": {
+      "lines": 25,
+      "depth": 2,
+      "branches": 20
+    },
+    "function: src/game/src/bots/search.ts#sallies": {
+      "lines": 23,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/game/src/bots/search.ts#score": {
+      "lines": 106,
+      "depth": 2,
+      "branches": 75
+    },
+    "function: src/game/src/bots/seas.ts#chooseLanding": {
+      "lines": 21,
+      "depth": 3,
+      "branches": 16
+    },
+    "function: src/game/src/bots/siege-tactics.ts#sallies": {
+      "lines": 33,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/game/src/bots/statecraft-audiences.ts#host": {
+      "lines": 180,
+      "depth": 3,
+      "branches": 104
+    },
+    "function: src/game/src/bots/statecraft-clauses.ts#answerLetter": {
+      "lines": 116,
+      "depth": 3,
+      "branches": 76
+    },
+    "function: src/game/src/bots/statecraft-clauses.ts#readReport": {
+      "lines": 14,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/game/src/bots/statecraft-court.ts#court": {
+      "lines": 423,
+      "depth": 3,
+      "branches": 224
+    },
+    "function: src/game/src/bots/statecraft-letters.ts#compose": {
+      "lines": 191,
+      "depth": 1,
+      "branches": 47
+    },
+    "function: src/game/src/bots/statecraft-letters.ts#greet": {
+      "lines": 29,
+      "depth": 1,
+      "branches": 21
+    },
+    "function: src/game/src/bots/statecraft-letters.ts#letters": {
+      "lines": 212,
+      "depth": 2,
+      "branches": 122
+    },
+    "function: src/game/src/bots/statecraft-strategy.ts#cession": {
+      "lines": 44,
+      "depth": 1,
+      "branches": 27
+    },
+    "function: src/game/src/bots/statecraft-strategy.ts#economy": {
+      "lines": 164,
+      "depth": 2,
+      "branches": 59
+    },
+    "function: src/game/src/bots/statecraft-strategy.ts#fortification": {
+      "lines": 42,
+      "depth": 2,
+      "branches": 26
+    },
+    "function: src/game/src/bots/statecraft-strategy.ts#strategy": {
+      "lines": 133,
+      "depth": 3,
+      "branches": 37
+    },
+    "function: src/game/src/bots/tactics.ts#approach": {
+      "lines": 43,
+      "depth": 3,
+      "branches": 27
+    },
+    "function: src/game/src/bots/tactics.ts#makePlan": {
+      "lines": 631,
+      "depth": 4,
+      "branches": 361
+    },
+    "function: src/game/src/bots/template-narrator.ts#spin": {
+      "lines": 47,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/game/src/bots/textkit.ts#aim": {
+      "lines": 18,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/game/src/bots/textkit.ts#isThreatTo": {
+      "lines": 93,
+      "depth": 2,
+      "branches": 103
+    },
+    "function: src/game/src/bots/trade.ts#tradeOrders": {
+      "lines": 139,
+      "depth": 3,
+      "branches": 81
+    },
+    "function: src/game/src/bots/upkeep.ts#upkeepOrders": {
+      "lines": 31,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/game/src/bots/vassals.ts#bondLetters": {
+      "lines": 25,
+      "depth": 1,
+      "branches": 21
+    },
+    "function: src/game/src/bots/works.ts#worksOrders": {
+      "lines": 125,
+      "depth": 2,
+      "branches": 73
+    },
+    "function: src/game/src/character-checks.ts#claimsSeal": {
+      "lines": 43,
+      "depth": 1,
+      "branches": 40
+    },
+    "function: src/game/src/character-checks.ts#earlier": {
+      "lines": 15,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/game/src/character-checks.ts#report": {
+      "lines": 14,
+      "depth": 0,
+      "branches": 16
+    },
+    "function: src/game/src/export.ts#given": {
+      "lines": 60,
+      "depth": 2,
+      "branches": 24
+    },
+    "function: src/game/src/failure.ts#failureOf": {
+      "lines": 24,
+      "depth": 0,
+      "branches": 18
+    },
+    "function: src/game/src/money-report.ts#season": {
+      "lines": 29,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/game/src/pulse.ts#pulseOf": {
+      "lines": 30,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/game/src/runner.ts#openAudience": {
+      "lines": 71,
+      "depth": 1,
+      "branches": 10
+    },
+    "function: src/game/src/runner.ts#orders": {
+      "lines": 63,
+      "depth": 2,
+      "branches": 15
+    },
+    "function: src/game/src/runner.ts#playTurn": {
+      "lines": 56,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/game/src/signals.ts#detectSignals": {
+      "lines": 49,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/game/src/snapshots.ts#add": {
+      "lines": 66,
+      "depth": 3,
+      "branches": 18
+    },
+    "function: src/game/src/spending-report.ts#season": {
+      "lines": 41,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/game/src/threads.ts#readThreads": {
+      "lines": 30,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/game/src/threads.ts#worldThreads": {
+      "lines": 56,
+      "depth": 1,
+      "branches": 22
+    },
+    "function: src/llm/src/character-life.ts#lifeSchema": {
+      "lines": 31,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/llm/src/character-life.ts#lifeText": {
+      "lines": 62,
+      "depth": 3,
+      "branches": 45
+    },
+    "function: src/llm/src/character-mind.ts#modelPresent": {
+      "lines": 62,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/llm/src/character-mind.ts#modelReact": {
+      "lines": 58,
+      "depth": 1,
+      "branches": 25
+    },
+    "function: src/llm/src/character-mind.ts#modelWrite": {
+      "lines": 144,
+      "depth": 2,
+      "branches": 54
+    },
+    "function: src/llm/src/character-mind.ts#onTheRoad": {
+      "lines": 39,
+      "depth": 0,
+      "branches": 18
+    },
+    "function: src/llm/src/character-mind.ts#scriptSituation": {
+      "lines": 48,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/llm/src/character-roads.ts#chiefText": {
+      "lines": 34,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/llm/src/character-self.ts#selfText": {
+      "lines": 44,
+      "depth": 1,
+      "branches": 28
+    },
+    "function: src/llm/src/exchange.ts#readable": {
+      "lines": 27,
+      "depth": 2,
+      "branches": 21
+    },
+    "function: src/llm/src/ladder.ts#climb": {
+      "lines": 33,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/llm/src/leader-seat.ts#routineCourt": {
+      "lines": 88,
+      "depth": 2,
+      "branches": 21
+    },
+    "function: src/llm/src/parse.ts#commandOf": {
+      "lines": 43,
+      "depth": 1,
+      "branches": 17
+    },
+    "function: src/llm/src/parse.ts#orders": {
+      "lines": 64,
+      "depth": 2,
+      "branches": 24
+    },
+    "function: src/llm/src/parse.ts#other": {
+      "lines": 227,
+      "depth": 1,
+      "branches": 141
+    },
+    "function: src/llm/src/prompt-audience.ts#audience": {
+      "lines": 44,
+      "depth": 1,
+      "branches": 30
+    },
+    "function: src/llm/src/prompt-audience.ts#person": {
+      "lines": 32,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/llm/src/prompt-economy.ts#economyLines": {
+      "lines": 80,
+      "depth": 2,
+      "branches": 48
+    },
+    "function: src/llm/src/prompt-economy.ts#peopleLines": {
+      "lines": 65,
+      "depth": 1,
+      "branches": 40
+    },
+    "function: src/llm/src/prompts.ts#realmBrief": {
+      "lines": 42,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/llm/src/prompts.ts#situation": {
+      "lines": 147,
+      "depth": 1,
+      "branches": 66
+    },
+    "function: src/llm/src/reading.ts#read": {
+      "lines": 49,
+      "depth": 3,
+      "branches": 34
+    },
+    "function: src/llm/src/rules-ground.ts#seaRules": {
+      "lines": 29,
+      "depth": 0,
+      "branches": 16
+    },
+    "function: src/llm/src/rules.ts#rules": {
+      "lines": 145,
+      "depth": 1,
+      "branches": 24
+    },
+    "function: src/llm/src/schemas-orders.ts#letter": {
+      "lines": 74,
+      "depth": 0,
+      "branches": 6
+    },
+    "function: src/llm/src/seat-cost.ts#perSeason": {
+      "lines": 62,
+      "depth": 3,
+      "branches": 19
+    },
+    "function: src/llm/src/seat-setup.ts#buildSeats": {
+      "lines": 71,
+      "depth": 1,
+      "branches": 13
+    },
+    "function: src/llm/src/seat-setup.ts#checkJobs": {
+      "lines": 38,
+      "depth": 2,
+      "branches": 16
+    },
+    "function: src/llm/src/simulated.ts#answer": {
+      "lines": 86,
+      "depth": 1,
+      "branches": 34
+    },
+    "function: src/web/scrub.mjs#checkHoles": {
+      "lines": 84,
+      "depth": 2,
+      "branches": 17
+    },
+    "function: src/web/smoke.mjs#watch": {
+      "lines": 96,
+      "depth": 1,
+      "branches": 12
+    },
+    "function: src/web/soak.mjs#stopTrace": {
+      "lines": 68,
+      "depth": 1,
+      "branches": 29
+    },
+    "function: src/web/src/audio/listening.ts#busiest": {
+      "lines": 14,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/web/src/audio/listening.ts#characterSignal": {
+      "lines": 31,
+      "depth": 2,
+      "branches": 28
+    },
+    "function: src/web/src/audio/mood.ts#signalAt": {
+      "lines": 69,
+      "depth": 2,
+      "branches": 62
+    },
+    "function: src/web/src/audio/player.ts#synthNext": {
+      "lines": 38,
+      "depth": 2,
+      "branches": 30
+    },
+    "function: src/web/src/audio/player.ts#tick": {
+      "lines": 54,
+      "depth": 1,
+      "branches": 34
+    },
+    "function: src/web/src/audio/situation.ts#(anonymous)": {
+      "lines": 49,
+      "depth": 2,
+      "branches": 23
+    },
+    "function: src/web/src/audio/situation.ts#bedAt": {
+      "lines": 28,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/web/src/audio/situation.ts#cuesAt": {
+      "lines": 127,
+      "depth": 2,
+      "branches": 58
+    },
+    "function: src/web/src/audio/synth/arrange.ts#arrange": {
+      "lines": 78,
+      "depth": 2,
+      "branches": 14
+    },
+    "function: src/web/src/audio/synth/arrange.ts#play": {
+      "lines": 58,
+      "depth": 3,
+      "branches": 28
+    },
+    "function: src/web/src/audio/synth/engine.ts#voice": {
+      "lines": 111,
+      "depth": 2,
+      "branches": 24
+    },
+    "function: src/web/src/audio/use-game-audio.ts#useGameAudio": {
+      "lines": 81,
+      "depth": 0,
+      "branches": 2
+    },
+    "function: src/web/src/components/AudiencePanel.tsx#AudiencePanel": {
+      "lines": 206,
+      "depth": 0,
+      "branches": 37
+    },
+    "function: src/web/src/components/ChroniclePanel.tsx#ChroniclePanel": {
+      "lines": 64,
+      "depth": 0,
+      "branches": 12
+    },
+    "function: src/web/src/components/ClauseEditor.tsx#ClauseEditor": {
+      "lines": 109,
+      "depth": 0,
+      "branches": 18
+    },
+    "function: src/web/src/components/GameMap.tsx#GameMap": {
+      "lines": 134,
+      "depth": 0,
+      "branches": 7
+    },
+    "function: src/web/src/components/HistoryPanel.tsx#HistoryPanel": {
+      "lines": 49,
+      "depth": 0,
+      "branches": 20
+    },
+    "function: src/web/src/components/LegendsPanel.tsx#LegendsPanel": {
+      "lines": 77,
+      "depth": 0,
+      "branches": 14
+    },
+    "function: src/web/src/components/MapLegend.tsx#MapLegend": {
+      "lines": 98,
+      "depth": 0,
+      "branches": 1
+    },
+    "function: src/web/src/components/ModelSettings.tsx#ProvidersPanel": {
+      "lines": 102,
+      "depth": 0,
+      "branches": 8
+    },
+    "function: src/web/src/components/ModelSettings.tsx#RungsPanel": {
+      "lines": 88,
+      "depth": 0,
+      "branches": 11
+    },
+    "function: src/web/src/components/orders/CommandSection.tsx#CommandSection": {
+      "lines": 315,
+      "depth": 0,
+      "branches": 62
+    },
+    "function: src/web/src/components/orders/CouncilSection.tsx#CouncilSection": {
+      "lines": 72,
+      "depth": 0,
+      "branches": 6
+    },
+    "function: src/web/src/components/orders/CourtSection.tsx#CourtSection": {
+      "lines": 540,
+      "depth": 0,
+      "branches": 90
+    },
+    "function: src/web/src/components/orders/EnvoysSection.tsx#EnvoysSection": {
+      "lines": 173,
+      "depth": 0,
+      "branches": 14
+    },
+    "function: src/web/src/components/orders/form.ts#newForm": {
+      "lines": 89,
+      "depth": 0,
+      "branches": 1
+    },
+    "function: src/web/src/components/orders/TreasurySection.tsx#TreasurySection": {
+      "lines": 442,
+      "depth": 0,
+      "branches": 81
+    },
+    "function: src/web/src/components/orders/TroopsSection.tsx#(anonymous)": {
+      "lines": 104,
+      "depth": 0,
+      "branches": 28
+    },
+    "function: src/web/src/components/orders/TroopsSection.tsx#TroopsSection": {
+      "lines": 293,
+      "depth": 0,
+      "branches": 17
+    },
+    "function: src/web/src/components/orders/use-orders.ts#useOrders": {
+      "lines": 81,
+      "depth": 0,
+      "branches": 13
+    },
+    "function: src/web/src/components/OrdersPanel.tsx#OrdersPanel": {
+      "lines": 139,
+      "depth": 0,
+      "branches": 15
+    },
+    "function: src/web/src/components/PeoplePanel.tsx#PeoplePanel": {
+      "lines": 114,
+      "depth": 1,
+      "branches": 14
+    },
+    "function: src/web/src/components/Person.tsx#Person": {
+      "lines": 96,
+      "depth": 0,
+      "branches": 17
+    },
+    "function: src/web/src/components/ProvinceInfo.tsx#ProvinceInfo": {
+      "lines": 175,
+      "depth": 0,
+      "branches": 71
+    },
+    "function: src/web/src/components/SearchPanel.tsx#SearchPanel": {
+      "lines": 124,
+      "depth": 0,
+      "branches": 15
+    },
+    "function: src/web/src/components/SeasonPanel.tsx#SeasonPanel": {
+      "lines": 164,
+      "depth": 0,
+      "branches": 33
+    },
+    "function: src/web/src/components/StandingAnswersPanel.tsx#StandingAnswersPanel": {
+      "lines": 108,
+      "depth": 0,
+      "branches": 5
+    },
+    "function: src/web/src/components/StandingsPanel.tsx#StandingsPanel": {
+      "lines": 209,
+      "depth": 0,
+      "branches": 16
+    },
+    "function: src/web/src/components/TrailPanel.tsx#(anonymous)": {
+      "lines": 133,
+      "depth": 0,
+      "branches": 21
+    },
+    "function: src/web/src/components/TrailPanel.tsx#status": {
+      "lines": 13,
+      "depth": 0,
+      "branches": 17
+    },
+    "function: src/web/src/components/TrailPanel.tsx#TrailPanel": {
+      "lines": 183,
+      "depth": 0,
+      "branches": 13
+    },
+    "function: src/web/src/map/figures.ts#clockwise": {
+      "lines": 72,
+      "depth": 2,
+      "branches": 25
+    },
+    "function: src/web/src/map/figures.ts#pathBounds": {
+      "lines": 47,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/web/src/map/known.ts#knownRuins": {
+      "lines": 28,
+      "depth": 3,
+      "branches": 18
+    },
+    "function: src/web/src/map/land-layers.ts#cities": {
+      "lines": 31,
+      "depth": 3,
+      "branches": 21
+    },
+    "function: src/web/src/map/markup.ts#buildBase": {
+      "lines": 46,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/web/src/map/memory.ts#battlesOf": {
+      "lines": 15,
+      "depth": 1,
+      "branches": 16
+    },
+    "function: src/web/src/map/memory.ts#remember": {
+      "lines": 44,
+      "depth": 2,
+      "branches": 24
+    },
+    "function: src/web/src/map/moments.ts#disasterWords": {
+      "lines": 16,
+      "depth": 0,
+      "branches": 16
+    },
+    "function: src/web/src/map/moments.ts#momentsOf": {
+      "lines": 68,
+      "depth": 2,
+      "branches": 53
+    },
+    "function: src/web/src/map/names.ts#placeNamesNow": {
+      "lines": 180,
+      "depth": 2,
+      "branches": 37
+    },
+    "function: src/web/src/map/scene.ts#buildScene": {
+      "lines": 115,
+      "depth": 3,
+      "branches": 48
+    },
+    "function: src/web/src/map/scene.ts#godPeople": {
+      "lines": 89,
+      "depth": 2,
+      "branches": 33
+    },
+    "function: src/web/src/map/scene.ts#movesOf": {
+      "lines": 56,
+      "depth": 2,
+      "branches": 41
+    },
+    "function: src/web/src/map/scene.ts#seatPeople": {
+      "lines": 157,
+      "depth": 3,
+      "branches": 74
+    },
+    "function: src/web/src/map/seasons.ts#looks": {
+      "lines": 28,
+      "depth": 2,
+      "branches": 19
+    },
+    "function: src/web/src/map/svg-renderer.ts#playSeason": {
+      "lines": 50,
+      "depth": 1,
+      "branches": 20
+    },
+    "function: src/web/src/map/svg-renderer.ts#renderNow": {
+      "lines": 107,
+      "depth": 1,
+      "branches": 13
+    },
+    "function: src/web/src/map/tokens.ts#peopleAtCourts": {
+      "lines": 52,
+      "depth": 2,
+      "branches": 18
+    },
+    "function: src/web/src/map/ways.ts#moves": {
+      "lines": 56,
+      "depth": 3,
+      "branches": 20
+    },
+    "function: src/web/src/map/ways.ts#outlaws": {
+      "lines": 40,
+      "depth": 2,
+      "branches": 20
+    },
+    "function: src/web/src/map/zoom.ts#attach": {
+      "lines": 76,
+      "depth": 0,
+      "branches": 2
+    },
+    "function: src/web/src/pages/Home.tsx#Home": {
+      "lines": 609,
+      "depth": 0,
+      "branches": 39
+    },
+    "function: src/web/src/pages/Keys.tsx#Keys": {
+      "lines": 113,
+      "depth": 0,
+      "branches": 1
+    },
+    "function: src/web/src/pages/Listen.tsx#Listen": {
+      "lines": 233,
+      "depth": 0,
+      "branches": 17
+    },
+    "function: src/web/src/pages/Play.tsx#panel": {
+      "lines": 103,
+      "depth": 1,
+      "branches": 23
+    },
+    "function: src/web/src/pages/Play.tsx#Play": {
+      "lines": 832,
+      "depth": 2,
+      "branches": 155
+    },
+    "function: src/web/src/session/client.ts#apply": {
+      "lines": 71,
+      "depth": 2,
+      "branches": 28
+    },
+    "function: src/web/src/session/core.ts#handle": {
+      "lines": 59,
+      "depth": 1,
+      "branches": 28
+    },
+    "function: src/web/src/session/core.ts#load": {
+      "lines": 68,
+      "depth": 4,
+      "branches": 19
+    },
+    "function: src/web/src/session/core.ts#notify": {
+      "lines": 70,
+      "depth": 1,
+      "branches": 28
+    },
+    "function: src/web/src/session/frames.ts#frameFrom": {
+      "lines": 196,
+      "depth": 3,
+      "branches": 46
+    },
+    "function: src/web/src/session/frames.ts#holdings": {
+      "lines": 37,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/web/src/session/incremental.ts#step": {
+      "lines": 47,
+      "depth": 3,
+      "branches": 16
+    },
+    "function: src/web/src/session/incremental.ts#value": {
+      "lines": 66,
+      "depth": 3,
+      "branches": 31
+    },
+    "function: src/web/src/session/life-record.ts#buildLifeRecord": {
+      "lines": 129,
+      "depth": 2,
+      "branches": 76
+    },
+    "function: src/web/src/session/pacing.ts#closingLine": {
+      "lines": 24,
+      "depth": 0,
+      "branches": 17
+    },
+    "function: src/web/src/session/pacing.ts#paceSeason": {
+      "lines": 41,
+      "depth": 3,
+      "branches": 19
+    },
+    "function: src/web/src/ui/order-draft.ts#build": {
+      "lines": 25,
+      "depth": 1,
+      "branches": 18
+    },
+    "function: src/web/src/ui/search.ts#knownTo": {
+      "lines": 82,
+      "depth": 1,
+      "branches": 37
+    },
+    "function: src/web/src/ui/search.ts#matchScore": {
+      "lines": 22,
+      "depth": 1,
+      "branches": 17
+    },
+    "process: src/batch/test/repeat.test.ts -> node:child_process": true,
+    "timed: src/game/test/io.ts -> setTimeout": true,
+    "timed: src/game/test/long-text.test.ts -> performance.now": true,
+    "timed: src/web/test/hold.test.ts -> performance.now": true,
+    "timed: src/web/test/probe-run.ts -> performance.now": true,
+    "timed: src/web/test/probe.test.ts -> performance.now": true
+  }
+}

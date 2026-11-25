@@ -1,4 +1,4 @@
-# CodeQL on every PR into main, every push to it, and weekly (core/modules/updates.md): the core's, with this game's
+# CodeQL on every PR into main, every push to it, and weekly (core/tasks/updates.md): the core's, with this game's
 # languages.
 name: CodeQL
 

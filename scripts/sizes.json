@@ -9,12 +9,12 @@
     "docs/intent/overview/the-game-in-one-page.md": 20480,
     "docs/intent/overview/design-pillars.md": 20480,
     "core/floor/security.md": 20480,
-    "core/modules/how-to-work.md": 20480,
-    "core/modules/inbox.md": 20480,
-    "core/modules/work-flow.md": 20480,
-    "core/modules/git.md": 20480,
-    "core/modules/claude.md": 20480,
-    "core/modules/other-builders.md": 20480
+    "core/roles/shared/how-to-work.md": 20480,
+    "core/roles/shared/inbox.md": 20480,
+    "core/roles/shared/work-flow.md": 20480,
+    "core/tools/claude.md": 20480,
+    "core/tools/other-builders.md": 20480,
+    "core/roles/builder.md": 20480
   },
   "total": 49836,
   "split": 51200,
@@ -23,7 +23,8 @@
     "docs/intent/",
     "package-lock.json",
     "src/web/src/map/geo-fine-data.ts",
-    "tests/fixtures/"
+    "tests/fixtures/",
+    "checks/shape-baseline.json"
   ],
   "past": {
     "docs/rounds/2026-10-18-sleep-and-simulation.md": 312585

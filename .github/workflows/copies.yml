@@ -1,4 +1,4 @@
-# The copies, pointer and reading-size checks ("One fact, one place" and "Read little" in core/modules/how-to-work.md),
+# The copies, pointer and reading-size checks ("One fact, one place" and "Read little" in core/roles/shared/how-to-work.md),
 # on every pull request and push to main, docs-only changes included: the core's, with this game's config and marks.
 name: copies
 
