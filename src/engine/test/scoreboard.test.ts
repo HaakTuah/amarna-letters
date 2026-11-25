@@ -40,7 +40,7 @@ describe("ScoreboardTests", () => {
     const e = new TurnEngine(s);
     s.startStrength.set("Egypt", e.strength("Egypt") / 2);
     const row = Assert.single(e.scoreboard(), (x) => x.power === "Egypt");
-    Assert.equal(standingOf("Egypt", 2) / 2, row.performance);
+    Assert.equal(standingOf("Egypt", 2, s.turn) / 2, row.performance);
   });
 
   test("A character is measured by what he gained since he came into play; the dead by nothing", () => {
@@ -57,8 +57,9 @@ describe("ScoreboardTests", () => {
   });
 
   test("A character at the middle of characters' par performs at the middle, as a king at his realm's par does", () => {
-    const mid = CharacterPar[Math.floor(CharacterPar.length / 2)];
-    Assert.true(Math.abs(rankAmong(CharacterPar, mid) - 0.5) < 0.1);
+    const all = CharacterPar.flat().sort((a, b) => a - b);
+    const mid = all[Math.floor(all.length / 2)];
+    Assert.true(Math.abs(rankAmong(all, mid) - 0.5) < 0.1);
     // A run of tied results ranks at its middle.
     Assert.equal(0.5, rankAmong([1, 1, 1, 1], 1));
   });

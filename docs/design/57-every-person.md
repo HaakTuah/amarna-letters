@@ -159,7 +159,7 @@ The record of the kings who followed: `docs/history/16-the-kings-who-followed.md
   measured from what he brought into play (`characterResult`, from his savings brought in, `Earnings.savings`: 1 for as
   much as he brought, 1 more for every shekel gained, below 1 in proportion to what he lost of it; 0 for the dead),
   ranked among what the best five characters who never reigned gained in each script game (`CharacterPar` in
-  `rules/par-results.ts`, the pooled results of seeds 101-200, written by `scripts/sim.sh --par-out`; how many a game,
+  `rules/par-results.ts`, by game, of seeds 101-200, read in par's games nearest in length to the age, `characterStanding`; written by `scripts/sim.sh --par-out`; how many a game,
   `CharacterParBest` in `rules/scoring.ts`; with `rankAmong`): a realm is ranked against one result a game, and some
   300 characters each ranked against all characters' results stood first together in a third of the games (item 18,
   part F2; [58](58-the-balance-pass.md)). A fallen realm's king or heir in exile is ranked against it too, though
