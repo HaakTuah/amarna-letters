@@ -1,7 +1,8 @@
 import { describe, test } from "vitest";
-import { BandData, LetterData, TurnEngine, WorldMap, first, newGame, newMindReply, trustIn, type GameState, type MindRequest } from "@amarna/engine";
+import { BandData, LetterData, TurnEngine, chiefCutOf, WorldMap, first, newChiefView, newGame, newMindReply, trustIn, type GameState, type MindRequest } from "@amarna/engine";
 import { ScriptMind, newMindContext } from "@amarna/game";
 import { LlmCharacterMind, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
+import { chiefText } from "../../llm/src/character-roads.ts";
 import { Assert } from "../../engine/test/support.ts";
 import { Recorder } from "./recorder.ts";
 
@@ -82,11 +83,25 @@ describe("OwnChoicesTests", () => {
     Assert.contains(fields, (f) => f === "go");
     Assert.contains(fields, (f) => f === "kill");
     Assert.contains(fields, (f) => f === "give_up_the_road");
+    Assert.contains(fields, (f) => f === "send_away");
+    // A band in its first season has no last season's take to be told of (item 18, part F4).
+    Assert.false(rec.calls[0].user.includes("Last season your band took"));
+    Assert.contains(`less your own share of ${chiefCutOf(chief.traits.greed)}%`, rec.calls[0].user);
+    // What sending too many away does is told where it is asked ("Requests are rules too").
+    Assert.contains(`a band left with fewer than ${BandData.least} men breaks up`, rec.calls[0].user);
     // No coast, so no ship to buy, and no word of one.
     Assert.false(fields.includes("buy_ship"));
     Assert.false(rec.calls[0].user.includes("ship"));
     Assert.false(rec.calls[0].user.includes(b.id));
     Assert.false(rec.calls[0].user.includes(chief.id));
+  });
+
+  test("A chief is told what a band left too small does: it breaks up, or a raider's goes home", () => {
+    const view = newChiefView({ men: 60, cut: 30 });
+    Assert.contains(`a band left with fewer than ${BandData.least} men breaks up, as if you gave up the road`, chiefText(view));
+    const raider = chiefText({ ...view, home: "the western isles, beyond the western sea" });
+    Assert.contains(`a band left with fewer than ${BandData.least} men goes home if it can from where it stands, and otherwise breaks up`, raider);
+    Assert.false(raider.includes("as if you gave up the road"));
   });
 
   test("A model chief's choices are taken next season instead of the formula: he moves where he chose, and kills whom he chose", async () => {
@@ -108,6 +123,23 @@ describe("OwnChoicesTests", () => {
     // A choice not renewed is not his: the season after, the formula decides again.
     s.turn++;
     Assert.equal(false, new TurnEngine(s).chiefDecides(band, chief));
+  });
+
+  test("A model chief sends away the men he chooses to, and the men he pays stay", async () => {
+    const s = newGame(3);
+    const { e, req, chief, b } = chiefAsked(s, 200);
+    const reply = await answer(new LlmCharacterMind(new Answers({ go: "", kill: "nobody", give_up_the_road: false, send_away: 50 })), s, req);
+    Assert.equal(50, reply.chief!.sendAway);
+    e.fulfil(req, reply);
+    // He holds the gold to pay those he keeps, so none of them leaves unpaid.
+    chief.purse = 1000;
+    const loose = e.peopleOf(b.province).loose;
+    s.turn++;
+    new TurnEngine(s).bandsSeason();
+    const band = first(s.bands, (x) => x.leaderId === chief.id);
+    Assert.equal(0, band.short);
+    Assert.true(band.men >= 150);
+    Assert.true(e.peopleOf(band.province).loose >= loose + 50 - (band.men - 150));
   });
 
   test("A model chief may give up the road whenever he chooses", async () => {

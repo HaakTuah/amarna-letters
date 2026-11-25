@@ -5,7 +5,8 @@
  * ("Fees clear the market"), and what bold and careful characters earn, from what, how often they serve courts that lose
  * their people, and how often they die ("Bold or careful, one goal").
  */
-import { addEarnings, characterResult, earningsTotal, fmt, lossesHeardOf, newEarnings, sum, type Character, type Earnings, type GameState, type PersonScore, type StayLeft } from "@amarna/engine";
+import { StrategyValues, addEarnings, characterResult, earningsTotal, fmt, lossesHeardOf, newEarnings, sum, type Character, type Earnings, type GameState, type PersonScore, type StayLeft, type Strategy } from "@amarna/engine";
+import { RoadLife } from "./bots/life-mind.ts";
 
 /** The seasons the gold stocks are read at, and the width of the windows fees are counted in. */
 export const MoneyMarks = [1, 20, 40, 60, 80] as const;
@@ -54,6 +55,20 @@ export interface RoadMeasure {
   /** Jobs it took with a court it had heard loses its people abroad or puts others to death, and with any other. */
   dangerJobs: number;
   safeJobs: number;
+  /** Item 18, part F3: by way to a fortune, its characters and how many of them stood in the top five (older summaries have none). */
+  ways?: Partial<Record<Strategy, [number, number]>>;
+  /** Item 18, part F4: those there from the start, and those leading a band at the end ({@link RoadPart}; older summaries have none). */
+  start?: RoadPart;
+  chiefs?: RoadPart;
+}
+
+/** A part of a road's characters: how many, how many of them in the top five and the top twenty, and the living's results summed. */
+export interface RoadPart {
+  people: number;
+  top5: number;
+  top20: number;
+  living: number;
+  result: number;
 }
 
 /** One window of {@link FeeWindow} seasons. */
@@ -74,6 +89,8 @@ export interface MoneyMeasure {
   stocks: GoldStocks[];
   fees: FeeWindowMeasure[];
   roads?: { bold: RoadMeasure; careful: RoadMeasure };
+  /** With `--band-life-half`: those whose own reckoning chose the road, who took it and who never did ({@link RoadLife}). */
+  roadLife?: { users: RoadPart; ignorers: RoadPart };
 }
 
 const selfOf = (c: Character): number => c.earned.dealt + c.earned.loot + c.earned.news;
@@ -118,9 +135,18 @@ export class MoneyWatch {
   }
 
   end(characters: readonly PersonScore[]): MoneyMeasure {
+    const living = characters.filter((x) => !x.dead);
+    const top = new Set(living.slice(0, 5).map((x) => x.character.id));
+    const top20 = new Set(living.slice(0, 20).map((x) => x.character.id));
+    const part = (ys: readonly PersonScore[]): RoadPart => ({
+      people: ys.length,
+      top5: ys.filter((x) => top.has(x.character.id)).length,
+      top20: ys.filter((x) => top20.has(x.character.id)).length,
+      living: ys.filter((x) => !x.dead).length,
+      result: sum(ys.filter((x) => !x.dead), (x) => characterResult(x.character) - 1),
+    });
     const road = (bold: boolean): RoadMeasure => {
       const xs = characters.filter((x) => x.character.bold === bold);
-      const living = characters.filter((x) => !x.dead);
       const [dangerJobs, safeJobs] = this.jobs[bold ? "bold" : "careful"];
       const r: RoadMeasure = {
         people: xs.length,
@@ -131,11 +157,24 @@ export class MoneyWatch {
         earned: newEarnings(),
         dangerJobs,
         safeJobs,
+        ways: {},
       };
+      for (const x of xs) {
+        const w = (r.ways![x.character.strategy] ??= [0, 0]);
+        w[0]++;
+        if (top.has(x.character.id)) w[1]++;
+      }
+      r.start = part(xs.filter((x) => x.character.arrived === null));
+      r.chiefs = part(xs.filter((x) => !x.dead && x.character.duty === "Leading"));
       for (const x of xs) addEarnings(r.earned, x.character.earned);
       return r;
     };
     this.m.roads = { bold: road(true), careful: road(false) };
+    const ignores = RoadLife.ignores;
+    if (ignores !== null) {
+      const chose = characters.filter((x) => RoadLife.chose.has(x.character.id));
+      this.m.roadLife = { users: part(chose.filter((x) => !ignores(x.character.id))), ignorers: part(chose.filter((x) => ignores(x.character.id))) };
+    }
     return this.m;
   }
 }
@@ -181,5 +220,36 @@ export function moneyReport(ms: readonly MoneyMeasure[]): string[] {
         `the living gained ${fmt(sum(rs, (r) => r.result) / Math.max(1, n - dead), "0")} a head; earned (savings aside) ${fmt(total / n, "0")} a head: fees ${share(e.fees)}, dealing ${share(e.dealt)}, skimmed ${share(e.skimmed)}, gifts ${share(e.gifts)}, kept ${share(e.carried)}, loot ${share(e.loot)}, news ${share(e.news)}; spent ${fmt(e.spent / n, "0")} a head.`,
     );
   }
+  // Item 18, part F3: each way to a fortune by road, so a gap between the roads can be told from a gap between the ways.
+  const ways = StrategyValues.flatMap((w) => {
+    const of = (bold: boolean): [number, number] => {
+      const rs = ms.flatMap((m) => (m.roads !== undefined ? [bold ? m.roads.bold : m.roads.careful] : []));
+      return [sum(rs, (r) => r.ways?.[w]?.[0] ?? 0), sum(rs, (r) => r.ways?.[w]?.[1] ?? 0)];
+    };
+    const [b, c] = [of(true), of(false)];
+    const rate = (x: [number, number]): string => (x[0] === 0 ? "-" : fmt((100 * x[1]) / x[0], "0.0"));
+    return b[0] + c[0] === 0 ? [] : [`${w} bold ${b[1]} of ${b[0]} (${rate(b)}), careful ${c[1]} of ${c[0]} (${rate(c)})`];
+  });
+  if (ways.length > 0) lines.push(`  The top five by way to a fortune (of those who never reigned; in a hundred heads): ${ways.join("; ")}.`);
+  // Item 18, part F4: the roads among those there from the start, where neither is the newcomers' or the chiefs' road, and
+  // what leading a band brought those who led one at the end.
+  const parts = (pick: (r: RoadMeasure) => RoadPart | undefined, bold: boolean): RoadPart =>
+    pooled(ms.flatMap((m) => (m.roads !== undefined ? [pick(bold ? m.roads.bold : m.roads.careful)] : [])).flatMap((x) => (x !== undefined ? [x] : [])));
+  const [sb, sc, cb, cc] = [parts((r) => r.start, true), parts((r) => r.start, false), parts((r) => r.chiefs, true), parts((r) => r.chiefs, false)];
+  if (sb.people + sc.people > 0) lines.push(`  There from the start (in a hundred heads): bold ${told(sb)}; careful ${told(sc)}.`);
+  if (cb.people + cc.people > 0) lines.push(`  Leading a band at the end: bold ${told(cb)}; careful ${told(cc)}.`);
   return lines;
+}
+
+const pooled = (ps: readonly RoadPart[]): RoadPart => ({ people: sum(ps, (x) => x.people), top5: sum(ps, (x) => x.top5), top20: sum(ps, (x) => x.top20), living: sum(ps, (x) => x.living), result: sum(ps, (x) => x.result) });
+
+/** A part of a road in words: its people, their places in a hundred heads, and what the living gained. */
+const told = (x: RoadPart): string =>
+  x.people === 0 ? "none" : `${x.people}, ${x.top5} of the top five (${fmt((100 * x.top5) / x.people, "0.0")}), ${x.top20} of the top twenty (${fmt((100 * x.top20) / x.people, "0.0")}), the living gained ${fmt(x.result / Math.max(1, x.living), "0")} a head`;
+
+/** Use against ignore for the road (`--band-life-half`): those whose own reckoning chose it, who took it and who never did. */
+export function roadLifeReport(ms: readonly MoneyMeasure[]): string {
+  const of = (pick: (x: { users: RoadPart; ignorers: RoadPart }) => RoadPart): RoadPart => pooled(ms.flatMap((m) => (m.roadLife !== undefined ? [pick(m.roadLife)] : [])));
+  const line = (name: string, x: RoadPart): string => `  ${name}: ${told(x)}${x.people === 0 ? "" : `, ${fmt((100 * (x.people - x.living)) / x.people, "0")}% dead`}`;
+  return ["", line("Took the road", of((x) => x.users)), line("Never took it", of((x) => x.ignorers))].join("\n");
 }

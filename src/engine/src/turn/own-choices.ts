@@ -8,7 +8,7 @@
 import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { BandData, type Band } from "../model/bands.ts";
+import { BandData, chiefCutOf, type Band } from "../model/bands.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { KillValues, newChiefView, newReportsView, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "../model/life.ts";
 import { remember, type Character } from "../model/people.ts";
@@ -98,6 +98,8 @@ P.chiefView = function (c, b) {
     purse: c.purse,
     cost: b.cost,
     short: b.short,
+    took: b.took,
+    cut: chiefCutOf(c.traits.greed),
     here: seen(b.province),
     next: sortBy(
       this.map.movesFrom("Army", b.province).filter((n) => !this.map.get(n).isSea),
@@ -159,6 +161,18 @@ P.chiefDecides = function (b, chief) {
     remember(chief, S.turn, `I chose to give up the road in ${this.map.get(b.province).name}.`);
     this.wayBack(b, "he chose to");
     return "gone";
+  }
+  // Item 18, part F4: the men he sends away go back to the loose men where the band stands.
+  const away = Math.min(b.men, Math.max(0, Math.trunc(plan.sendAway)));
+  if (away > 0) {
+    b.men -= away;
+    this.peopleOf(b.province).loose += away;
+    remember(chief, S.turn, `I sent ${away} of my men away in ${this.map.get(b.province).name}.`);
+    // Too few are left to be a band: it ends here, before its season can rob or draw men again.
+    if (b.men < BandData.least) {
+      this.wayBack(b, "he sent his men away");
+      return "gone";
+    }
   }
   // A ship is bought only where the band stays by the sea: moved inland, it would be left behind at once.
   if (plan.ship && (plan.go === null || plan.go === b.province || this.map.get(plan.go).isCoastal)) this.buyShip(b, chief);
