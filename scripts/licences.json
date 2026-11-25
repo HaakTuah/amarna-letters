@@ -6,7 +6,8 @@
     "package.json"
   ],
   "data": [
-    "caniuse-lite"
+    "caniuse-lite",
+    "spdx-exceptions"
   ],
   "ignoreScriptsIn": [
     ".npmrc"
