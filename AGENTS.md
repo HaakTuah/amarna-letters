@@ -19,10 +19,10 @@ these whole at the start of every task (Claude Code imports them; any other buil
 @core/roles/shared/work-flow.md
 <!-- The core's part ends. -->
 
-A builder of another provider: read `core/modules/other-builders.md` at the start of every task. The other files of the
-core, `core/floor/topics.md` (when: the floor's opening says) and `core/modules/game-design.md` among them, are read
+A builder of another provider: read `core/tools/other-builders.md` at the start of every task. The other files of the
+core, `core/floor/topics.md` (when: the floor's opening says) and `core/tasks/game-design.md` among them, are read
 when a task needs them; each module says when. A safety rule of this game's own, which "Principles over rules"
-(`core/modules/how-to-work.md`) never reaches: "No model games with paid models" in the builder rules.
+(`core/roles/shared/how-to-work.md`) never reaches: "No model games with paid models" in the builder rules.
 
 ## Where things are
 
@@ -39,7 +39,7 @@ when a task needs them; each module says when. A safety rule of this game's own,
 
 ## Starting a task
 
-A builder of another provider starts from its brief instead (`core/modules/other-builders.md`).
+A builder of another provider starts from its brief instead (`core/tools/other-builders.md`).
 
 1. Find the next item in `docs/BUILD-PROGRESS.md`. The item's own text is its brief:
    `docs/intent/build-order/item-<n>.md` (`item-6.md`, `item-9plus.md`, ...).
@@ -56,7 +56,7 @@ A builder of another provider starts from its brief instead (`core/modules/other
   you need.
 - **Print little:** tests with `scripts/test.sh` and script games with `scripts/sim.sh`. Model-game simulations
   (`sim/`) follow their own process and may use as many agents as it calls for (`sim/README.md`): its seats are
-  players, not helpers (`core/modules/helpers.md`).
+  players, not helpers (`core/tasks/helpers.md`).
 - **Never edit `docs/intent/` or `docs/builder-rules.md`;** a design decision is taken as a reading
   (the core's "The work never waits") and goes to the design session to settle.
 - **The smallest game that tests the rule** (archive item 28): a few powers on part of the map, a handful of seasons
@@ -67,7 +67,7 @@ A builder of another provider starts from its brief instead (`core/modules/other
   document's copy, and leaves this file in the same PR.
 - **Reviews:** the history dossiers (`docs/history/`) count as docs; the game's data is code (archive item 175).
 - **Lanes beside the items** (archive item 23): beside the numbered items run, with the core's own (an obvious
-  improvement, a bug's fix: `core/modules/inbox.md`), splits, history dossiers, script play outside the current item's
+  improvement, a bug's fix: `core/roles/shared/inbox.md`), splits, history dossiers, script play outside the current item's
   code, tests, and interface polish on screens the item does not touch; a lane's draft PR's title names its entry.
 
 ## Commands
@@ -86,5 +86,5 @@ key is set in cloud sessions.
 
 ## Review guidelines
 
-Every reviewer, the code reviewers and the security reviewer included, reads `core/modules/review-guidelines.md` and this game's own,
+Every reviewer, the code reviewers and the security reviewer included, reads `core/roles/shared/review-guidelines.md` and this game's own,
 `docs/review-guidelines.md`, whole, and judges the change by them, with `SECURITY.md` and the floor.

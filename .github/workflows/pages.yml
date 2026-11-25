@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   # Tests run only where a change can affect them ("The smallest setup that tests the rule" in
-  # core/modules/how-to-work.md): notes alone (docs/, .claude/, any .md, but docs/history/, which a test reads) skip them;
+  # core/roles/shared/how-to-work.md): notes alone (docs/, .claude/, any .md, but docs/history/, which a test reads) skip them;
   # the build still runs for the preview. The core's copy, which the core tested before a sync brings it, counts only
   # for what the suites take from it: its Node version runs them all, and its scripts run the type check and the tests
   # that read them ("copy" below). The rest of the copy does not count (core.yml checks it against the core), nor does
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/tasks/updates.md)
           cache: npm
       - run: npm ci
       - run: npm run lint && npm run typecheck
@@ -106,7 +106,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/tasks/updates.md)
           cache: npm
       - run: npm ci
       - run: npx --no-install vitest run --shard=${{ matrix.shard }}/4
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/tasks/updates.md)
           cache: npm
       - run: npm ci
       - run: npm run typecheck
@@ -169,7 +169,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/tasks/updates.md)
           cache: npm
       - run: npm ci
       # Playwright is a devDependency (package.json, where Dependabot updates it); its browser is cached by its version.
@@ -195,7 +195,7 @@ jobs:
       - uses: actions/setup-node@v7
         if: github.event.action != 'closed'
         with:
-          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/modules/updates.md)
+          node-version-file: core/.node-version # the core's one exact Node ("Node" in core/tasks/updates.md)
           cache: npm
 
       - name: Install

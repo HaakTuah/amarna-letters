@@ -1,4 +1,4 @@
-# The description check ("Each PR has the headings" in core/modules/git.md): a pull request that is no draft has the
+# The description check ("Each PR has the headings" in core/roles/shared/work-flow.md): a pull request that is no draft has the
 # headings "What the owner can try" and "Readings taken". The core's, on every pull request when it opens, gets a new
 # commit, is marked ready or has its description edited, so that one put right passes by itself. Where the readings
 # are in the item's report (docs/rounds/), the heading says which report holds them; where there are none, it stands

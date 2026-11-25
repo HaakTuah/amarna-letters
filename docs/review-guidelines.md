@@ -1,7 +1,7 @@
 # Review guidelines: this game's own
 
-What every reviewer judges a change by here, read whole with `core/modules/review-guidelines.md`, its brief
-(`core/modules/reviews.md`, point 7), `SECURITY.md` and the floor. It changes only on the owner's word (archive item
+What every reviewer judges a change by here, read whole with `core/roles/shared/review-guidelines.md`, its brief
+(`core/tasks/reviews.md`, point 7), `SECURITY.md` and the floor. It changes only on the owner's word (archive item
 206).
 
 **The design checker's brief** adds, when the item adds or changes real-world content, the dossier passages it cites;

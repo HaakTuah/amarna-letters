@@ -12,7 +12,7 @@
   ],
   "prose": [
     "core/floor/*.md",
-    "core/modules/*.md"
+    "core/modules/*.md", "core/floor/topics/*.md", "core/roles/*.md", "core/roles/shared/*.md", "core/tasks/*.md", "core/tools/*.md"
   ],
   "proseFromSecurity": true
 }
