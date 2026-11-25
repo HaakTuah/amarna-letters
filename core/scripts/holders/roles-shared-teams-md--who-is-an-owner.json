@@ -1,0 +1,6 @@
+{
+  "rule": "roles/shared/teams.md: Who is an owner",
+  "holder": "check: scripts/security-review.mjs, in part",
+  "behind": [236, 250],
+  "number": "correction: misread; outcome: asked"
+}

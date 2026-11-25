@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Reality first",
+  "behind": [102, 104]
+}

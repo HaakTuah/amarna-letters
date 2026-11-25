@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: It reports where it works",
+  "behind": ["#492"],
+  "number": "correction: does not work; outcome: fast"
+}

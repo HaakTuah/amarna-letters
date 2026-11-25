@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/reviews.md: The session's own run comes first",
+  "behind": ["#397.9"],
+  "number": "findings; outcome: fast"
+}

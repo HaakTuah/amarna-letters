@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/planning.md: The owner's notes are gathered at a milestone",
+  "holder": "check: scripts/pr-description.mjs, in part"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/repositories.md: A session that cannot read its floor does nothing else",
+  "holder": "check: scripts/work-saved.sh, in part",
+  "behind": [241]
+}

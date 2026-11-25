@@ -1,15 +1,17 @@
-// The staged project the licence check's tests run on (licence-scan-test.mjs and licence-fetch-test.mjs, beside this
+// The staged project the licence check's tests run on (tests/licence-scan-test.mjs, licence-yes-test.mjs, licence-scan-limits-test.mjs, licence-scan-pins-test.mjs and licence-fetch-*-test.mjs, beside this
 // file): a small project, written into a fresh temporary git repository for each case, with the changes a case makes to
 // it, and the check's failures on it (every name invented).
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { CORE } from "./core-address.mjs";
+import { scratchDir } from "./scratch-core.mjs";
 import { check, loadConfig } from "./licences.mjs";
 
 let failed = 0;
 export const ok = (cond, what, more = "") => { console.log(`${cond ? "ok  " : "FAIL"} ${what}`); if (!cond) { failed++; if (more) console.log(more); } };
+// (the check's failures as it prints them, one a config's fault throws too, for mend.mjs's `mended` to read: each says its mend)
+export const asOutput = (failures) => failures.map((m) => `FAIL: ${m.replace(/^threw: /u, "")}`).join("\n");
 export const done = () => process.exit(failed ? 1 : 0);
 
 export const PROJECT = {
@@ -38,7 +40,9 @@ export const PROJECT = {
 
 /** A fresh copy of the project, changed by `change(dir)`, and the check's failures on it (or the error it throws). */
 export function run(change = () => {}) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "licences-test-"));
+  // (the project is a folder inside the scratch folder, which holds the owner file beside it, so the check reads none)
+  const scratch = scratchDir("licences-test-"), dir = path.join(scratch, "project");
+  fs.mkdirSync(dir);
   try {
     for (const [f, text] of Object.entries(PROJECT)) { fs.mkdirSync(path.join(dir, path.dirname(f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), text); }
     change(dir);
@@ -49,7 +53,7 @@ export function run(change = () => {}) {
   } catch (e) {
     return [`threw: ${e.message}`];
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(scratch, { recursive: true, force: true });
   }
 }
 export const write = (f, text) => (dir) => { fs.mkdirSync(path.join(dir, path.dirname(f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), text); };

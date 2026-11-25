@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/review-guidelines.md: For every reviewer",
+  "behind": [36, 255, "#307"]
+}

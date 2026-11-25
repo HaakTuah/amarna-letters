@@ -1,0 +1,4 @@
+{
+  "rule": "floor/security.md: Nothing runs on the owner's computer unless the owner starts it",
+  "behind": [52]
+}

@@ -1,0 +1,12 @@
+{
+  "rule": "AGENTS.md: The core's checks run in a project's own jobs as they stand",
+  "holder": [
+    "check: tests/upgrade-test.mjs, in part",
+    "check: tests/packages-test.mjs, in part",
+    "check: tests/mend-test.mjs, in part"
+  ],
+  "behind": [
+    "#1093"
+  ],
+  "number": "correction: does not work; outcome: robust"
+}

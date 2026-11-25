@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/game-design.md: A game takes each kind that is true of it",
+  "behind": ["#484.8"],
+  "number": "findings; outcome: asked"
+}

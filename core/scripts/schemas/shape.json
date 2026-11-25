@@ -1,0 +1,80 @@
+{
+  "$comment": "The shape check's config (scripts/shape.mjs), as the starter kit writes it (setup/template/shape.json.tmpl). Each rule's mend is what a failure of it says (scripts/schemas.mjs). What a schema cannot say stays with the script: a path that lies outside the project, a system that uses one the config does not hold, an entrance outside its system's paths, and what holds between the systems.",
+  "title": "the shape check's config",
+  "type": "object",
+  "mend": "write it as the starter kit does ({core}setup/template/shape.json.tmpl): a JSON object with \"baseline\", the baseline's path, and \"code\", git pathspecs of the code to read",
+  "mendFor": {
+    "additionalProperties": "take it out; the config holds \"baseline\", \"code\", \"tests\", \"systems\", \"aliases\", \"platform\", \"marks\", \"suites\", \"screens\", \"clocks\", \"processes\", \"changes\", \"select\", \"wait\" and \"long\" alone",
+    "required": "name the baseline's path in \"baseline\", as the starter kit writes it (checks/shape-baseline.json), and list the code's folders in \"code\", as git pathspecs (\":!\" leaves a path out)"
+  },
+  "required": ["baseline", "code"],
+  "additionalProperties": false,
+  "properties": {
+    "baseline": { "type": "string", "minLength": 1, "mend": "name the baseline's path in \"baseline\", as the starter kit writes it (checks/shape-baseline.json)" },
+    "code": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "mend": "list the code's folders in \"code\", as git pathspecs (\":!\" leaves a path out)" },
+    "tests": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list git pathspecs there (\":!\" leaves a path out)" },
+    "platform": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list there each package or module of Node's that binds code to one platform, by the name it is imported under" },
+    "screens": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list there each package or module a test imports that opens a screen, a window or a device, by the name it is imported under" },
+    "clocks": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list there each name a test calls or imports that reaches a real clock (sleeps, waits on a timer or reads the time), beside those the check knows for each language: a call by its dotted name (Clock.Wait), a module by the name it is imported under" },
+    "processes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list there each name a test calls or imports that starts another process, beside those the check knows for each language: a call by its dotted name (Process.Start), a module by the name it is imported under" },
+    "changes": { "type": "array", "maxItems": 20, "items": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]*$" }, "mend": "list there each mark of a change in a comment the project adds, as plain text the check finds anywhere in a comment line (\"Ticket: ABC-\", \"fixed in JIRA-\"), at most 20 of them, each of at most 120 characters with no control character, or take it out" },
+    "select": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "proof": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "whole": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "none": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "mend": "give it \"proof\", \"whole\", \"none\" alone, each a list of git pathspecs"
+    },
+    "wait": { "type": "number", "exclusiveMinimum": 0, "mend": "give it a number of seconds above 0, or take it out" },
+    "long": { "type": "number", "exclusiveMinimum": 0, "mend": "give it a number of seconds above 0, or take it out" },
+    "marks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lines": { "type": "integer", "minimum": 1 },
+        "depth": { "type": "integer", "minimum": 1 },
+        "branches": { "type": "integer", "minimum": 1 }
+      },
+      "mend": "give \"lines\", \"depth\" and \"branches\" a whole number each, or leave one out for the core's own"
+    },
+    "aliases": {
+      "type": "object",
+      "propertyNames": { "minLength": 1 },
+      "additionalProperties": { "type": "string" },
+      "mend": "give each prefix an import may start with (\"@/\") the path inside the project it stands for (\"src/\")"
+    },
+    "suites": {
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          { "type": "number", "exclusiveMinimum": 0 },
+          { "type": "object", "minProperties": 1, "additionalProperties": { "type": "number", "exclusiveMinimum": 0 } }
+        ]
+      },
+      "mend": "give each suite's name its time mark in seconds: a number, or one for each of Node's names for a platform ({ \"linux\": 60, \"win32\": 240 })"
+    },
+    "systems": {
+      "type": "object",
+      "mend": "give each system's name its \"paths\", and what else it declares: \"uses\", \"entrance\", \"domain\", \"wraps\"",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "mendFor": { "pattern": "name it in small letters, digits and hyphens, a letter first" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["paths"],
+        "additionalProperties": false,
+        "mend": "give it \"paths\", \"uses\", \"entrance\", \"domain\", \"wraps\" alone",
+        "mendFor": { "required": "list its folders (each ending in /) or files in \"paths\"" },
+        "properties": {
+          "paths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "mend": "list its folders (each ending in /) or files there" },
+          "uses": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list there the systems it may import from" },
+          "wraps": { "type": "array", "items": { "type": "string", "minLength": 1 }, "mend": "list there the packages it alone imports" },
+          "entrance": { "type": "string", "mend": "name the one file of the system that the others import from" },
+          "domain": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "mend": "name one of the domains {core}tasks/code-shape.md lists, or the project's own in the same form: small letters, digits and hyphens, a letter first" }
+        }
+      }
+    }
+  }
+}

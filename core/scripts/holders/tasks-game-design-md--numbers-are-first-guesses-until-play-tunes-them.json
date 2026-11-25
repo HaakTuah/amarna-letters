@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Numbers are first guesses until play tunes them",
+  "behind": [86, 108]
+}

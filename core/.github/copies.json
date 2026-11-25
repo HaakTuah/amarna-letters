@@ -1,0 +1,10 @@
+{
+  "baseline": ".github/copies-baseline.json",
+  "code": ["scripts/*.mjs", "scripts/*.sh", "tests/*.mjs", ".github/workflows/*.yml"],
+  "prose": ["AGENTS.md", "CLAUDE.md", "SECURITY.md", "README.md", "floor/*.md", "floor/topics/*.md", "modules/*.md", "roles/*.md", "roles/shared/*.md", "tasks/*.md", "tools/*.md", "setup/*.md", "GEMINI.md", ".kiro/steering/*", ".kiro/agents/*", ".agents/rules/*", ".agent/rules/*", ":!setup/sync-notes.md", ":!setup/sync-notes/"],
+  "proseFromSecurity": false,
+  "tests": ["tests/"],
+  "twice": {
+    "c174b42d7aa60caf58c0c3e555c0e4bed01fe6b0d99a412bce777b5af4ce913e": "Betterleaks' archive for Linux x64: personal-terms.yml pins it for its own fetch, and scripts/test-downloads.sh fetches the same archive for the tests while the network is up; a workflow's step imports no script, and tests/workflows-test.mjs holds the two equal"
+  }
+}

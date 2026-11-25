@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/how-to-work.md: One fact, one place",
+  "holder": ["check: scripts/copies.mjs, in part", "check: scripts/copies-values.mjs, in part", "check: scripts/pointers.mjs, in part"],
+  "behind": [3, 57, 58]
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "tools/claude.md: Pass both model and effort",
+  "holder": "check: scripts/helper-call.mjs, in part",
+  "behind": [128]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/reviews.md: What a posted review stands for",
+  "holder": ["check: scripts/security-review.mjs, in part", "check: scripts/clean-merges.mjs, in part"],
+  "behind": [220, 250, "#750.3"],
+  "number": "check fires; outcome: robust; rare harm"
+}

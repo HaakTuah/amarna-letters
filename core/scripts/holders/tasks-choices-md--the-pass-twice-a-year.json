@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/choices.md: the pass twice a year",
+  "holder": "check: scripts/look.mjs, in part"
+}

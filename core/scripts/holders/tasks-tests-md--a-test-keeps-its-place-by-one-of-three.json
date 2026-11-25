@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/tests.md: A test keeps its place by one of three",
+  "holder": "audit"
+}

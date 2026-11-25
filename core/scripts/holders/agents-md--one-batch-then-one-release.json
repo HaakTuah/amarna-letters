@@ -1,0 +1,4 @@
+{
+  "rule": "AGENTS.md: One batch, then one release",
+  "behind": [210, 211]
+}

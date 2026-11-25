@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/roles.md: The rules name tiers, never a model",
+  "holder": ["check: scripts/general.mjs, in part", "check: scripts/tools-offer.mjs, in part"],
+  "behind": ["#467"],
+  "number": "check fires; outcome: usable"
+}

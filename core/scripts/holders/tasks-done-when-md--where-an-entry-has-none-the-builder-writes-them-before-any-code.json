@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/done-when.md: Where an entry has none, the builder writes them before any code",
+  "holder": "check: scripts/pr-description.mjs, in part"
+}

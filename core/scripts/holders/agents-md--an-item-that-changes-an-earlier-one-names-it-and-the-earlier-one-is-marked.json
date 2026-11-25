@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: An item that changes an earlier one names it, and the earlier one is marked",
+  "holder": "check: scripts/archive.mjs, in part",
+  "behind": ["#756.3"],
+  "number": "check fires; outcome: asked"
+}

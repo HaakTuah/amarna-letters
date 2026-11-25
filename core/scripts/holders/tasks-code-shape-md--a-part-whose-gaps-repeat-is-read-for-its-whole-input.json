@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/code-shape.md: A part whose gaps repeat is read for its whole input",
+  "holder": "check: a part's own test, which runs the part and the authority on the same inputs, in part",
+  "behind": ["#593.8"],
+  "number": "correction: does not work; outcome: robust"
+}

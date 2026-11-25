@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A bug fix and a rework of tests are built on Sonnet",
+  "behind": ["#767"],
+  "number": "findings; outcome: robust"
+}

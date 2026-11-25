@@ -3,7 +3,8 @@
 # .npmrc, the Node version or this workflow, and passes at once where it changes none. Otherwise it installs the
 # packages from npm's registry alone, running no package's install script, and runs npm's own check of the registry's
 # signature on each installed package. Read-only, and no secrets. It reports on every pull request, so a ruleset can
-# require it.
+# require it; in a private repository, as the starter kit writes it, it starts only once a pull request is no draft
+# (core/scripts/init.mjs, READY_ONLY).
 name: signatures
 
 on:

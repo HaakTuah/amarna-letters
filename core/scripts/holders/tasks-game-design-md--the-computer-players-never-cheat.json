@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: The computer players never cheat",
+  "behind": [87, 114]
+}

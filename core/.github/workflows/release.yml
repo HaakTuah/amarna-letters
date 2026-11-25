@@ -1,28 +1,95 @@
 # Cuts a release of the core (AGENTS.md, "A release is cut on the owner's word"; README.md, "How a project takes the
-# core", point 1): the tag `release-N` on main's newest commit, which the owner never pushes by hand. It runs only when
+# core", point 1): the tag `release-N` on main's newest commit, which the owner never pushes by hand. It cuts only when
 # started by hand, which takes write access to this repository: the owner, or a session the owner told to and whose own
 # limits let it, starts it on main (its page under Actions has the button). On any other branch it fails before
-# anything is read. It cuts only where every check the push of that commit to main started has finished and passed, and
-# where main has not moved on since the run began (scripts/release.mjs, which also numbers the release and never moves
-# a tag that exists); otherwise it fails, says which check holds it, and is started again later. This repository only;
-# no project calls it. It may write this repository's contents, which the tag needs, and read its Actions runs; the
-# token reaches the one step that cuts, through git's own credential helper, and is never written into a command or a
-# file. It takes no input: a run's inputs are shown to anyone who can read the repository before any step could check
-# them, so the owner's word for a release is not written here (floor rule 11), and no text of anyone's reaches a step.
+# anything is read. Before the cut it runs the upgrade test on Windows on that commit (tests/upgrade-test.mjs, which on
+# Linux runs on every pull request and push in tests.yml), since what it guards reaches a project only through a
+# release and on Windows it set the length of every pull request's run (#715); it runs it too once a day on main, where
+# it cuts nothing, so a break is found among a day's merges, and where minutes are billed (a private repository, or
+# one whose visibility could not be read) only before a release. It cuts only where that test passed, every check the
+# push of that commit to main started has finished and passed, the newest run of the core's tests on that commit, once
+# an hour or started by hand, has passed too, so the Windows suites passed there (#733, points 3 and 6: a pull
+# request's run and a push's are on Linux alone), and main has not moved on since the run began (scripts/release.mjs, which also numbers the
+# release and never moves a tag that exists); otherwise it fails, says which check holds it, and is started again
+# later. This repository only; no project calls it. The cut may write this repository's contents, which the tag needs,
+# and read its Actions runs; that token reaches the one step that cuts, through git's own credential helper, and is
+# never written into a command or a file. The first job's token, which reads only, asks whether the repository is
+# public; the upgrade test has none. It takes no input: a run's inputs are shown to anyone who can read the repository
+# before any step could check them, so the owner's word for a release is not written here (floor rule 11), and no text
+# of anyone's reaches a step.
 name: release
+run-name: ${{ github.event_name == 'schedule' && 'the upgrade test on Windows, daily (no release)' || 'release' }}
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '41 4 * * *'
 
 permissions:
   contents: read
 
+# (the daily run and a release each a group of their own, so neither waits on or replaces the other)
 concurrency:
-  group: release
+  group: release-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
+  main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      public: ${{ steps.visibility.outputs.public }}
+    steps:
+      - name: Only on main
+        run: |
+          [ "$GITHUB_REF" = refs/heads/main ] || { echo "::error::a release is cut on main alone, and this run was started on another branch or a tag. Mend: start the release workflow again on main"; exit 1; }
+      # (read from GitHub, since a scheduled run's event may not say it: only "false" read makes the daily run go on,
+      # so where nothing is read the Windows jobs start on a release alone, and in a private repository, where minutes
+      # are billed, the daily run is this one job)
+      - name: Whether the repository is public, its minutes free, for the daily run
+        id: visibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          private=$(gh api "repos/$GITHUB_REPOSITORY" --jq .private || true)
+          echo "private: ${private:-not read}"
+          echo "public=$([ "$private" = false ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  # (the upgrade test on Windows in five jobs side by side, each a part of it under its own time mark in .github/shape.json,
+  # "upgrade-" and the part's name, and well inside the job's time: a project kind of the older of the last two releases,
+  # of the newer, and the copy older than the first; a part takes 7 to 17 minutes on Windows, where the two parts of two
+  # projects each ran past 30; #304, #515, #715, #1240)
+  upgrade:
+    needs: main
+    if: ${{ github.event_name != 'schedule' || needs.main.outputs.public == 'true' }}
+    name: upgrade (windows-latest, ${{ matrix.part }})
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [older-npm, older-dotnet, older-pre, newer-npm, newer-dotnet]
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash # (Git Bash, as Claude Code runs on Windows)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false # the test reads only
+          fetch-depth: 0 # every release tag and the commits behind them: the test syncs from the last two releases
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version # the one exact Node, as the cut's
+      - name: The core's packages, installed from their lock files before the upgrade test on Windows, the parser's among them (#654, #719)
+        run: node scripts/install.mjs all # (the steps the test reads run the shape check, which reads on the parser; as tests.yml installs them)
+      - name: A project of the kind and release this job's part names, or the copy older than the first, synced to this commit, passes every check unchanged
+        env:
+          PART: ${{ matrix.part }}
+        run: node scripts/shape.mjs .github/shape.json --suite "upgrade-$PART" -- node tests/upgrade-test.mjs --part "$PART"
+
   release:
+    needs: [main, upgrade]
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -32,22 +99,26 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Only on main
-        run: |
-          [ "$GITHUB_REF" = refs/heads/main ] || { echo "::error::a release is cut on main alone, and this run was started on another branch or a tag"; exit 1; }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # the cut below takes its token from GH_TOKEN, nothing from the checkout
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
-      - name: The release, cut where every check on main's newest commit has passed
+          node-version-file: .node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock file for the release (#654)
+        run: node scripts/install.mjs
+      - name: The release, cut where the upgrade test on Windows, every check on main's newest commit and the newest of its hourly or hand-started runs of the tests have passed, none of them unfinished, and the trial on a real project stands for that commit with no check failed after the update
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          runs=$(mktemp)
+          # (the runs the push of that commit started, and, apart, the tests' runs on it, of whose hourly or hand-started
+          # ones none may be unfinished and the newest, by when it last started, decides, however many stand there)
+          runs=$(mktemp) full=$(mktemp)
           gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs" -f head_sha="$GITHUB_SHA" -f branch=main -f event=push -F per_page=100 > "$runs"
+          # (the tests' runs, every page of them, gathered into one list: a page that cannot be read stops the step)
+          gh api --paginate -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/tests.yml/runs" -f head_sha="$GITHUB_SHA" -f branch=main -F per_page=100 --jq '.workflow_runs[]' > "$full.pages"
+          jq -s '{ workflow_runs: . }' "$full.pages" > "$full"
           # (git asks this helper for the push's password; it answers from the step's own environment)
           git config --global credential.https://github.com.helper \
             '!f() { test "$1" = get && printf "username=x-access-token\npassword=%s\n" "$GH_TOKEN"; }; f'
-          node scripts/release.mjs --cut --at "$GITHUB_SHA" --runs "$runs" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          node scripts/release.mjs --cut --at "$GITHUB_SHA" --runs "$runs" --full "$full" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

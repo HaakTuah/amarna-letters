@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: A stalled lane",
+  "holder": "check: scripts/stalled.mjs, in part",
+  "behind": [133, 200, "#306"]
+}

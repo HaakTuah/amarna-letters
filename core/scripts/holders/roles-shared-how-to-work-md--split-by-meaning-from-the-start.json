@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/how-to-work.md: Split by meaning, from the start",
+  "holder": "check: scripts/reading-size.mjs, in part",
+  "behind": [25, 26, 45, "#469"]
+}

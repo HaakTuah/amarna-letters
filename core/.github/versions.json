@@ -7,7 +7,15 @@
       "pattern": "(\\d+\\.\\d+\\.\\d+)",
       "days": 7,
       "sameMajor": true,
-      "how": "Put the version in `.node-version` and the SHA-256 of `bin/node` from its `node-linux-x64` and `node-linux-arm64` packages (fetched with `npm pack --ignore-scripts`) in `scripts/node.sh`, with floor rule 7's checks; every project takes it by its sync. A new even-numbered long-term-support Node is the move \"Node\" in `modules/updates.md` describes, not this."
+      "how": "Put the version in `.node-version` and the SHA-256 of `bin/node` from its `node-linux-x64` and `node-linux-arm64` packages (fetched with `npm pack --ignore-scripts`) in `scripts/node.sh`, with floor rule 7's checks; every project takes it by its sync. A new even-numbered long-term-support Node is the move \"Node\" in `tasks/updates.md` describes, not this."
+    },
+    {
+      "name": "@stryker-mutator/core",
+      "file": "tests/mutation/package.json",
+      "pattern": "\"@stryker-mutator/core\": \"(\\d+\\.\\d+\\.\\d+)\"",
+      "days": 7,
+      "sameMajor": false,
+      "how": "Put the version in `tests/mutation/package.json`, then write its lock file afresh in that folder with `npm install --ignore-scripts --before <the time a week ago>`, so that no package it brings is under a week old (floor rule 7), check the registry's signatures there (`npm audit signatures`, once installed by `node scripts/install.mjs mutation`, with the npm the Node of `.node-version` brings, 11.20.0 or later: an older npm fails a package whose provenance is keyless, as `@babel/helpers` is, with EMISSINGSIGNATUREKEY; and, where Sigstore cannot be reached, a registry signature against the key of the same id at `https://registry.npmjs.org/-/npm/v1/keys`, as floor rule 7 says), and run `node tests/stryker-test.mjs --tool tests/mutation`; the licence check and the lookup read what it brings. Its `overrides` holds `mutation-testing-report-schema` at 3.9.0, where the packages that need it pin 3.8.4, whose lock entry a check of this repository's fails: take the override out once they pin 3.9.0 or later. It holds `qs` at 6.16.1 too, where `typed-rest-client` pins 6.15.1, which published advisories name (#827): take that out once it pins 6.16.1 or later. `minimatch`, which `@stryker-mutator/core` pins at ~10.2.4 and an advisory names below 11.0.1, waits: 11.0.1 brings `@isaacs/nonrecursive-glob-match`, first published 26 October 2026, under the 90 days of floor rule 15 until 24 January 2027; from then hold it at 11.0.1 or later the same way, where Stryker does not yet ask it."
     }
   ]
 }

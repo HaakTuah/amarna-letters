@@ -1,0 +1,1 @@
+- **12 November 2026, a feature may wait for a later stage.** Done when the manifest's "Differences" no longer lists that a feature whose users do not yet come out ahead may wait for a later stage: `core/tasks/game-design.md`, "Using a feature must pay, measured three ways", says so now. A project that listed no such difference does nothing.

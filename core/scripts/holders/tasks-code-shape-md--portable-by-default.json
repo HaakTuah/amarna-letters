@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/code-shape.md: Portable by default",
+  "holder": "check: scripts/shape.mjs, in part"
+}

@@ -1,22 +1,50 @@
 # The security-review check (floor rule 8: a PR that touches a way in merges only after its security review has run, and
 # none with a blocking security finding open), for every project that takes the core: it gives the head commit of each
-# open pull request that is no draft a commit status, "security-review", that says whether its security review has run.
+# open pull request that is no draft a commit status, "security-review", that says whether its security review has run,
+# and beside it a second, "code-review", that says whether a code review running on that commit has finished, and
+# whether a pull request that needs a code review has had one (scripts/code-review-wait.mjs; tasks/reviews.md,
+# "Which" and point 2: a review already running is waited for, and one that hangs is taken over, its review posted in a
+# comment that opens "Code review:" naming the commit by its whole SHA, which ends the wait; such a comment starts the
+# job only where the check is not advisory, since an advisory status passes anyway and the next push or Codex's own
+# summary rewrites it, so that no project starts a job for it it did not start before). The same status waits, too,
+# while the newest posted review of a kind from such an account declares no line of its findings or of its score,
+# and, in the core's own repository, while a design-checked pull request has no "Design check:" of its head, which
+# starts the job as "Code review:" does (scripts/review-marks.mjs; tasks/reviews.md, points 3 and 4; #551, #710).
 # Proof is the summary Codex's own app keeps on the pull request, saying its security review is completed, or a comment
-# that opens "Security review:" from the repository's owner, a member or a collaborator, which is how the fallback
-# reviewer's or another reviewer's is posted (modules/reviews.md, point 3); where Codex marks a finding of its security
-# review open, only such a comment settles it, posted after its newest finding where one is to be found; nothing else
-# counts (scripts/security-review.mjs, whose header says what it does not hold). A project calls it (workflow_call) from
+# that opens "Security review:" from the repository's owner, a person the host lets write (in a team's project, each
+# owner: roles/shared/teams.md; the job reads each such commenter's rights from GitHub, #412), or an account the caller
+# names (the input "reviewers"), which is how the fallback reviewer's or another reviewer's is posted
+# (tasks/reviews.md, point 3); a review of an
+# earlier commit than the head only where updates from main alone follow it, each the merge git makes of its parents
+# (scripts/clean-merges.mjs proves which, #323), or, of a review that found nothing blocking, light commits too, which
+# touch nothing that runs with power (scripts/power.mjs reads which, #1134), so that any other later commit needs such
+# a comment naming the head, or the merge where that stops, by its whole SHA; while Codex's own is running, only such a comment posted after it began,
+# as Codex's summary shows; where Codex marks a finding of its security review open, only such a comment settles it,
+# posted after Codex's summary last changed and, where one is to be found, after its newest finding; nothing else
+# counts. A pure sync needs none where no review starts by itself (floor rule 8): the job runs the default branch's
+# scripts/pure-sync.mjs on the head itself, and one it proves passes with no review and no note
+# (scripts/security-review.mjs, whose header says what it does not hold). So does one the caller proved queue-only (the
+# input "queue": the head a job of the caller's proved with the default branch's scripts/queue-only.mjs, whose token may
+# read issues, which this job's may not; #750), where its files are one Markdown file and nothing that runs by itself. Where the pull request's files show a change
+# to what runs by itself beyond its pins, it asks floor rule 3's two security reviews (the same script says
+# which count, and when one is enough); of a pull request that leaves the check's scripts alone, whose head does
+# not hold them as the default branch does and that the host says was opened before the script first came to the default branch,
+# which stood before the check came, what the check reads more is said, never waited for. A project
+# calls it (workflow_call) from
 # a workflow of its own of the same name, on pull_request (the types opened, reopened, synchronize and ready_for_review)
 # and on issue_comment (created and edited), so that the status follows a review the moment its comment arrives and
 # moves with each push, in a job that grants contents: read, pull-requests: read and statuses: write, pinned to a full
 # commit SHA ("How a project takes the core" in README.md, point 5).
 #
 # Advisory, unless the caller turns that off: the status always passes and says what the check would have done ("would
-# wait, ..."), so nothing waits for it until a week of pull requests has shown it right. Turned off, the status stays
-# pending until the review has run, and a ruleset can require it. Dependabot's own pull request, every commit of it
-# Dependabot's and signed by GitHub, passes it where no review of Codex's has begun on it (floor rule 17), and one that
-# needs no security review and gets none by itself (floor rule 8: it touches no way in, or is a pure sync, where no
-# reviewer starts by itself) says so in a comment that opens "Security review:".
+# wait, ..."), so nothing waits for it until the project's owner turns that off. Turned off, the status stays pending
+# until the review has run, and a ruleset can require it: the core's own waits, required once its ruleset names it
+# (#320), a project's only where its owner makes it so. Where every review is a posted comment (none starts by itself,
+# as through a plug-in), the repository's owner's counts with nothing to set, and the status proves that a review was
+# posted for the head, not who made it: builder and reviewer may post under one login (#187). Dependabot's own pull
+# request, every commit of it Dependabot's and signed by GitHub, passes it where no review of Codex's has begun on it
+# (floor rule 17), and one that needs no security review and gets none by itself (floor rule 8: it touches no way in)
+# says so in a comment that opens "Security review:", naming the head.
 #
 # In a private repository each run is a job its owner pays for, a dozen or so a pull request, for a status that only
 # advises: there the job is skipped, which GitHub does not bill (core archive 201), unless the caller turns it on with
@@ -24,13 +52,18 @@
 # requires the status while it advises waits for good in a private repository: such a project passes "private".
 #
 # What keeps it safe, since a comment starts it and it may write a status (floor rule 2): it checks out the default
-# branch, never the pull request, and runs only that branch's copy of the script; a comment's text is read only in the
-# job's condition and as data from GitHub's API, never written into a run line; it runs for a comment only where that is
-# the summary of Codex's app or opens "Security review:" from the owner, a member or a collaborator; on pull_request it
-# runs only for a branch of the repository itself and not for Dependabot, whose token could not write the status (theirs
-# is written when the first comment that counts arrives: on Dependabot's own, Codex's summary, once the code review that
-# floor rule 17 asks for is asked); and the token can read, and write a commit status, nothing more. A posted review
-# that is later edited away or deleted is seen at the next push, not at once.
+# branch, never the pull request, and runs only that branch's copies of the scripts; a comment's text is read only in
+# the job's condition and as data from GitHub's API, never written into a run line; it runs for a comment only where
+# that is the summary of Codex's app or opens "Security review:", "Code review:" or "Design check:" from the owner, a
+# member or a collaborator; on pull_request it runs only for a branch of the repository itself and not for Dependabot,
+# whose token could not write the status (theirs is written when the first comment that counts arrives: on Dependabot's own, Codex's
+# summary, once the code review that floor rule 17 asks for is asked); and the token can read, and write a commit
+# status, nothing more. The proofs of a pure sync and of the merges from main fetch the head's commits into a clone of
+# their own and check out nothing, as power.mjs's reading of the light commits does, so no file of the pull request's
+# is written to disk or run (git's merge of two
+# commits writes only the trees it makes, into that clone); git is given the token for this repository's own address
+# alone, in the fetch's and pure-sync.mjs's environment, and nothing writes it to disk. A posted review that is later
+# edited away or deleted is seen at the next push, not at once.
 name: security-review
 
 on:
@@ -51,6 +84,16 @@ on:
         required: false
         type: boolean
         default: false
+      queue:
+        description: The head a job of the caller's proved queue-only with the default branch's scripts/queue-only.mjs, which needs no review (floor rule 8). Left out, none.
+        required: false
+        type: string
+        default: ""
+      reviewers:
+        description: The accounts, besides the repository's owner and the people GitHub lets write to it, whose posted "Security review:", "Code review:" or "Design check:" counts, by login, separated by spaces. Left out, none.
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -68,13 +111,17 @@ jobs:
       && startsWith(github.event.comment.body, '<!-- codex-pull-request-review-summary -->'))
       || (contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
       && (startsWith(github.event.comment.body, 'Security review:')
-      || startsWith(github.event.comment.body, '**Security review:')))))) }}
+      || startsWith(github.event.comment.body, '**Security review:')
+      || (!inputs.advisory && (startsWith(github.event.comment.body, 'Code review:')
+      || startsWith(github.event.comment.body, '**Code review:')
+      || startsWith(github.event.comment.body, 'Design check:')
+      || startsWith(github.event.comment.body, '**Design check:')))))))) }}
     # one at a time for a pull request, in the order they came: the last to run has read the newest comments
     concurrency:
       group: security-review-${{ github.event.issue.number || github.event.pull_request.number }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -82,14 +129,18 @@ jobs:
           persist-credentials: false # nothing after the checkout needs git's token
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: ${{ inputs.root }}/.node-version # the one exact Node ("Node" in modules/updates.md)
-      - name: Has the security review run?
+          node-version-file: ${{ inputs.root }}/.node-version # the one exact Node ("Node" in tasks/updates.md)
+      - name: Has the security review run, and has a running code review finished?
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
           ROOT: ${{ inputs.root }}
           ADVISORY: ${{ inputs.advisory }}
+          REVIEWERS: ${{ inputs.reviewers }}
+          QUEUE: ${{ inputs.queue }}
+          SERVER: ${{ github.server_url }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -98,12 +149,205 @@ jobs:
             exit 0
           fi
           d=$(mktemp -d)
-          gh api "repos/$REPO/pulls/$NUMBER" > "$d/pull.json"
-          gh api --paginate --slurp "repos/$REPO/issues/$NUMBER/comments?per_page=100" > "$d/comments.json"
-          gh api --paginate --slurp "repos/$REPO/pulls/$NUMBER/comments?per_page=100" > "$d/findings.json"
-          gh api --paginate --slurp "repos/$REPO/pulls/$NUMBER/commits?per_page=100" > "$d/commits.json"
-          node "$ROOT/scripts/security-review.mjs" "$d/pull.json" "$d/comments.json" "$d/findings.json" \
-            "$d/commits.json" > "$d/out.json"
+          # every read of the host has a deadline, so that both statuses are written within the job's six minutes (#632):
+          # the pull request and what it holds by the step's 60th second, each read in the time the ones before it left;
+          # the clone and its two proofs by the 210th (proof_time); the rights by the 225th, and the head's copies and when
+          # the check's scripts came by the 240th, as each says below; then the two statuses, twenty seconds each. Where
+          # one of the first five is not read in time, nothing is there to write a status from, and the step fails, saying so
+          from_host() {
+            local file=$1 what=$2 left; shift 2
+            left=$((60 - SECONDS))
+            if [ "$left" -gt 0 ] && timeout "$left" gh api "$@" > "$d/$file"; then return 0; fi
+            echo "::error::FAIL the host gave no $what of pull request #$NUMBER by the step's 60th second, so neither the security-review status nor the code-review status was written. Mend: run this job again from the pull request's checks once GitHub answers; where it fails so again, the pull request's lists are too long to read in a minute, so split it."
+            false
+          }
+          # the seconds a proof may take: its own cap, or what is left before the step's 210th second, one at least
+          proof_time() {
+            local left=$((210 - SECONDS))
+            [ "$left" -gt 0 ] || left=1
+            echo "$((left < $1 ? left : $1))"
+          }
+          from_host pull.json "state" "repos/$REPO/pulls/$NUMBER"
+          from_host comments.json "comments" --paginate --slurp "repos/$REPO/issues/$NUMBER/comments?per_page=100"
+          from_host findings.json "review comments" --paginate --slurp "repos/$REPO/pulls/$NUMBER/comments?per_page=100"
+          from_host commits.json "commits" --paginate --slurp "repos/$REPO/pulls/$NUMBER/commits?per_page=100"
+          from_host files.json "list of files" --paginate --slurp "repos/$REPO/pulls/$NUMBER/files?per_page=100"
+          # whether the pull request is held by what a script of the check reads more: not where it leaves the script
+          # alone, its head holds it as it stood before this branch's, and the host says it was opened before the
+          # script first came to the default branch (it stood before the check came, and is told, never waited for: AGENTS.md,
+          # "Nothing locks a project"; the script decides that last from came, below); always where it changes the
+          # script itself, where its list of files is cut short, or where the head's copy cannot be read for any reason
+          # but its absence, or not by the step's 240th second, ten seconds at most (#632)
+          head=$(jq -r '.head.sha // empty' "$d/pull.json")
+          held() {
+            local p="$ROOT/scripts/$1" theirs
+            p="${p#./}"
+            [[ "$head" =~ ^[0-9a-f]{40}$ ]] || { echo true; return; }
+            if [ "$(jq '[.[][]] | length' "$d/files.json")" != "$(jq '.changed_files' "$d/pull.json")" ] \
+              || jq -e --arg p "$p" 'any(.[][]; .filename == $p or .previous_filename == $p)' "$d/files.json" \
+                > /dev/null
+            then echo true; return; fi
+            left=$((240 - SECONDS)); [ "$left" -gt 0 ] || { echo true; return; }
+            if theirs=$(timeout "$((left < 10 ? left : 10))" gh api "repos/$REPO/contents/$p?ref=$head" --jq .sha 2> "$d/error"); then
+              if [ "$theirs" = "$(git rev-parse "HEAD:$p")" ]; then echo true; else echo false; fi
+            elif grep -q "HTTP 404" "$d/error"; then echo false # the head holds no such script: from before it came
+            else echo true; fi
+          }
+          # when a script of the check first came to the default branch, as the host dates it: the merge of the pull
+          # request that brought its first commit there, read against that branch's own line before it, never a later
+          # one, so no change to the script makes a pull
+          # request opened before it one from before the check; nothing where that cannot be read, where the history is
+          # longer than five pages of a hundred commits, or where the time set aside for it (came_by, set by bound) is
+          # spent, and the script then holds the pull request (it holds one opened since then whatever its head holds:
+          # boundOf in security-review.mjs)
+          came() {
+            local p="$ROOT/scripts/$1" c= page n parent at= merged left
+            p="${p#./}"
+            for page in 1 2 3 4 5; do
+              left=$((came_by - SECONDS)); [ "$left" -gt 0 ] || return 0
+              n=$(timeout "$((left < 5 ? left : 5))" gh api "repos/$REPO/commits?path=$(jq -rn --arg v "$p" '$v | @uri')&sha=$(jq -rn --arg v "$DEFAULT" '$v | @uri')&per_page=100&page=$page" 2> /dev/null \
+                | jq -r 'if type == "array" then "\(length) \(.[-1].sha // "")" else empty end' 2> /dev/null) || return 0
+              [[ "$n" =~ ^([0-9]+)\ ([0-9a-f]{40})?$ ]] || return 0
+              [ "${BASH_REMATCH[1]}" -gt 0 ] && c=${BASH_REMATCH[2]}
+              [ "${BASH_REMATCH[1]}" -lt 100 ] && break
+              [ "$page" -lt 5 ] || return 0
+            done
+            [[ "$c" =~ ^[0-9a-f]{40}$ ]] || return 0
+            # (the host lists a path's commits by the dates their authors set, so the oldest listed is dated by the first
+            # merge of a pull request into the default branch that holds it, and counts only where the default branch's
+            # own line, as it stood just before that merge (the merge's first parent), held no such script, so that the
+            # merge brought it there; else nothing is dated)
+            left=$((came_by - SECONDS)); [ "$left" -gt 0 ] || return 0
+            n=$(timeout "$((left < 5 ? left : 5))" gh api "repos/$REPO/commits/$c/pulls" 2> /dev/null \
+              | jq -r --arg b "$DEFAULT" '[.[] | select(.merged_at != null and .base.ref == $b)] | min_by(.merged_at) // empty | "\(.merged_at) \(.merge_commit_sha)"' 2> /dev/null) || return 0
+            [[ "$n" =~ ^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)\ ([0-9a-f]{40})$ ]] || return 0
+            at=${BASH_REMATCH[1]} merged=${BASH_REMATCH[2]}
+            left=$((came_by - SECONDS)); [ "$left" -gt 0 ] || return 0
+            parent=$(timeout "$((left < 5 ? left : 5))" gh api "repos/$REPO/commits/$merged" 2> /dev/null \
+              | jq -r '.parents[0].sha // empty' 2> /dev/null) || return 0
+            [[ "$parent" =~ ^[0-9a-f]{40}$ ]] || return 0
+            left=$((came_by - SECONDS)); [ "$left" -gt 0 ] || return 0
+            if timeout "$((left < 5 ? left : 5))" gh api "repos/$REPO/contents/$p?ref=$parent" > /dev/null 2> "$d/error"; then return 0; fi
+            grep -q "HTTP 404" "$d/error" || return 0
+            echo "$at"
+          }
+          # held as the workflow reads it (BOUND), and, where not, when the script came (SINCE), for the script to decide
+          # (each script's own seven seconds, so a slow answer for one leaves the other its time)
+          bound() {
+            BOUND=$(held "$1"); SINCE=
+            came_by=$((SECONDS + 7)); [ "$came_by" -le 240 ] || came_by=240
+            if [ "$BOUND" = false ]; then SINCE=$(came "$1"); fi
+            export BOUND SINCE
+          }
+          # the head's commits, in a clone of its own that fetches them by the head's SHA (never a ref GitHub moves after
+          # the push) and checks out nothing, all within the job's time so its status is always written, so no file of
+          # the pull request's is on disk and none runs; git sends the token to this repository's own address alone,
+          # from each command's environment, never written to disk. Fetched for two proofs alone: where the pull
+          # request has a sync's shape (the manifest among its files, all of them whole, and each of them the manifest,
+          # a workflow or a file of the copy, at core/ or the path the base's line in the manifest's patch names), and
+          # where its head is an update from main (a merge whose second parent is no commit of the pull request's)
+          shape= merge= cloned= pure=
+          if [ -f "$ROOT/scripts/pure-sync.mjs" ] && [[ "$head" =~ ^[0-9a-f]{40}$ ]] \
+            && [ "$(jq '[.[][]] | length' "$d/files.json")" = "$(jq '.changed_files' "$d/pull.json")" ] \
+            && jq -e '([.[][] | select(.filename == "core-manifest.md") | .patch // "" | capture("(?<l>^|\n)-Core: \\S+ at [0-9a-f]{40}, copied whole under (?<p>([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( |\n|$)")? | .p] | first // "core/") as $at
+              | any(.[][]; .filename == "core-manifest.md") and all(.[][]; .filename == "core-manifest.md"
+              or (.filename | startswith($at)) or (.filename | test("^\\.github/workflows/[^/]+\\.ya?ml$")))' \
+              "$d/files.json" > /dev/null
+          then shape=1; fi
+          if [ -f "$ROOT/scripts/clean-merges.mjs" ] && [[ "$head" =~ ^[0-9a-f]{40}$ ]] \
+            && jq -e --arg h "$head" '[.[][]] as $c | [$c[].sha] as $s | any($c[]; .sha == $h
+              and (.parents | length) == 2 and (.parents[1].sha as $p | any($s[]; . == $p) | not))' \
+              "$d/commits.json" > /dev/null
+          then merge=1; fi
+          # and, for which of its files run with power and which of its commits are light, touching none of it (#1134,
+          # points 1 and 4: power.mjs reads the set from each commit's tree, never checking one out), every pull request,
+          # its own commits and their parents alone where neither proof above needs the history whole
+          many= depth=()
+          if [ -f "$ROOT/scripts/power.mjs" ] && [[ "$head" =~ ^[0-9a-f]{40}$ ]]; then
+            many=1
+            [ -n "$shape$merge" ] || depth=(--depth "$(($(jq '[.[][]] | length' "$d/commits.json") + 1))")
+          fi
+          if [ -n "$shape$merge$many" ]; then
+            key=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+            echo "::add-mask::$key"
+            n=${GIT_CONFIG_COUNT:-0}
+            auth=("GIT_CONFIG_COUNT=$((n + 1))" "GIT_CONFIG_KEY_$n=http.$SERVER/$REPO.git.extraheader"
+              "GIT_CONFIG_VALUE_$n=AUTHORIZATION: basic $key")
+            if git init -q -b pr "$d/pr" && git -C "$d/pr" remote add origin "$SERVER/$REPO.git" \
+              && env "${auth[@]}" timeout "$(proof_time 90)" git -C "$d/pr" fetch -q --no-tags "${depth[@]}" --update-head-ok origin "+$head:refs/heads/pr" \
+              && [ "$(git -C "$d/pr" rev-parse refs/heads/pr)" = "$head" ]
+            then cloned=1; fi
+          fi
+          # a pure sync needs no security review where none starts by itself (floor rule 8; #99): the default branch's
+          # pure-sync.mjs proves it on the head, in that clone
+          if [ -n "$shape" ]; then
+            proof="$PWD/$ROOT/scripts/pure-sync.mjs"
+            if [ -n "$cloned" ] && (cd "$d/pr" && env "${auth[@]}" timeout "$(proof_time 120)" node "$proof" > "$d/pure.txt" 2>&1)
+            then pure=$head; echo "A pure sync, as pure-sync.mjs proves: it needs no security review of its own."
+            else echo "Not proved a pure sync: it gets its security review as any pull request."; fi
+          fi
+          # an update from main stands for nothing reviewed before it unless it is the merge git makes of its parents
+          # (#323): the default branch's clean-merges.mjs proves which are, in that clone, with no token (the step's
+          # GH_TOKEN taken from its environment too); where it
+          # cannot, none is, and a review of the head is asked (a default branch whose core is older has no such
+          # script, and its scripts read the parents alone, as before)
+          merges=()
+          if [ -f "$ROOT/scripts/clean-merges.mjs" ]; then echo '[]' > "$d/merges.json"; merges=("$d/merges.json"); fi
+          if [ -n "$merge" ]; then
+            proof="$PWD/$ROOT/scripts/clean-merges.mjs"
+            if [ -n "$cloned" ] && (cd "$d/pr" && env -u GH_TOKEN timeout "$(proof_time 60)" node "$proof" "$d/pull.json" "$d/commits.json" > "$d/proved.json") \
+              && jq -e 'type == "array"' "$d/proved.json" > /dev/null
+            then mv "$d/proved.json" "$d/merges.json"; echo "Merges from main that are the ones git makes: $(jq -r 'length' "$d/merges.json")."
+            else echo "The merges from main could not be proved the ones git makes: a review of the head is asked."; fi
+          fi
+          # the files that run with power and the light commits, read by the default branch's power.mjs in that clone with
+          # no token, the light ones within its time (DEADLINE: a commit it has not read by then is not light); where it
+          # cannot, every changed script or workflow is read as running with power and no commit as light, so floor
+          # rule 3's two and a review of the head are asked (a default branch whose core is older has no such script, and
+          # its script reads what runs by itself as before)
+          power=()
+          if [ -n "$many" ]; then
+            proof="$PWD/$ROOT/scripts/power.mjs" checkout=$PWD
+            t=$(proof_time 60)
+            if [ -n "$cloned" ] && (cd "$d/pr" && env -u GH_TOKEN DEADLINE=$(($(date +%s) + t - 5)) timeout "$t" node "$proof" "$d/pull.json" "$d/commits.json" "$d/files.json" "$checkout" > "$d/power.json") \
+              && jq -e '(.light | type) == "array" and (.power | type) == "array"' "$d/power.json" > /dev/null
+            then echo "Files that run with power: $(jq -r '.power | length' "$d/power.json"); light commits, which touch none of it: $(jq -r '.light | length' "$d/power.json")."
+            else echo '{}' > "$d/power.json"; echo "What runs with power could not be read: each changed script and workflow is read as running with it, and a review of the head is asked."; fi
+            power=("POWER=$d/power.json")
+          fi
+          # whose posted review counts besides the owner's and the accounts named: a person the host lets write (#412),
+          # read from GitHub's rights for each account, at most twenty, that posted a "Security review:", a "Code
+          # review:" or a "Design check:" (for the code-review status's marks, review-marks.mjs), those who posted a
+          # "Security review:" first, with a say in the
+          # repository; its login, checked as one, is all that goes into the route, and an answer that cannot be read
+          # counts for no one (the script reads each strictly). All of them share 30 seconds, ten at most each, and end
+          # by the step's 225th second whatever the proofs above took, and when each of the check's two scripts came seven
+          # more, five at most a call, by the 240th, so both statuses are still written within the job's time; past that, the owner's
+          # and the named accounts count
+          owner=$(jq -r '.base.repo.owner.login // "" | ascii_downcase' "$d/pull.json")
+          : > "$d/rights.txt"
+          until=$((SECONDS + 30))
+          [ "$until" -le 225 ] || until=225
+          for login in $(jq -r --arg o "$owner" '[.[][] | select(type == "object" and (.body | type) == "string"
+            and (.body | test("^(\\*\\*)?(Security review|Code review|Design check):")) and (.author_association | IN("OWNER", "MEMBER", "COLLABORATOR"))
+            and .user.type == "User" and (.user.login | type) == "string" and (.user.login | test("^[A-Za-z0-9][A-Za-z0-9-]{0,38}$")))
+            | {k: (if (.body | test("^(\\*\\*)?Security review:")) then 0 else 1 end), l: (.user.login | ascii_downcase)}
+            | select(.l != $o)] | sort_by(.k, .l) | reduce .[].l as $l ([]; if index([$l]) then . else . + [$l] end)
+            | .[:20][]' "$d/comments.json"); do
+            left=$((until - SECONDS))
+            if [ "$left" -le 0 ]; then
+              echo "The time for reading the host's rights is spent: a review of $login and those after counts only where the input reviewers names it."
+              break
+            fi
+            if timeout "$((left < 10 ? left : 10))" gh api "repos/$REPO/collaborators/$login/permission" > "$d/right.json" 2> /dev/null \
+              && jq -e 'type == "object"' "$d/right.json" > /dev/null 2>&1
+            then cat "$d/right.json" >> "$d/rights.txt"
+            else echo "The host's rights of $login could not be read: a review of theirs counts only where the input reviewers names it."; fi
+          done
+          jq -s '.' "$d/rights.txt" > "$d/rights.json"
+          bound security-review.mjs
+          env "${power[@]}" PURE="$pure" RIGHTS="$d/rights.json" node "$ROOT/scripts/security-review.mjs" "$d/pull.json" \
+            "$d/comments.json" "$d/findings.json" "$d/commits.json" "$d/files.json" "${merges[@]}" > "$d/out.json"
           sha=$(jq -r '.sha // empty' "$d/out.json")
           if [ -z "$sha" ]; then
             echo "The pull request is closed or a draft: nothing to say."
@@ -112,4 +356,18 @@ jobs:
           jq -r '.status | "\(.state): \(.description)"' "$d/out.json"
           # (a summary of Codex's it cannot read: the check's own fixed words, never the comment's)
           if jq -e '.warning' "$d/out.json" > /dev/null; then echo "::warning::$(jq -r '.warning' "$d/out.json")"; fi
-          jq '.status' "$d/out.json" | gh api -X POST "repos/$REPO/statuses/$sha" --input - > /dev/null
+          if ! jq '.status' "$d/out.json" | timeout 20 gh api -X POST "repos/$REPO/statuses/$sha" --input - > /dev/null; then
+            echo "::error::FAIL the security-review status of $sha could not be posted: the host refused it or gave no answer within 20 seconds (its error, if any, is above), so the code-review status was not posted either. Mend: where no error shows above (the 20 seconds ran out), or it is a lost connection, a 5xx or a rate limit, run this job again from the pull request's checks; otherwise mend what it names, then run it again."
+            false
+          fi
+          # the second status, code-review: whether a code review running on that commit has finished (a default branch
+          # whose core is older has no such script, and says nothing of it)
+          # (a fault in it warns and leaves the job as green as the security-review status left it)
+          if [ -f "$ROOT/scripts/code-review-wait.mjs" ]; then
+            bound code-review-wait.mjs
+            if RIGHTS="$d/rights.json" FINDINGS="$d/findings.json" node "$ROOT/scripts/code-review-wait.mjs" "$d/pull.json" \
+              "$d/comments.json" "$d/commits.json" "$d/files.json" "${merges[@]}" > "$d/code.json" \
+              && jq -r '.status | "\(.state): \(.description)"' "$d/code.json" \
+              && jq '.status' "$d/code.json" | timeout 20 gh api -X POST "repos/$REPO/statuses/$sha" --input - > /dev/null; then :
+            else echo "::warning::the code-review status could not be written: scripts/code-review-wait.mjs or its post failed"; fi
+          fi

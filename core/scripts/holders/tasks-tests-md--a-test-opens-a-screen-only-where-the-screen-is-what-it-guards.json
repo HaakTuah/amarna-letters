@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/tests.md: A test opens a screen only where the screen is what it guards",
+  "holder": "check: scripts/shape.mjs"
+}

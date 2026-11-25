@@ -1,0 +1,65 @@
+# The scheduled look on this repository itself (AGENTS.md, "The core abides by its own rules"): the same script the
+# projects run from their copy (scripts/look.mjs), here from its source, once a day, with its monthly state report.
+# This repository only; no project calls it. Nothing is checked out but the default branch, and no text of a pull
+# request or an issue reaches a command: the scripts read them through gh's answers alone. The look's job may write
+# issues, and read pull requests, checks and statuses; its second job, which takes the personal terms out of issues,
+# pull requests and comments (scripts/issue-terms.mjs; #783), may write issues and pull requests; nothing else.
+name: own-look
+
+on:
+  schedule:
+    - cron: '17 4 * * *' # (04:17 UTC, every day)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  own-look:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # the default branch's files, which the steps and the look read
+      issues: write # the look's issues and its record, and the labels of the core's list it makes (#1092)
+      pull-requests: read # the pull requests that stand idle, and the late review findings
+      checks: read # the checks failed on the default branch
+      statuses: read # the statuses on the default branch's newest commit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }} # main's own state, whatever branch a manual start names
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+          fetch-depth: 0 # the day labels.mjs came, which the labels' check reads from git's history
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages and the parser's, installed from their lock files for the core's daily look, whose dose reads the code (#654, #719)
+        run: node scripts/install.mjs all
+      - name: The scheduled look
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/look.mjs
+
+  # (a job of its own, so that the look's job keeps reading pull requests alone; the repository is public, so the job
+  # is billed nothing)
+  terms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # the default branch's scripts/issue-terms.mjs, which it runs
+      issues: write # the personal terms taken out of issues and their comments
+      pull-requests: write # (a closed pull request's text and a review's are edited here)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }} # main's own state, whatever branch a manual start names
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: Personal terms taken out of issues and comments (floor rule 11; counts alone, never a term or where one stood)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TERMS: ${{ secrets.PERSONAL_TERMS }}
+          CORE_AT: "" # (the mend it prints names scripts/ here, the core's own)
+        run: node scripts/issue-terms.mjs

@@ -1,0 +1,6 @@
+{
+  "rule": "floor/topics/input.md: A reader refuses a version it does not know",
+  "holder": "check: scripts/steps.mjs, in part",
+  "behind": ["#456"],
+  "number": "findings; outcome: robust"
+}

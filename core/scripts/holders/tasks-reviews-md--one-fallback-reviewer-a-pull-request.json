@@ -1,0 +1,7 @@
+{
+  "rule": "tasks/reviews.md: One fallback reviewer a pull request",
+  "behind": [
+    "#1134.3"
+  ],
+  "number": "findings; outcome: fast"
+}

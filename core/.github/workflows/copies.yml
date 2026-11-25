@@ -1,13 +1,28 @@
-# The copies check ("One fact, one place" in the core's modules/how-to-work.md), for every project that takes the core:
+# The copies check ("One fact, one place" in the core's roles/shared/how-to-work.md), for every project that takes the core:
 # a new copy of code, or of the rule files' prose, fails; the old ones its baseline lists are removed over time, and
 # against the branch a PR merges into the baseline may only shrink. With it, the pointer check (every pointer in the
-# rule files leads somewhere) and the reading-size check (the files every session reads keep to their marks, and a file
-# past the split mark is split before it is changed), with the marks the project names; and a check that needs no
-# config, the workflow check (floor rule 2: no workflow names the trigger it forbids). A project calls it
-# (workflow_call) on every pull request and push to main, docs-only changes included, since the rule files are what it
-# guards most, pinned to a full commit SHA ("How a project takes the core" in README.md, point 5). It runs the project's
-# own core/scripts/copies.mjs, pointers.mjs, reading-size.mjs and workflows.mjs, with the configs the project names, on
-# the core's one exact Node; Node's own modules only, no package installed. Read-only, with no secret.
+# rule files leads somewhere, a Markdown link and the heading it names read by lychee, fetched at set-up, what the base
+# already held noted and passed; in an agent tool's files, what the base already held noted and passed, as the copies
+# check notes a copy there its baseline does not list yet) and the reading-size check (the files every session reads
+# keep to their marks, and a file past the split mark is split before it is changed), with the marks the project names;
+# and checks that need no config: the workflow check (floor rule 2: no workflow names the trigger it forbids; and zizmor's
+# and actionlint's findings, fetched at set-up, a key given twice among them, what the base already held noted and passed), the entry-files check (each
+# agent tool's entry file pulls in what AGENTS.md names, what the base already lacked noted and passed:
+# tasks/tools.md), and the manifest check, which
+# reports and never fails (every module the manifest's list neither takes nor leaves out, every slot a taken module uses
+# that no row fills); and the shape check (the core's tasks/code-shape.md: nothing new of a function past a mark, an
+# import across a boundary nobody declared, a cycle or a tie to one platform, what stood before listed in a baseline
+# that only shrinks), which holds a project that has not written its config yet to the starter kit's own, with the
+# pull request's base as its baseline; and the choice records' check (the core's tasks/choices.md: a record a pull
+# request adds is argued on its lines "Looked for:", "The blind pick:" and "The judgment:", one that stood before listed
+# and never failed). A project calls it (workflow_call) on every pull request and push to main, docs-only changes
+# included, since the rule files are what it guards most, pinned to a full commit SHA ("How a project takes the core"
+# in README.md, point 5), or calls core.yml with its inputs copies and sizes, which runs the same in its one job (#376). It runs, through
+# the project's own core/scripts/checks.mjs, which holds their steps, its copies.mjs, pointers.mjs, reading-size.mjs,
+# workflows.mjs, entry-files.mjs, manifest-reads.mjs, shape.mjs and choices.mjs, with the configs the project names (the shape check's by its
+# manifest's row, or where the starter kit writes it), on the core's one exact Node, with the core's packages installed
+# from its lock files first (core/scripts/install.mjs, the parser's by `all`): a YAML parser, a Markdown lexer and the
+# parser of other languages. Read-only, with no secret.
 name: copies
 
 on:
@@ -29,32 +44,42 @@ jobs:
   copies:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # (a pull request's run gives way to a newer one for the same pull request, whose head it no longer is; a run on
+    # main, a schedule or a start by hand is its own group and is never cancelled; #388)
+    concurrency:
+      group: copies-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-${{ inputs.config }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
+          fetch-depth: 2 # the merge commit and its parents: its first, HEAD^1, the base the checks read the change against, had with no fetch after the checkout (#674)
+      - name: Where the core's copy stands, for the copies, pointer, size and shape checks (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        run: |
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
-      - name: The base branch's latest commit, for its baseline and marks (not the whole history)
-        if: github.event_name == 'pull_request'
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock files for the copies check, the parser's for the shape check (#654, #719)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then if [ -f "${CORE_AT}.packages/parser/package.json" ]; then node "${CORE_AT}scripts/install.mjs" all; else node "${CORE_AT}scripts/install.mjs"; fi; fi
+      # (the two tools the workflow check runs, fetched at their pins outside the repository: the core's
+      # scripts/workflow-tools.sh; where one cannot be fetched, the check says it did not run it and decides nothing by it;
+      # #580)
+      - name: zizmor and actionlint, which the workflow check runs, fetched at their pins (the core's scripts/workflow-tools.sh)
+        timeout-minutes: 5
+        continue-on-error: true
+        run: if [ -f "${CORE_AT}scripts/workflow-tools.sh" ]; then bash "${CORE_AT}scripts/workflow-tools.sh" >> "$GITHUB_ENV"; fi
+      # (the link checker the pointer check runs, fetched at its pin outside the repository: the core's scripts/lychee.sh;
+      # where it cannot be fetched, the check says it did not run it and reads the links its own way; #582)
+      - name: lychee, which the pointer check runs, fetched at its pin (the core's scripts/lychee.sh)
+        timeout-minutes: 5
+        continue-on-error: true
+        run: if [ -f "${CORE_AT}scripts/lychee.sh" ]; then bash "${CORE_AT}scripts/lychee.sh" >> "$GITHUB_ENV"; fi
+      - name: The copies, pointer, reading-size, workflow, entry-file, manifest, shape, choice records' and core's files' checks (each its own script's, run through scripts/checks.mjs, which holds their steps)
         env:
-          BASE: ${{ github.base_ref }}
-        run: git fetch --no-tags --depth=1 origin "+refs/heads/$BASE:refs/remotes/origin/$BASE"
-      - name: No new copies
-        env:
-          COPIES_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
           CONFIG: ${{ inputs.config }}
-        run: node core/scripts/copies.mjs "$CONFIG"
-      - name: Every pointer in the rule files leads somewhere
-        if: ${{ !cancelled() }}
-        run: node core/scripts/pointers.mjs
-      - name: The files every session reads keep to their marks
-        if: ${{ !cancelled() }}
-        env:
-          SIZES_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
           SIZES: ${{ inputs.sizes }}
-        run: node core/scripts/reading-size.mjs "$SIZES"
-      - name: No workflow names the forbidden trigger
-        if: ${{ !cancelled() }}
-        run: node core/scripts/workflows.mjs
+        run: node "$CORE_AT"scripts/checks.mjs copies --copies "$CONFIG" --sizes "$SIZES" --base "$BASE"

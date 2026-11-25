@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A part of the core gives way to what is maintained",
+  "behind": ["#534.1"],
+  "number": "correction: does not work; outcome: robust"
+}

@@ -1,7 +1,8 @@
 # The copies, pointer, reading-size and workflow checks (one fact, one place; read little: the core's
-# modules/how-to-work.md), the core's, with this project's config (checks/copies.json) and marks (checks/sizes.json),
-# on every pull request and push to main, docs-only changes included, since the rule files are what they guard most.
-# Read-only.
+# roles/shared/how-to-work.md), the core's, with this project's config (checks/copies.json) and marks (checks/sizes.json),
+# on every pull request and push to main, docs-only changes included, since the rule files are what they guard most
+# (in a private repository, as the starter kit writes it, on a pull request only once it is no draft: core/scripts/
+# init.mjs, READY_ONLY). Read-only.
 name: copies
 
 on:

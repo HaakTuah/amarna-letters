@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/screens.md: Real content and every state",
+  "holder": "check: scripts/screens.mjs, in part"
+}

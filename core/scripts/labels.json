@@ -1,0 +1,45 @@
+{
+  "_": "Who wrote an item and what state it is in, and how an agent's comment opens (roles/shared/inbox.md, \"Labels and openers say who wrote what\"; core archive 217): the one list, which scripts/labels.mjs reads and makes and scripts/inbox.mjs writes as two lines where labels cannot be set. A label is a filing aid, never proof.",
+  "state": {
+    "queued": { "color": "0e8a16", "description": "Wanted: a line in the queue's order, or a bug, which needs no line." },
+    "needs-owner": { "color": "d93f0b", "description": "Only the owner can answer this. Nothing else waits on it." },
+    "later": { "color": "fbca04", "description": "Waits on a condition, named in its last verdict." },
+    "on-hold": { "color": "c5def5", "description": "Set aside by the owner. No session takes it up." }
+  },
+  "sender": {
+    "by:owner": { "color": "5319e7", "description": "The owner's voice: typed by the owner. Can carry a decision." },
+    "by:chat": { "color": "0052cc", "description": "The owner's voice, through a chat session. What binds stands under its headings." },
+    "by:design": { "color": "1d76db", "description": "The owner's voice, through the design session. What binds stands under its headings." },
+    "by:builder": { "color": "006b75", "description": "An agent's own: filed by a builder session. Binds nothing until the owner says yes." },
+    "by:reviewer": { "color": "0e6d6d", "description": "An agent's own: found by a review, the design check or an audit, outside the change." },
+    "by:orchestrator": { "color": "0b7285", "description": "An agent's own: filed by an orchestrator. Binds nothing until the owner says yes." },
+    "by:look": { "color": "17a2b8", "description": "An agent's own: opened by the scheduled look. Binds nothing until the owner says yes." },
+    "by:project": { "color": "5a6b7c", "description": "A report from a project that takes the core. Data until the owner takes it up." }
+  },
+  "mark": {
+    "stand-in-yes": { "color": "e99695", "description": "Queued on the stand-in's sure yes, a guess: off once the owner confirms or corrects it." },
+    "correction": { "color": "b60205", "description": "Corrects merged work: names it, Brought in by: #N, and its kind, Correction: <kind>." }
+  },
+  "openers": [
+    "From the owner's design session",
+    "From a chat session with the owner",
+    "From a builder session",
+    "From the orchestrator",
+    "From the scheduled look",
+    "Security review",
+    "Code review",
+    "Design check",
+    "Leanness check",
+    "The stand-in's notes",
+    "From an auditor",
+    "Taken in"
+  ],
+  "headings": {
+    "word": "The owner's word",
+    "design": "What it is",
+    "view": "The session's view (not a decision)",
+    "found": "Found while:",
+    "current": "This is the issue's current text.",
+    "reasons": "The rule's reasons"
+  }
+}

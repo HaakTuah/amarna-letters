@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/reviews.md: A review already running is waited for",
+  "holder": "check: scripts/code-review-wait.mjs, in part",
+  "behind": [206]
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/repositories.md: The manifest says where the core's copy is",
+  "holder": ["check: scripts/core-path.mjs", "check: .github/workflows/core.yml"],
+  "behind": [241]
+}

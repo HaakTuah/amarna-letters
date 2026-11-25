@@ -1,0 +1,1 @@
+- **12 November 2026, who reviews.** Done when the manifest fills *code reviewers* and *security reviewer* wherever the project's differ from the core's own (`core/README.md`, "Slots"; left out, the core's hold), and the project's own review guidelines call a finding blocking or not, never by one reviewer's priorities.

@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/screens.md: Speed and waiting",
+  "holder": "check: scripts/screens.mjs, in part"
+}

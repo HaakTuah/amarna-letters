@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/hosts.md: Where the front waits behind the cap, runs far from their turn are cancelled",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": [259],
+  "number": "findings; outcome: fast"
+}

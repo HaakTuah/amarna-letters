@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/hosts.md: Proven host by host",
+  "behind": [236]
+}

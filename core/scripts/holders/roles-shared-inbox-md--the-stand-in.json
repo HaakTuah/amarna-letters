@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/inbox.md: The stand-in",
+  "behind": [142, 166, 199]
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "roles/reviewer.md: Reads at its start",
+  "holder": "check: scripts/reading.mjs, in part"
+}

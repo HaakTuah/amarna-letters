@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A test that reaches the network runs once per batch",
+  "holder": ["check: .github/workflows/tests.yml, in part", "check: scripts/offline.sh, in part"],
+  "behind": ["#733.9"],
+  "number": "check fires; outcome: fast"
+}

@@ -12,8 +12,9 @@
 # of the registry's, and the rest of rule 7's source check (the same publisher and repository, a provenance kept where
 # the old version had one, the diff read against the release notes): those stay with the reviews, which read the lock
 # file's diff. A project calls it (workflow_call) from a workflow of its own of the same name, on every pull request,
-# pinned to a full commit SHA ("How a project takes the core" in README.md, point 5). It looks itself whether the pull
-# request changes a package list, a lock or shrinkwrap file, an `.npmrc`, the Node version or the calling workflow
+# pinned to a full commit SHA ("How a project takes the core" in README.md, point 5), or calls core.yml with signatures, which
+# runs the same in its one job (#376); its steps are the project's own core/scripts/checks.mjs's. It looks itself whether the pull
+# request changes a package list, a lock or shrinkwrap file, an `.npmrc`, the Node version, this workflow or the calling one
 # (git's own diff against the base), installs and checks only then, and passes otherwise: so it reports on every pull
 # request and a ruleset can require it. Where it cannot tell what changed, it checks. Read-only, with no secret.
 name: signatures
@@ -34,50 +35,29 @@ jobs:
   signatures:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # (a pull request's run gives way to a newer one for the same pull request, whose head it no longer is; a run on
+    # main, a schedule or a start by hand is its own group and is never cancelled; #388)
+    concurrency:
+      group: signatures-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-${{ inputs.directory }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout needs the token
           fetch-depth: 2 # the merge commit and its parents: the base the first step diffs from
-      - name: Does the pull request change what this check reads?
-        id: what
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }} # empty where the caller runs on anything but a pull request
+      - name: Where the core's copy stands, for the signature check (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
         run: |
-          # The checkout is the pull request merged into its base, with both parents, so the diff from the base is what
-          # it changes. Any doubt (no base, a base that is not there and cannot be fetched, a git command that fails, a
-          # listed file that is a link to another) means the check runs.
-          paths=(':(glob)**/package.json' ':(glob)**/package-lock.json' ':(glob)**/npm-shrinkwrap.json'
-            ':(glob)**/.npmrc' core/.node-version .github/workflows/signatures.yml)
-          run=true
-          if [ -n "$BASE" ] \
-            && { git cat-file -e "$BASE^{commit}" 2>/dev/null || git fetch --quiet --no-tags --depth=1 origin "$BASE"; } \
-            && changed=$(git diff --no-renames --name-only "$BASE" HEAD -- "${paths[@]}") \
-            && listed=$(git ls-files -s -- "${paths[@]}"); then
-            if [ -n "$changed" ]; then
-              echo "Changed:"
-              printf '%s\n' "$changed" | sed 's/^/- /' # behind a dash, so that no file's name starts a workflow command
-            elif printf '%s\n' "$listed" | grep -q '^120000 '; then
-              echo "A listed file is a link to another, whose changes this step would not see."
-            else
-              run=false
-              echo "No package list, lock file, .npmrc, Node version or signatures workflow changed: nothing to verify."
-            fi
-          fi
-          echo "run=$run" >> "$GITHUB_OUTPUT"
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.what.outputs.run != 'false' # anything but a plain no checks
         with:
-          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
-      - name: Install from the lock file, from the registry alone, running no package's install script
-        if: steps.what.outputs.run != 'false' # anything but a plain no checks
-        working-directory: ${{ inputs.directory }}
-        run: npm ci --ignore-scripts --no-audit --no-fund --allow-git=none --allow-remote=none --allow-file=none
-      - name: The registry's signature on each installed name and version
-        if: steps.what.outputs.run != 'false' # anything but a plain no checks
-        working-directory: ${{ inputs.directory }}
-        run: npm audit signatures
-      - name: Each lock entry's licence and version, as the installed package says them
-        if: steps.what.outputs.run != 'false' # anything but a plain no checks
-        working-directory: ${{ inputs.directory }}
-        run: node "$GITHUB_WORKSPACE/core/scripts/licence-installed.mjs" .
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock file for the signature check (#654)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then node "${CORE_AT}scripts/install.mjs"; fi
+      - name: The signature check (its steps in scripts/checks.mjs, its part signatures)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }} # empty where the caller runs on anything but a pull request
+          CALLER: ${{ github.workflow_ref }} # the calling workflow, by its own path, whatever it is named
+          FOLDER: ${{ inputs.directory }}
+        run: node "$CORE_AT"scripts/checks.mjs signatures --signatures "$FOLDER"

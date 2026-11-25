@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: What the owner asks to hear of, it tracks",
+  "behind": ["#492"],
+  "number": "correction: does not work; outcome: robust"
+}

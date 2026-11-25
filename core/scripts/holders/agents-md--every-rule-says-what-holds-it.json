@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: Every rule says what holds it",
+  "holder": ["check: scripts/holders.mjs", "check: .github/workflows/own-description.yml"],
+  "behind": [195, 228, 249],
+  "number": "findings; outcome: robust"
+}

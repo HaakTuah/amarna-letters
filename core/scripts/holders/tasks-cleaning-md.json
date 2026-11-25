@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/cleaning.md",
+  "behind": [226]
+}

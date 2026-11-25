@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/code-shape.md: Each project names its systems, under the same domains",
+  "holder": "check: scripts/shape.mjs, in part"
+}

@@ -1,4 +1,4 @@
-// The versions check ("The newest stable version, unless there is a reason" in modules/updates.md), for every project
+// The versions check ("The newest stable version, unless there is a reason" in tasks/updates.md), for every project
 // that takes the core and for the core itself: each version in the config is read from its file and compared with its
 // registry's newest stable release old enough to take (floor rule 7). The config, a JSON file its versions workflow
 // names, holds "entries", each with "name" (the package whose releases count), "registry" ("npm", the default, or

@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/review-guidelines.md: A finding names its rule",
+  "behind": [219]
+}

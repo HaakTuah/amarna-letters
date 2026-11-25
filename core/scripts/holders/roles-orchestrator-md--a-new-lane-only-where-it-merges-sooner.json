@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: A new lane only where it merges sooner",
+  "behind": [11, 259],
+  "number": "findings; outcome: fast"
+}

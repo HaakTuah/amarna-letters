@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/review-guidelines.md: Every reviewer",
+  "holder": "check: scripts/code-review-wait.mjs, in part",
+  "behind": [155]
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/dependencies.md: 15. Dependencies",
+  "holder": ["check: scripts/licences.mjs, in part", "check: scripts/agent-tools.mjs, in part"],
+  "behind": [76, 252]
+}

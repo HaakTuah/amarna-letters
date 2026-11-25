@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/ways.md: A way of running sessions has a part of its own",
+  "holder": "check: scripts/tools-offer.mjs, in part",
+  "behind": ["#397.4"],
+  "number": "check fires; outcome: usable"
+}

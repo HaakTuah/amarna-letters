@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/roles.md: Escalation",
+  "behind": [25]
+}

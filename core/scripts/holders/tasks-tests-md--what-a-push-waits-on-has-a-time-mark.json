@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/tests.md: What a push waits on has a time mark",
+  "holder": ["check: scripts/shape.mjs, in part", "check: scripts/look.mjs, in part"]
+}

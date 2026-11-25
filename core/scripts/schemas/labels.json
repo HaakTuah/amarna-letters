@@ -1,0 +1,128 @@
+{
+  "$comment": "The one list of labels, openers and headings (scripts/labels.json, which scripts/labels.mjs reads and makes and scripts/inbox.mjs writes as two lines). Each rule's mend is what a failure of it says (scripts/schemas.mjs).",
+  "title": "the list",
+  "type": "object",
+  "mend": "write the list as a JSON object with \"_\", its note, \"state\", \"sender\" and \"mark\", the labels, \"openers\", the lines an agent's comment opens with, and \"headings\", as {core}scripts/labels.json stands",
+  "mendFor": {
+    "additionalProperties": "take it out; the list holds \"_\", \"state\", \"sender\", \"mark\", \"openers\" and \"headings\" alone",
+    "required": "add it, as {core}scripts/labels.json stands"
+  },
+  "required": [
+    "state",
+    "sender",
+    "mark",
+    "openers",
+    "headings"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "labels": {
+      "type": "object",
+      "minProperties": 1,
+      "mend": "write it as an object of labels, each named by its key, of at most 50 characters, as GitHub takes a name",
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 50,
+        "pattern": "^\\S(?:.*\\S)?$",
+        "mend": "name the label by 1 to 50 characters with no space at either end, as GitHub takes a name"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "mend": "write the label as { \"color\": six lower-case hex digits, \"description\": at most 100 characters }, as GitHub takes one",
+        "mendFor": {
+          "additionalProperties": "take it out; a label holds \"color\" and \"description\" alone"
+        },
+        "required": [
+          "color",
+          "description"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{6}$",
+            "mend": "write the colour as six lower-case hex digits, with no #, as GitHub takes it"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "mend": "write a description of 1 to 100 characters, as GitHub takes it"
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "_": {
+      "type": "string",
+      "mend": "write the note as one string"
+    },
+    "state": {
+      "$ref": "#/$defs/labels"
+    },
+    "sender": {
+      "$ref": "#/$defs/labels",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^by:",
+        "mend": "name each sender label by:<who>, which inbox.mjs writes without its by:"
+      }
+    },
+    "mark": {
+      "$ref": "#/$defs/labels"
+    },
+    "openers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\s:](?:[^:]*[^\\s:])?$"
+      },
+      "mend": "write it as a list of the lines an agent's comment opens with, each a non-empty string with no colon and no space at either end"
+    },
+    "headings": {
+      "type": "object",
+      "mend": "write it as { \"word\", \"design\", \"view\", \"found\", \"current\", \"reasons\" }, each a heading as a non-empty string",
+      "mendFor": {
+        "additionalProperties": "take it out; \"headings\" holds \"word\", \"design\", \"view\", \"found\", \"current\" and \"reasons\" alone"
+      },
+      "required": [
+        "word",
+        "design",
+        "view",
+        "found",
+        "current",
+        "reasons"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "word": {
+          "type": "string",
+          "minLength": 1
+        },
+        "design": {
+          "type": "string",
+          "minLength": 1
+        },
+        "view": {
+          "type": "string",
+          "minLength": 1
+        },
+        "found": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reasons": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

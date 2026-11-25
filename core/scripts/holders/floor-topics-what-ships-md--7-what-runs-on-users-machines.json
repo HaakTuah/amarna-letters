@@ -1,0 +1,12 @@
+{
+  "rule": "floor/topics/what-ships.md: 7. What runs on users' machines",
+  "holder": [
+    "check: scripts/exact-versions.mjs, in part",
+    "check: scripts/lookup.mjs, in part",
+    "check: scripts/week-wait.mjs, in part",
+    "check: scripts/licences.mjs, in part",
+    "check: .github/workflows/signatures.yml, in part",
+    "check: scripts/versions.mjs, in part"
+  ],
+  "behind": [37, 65, 151]
+}

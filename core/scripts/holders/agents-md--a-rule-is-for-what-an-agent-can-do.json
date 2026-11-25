@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A rule is for what an agent can do",
+  "behind": [246, 249],
+  "number": "findings; outcome: robust"
+}

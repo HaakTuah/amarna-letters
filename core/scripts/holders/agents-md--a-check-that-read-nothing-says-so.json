@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: A check that read nothing says so",
+  "holder": "check: tests/steps-own-configs-test.mjs, in part",
+  "behind": ["#459", "#1107"],
+  "number": "findings; outcome: robust"
+}

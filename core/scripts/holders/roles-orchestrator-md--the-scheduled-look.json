@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: The scheduled look",
+  "holder": "check: scripts/look.mjs, in part",
+  "behind": [218, "#594"]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/cleaning.md: A sweep's scope is read, not listed",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": ["#593.1"],
+  "number": "correction: does not work; outcome: robust"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/dependencies.md: An agent's own tools are code with its sign-ins",
+  "holder": "check: scripts/agent-tools.mjs, in part",
+  "behind": [225]
+}

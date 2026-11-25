@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: The pace is the owner's",
+  "behind": [232, "#471"],
+  "number": "correction: does not work; outcome: asked"
+}

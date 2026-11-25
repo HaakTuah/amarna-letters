@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/done-when.md: The builder proves the change by using it",
+  "holder": "check: scripts/pr-description.mjs, in part"
+}

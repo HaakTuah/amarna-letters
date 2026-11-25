@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A pull request says what it asks of a project",
+  "holder": "check: .github/workflows/own-description.yml",
+  "behind": [215]
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "secret-scanning",
+    "setting": "Secret scanning (Settings, Advanced Security)",
+    "page": "settings/security_analysis",
+    "protects": "GitHub tells the owner of a key of a kind it knows anywhere in the repository and its history (floor rule 1); in a public repository a session may switch it on, in a private one, where it may be billed, the owner alone (floor topic 9)"
+  },
+  {
+    "id": "push-protection",
+    "setting": "Secret scanning's push protection (Settings, Advanced Security)",
+    "page": "settings/security_analysis",
+    "protects": "GitHub refuses a push that holds a key of a kind it knows, before the key reaches the history, which no check on a pull request can (floor rule 1); in a private repository, where it may be billed, the owner alone switches it on (floor rule 14)"
+  },
+  {
+    "id": "ruleset",
+    "setting": "A ruleset on the default branch: deletions restricted, force pushes blocked, a pull request required, the status checks `core / core` and the project's own CI required (Settings, Rules)",
+    "page": "settings/rules",
+    "protects": "the default branch changes only by a merged pull request whose checks passed (floor rule 12); a private repository on GitHub's free plan has no rulesets, and GitHub Pro, which gives them, is a purchase the owner alone makes (floor rule 14)"
+  },
+  {
+    "id": "security-review-required",
+    "setting": "The status `security-review` required by that ruleset, where the project's `.github/workflows/security-review.yml` posts it on every pull request (Settings, Rules)",
+    "page": "settings/rules",
+    "protects": "a pull request shows whether its security review ran before it merges (floor rule 8); while the check is advisory its status passes and says what it would have done, so requiring it holds back only a pull request it was never posted on"
+  },
+  {
+    "id": "sha-pinning",
+    "setting": "Actions: \"Require actions to be pinned to a full-length commit SHA\" (Settings, Actions, General)",
+    "page": "settings/actions",
+    "protects": "GitHub refuses a run that uses an action at a tag, which it reads as it runs the workflow and no check of the core's can (floor rule 17); turned on once every action the project's workflows use is pinned so, since from then on a run that uses one at a tag fails"
+  },
+  {
+    "id": "personal-terms",
+    "setting": "The Actions secret `PERSONAL_TERMS`, the terms to keep out (Settings, Secrets and variables, Actions)",
+    "page": "settings/secrets/actions",
+    "protects": "the personal-terms check fails a pull request that holds one of the terms, and the daily look takes them out of issues and comments (floor rule 11); its value is typed by the owner alone on that page, never into a chat or a session"
+  },
+  {
+    "id": "reviewer-app",
+    "setting": "The security reviewer's app installed on the repository, its own automatic code review off and its security review on (Settings, GitHub Apps)",
+    "page": "settings/installations",
+    "protects": "every pull request gets its security review from a session that did not write it (floor rule 8; tasks/reviews.md)"
+  }
+]

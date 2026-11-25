@@ -20,9 +20,9 @@ once.
    system account of its own, its effort) is written here when the machine is set up, after a test (core archive 122).
    That account gets the same instructions, `node`, `npm` and `npx` wrappers and box rule as the agents' account.
 7. **The projects cloned** under that account, one folder each, and **the test box,** where every command that runs a
-   project's code or packages runs (its install, build and tests, script games and simulations, the smoke test, a dev
-   server, `npx`); only Git, `gh` and the core's sync script, which uses Node's own modules and Git alone, run outside
-   it (floor rule 18). It is rootless Podman (or Docker) under a user of its own (such as `box`), which holds no sign-in
+   project's code or packages runs (the agents' instructions below list them, where the agents read them); only Git,
+   `gh` and the core's sync script, which uses Node's own modules and Git alone, run outside it (floor rule 18).
+   It is rootless Podman (or Docker) under a user of its own (such as `box`), which holds no sign-in
    and cannot read any agent's account, Codex's included, so even a way out of the container finds none. The agents'
    account hands it a copy of the clone without `.git`, through one `sudo` rule that runs the box's wrapper as that user
    and nothing else; the wrapper runs the command in a fresh container, with network only for installing packages,
@@ -34,7 +34,7 @@ once.
    the host by mistake and the instructions are not the only guard. Written and tested when the machine is set up.
 8. **The agents' instructions** (below) copied to where each tool reads its own at the start of every session there:
    `~/.claude/CLAUDE.md` for Claude Code, and Codex's (such as `~/.codex/AGENTS.md`) once its part is written.
-9. **Each project's orchestrator** started by the owner, in the tool, from that project's folder: Claude Code on Opus at high (`modules/claude.md`).
+9. **Each project's orchestrator** started by the owner, in the tool, from that project's folder: Claude Code at the strongest tier and its effort (`tasks/roles.md`, "The rules name tiers, never a model"; its map, `tools/claude.md`).
 
 ## The agents' instructions
 
@@ -51,5 +51,5 @@ You run on the machine floor rule 18 describes: your sign-ins are on it.
   simulations, the smoke test, a dev server, `npx`) through the test box's wrapper, never directly, with plain `node`
   or with npm by its full path. Only Git, `gh` and the core's sync script run outside it; no package is ever installed
   on the host.
-- GitHub works normally here (`git push`, `gh`); `modules/github-calls.md` is for cloud sessions only.
+- GitHub works normally here (`git push`, `gh`); `tasks/github-calls.md` is for cloud sessions only.
 ```

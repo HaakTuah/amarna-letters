@@ -1,0 +1,5 @@
+{
+  "rule": "floor/security.md: 12. `main` is the owners'",
+  "holder": "check: GitHub's ruleset on the default branch",
+  "behind": [113, 236, 261, "#733.8"]
+}

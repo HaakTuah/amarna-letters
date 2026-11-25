@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: The session decides, tells the owner, and asks in two cases only",
+  "behind": [251],
+  "number": "correction: misread; outcome: asked"
+}

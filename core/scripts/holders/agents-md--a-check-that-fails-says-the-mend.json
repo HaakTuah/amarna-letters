@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: A check that fails says the mend",
+  "holder": "check: tests/mend-test.mjs",
+  "behind": [219]
+}

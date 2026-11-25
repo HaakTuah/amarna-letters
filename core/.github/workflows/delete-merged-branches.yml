@@ -4,7 +4,7 @@
 # contents: write and pull-requests: read.
 # Deletes only branches whose every commit is already in main, that no open pull request uses, and whose newest
 # commit is more than a day old (unless their pull request was merged). main, pr-media, gh-pages and agents-stop (the
-# owner's stop switch, modules/work-flow.md) are never touched.
+# owner's stop switch, roles/shared/work-flow.md) are never touched.
 # Branch names reach the shell only through git and gh, quoted.
 name: Delete merged branches
 
@@ -29,7 +29,8 @@ jobs:
       group: delete-merged-branches-${{ github.repository }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # (its token kept for the git push below that deletes a merged branch; the job uploads nothing, so it leaves the run with nothing)
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 # zizmor: ignore[artipacked]
         with:
           fetch-depth: 0
           filter: blob:none

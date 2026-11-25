@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Readable by every player",
+  "behind": [112, 204, 205]
+}

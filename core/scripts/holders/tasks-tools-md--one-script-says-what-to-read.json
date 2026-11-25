@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/tools.md: One script says what to read",
+  "holder": "check: scripts/reading.mjs, in part",
+  "behind": [234]
+}

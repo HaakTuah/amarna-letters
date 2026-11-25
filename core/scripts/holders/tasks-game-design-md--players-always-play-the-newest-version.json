@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Players always play the newest version",
+  "behind": [109, 115, 117, "#733.8"]
+}

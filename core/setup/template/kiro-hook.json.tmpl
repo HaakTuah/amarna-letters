@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "work-saved-start",
+      "description": "At a session's start: work left unpushed, and the owner's stop switch (the core's roles/shared/work-flow.md); runs the copy merged into main.",
+      "trigger": "SessionStart",
+      "action": {
+        "type": "command",
+        "command": "bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.kiro/hooks/work-saved.json\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:core/scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved start'"
+      },
+      "timeout": 30
+    },
+    {
+      "name": "work-saved",
+      "description": "Work not committed or pushed keeps the agent going once (the core's roles/shared/work-flow.md, \"Push after every commit\"); runs the copy merged into main.",
+      "trigger": "Stop",
+      "action": {
+        "type": "command",
+        "command": "bash -c 'r=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$r/.kiro/hooks/work-saved.json\" ] || exit 0; f=$(git -C \"$r\" --no-replace-objects show refs/remotes/origin/main:core/scripts/work-saved.sh 2>/dev/null) || exit 0; CLAUDE_PROJECT_DIR=\"$r\" bash -c \"$f\" work-saved stop'"
+      },
+      "timeout": 30
+    }
+  ]
+}

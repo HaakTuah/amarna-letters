@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A tree that passed is not run again",
+  "holder": "check: scripts/steps.mjs, in part",
+  "behind": [257],
+  "number": "check fires; outcome: fast"
+}

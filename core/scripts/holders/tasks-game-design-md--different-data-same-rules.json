@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Different data, same rules",
+  "behind": [105]
+}

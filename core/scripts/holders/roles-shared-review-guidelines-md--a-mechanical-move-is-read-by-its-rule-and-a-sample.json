@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/review-guidelines.md: A mechanical move is read by its rule and a sample",
+  "behind": [251],
+  "number": "findings; outcome: robust"
+}

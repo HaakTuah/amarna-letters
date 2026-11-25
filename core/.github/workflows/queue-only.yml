@@ -1,0 +1,95 @@
+# The proof that a pull request is queue-only (floor rule 8; #750, point 2), for every project that takes the core and
+# for the core itself: the default branch's scripts/queue-only.mjs reads the one file the pull request changes, which
+# must be the *progress file* its manifest names, and the issues its lines name, with a token that may read issues,
+# which the security-review workflow's may not (a caller that grants it no such right would stop it starting). Its
+# output "head" is the head it proved, or empty, which the caller hands to security-review.yml (its input "queue"); that
+# workflow honours it only where the pull request's files are one Markdown file and nothing that runs by itself, so a
+# caller changed in the pull request itself waves through nothing more. It runs where the security-review job runs, and
+# on a pull request only where it changes one file; in a private repository, where each run is a billed job, only where
+# the caller passes "private", the owner's choice, so it adds no billed job to a project that changes nothing (AGENTS.md,
+# "Nothing locks a project"), whose queue-only pull requests are then reviewed as any other. It checks out the default
+# branch, never the pull request, reads only, and writes nothing. No secret: untrusted text (the pull request's, its
+# issues') reaches the script only as files and env, never a run line (floor rule 2). Its files are read from the
+# comparison of the default branch's commit it checked out with the head the pull request's answer names, so they are
+# that head's files whatever is pushed meanwhile, and proved only where they are the files GitHub lists for the pull
+# request.
+name: queue-only
+
+on:
+  workflow_call:
+    inputs:
+      root:
+        description: The folder that holds the core's scripts/ and .node-version. Left out, core.
+        required: false
+        type: string
+        default: core
+      private:
+        description: Whether it runs in a private repository, where each run is a billed job. Left out, it does not, and such a pull request is reviewed as any other.
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      head:
+        description: The head queue-only.mjs proved queue-only, or empty.
+        value: ${{ jobs.prove.outputs.head }}
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  prove:
+    # (wherever security-review.yml's job can run, so that its answer is there when that job reads it: in a private
+    # repository only where the caller passes "private"; of a pull request's events only one that changes one file; of
+    # its comments any from Codex or from an account that can write, since which of them starts a review is said once,
+    # in that job's own condition, and a proof that job never reads costs a job of three minutes at most)
+    if: >-
+      ${{ (!github.event.repository.private || inputs.private)
+      && ((github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.changed_files == 1
+      && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+      || (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.issue.state == 'open'
+      && (github.event.comment.user.login == 'chatgpt-codex-connector[bot]'
+      || contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)))) }}
+    # (the job joins no group, since GitHub cancels a waiting job once a newer one of its group queues, which would lose
+    # the run of the review it feeds; each proof feeds only its own run's review job, which honours it only for the head
+    # it reads)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      head: ${{ steps.prove.outputs.head }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }} # the default branch's script, never the pull request's
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: ${{ inputs.root }}/.node-version # the one exact Node ("Node" in tasks/updates.md)
+      - name: Is the pull request queue-only?
+        id: prove
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          ROOT: ${{ inputs.root }}
+        run: |
+          set -uo pipefail
+          # (any answer that cannot be read proves nothing: the pull request is reviewed as any other)
+          d=$(mktemp -d)
+          [ -f "$ROOT/scripts/queue-only.mjs" ] || { echo "The default branch holds no queue-only.mjs yet."; exit 0; }
+          gh api "repos/$REPO/pulls/$NUMBER" > "$d/pull.json" || exit 0
+          [ "$(jq '.changed_files' "$d/pull.json")" = 1 ] || { echo "It changes more than one file: not queue-only."; exit 0; }
+          # (from the default branch's commit checked out here, whose progress file the form is read from, as GitHub lists
+          # the pull request's files from where its head leaves that branch: the answer's base.sha can stand behind it)
+          base=$(git rev-parse HEAD) tip=$(jq -r '.head.sha' "$d/pull.json")
+          [[ "$base" =~ ^[0-9a-f]{40}$ && "$tip" =~ ^[0-9a-f]{40}$ ]] || { echo "The pull request names no head commit."; exit 0; }
+          # (the files of exactly the head the pull request's answer names, read by its SHA, never by the branch's name)
+          gh api "repos/$REPO/compare/$base...$tip" --jq '.files' > "$d/files.json" || exit 0
+          # (and the one file the comparison gives is the one GitHub lists for the pull request, whose list the review job reads)
+          listed=$(gh api "repos/$REPO/pulls/$NUMBER/files" --jq '[.[].filename] | join("/")') || exit 0
+          [ "$listed" = "$(jq -r '[.[].filename] | join("/")' "$d/files.json")" ] || { echo "Its files are not those it was compared to: not proved."; exit 0; }
+          if head=$(timeout 90 node "$ROOT/scripts/queue-only.mjs" "$d/pull.json" "$d/files.json") && [[ "$head" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Queue-only, as queue-only.mjs proves: $head"
+            echo "head=$head" >> "$GITHUB_OUTPUT"
+          else echo "$head"; fi

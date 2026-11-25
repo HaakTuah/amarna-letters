@@ -1,12 +1,25 @@
-# The core's own rules, checked on every pull request here: the cap (README.md, "Two layers"; scripts/size.mjs) fails
-# one that grows what every session reads at its start past it, and one that raises the cap by more than one step or
+# The core's own rules, checked on every pull request here: the caps (README.md, "Two layers"; scripts/size.mjs) fail
+# one whose own change grows what a role reads at its start past that role's cap, against its base (on main, a cap
+# passed is a warning and a task the scheduled look keeps, never a red: #750, point 6), and one that raises a cap by more than one step or
 # with no "Leanness check:" comment (a fresh session's answer that it read all the rules for room:
-# modules/review-guidelines.md, "A mark on what every session reads"); and the words check (scripts/general.mjs) fails
-# one that uses a word true only for some of the projects that take the core, or a gendered pronoun for the owner in a
-# line it adds to the dated records, read against the base. This repository only; no project calls it. Reads only, with
-# no secret: the raise is read from git alone, the merge commit against its first parent, the base, and of the pull
-# request's comments only who wrote each and how it opens is used, in a file the script reads; no text of a comment
-# reaches a command.
+# roles/shared/review-guidelines.md, "A mark on what every session reads"); and the words check (scripts/general.mjs) fails
+# one that uses a word true only for some of the projects that take the core, a gendered pronoun for the owner in a
+# line it adds to the dated records, or a phrase a rule may not use in a line it adds to a rule file or to a Markdown
+# template of the starter kit, read against the base, and reports the phrases that stood before it (AGENTS.md, "A rule
+# is written to one pattern"; tasks/helpers.md, "A brief is written as a rule is"); the marks check (scripts/pattern.mjs),
+# which fails a rule the pull request adds to the floor, a module or AGENTS.md that lacks its reason, its holder or its
+# one condition, and reports one it words anew (#1137); and the shape check on the core's
+# own scripts (scripts/shape.mjs, with .github/shape.json), which a project runs from the copies workflow; a file past
+# the core's split mark that the pull request changes, with no line under "past" saying why it stays whole or naming its
+# split's issue (scripts/reading-size.mjs, with .github/sizes.json, as a project's copies workflow runs it); and the total
+# read (scripts/read-total.mjs), which fails a pull request that cuts or joins the rule files where the total does not
+# go down, a reader reads more or loses a file it read, reading the description's line "Never needed:" alone. This
+# repository only; no project calls it. Reads only, with no secret: the raise is read from git alone, the merge commit against its
+# first parent, the base, and of the pull request's comments only who wrote each and how it opens is used, in a file
+# the script reads, with the host's rights of each who posted a "Leanness check:", at most twenty, their login, checked
+# as one, all that goes into a request's route (an answer counts only from the owner or a person the host lets write);
+# no text of a comment reaches a command. The steps that read the host with the token, and the raise as the base's own
+# script judges it, the head's script read as text, all come before any step that runs the pull request's own code.
 name: size
 
 on:
@@ -16,6 +29,11 @@ on:
 
 permissions:
   contents: read
+
+# (a superseded pull request's run gives way, as tests.yml says; #388)
+concurrency:
+  group: size-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   size:
@@ -28,25 +46,74 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
-          fetch-depth: 2 # the merge commit and its parents: a raise of the cap is read against the base
+          fetch-depth: 0 # the base, for a raise of a cap, and its history, the merged pull requests the total read reads
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: .node-version # the one exact Node ("Node" in the core's modules/updates.md)
-      - name: What every session reads at its start stays under the cap
-        run: node scripts/size.mjs
-      # (two steps, so the token reaches gh alone and never the pull request's own script; a base or a list of
-      # comments that cannot be read fails its step: the check is never waived)
-      - name: The cap at the base, and the pull request's comments
+          node-version-file: .node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      # (the token's step comes before every step that runs code of the pull request's, so that none of it runs while
+      # the token is in reach; a base, a head or a list of comments that cannot be read fails its step: the check is
+      # never waived; a right that cannot be read, within ten seconds each and thirty in all, lets no one write, and the
+      # owner's answer still counts)
+      - name: The cap at the base and at the head, the base's scripts, the pull request's comments, and the rights of those who answered
         if: ${{ github.event_name == 'pull_request' }}
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBER: ${{ github.event.pull_request.number }}
+          OWNER: ${{ github.repository_owner }}
         run: |
-          mkdir "$RUNNER_TEMP/raise"
-          git show HEAD^1:scripts/size.mjs > "$RUNNER_TEMP/raise/base.mjs"
-          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/issues/$NUMBER/comments?per_page=100" > "$RUNNER_TEMP/raise/comments.json"
-      - name: A raise of the cap is one step, and has its leanness check
+          d="$RUNNER_TEMP/raise"
+          mkdir -p "$d/base"
+          git show HEAD^1:scripts/size.mjs > "$d/base.mjs"
+          git show HEAD:scripts/size.mjs > "$d/head.mjs"
+          git archive -o "$d/base.tar" HEAD^1 scripts
+          tar -x -f "$d/base.tar" -C "$d/base"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/issues/$NUMBER/comments?per_page=100" > "$d/comments.json"
+          : > "$d/rights.txt"
+          until=$((SECONDS + 30))
+          for login in $(jq -r --arg o "$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')" '[.[][] | select(type == "object"
+            and (.body | type) == "string" and (.body | test("^(\\*\\*)?Leanness check:"))
+            and (.author_association | IN("OWNER", "MEMBER", "COLLABORATOR")) and .user.type == "User"
+            and (.user.login | type) == "string" and (.user.login | test("^[A-Za-z0-9][A-Za-z0-9-]{0,38}$")))
+            | .user.login | ascii_downcase | select(. != $o)] | unique | .[:20][]' "$d/comments.json"); do
+            left=$((until - SECONDS))
+            if [ "$left" -le 0 ]; then echo "The time for reading the host's rights is spent: an answer of $login and those after does not count."; break; fi
+            if timeout "$((left < 10 ? left : 10))" gh api "repos/$GITHUB_REPOSITORY/collaborators/$login/permission" > "$d/right.json" 2> /dev/null \
+              && jq -e 'type == "object"' "$d/right.json" > /dev/null 2>&1
+            then cat "$d/right.json" >> "$d/rights.txt"
+            else echo "The host's rights of $login could not be read: an answer of theirs does not count."; fi
+          done
+          jq -s '.' "$d/rights.txt" > "$d/rights.json"
+      - name: A raise of a role's cap is one step, and has its leanness check, as the base's own script reads the head's
         if: ${{ github.event_name == 'pull_request' }}
-        run: node scripts/size.mjs --raise "$RUNNER_TEMP/raise/base.mjs" "$RUNNER_TEMP/raise/comments.json"
-      - name: The floor and the modules fit any project
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: node "$RUNNER_TEMP/raise/base/scripts/size.mjs" --raise "$RUNNER_TEMP/raise/base.mjs" "$RUNNER_TEMP/raise/comments.json" "$RUNNER_TEMP/raise/rights.json" "$RUNNER_TEMP/raise/head.mjs"
+      - name: The core's packages and the parser's, installed from their lock files for the size and shape checks (#654, #719)
+        run: node scripts/install.mjs all
+      - name: What each role reads at its start stays under its cap
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
+        run: if [ -n "$BASE" ]; then node scripts/size.mjs --base "$BASE"; else node scripts/size.mjs; fi
+      - name: A raise of a role's cap is one step, and its caps are those the pull request's script runs with
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: node scripts/size.mjs --raise "$RUNNER_TEMP/raise/base.mjs" "$RUNNER_TEMP/raise/comments.json" "$RUNNER_TEMP/raise/rights.json"
+      - name: The floor and the modules fit any project, and a rule written uses no phrase a rule may not use
         run: node scripts/general.mjs scripts/general.json --base HEAD^1
+      - name: A rule written has its reason, its holder and its one condition, read by their marks
+        run: node scripts/pattern.mjs --base HEAD^1
+      - name: A file past the split mark that this pull request changes asks how a split lets someone read less
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          SIZES_BASE: HEAD^1
+        run: node scripts/reading-size.mjs .github/sizes.json
+      - name: A cut or a join of the rule files lowers the total read
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }} # (read as data: only its line "Never needed:", for file names)
+        run: node scripts/read-total.mjs --compare HEAD^1
+      - name: Nothing new in how the core's own code is put together
+        env:
+          SHAPE_BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || '' }}
+        run: node scripts/shape.mjs .github/shape.json

@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/code-shape.md: A job a maintained package does is done by it",
+  "behind": [255],
+  "number": "findings; outcome: robust"
+}

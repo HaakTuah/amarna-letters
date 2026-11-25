@@ -1,0 +1,4 @@
+{
+  "rule": "roles/reviewer.md: It judges by what the change calls for",
+  "behind": [234]
+}

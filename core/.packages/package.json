@@ -1,0 +1,18 @@
+{
+  "name": "agent-core-packages",
+  "private": true,
+  "description": "The packages of other publishers the core's scripts run, each at one exact version, installed from package-lock.json into node_modules/ beside it, which git does not track: by the sync, at a session's set-up and in each job before a check runs (scripts/install.mjs; #654). Nothing of them is carried in the copy. The devDependencies are the references the core's own tests hold its hand-written readers to (tests/readers-test.mjs), installed in the core's own repository alone: a copy installs without them.",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "ajv": "8.20.0",
+    "marked": "18.2.0",
+    "smol-toml": "1.9.1",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "0.9.12",
+    "spdx-exceptions": "2.5.0",
+    "spdx-expression-parse": "5.0.0",
+    "spdx-license-ids": "3.0.24"
+  }
+}

@@ -10,12 +10,14 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 This game takes the shared rules in `core/` by `core-manifest.md`, whose slots and names fill the core's words. Read
 these whole at the start of every task (Claude Code imports them; any other builder: read each file named):
 
+<!-- The core's part: a sync writes it; write yours outside. -->
 @core-manifest.md
 @core/floor/security.md
-@core/modules/how-to-work.md
-@core/modules/inbox.md
-@core/modules/work-flow.md
-@core/modules/git.md
+@core/roles/builder.md
+@core/roles/shared/how-to-work.md
+@core/roles/shared/inbox.md
+@core/roles/shared/work-flow.md
+<!-- The core's part ends. -->
 
 A builder of another provider: read `core/modules/other-builders.md` at the start of every task. The other files of the
 core, `core/floor/topics.md` (when: the floor's opening says) and `core/modules/game-design.md` among them, are read

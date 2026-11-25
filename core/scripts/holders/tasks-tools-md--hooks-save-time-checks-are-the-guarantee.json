@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/tools.md: Hooks save time; checks are the guarantee",
+  "holder": "check: scripts/holders.mjs, in part",
+  "behind": [232]
+}

@@ -1,0 +1,1 @@
+- **12 November 2026, a slimmer copy.** Done when the manifest's "Paths:" line reads as `core/README.md`, "The manifest's format", gives it: the core's `reports/` is no longer under `core/`, since the copy leaves that folder in the core.

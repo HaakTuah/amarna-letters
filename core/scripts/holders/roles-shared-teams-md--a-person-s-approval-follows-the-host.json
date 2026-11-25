@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/teams.md: A person's approval follows the host",
+  "holder": "check: GitHub's ruleset on the default branch",
+  "behind": [236]
+}

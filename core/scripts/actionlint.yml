@@ -1,0 +1,6 @@
+# The core's policy for actionlint, the workflow check's reader (scripts/workflow-tools.mjs; #580): every check of its
+# own, ShellCheck and pyflakes aside, which the check turns off by its options (ShellCheck is a trial of its own,
+# INVENTORY.md). A runner label it does not know is let pass by the check, since a project's own runners have labels of
+# their own; nothing else is let pass, and a finding the base already held is noted and fails nothing.
+self-hosted-runner:
+  labels: []

@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/work-flow.md: A description is written in as few edits as the work allows",
+  "behind": ["#829"],
+  "number": "findings; outcome: fast"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/reviews.md: A finding seen twice becomes a check",
+  "holder": "check: scripts/look.mjs, in part",
+  "behind": [219]
+}

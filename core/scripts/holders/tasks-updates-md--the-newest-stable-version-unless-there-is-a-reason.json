@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/updates.md: The newest stable version, unless there is a reason",
+  "holder": ["check: scripts/versions.mjs, in part", "check: scripts/security-review.mjs, in part"],
+  "behind": [37, 65]
+}

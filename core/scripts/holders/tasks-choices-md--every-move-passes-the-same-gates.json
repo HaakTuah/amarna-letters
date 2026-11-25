@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: Every move passes the same gates",
+  "behind": [251],
+  "number": "correction: does not work; outcome: robust"
+}

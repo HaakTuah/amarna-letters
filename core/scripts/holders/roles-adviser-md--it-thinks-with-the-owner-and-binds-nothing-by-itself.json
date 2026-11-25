@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: It thinks with the owner and binds nothing by itself",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

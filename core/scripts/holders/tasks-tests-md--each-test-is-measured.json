@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/tests.md: Each test is measured",
+  "holder": "audit"
+}

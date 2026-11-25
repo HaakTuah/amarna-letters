@@ -1,0 +1,5 @@
+{
+  "rule": "roles/orchestrator.md: One project",
+  "behind": ["#492"],
+  "number": "correction: does not work; outcome: robust"
+}

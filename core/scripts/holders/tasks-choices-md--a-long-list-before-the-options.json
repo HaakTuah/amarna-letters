@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: a long list before the options",
+  "behind": [251],
+  "number": "correction: misread; outcome: asked"
+}

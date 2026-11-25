@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: Nothing locks a project",
+  "holder": ["check: tests/upgrade-test.mjs", "check: .github/workflows/own-description.yml, in part", "check: scripts/look.mjs, in part"],
+  "behind": [201, 202, 207, 215]
+}

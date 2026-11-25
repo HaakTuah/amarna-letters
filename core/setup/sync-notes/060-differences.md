@@ -1,0 +1,1 @@
+- **12 November 2026, differences.** Done when no rule of the project's own replaces a module's unlisted: each such rule is dropped where the core's serves, or put to the owner as a line for the manifest's "Differences" (`core/README.md`, "How a project takes the core", point 7), which waits for the owner's word while the module's holds.

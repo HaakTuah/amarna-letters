@@ -1,0 +1,29 @@
+# The core's file: core/scripts/converge.mjs writes it from the starter kit at each sync. To keep a change of the project's own, take this line out and name the file in core-manifest.md's "Differences".
+# The daily job (the core's README, "How a project takes the core", point 5): once a day the core's look keeps one
+# issue open for the owner while the core is past this project's copy, and the scheduled look keeps its issues of what
+# has stopped, what is due and what is overdue, with a state report once a month (the core's roles/orchestrator.md,
+# "The scheduled look"), and it takes the personal terms out of issues and comments (the core's scripts/issue-terms.mjs),
+# given the one secret it needs, PERSONAL_TERMS. It opens no pull request and changes no file; it may write issues and read pull requests,
+# checks and statuses, and nothing else. A project whose orchestrator wakes every day may remove it: the orchestrator then runs the
+# look on its wake.
+name: look
+
+on:
+  schedule:
+    - cron: '41 5 * * *' # (05:41 UTC, every day)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  look:
+    permissions:
+      contents: read # the default branch's files, which the steps and the look read
+      issues: write # the look's issues and its record, and the labels of the core's list it makes (#1092)
+      pull-requests: read # the pull requests that stand idle, and the late review findings
+      checks: read # the checks failed on the default branch
+      statuses: read # the statuses on the default branch's newest commit
+    uses: HaakTuah/agent-core/.github/workflows/look.yml@16320a137f7323400af7902b44f5b2bc4ef38027
+    secrets:
+      PERSONAL_TERMS: ${{ secrets.PERSONAL_TERMS }}

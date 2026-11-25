@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Don't prohibit; give it its real cost",
+  "behind": [91, 92]
+}

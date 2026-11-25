@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/planning.md: Each entry of a busy record stands in a file of its own",
+  "behind": ["#750.1"],
+  "number": "findings; outcome: fast"
+}

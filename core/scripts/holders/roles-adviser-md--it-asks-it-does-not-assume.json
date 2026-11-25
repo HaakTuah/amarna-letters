@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: It asks; it does not assume",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

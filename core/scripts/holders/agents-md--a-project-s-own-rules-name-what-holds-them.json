@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: A project's own rules name what holds them",
+  "holder": ["check: tests/holders-test.mjs, in part", "check: tests/look-test.mjs, in part", "check: scripts/steps.mjs, in part"],
+  "behind": ["#662", "#459"],
+  "number": "findings; outcome: robust"
+}

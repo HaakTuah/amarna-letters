@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/ways.md: The floor, said for each way",
+  "holder": "check: scripts/tools-offer.mjs, in part",
+  "behind": ["#397.7"],
+  "number": "findings; outcome: robust; rare harm"
+}

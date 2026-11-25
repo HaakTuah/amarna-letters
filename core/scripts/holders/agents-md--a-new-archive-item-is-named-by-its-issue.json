@@ -1,0 +1,6 @@
+{
+  "rule": "AGENTS.md: A new archive item is named by its issue",
+  "holder": ["check: scripts/holders.mjs", "check: scripts/archive.mjs"],
+  "behind": ["#744"],
+  "number": "check fires; outcome: fast"
+}

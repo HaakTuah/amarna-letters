@@ -1,0 +1,6 @@
+{
+  "rule": "roles/shared/review-guidelines.md: A change that keeps the meaning is stated so",
+  "holder": "check: scripts/meaning-kept.mjs, in part",
+  "behind": ["#886.2"],
+  "number": "check fires; outcome: fast"
+}

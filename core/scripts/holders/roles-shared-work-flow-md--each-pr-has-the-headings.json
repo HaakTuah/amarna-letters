@@ -1,0 +1,5 @@
+{
+  "rule": "roles/shared/work-flow.md: Each PR has the headings",
+  "holder": "check: scripts/pr-description.mjs, in part",
+  "behind": [16, 153, 164]
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/choices.md: the judgment",
+  "holder": "check: scripts/choices.mjs, in part",
+  "behind": [251],
+  "number": "correction: misread; outcome: asked"
+}

@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/cleaning.md: The state report leads with the outcomes",
+  "holder": "check: scripts/outcomes.mjs, in part",
+  "behind": [244, 251],
+  "number": "correction: does not work; outcome: robust"
+}

@@ -1,0 +1,9 @@
+{
+  "rule": "AGENTS.md: The host is read and written by the look",
+  "holder": [
+    "check: tests/host-test.mjs",
+    "check: tests/steps-test.mjs, in part"
+  ],
+  "behind": ["#1092"],
+  "number": "check fires; outcome: robust"
+}

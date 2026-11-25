@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/roles.md: A file for each role",
+  "holder": ["check: scripts/size.mjs, in part", "check: scripts/reading.mjs, in part"],
+  "behind": [234]
+}

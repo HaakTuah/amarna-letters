@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/tests.md: A pull request runs the tests its change can reach",
+  "holder": "check: scripts/steps.mjs, in part"
+}

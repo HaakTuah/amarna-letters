@@ -10,10 +10,22 @@
 # the installed package (core/scripts/licence-installed.mjs); a hand edit to the dependencies is a review finding, and
 # the dependency review reads GitHub's own licence data. A project calls it (workflow_call) from its own .github/workflows/licences.yml on every pull request, pinned to
 # a full commit SHA ("How a project takes the core" in README.md, point 5), passing its config's path. Reads only, with
-# no secret: nothing is installed, and besides GitHub's dependency review nothing runs but the caller's own
-# core/scripts/licences.mjs and core/scripts/exact-versions.mjs, which core.yml holds to the core pin. The second holds
-# floor rule 7's "one exact version, never a range" for the same lockfiles: each dependency a package list of the
-# project's own asks for is one version as SemVer writes one and, letter for letter, the version its lockfile installs.
+# no secret: nothing is installed but the core's own packages from its first lock file, smol-toml among them, by the job's
+# own step with no install script run (#654), which a copy's scripts would otherwise install themselves (#1093, point 1),
+# and besides GitHub's dependency review nothing runs but the caller's own
+# core/scripts/licences.mjs, core/scripts/exact-versions.mjs, core/scripts/lookup.mjs and core/scripts/agent-tools.mjs, which core.yml holds to the
+# core pin. The licence script runs the next two itself (#1093, point 2), so a project's own job that runs it runs them
+# too. The second holds floor rule 7's "one exact version, never a range" for the same lockfiles: each dependency
+# a package list of the project's own asks for is one version as SemVer writes one and, letter for letter, the version
+# its lockfile installs; what stood so at the pull request's base is reported, never failed.
+# The lookup, core/scripts/lookup.mjs, asks npm's registry of each package the pull request brings into a lockfile that
+# no lockfile of its base held (floor topic 15, "A new one is looked up in its registry"): it fails a name the registry
+# does not know and one first published under 90 days ago, and prints the rest for the review; it reaches npm's
+# registry and GitHub's public API and raw files, with no token.
+# The third, core/scripts/agent-tools.mjs, holds floor topic 15's list of the agents' own tools against what the
+# project configures for them, in Claude Code's, Kiro's and Codex's files (read against the base, the first parent of
+# the merge, until the list is written), a plug-in's or tool server's listed version against the pin its configuration
+# gives, where it gives one, and each hook's command against floor rule 3's copy on main.
 name: licences
 
 on:
@@ -31,19 +43,31 @@ jobs:
   licences:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # (a pull request's run gives way to a newer one for the same pull request, whose head it no longer is; a run on
+    # main, a schedule or a start by hand is its own group and is never cancelled; #388)
+    concurrency:
+      group: licences-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-${{ inputs.config }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # nothing after the checkout pushes or fetches
           fetch-depth: 2 # the merge commit and its parents: what the base held of a licence moved off the list
+      - name: Where the core's copy stands, for the licence check (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        run: |
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: core/.node-version # the one exact Node ("Node" in the core's modules/updates.md)
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock file for the licence checks (#654)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then node "${CORE_AT}scripts/install.mjs"; fi
       - name: The lists, for the dependency review
         id: lists
         env:
           CONFIG: ${{ inputs.config }}
-        run: node core/scripts/licences.mjs "$CONFIG" --action >> "$GITHUB_OUTPUT"
+        run: node "$CORE_AT"scripts/licences.mjs "$CONFIG" --action >> "$GITHUB_OUTPUT"
       - name: New and updated packages
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
@@ -54,12 +78,14 @@ jobs:
           allow-licenses: ${{ steps.lists.outputs.allow-licenses }}
           allow-dependencies-licenses: ${{ steps.lists.outputs.allow-dependencies-licenses }}
           comment-summary-in-pr: never
-      - name: Every package and audit entry, each to its own list
-        env:
-          CONFIG: ${{ inputs.config }}
-        run: node core/scripts/licences.mjs "$CONFIG"
-      - name: Every dependency at the one exact version its lock file installs (floor rule 7)
+      - name: Every package and audit entry, each to its own list; every dependency at the one exact version its lock file installs (floor rule 7); each package new to the project looked up in npm's registry (floor topic 15)
         if: ${{ !cancelled() }}
         env:
           CONFIG: ${{ inputs.config }}
-        run: node core/scripts/exact-versions.mjs "$CONFIG"
+          LOOKUP_BASE: ${{ github.event.pull_request.base.sha }} # empty where the caller runs on anything but a pull request
+        run: node "$CORE_AT"scripts/licences.mjs "$CONFIG"
+      - name: Every tool the agents load listed, with its publisher and version (floor topic 15)
+        if: ${{ !cancelled() }}
+        env:
+          CONFIG: ${{ inputs.config }}
+        run: node "$CORE_AT"scripts/agent-tools.mjs "$CONFIG"

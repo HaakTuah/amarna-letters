@@ -1,0 +1,1 @@
+- **12 November 2026, the default branch.** Done when the `core` check passes: the default branch is `main`.

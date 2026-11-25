@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/choices.md: A choice that is hard to undo gets a record",
+  "holder": "check: scripts/choices.mjs, in part"
+}

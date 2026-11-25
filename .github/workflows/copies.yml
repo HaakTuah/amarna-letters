@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   copies:
-    uses: HaakTuah/agent-core/.github/workflows/copies.yml@ab0851394a5d0fcb7cd36fcbaa48588daa6a0553
+    uses: HaakTuah/agent-core/.github/workflows/copies.yml@16320a137f7323400af7902b44f5b2bc4ef38027
     with:
       config: scripts/copies.json
       sizes: scripts/sizes.json

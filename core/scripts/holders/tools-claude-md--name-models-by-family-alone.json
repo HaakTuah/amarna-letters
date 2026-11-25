@@ -1,0 +1,4 @@
+{
+  "rule": "tools/claude.md: Name models by family alone",
+  "behind": [80, 81]
+}

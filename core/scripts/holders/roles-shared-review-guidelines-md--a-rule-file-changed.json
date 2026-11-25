@@ -1,0 +1,4 @@
+{
+  "rule": "roles/shared/review-guidelines.md: A rule file changed",
+  "behind": [134, 214, 246, 248, 249, "#887"]
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "roles/builder.md: Read by task, twice",
+  "holder": "check: scripts/pr-description.mjs, in part",
+  "behind": [234]
+}

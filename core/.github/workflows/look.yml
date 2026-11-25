@@ -1,0 +1,76 @@
+# The daily job of a project that takes the core: once a day, the core-moved check (core/scripts/core-moved.mjs: one
+# issue open while the core is past the project's copy, as core-moved.yml says) and then the scheduled look
+# (core/scripts/look.mjs: the issues it keeps of what has stopped, what is due and what is overdue, and once a month the
+# state report; roles/orchestrator.md, "The scheduled look"). One job, so a project gains no billed minute over the
+# core-moved job it ran before. A project calls it (workflow_call) from a daily schedule of its own (it runs on a
+# schedule or when started by hand, and on no other event), pinned to a full commit SHA, from a job that grants
+# `contents: read`, `issues: write`, `pull-requests: read`, `checks: read` and `statuses: read`, as the starter kit's
+# look.yml has it
+# (core/setup/template/workflows/look.yml.tmpl). It runs the project's own scripts on the core's one exact Node; Node's
+# own modules only, no package installed. Nothing is checked out but the calling repository's default branch, and no
+# text of a pull request or an issue reaches a command: the scripts read them through gh's answers alone. Its last step
+# takes the personal terms out of issues and comments (core/scripts/issue-terms.mjs; #783), where the call passes the
+# secret PERSONAL_TERMS, as the starter kit's does. It may write issues, and read pull requests, checks and statuses;
+# nothing else, so a pull request's own text or a review's it counts and leaves to the owner's run of the script. The
+# look reads the host for the steps and the settings only the owner gives with this token, and writes with it only the
+# labels of the core's list and its issues (core/scripts/host.mjs; #1092): what the token may not do, it files for the
+# owner, each right it uses named below.
+name: look
+
+on:
+  workflow_call:
+    secrets:
+      # (the personal-terms check's list, for the step that reads issues and comments; a call that passes none leaves
+      # that step reading nothing, saying so)
+      PERSONAL_TERMS:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  look:
+    # never on a pull request's or a push's event (floor rule 2); the checkout below takes the default branch whatever
+    # branch a manual start names, so the scripts it runs and the files they read are always that branch's
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # the default branch's files, which the steps and the look read
+      issues: write # the look's issues and its record, and the labels of the core's list it makes (#1092)
+      pull-requests: read # the pull requests that stand idle, and the late review findings
+      checks: read # the checks failed on the default branch
+      statuses: read # the statuses on the default branch's newest commit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }} # the project's own state, not a task's branch
+          persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+      - name: Where the core's copy stands, for the scheduled look (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        run: |
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: ${{ env.CORE_AT }}.node-version # the one exact Node ("Node" in the core's tasks/updates.md)
+      - name: The core's packages, installed from its lock files for the daily look (#654; the parser's too, since the dose reads C#'s functions on it, #719)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then if [ -f "${CORE_AT}.packages/parser/package.json" ]; then node "${CORE_AT}scripts/install.mjs" all; else node "${CORE_AT}scripts/install.mjs"; fi; fi
+      - name: One issue while the core is ahead of the project's copy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node "$CORE_AT"scripts/core-moved.mjs
+      - name: The scheduled look
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # (whether the call passes the secret PERSONAL_TERMS, true or false, for the owner's settings the look reads:
+          # its value never reaches this step; #1092)
+          TERMS_GIVEN: ${{ secrets.PERSONAL_TERMS != '' }}
+        run: node "$CORE_AT"scripts/look.mjs
+      - name: Personal terms taken out of issues and comments (floor rule 11; counts alone, never a term or where one stood)
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TERMS: ${{ secrets.PERSONAL_TERMS }}
+        run: if [ -f "${CORE_AT}scripts/issue-terms.mjs" ]; then node "$CORE_AT"scripts/issue-terms.mjs; fi

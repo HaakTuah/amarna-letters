@@ -2,6 +2,10 @@
 # converted, here or there: this file travels with the copy.
 * -text
 # What stays in this repository alone: `git archive`, which makes each project's copy (scripts/sync.mjs), leaves it
-# out, and core.yml and scripts/copy-tree.mjs compare a copy with the core without it. Both read this one line, spelled
-# exactly so: another folder kept here needs both changed first, or every project's check of its copy fails.
+# out, and core.yml and scripts/copy-tree.mjs compare a copy with the core without it. Both read these lines, each
+# spelled exactly so and named in both: another folder kept here needs both changed first, or every project's check of
+# its copy fails. The dated reports, and the record of the owner's word behind the archive (#252); the core's own
+# tests, which no project runs (#527).
 /reports export-ignore
+/words export-ignore
+/tests export-ignore

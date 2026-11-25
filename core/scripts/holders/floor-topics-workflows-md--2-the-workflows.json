@@ -1,0 +1,4 @@
+{
+  "rule": "floor/topics/workflows.md: 2. The workflows",
+  "holder": "check: scripts/workflows.mjs, in part"
+}

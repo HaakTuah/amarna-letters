@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/code-shape.md: A function is held to three marks",
+  "holder": "check: scripts/shape.mjs"
+}

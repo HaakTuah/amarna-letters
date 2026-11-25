@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/repositories.md: The core's files are in the checkout when a session starts",
+  "holder": "check: .github/workflows/core.yml",
+  "behind": [241]
+}

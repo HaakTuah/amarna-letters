@@ -19,15 +19,17 @@
 //   node core/scripts/licence-installed.mjs [the folder that holds the lock file, the current one if left out]
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { DEEPEST, leadsOut, parseBounded } from "./guards.mjs";
 import { lockInstalled, lockPathOk, lockRead, workspacesIn } from "./licences.mjs";
 import { started } from "./started.mjs";
 
 /** A licence as npm writes one into a lock file from a package.json's "license": the type of one written the old way,
  *  as an object; nothing for none or an empty one; else the value as it stands. */
 export function lockForm(licence) {
+  // (a type within a type is followed in a loop, never by recursion, however deep it nests)
+  while (licence && typeof licence === "object" && !Array.isArray(licence) && licence.type) licence = licence.type;
   if (!licence) return null;
   if (typeof licence !== "object") return licence;
-  if (!Array.isArray(licence) && licence.type) return lockForm(licence.type);
   return Object.keys(licence).length ? licence : null;
 }
 
@@ -58,28 +60,7 @@ export function thisSystem() {
  * writer could set to fit one machine.
  */
 export function leftOut(packages, system = thisSystem()) {
-  // (what an entry asks npm to install: its dependencies, its optional ones, and its peers but those it marks optional,
-  // which npm never installs for it: peerDependenciesMeta)
-  const asks = (entry) => {
-    const meta = entry.peerDependenciesMeta && typeof entry.peerDependenciesMeta === "object" ? entry.peerDependenciesMeta : {};
-    const peers = Object.keys({ ...entry.peerDependencies }).filter((name) => !(Object.hasOwn(meta, name) && meta[name]?.optional === true));
-    return [...new Set([...Object.keys({ ...entry.dependencies, ...entry.optionalDependencies }), ...peers])];
-  };
-  // (a name is found as Node finds one: in the nearest node_modules folder, from the asking package's own upward)
-  const found = (from, name) => {
-    for (let dir = from; ; dir = dir.includes("/node_modules/") ? dir.slice(0, dir.lastIndexOf("/node_modules/")) : "") {
-      const at = dir ? `${dir}/node_modules/${name}` : `node_modules/${name}`;
-      if (Object.hasOwn(packages, at)) return at;
-      if (!dir) return undefined;
-    }
-  };
-  const askers = new Map();
-  for (const [path, entry] of Object.entries(packages)) {
-    if (!entry || typeof entry !== "object" || entry.link) continue;
-    for (const name of asks(entry)) { const at = found(path, name); if (at !== undefined) askers.set(at, [...(askers.get(at) ?? []), path]); }
-  }
-  const optional = (entry) => entry && typeof entry === "object" && (entry.optional === true || entry.devOptional === true);
-  const elsewhere = (entry) => !fits(entry.os, system.os) || !fits(entry.cpu, system.cpu) || (entry.libc !== undefined && entry.libc !== null && (system.libc === null || !fits(entry.libc, system.libc)));
+  const askers = askersOf(packages);
   // (the largest set that holds: every optional entry to begin with, then, until nothing changes, each that is not of
   // another system itself and that something outside the set asks for, or nothing asks for, taken out; a ring of
   // entries that ask for each other is so decided by who else asks, in a pass over every entry at most once per entry)
@@ -87,7 +68,7 @@ export function leftOut(packages, system = thisSystem()) {
   for (let changed = true; changed;) {
     changed = false;
     for (const path of out) {
-      if (elsewhere(packages[path])) continue;
+      if (elsewhere(packages[path], system)) continue;
       const by = askers.get(path) ?? [];
       if (by.length === 0 || by.some((asker) => !out.has(asker))) { out.delete(path); changed = true; }
     }
@@ -95,68 +76,122 @@ export function leftOut(packages, system = thisSystem()) {
   return out;
 }
 
+/** Who asks for each entry of a lock file's `packages` (leftOut, above): a Map from an entry's path to the paths of
+ *  the entries that ask for it. */
+function askersOf(packages) {
+  const askers = new Map();
+  for (const [path, entry] of Object.entries(packages)) {
+    if (!entry || typeof entry !== "object" || entry.link) continue;
+    for (const name of asks(entry)) { const at = nearest(packages, path, name); if (at !== undefined) askers.set(at, [...(askers.get(at) ?? []), path]); }
+  }
+  return askers;
+}
+
+// (what an entry asks npm to install: its dependencies, its optional ones, and its peers but those it marks optional,
+// which npm never installs for it: peerDependenciesMeta)
+const asks = (entry) => {
+  const meta = entry.peerDependenciesMeta && typeof entry.peerDependenciesMeta === "object" ? entry.peerDependenciesMeta : {};
+  const peers = Object.keys({ ...entry.peerDependencies }).filter((name) => !(Object.hasOwn(meta, name) && meta[name]?.optional === true));
+  return [...new Set([...Object.keys({ ...entry.dependencies, ...entry.optionalDependencies }), ...peers])];
+};
+
+// (a name is found as Node finds one: in the nearest node_modules folder, from the asking package's own upward)
+const nearest = (packages, from, name) => {
+  for (let dir = from; ; dir = dir.includes("/node_modules/") ? dir.slice(0, dir.lastIndexOf("/node_modules/")) : "") {
+    const at = dir ? `${dir}/node_modules/${name}` : `node_modules/${name}`;
+    if (Object.hasOwn(packages, at)) return at;
+    if (!dir) return undefined;
+  }
+};
+
+const optional = (entry) => entry && typeof entry === "object" && (entry.optional === true || entry.devOptional === true);
+const elsewhere = (entry, system) => !fits(entry.os, system.os) || !fits(entry.cpu, system.cpu) || (entry.libc !== undefined && entry.libc !== null && (system.libc === null || !fits(entry.libc, system.libc)));
+
 // (what a lock file or a package holds, on one line of a log, and no longer than a line)
 const shown = (value) => (value === undefined ? "none" : JSON.stringify(value).replace(/[\u007f-\u009f\u2028\u2029]/gu, "?").slice(0, 200));
+
+/** A package's own package.json at `file`, read as npm reads one (a byte-order mark before it is no part of it), and
+ *  only inside the project `dir`: the object, or, where it is not read, the failure's words. */
+function ownAt(dir, file) {
+  if (leadsOut(dir, file)) return "its package.json is reached through a link that leads out of the project, so it is not read. Mend: install from the lock file again (npm ci), which puts each package inside the project; where a link stays, replace the package that makes it";
+  let own;
+  try { const text = readFileSync(file, "utf8"); own = parseBounded(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text); } catch { own = null; }
+  if (!own || typeof own !== "object" || Array.isArray(own)) return `its package.json cannot be read as JSON, nested no deeper than ${DEEPEST} objects and lists. Mend: install from the lock file again (npm ci); where it still cannot be read, replace the package`;
+  return own;
+}
 
 /** The check, on the folder `dir`, which holds the lock file and the node_modules an install from it filled:
  *  { failures, summary }; `system` is the one the install ran on. */
 export function check(dir, system = thisSystem()) {
-  const [name, second] = ["npm-shrinkwrap.json", "package-lock.json"].filter((f) => existsSync(join(dir, f)));
-  if (!name) throw new Error("no npm-shrinkwrap.json or package-lock.json in the folder");
-  // (an install reads the shrinkwrap file of the two, and the licence check the one its config names: only one may stand)
-  if (second) throw new Error("both npm-shrinkwrap.json and package-lock.json stand in the folder: keep one");
-  let lock;
-  try { lock = JSON.parse(readFileSync(join(dir, name), "utf8")); } catch { throw new Error(`cannot read ${name} as JSON`); }
-  if (!lock || typeof lock.packages !== "object" || !lock.packages || Array.isArray(lock.packages)) throw new Error(`${name} has no "packages" (npm's lockfile version 2 or 3)`);
+  const { name, lock } = lockIn(dir);
   const failures = [];
   // (every entry is written as npm writes one, or the lock file fails before anything is left out or read: lockPathOk,
   // in licences.mjs)
   const odd = Object.entries(lock.packages).filter(([path, entry]) => !lockPathOk(path) || !entry || typeof entry !== "object" || Array.isArray(entry));
-  if (odd.length) return { failures: odd.map(([path]) => `${name}: an entry at ${shown(path)} that is not written as npm writes one`), summary: `${name} not read; ${odd.length} failing (floor rule 10)` };
+  if (odd.length) return { failures: odd.map(([path]) => `${name}: an entry at ${shown(path)} that is not written as npm writes one. Mend: write the lock file anew with npm, never by hand: its install, given --package-lock-only`), summary: `${name} not read; ${odd.length} failing (floor rule 10)` };
   let pkg = {};
   try { pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")); } catch { /* (none: the install read none, and no workspace stands) */ }
-  const mayLack = leftOut(lock.packages, system);
+  const context = { dir, name, lock, failures };
+  const { read, absent } = readBack(context, leftOut(lock.packages, system), pkg);
+  for (const folder of Object.keys(lock.packages).filter((path) => !lockInstalled(path))) unnamed(context, folder === "" ? "node_modules" : `${folder}/node_modules`);
+  const summary = `${read} packages of ${name} read back from the packages themselves, their licence and their version` +
+    `${absent ? `; ${absent} of another system, not installed here, not read` : ""}; ${failures.length} failing (floor rule 10)`;
+  return { failures, summary };
+}
+
+/** The lock file in the folder `dir`, read: { name, lock }, or an error that says its mend. */
+function lockIn(dir) {
+  const [name, second] = ["npm-shrinkwrap.json", "package-lock.json"].filter((f) => existsSync(join(dir, f)));
+  if (!name) throw new Error("no npm-shrinkwrap.json or package-lock.json in the folder. Mend: name the folder that holds the lock file, as the signatures workflow's \"directory\"");
+  // (an install reads the shrinkwrap file of the two, and the licence check the one its config names: only one may stand)
+  if (second) throw new Error("both npm-shrinkwrap.json and package-lock.json stand in the folder. Mend: delete one, keeping the file the project installs from");
+  let lock;
+  try { lock = parseBounded(readFileSync(join(dir, name), "utf8")); } catch { throw new Error(`cannot read ${name} as JSON, nested no deeper than ${DEEPEST} objects and lists. Mend: write the lock file anew with npm, never by hand: its install, given --package-lock-only`); }
+  if (!lock || typeof lock.packages !== "object" || !lock.packages || Array.isArray(lock.packages)) throw new Error(`${name} has no "packages" (npm's lockfile version 2 or 3). Mend: write the lock file anew with npm, never by hand: its install, given --package-lock-only, with npm 7 or later`);
+  return { name, lock };
+}
+
+/** Each entry of the lock file `name` in `dir` held to the package.json of the package installed for it (check,
+ *  above), its failures pushed onto `failures`; `mayLack` is what may be absent (leftOut): { read, absent }. */
+function readBack({ dir, name, lock, failures }, mayLack, pkg) {
   let read = 0, absent = 0;
   // (the entries the licence check reads, by its own reading: every installed package, a link's folder among them,
   // but a workspace, the project's own)
   for (const { path, at, entry } of lockRead(lock.packages, workspacesIn(pkg, "package.json"))) {
-    if (at === null) { failures.push(`${shown(path)}: a link to a folder ${name} holds no entry for, so what it says of itself cannot be read`); continue; }
+    if (at === null) { failures.push(`${shown(path)}: a link to a folder ${name} holds no entry for, so what it says of itself cannot be read. Mend: write the lock file anew with npm, never by hand: its install, given --package-lock-only`); continue; }
     const file = join(dir, at, "package.json");
     if (!existsSync(file)) {
       // (only what an install leaves out for the system's sake: leftOut, above)
       if (mayLack.has(path)) absent++;
-      else failures.push(`${shown(path)}: not installed, and no optional package of another system or of one alone, so what it says of itself cannot be read: install from the lock file first (npm ci)`);
+      else failures.push(`${shown(path)}: not installed, and no optional package of another system or of one alone, so what it says of itself cannot be read. Mend: install from the lock file first (npm ci), then run the check`);
       continue;
     }
-    let own;
-    // (read as npm reads one: a byte-order mark before it is no part of it)
-    try { const text = readFileSync(file, "utf8"); own = JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text); } catch { own = null; }
-    if (!own || typeof own !== "object" || Array.isArray(own)) { failures.push(`${shown(path)}: its package.json cannot be read as JSON`); continue; }
+    const own = ownAt(dir, file);
+    if (typeof own === "string") { failures.push(`${shown(path)}: ${own}`); continue; }
     read++;
-    if (JSON.stringify(lockForm(own.license)) !== JSON.stringify(lockForm(entry.license))) failures.push(`${shown(path)}: ${name} says its licence is ${shown(entry.license)}, and its own package.json says ${shown(own.license)}`);
-    if (plainVersion(own.version) !== plainVersion(entry.version)) failures.push(`${shown(path)}: ${name} says its version is ${shown(entry.version)}, and its own package.json says ${shown(own.version)}`);
+    if (JSON.stringify(lockForm(own.license)) !== JSON.stringify(lockForm(entry.license))) failures.push(`${shown(path)}: ${name} says its licence is ${shown(entry.license)}, and its own package.json says ${shown(own.license)}. Mend: write the lock file anew with npm, never by hand: its install, given --package-lock-only, which takes each licence from the package itself`);
+    if (plainVersion(own.version) !== plainVersion(entry.version)) failures.push(`${shown(path)}: ${name} says its version is ${shown(entry.version)}, and its own package.json says ${shown(own.version)}. Mend: write the lock file anew with npm, never by hand: its install, given --package-lock-only`);
   }
-  // (and nothing the install put in place that the lock file does not name, as a package bundled in another's tarball
-  // and left out of the lock file would be, read by no check: every package folder under each node_modules folder of
-  // the project's, its own and its workspaces' and linked folders', is an entry; a link is not followed)
-  const unnamed = (folder) => {
-    let entries = [];
-    try { entries = readdirSync(join(dir, folder), { withFileTypes: true }); } catch { return; }
-    for (const e of entries.filter((x) => !x.name.startsWith("."))) {
-      let found = [[e.name, e]];
-      if (e.name.startsWith("@") && e.isDirectory()) { try { found = readdirSync(join(dir, folder, e.name), { withFileTypes: true }).filter((x) => !x.name.startsWith(".")).map((x) => [`${e.name}/${x.name}`, x]); } catch { found = []; } }
-      for (const [named, d] of found) {
-        if (!d.isDirectory() && !d.isSymbolicLink()) continue;
-        const at = `${folder}/${named}`;
-        if (!Object.hasOwn(lock.packages, at)) { failures.push(`${shown(at)}: installed, and ${name} holds no entry for it, so no check reads its licence: a package bundled in another's and left out of the lock file`); continue; }
-        if (d.isDirectory()) unnamed(`${at}/node_modules`);
-      }
+  return { read, absent };
+}
+
+// (and nothing the install put in place that the lock file does not name, as a package bundled in another's tarball
+// and left out of the lock file would be, read by no check: every package folder under each node_modules folder of
+// the project's, its own and its workspaces' and linked folders', is an entry; a link is not followed)
+function unnamed(context, folder) {
+  const { dir, name, lock, failures } = context;
+  let entries = [];
+  try { entries = readdirSync(join(dir, folder), { withFileTypes: true }); } catch { return; }
+  for (const e of entries.filter((x) => !x.name.startsWith("."))) {
+    let found = [[e.name, e]];
+    if (e.name.startsWith("@") && e.isDirectory()) { try { found = readdirSync(join(dir, folder, e.name), { withFileTypes: true }).filter((x) => !x.name.startsWith(".")).map((x) => [`${e.name}/${x.name}`, x]); } catch { found = []; } }
+    for (const [named, d] of found) {
+      if (!d.isDirectory() && !d.isSymbolicLink()) continue;
+      const at = `${folder}/${named}`;
+      if (!Object.hasOwn(lock.packages, at)) { failures.push(`${shown(at)}: installed, and ${name} holds no entry for it, so no check reads its licence: a package bundled in another's and left out of the lock file. Mend: replace the package that bundles it, or ask its makers to name what it bundles`); continue; }
+      if (d.isDirectory()) unnamed(context, `${at}/node_modules`);
     }
-  };
-  for (const folder of Object.keys(lock.packages).filter((path) => !lockInstalled(path))) unnamed(folder === "" ? "node_modules" : `${folder}/node_modules`);
-  const summary = `${read} packages of ${name} read back from the packages themselves, their licence and their version` +
-    `${absent ? `; ${absent} of another system, not installed here, not read` : ""}; ${failures.length} failing (floor rule 10)`;
-  return { failures, summary };
+  }
 }
 
 if (started(import.meta.url)) {

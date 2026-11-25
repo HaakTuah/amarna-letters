@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/code-shape.md: How strong the tests are is measured on the lines a pull request changes",
+  "holder": "check: scripts/strength.mjs, in part",
+  "behind": ["#1107"],
+  "number": "findings; outcome: robust"
+}

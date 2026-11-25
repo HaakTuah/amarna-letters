@@ -1,0 +1,283 @@
+{
+  "_": "The core's own size marks for scripts/reading-size.mjs, as a project's checks/sizes.json (tasks/cleaning.md, \"Size asks; a reader who reads less answers\"; #469). Only \"split\" and \"past\" bind here: what each role reads at its start is held by scripts/size.mjs's caps, so \"read\" is empty. The dated records are skipped, cut by month where at all.",
+  "each": 1024,
+  "read": {},
+  "total": 1024,
+  "split": 20480,
+  "skip": [
+    "archive/",
+    "reports/",
+    "words/",
+    "tests/mutation/package-lock.json"
+  ],
+  "past": {
+    "scripts/workflow-run.mjs": {
+      "mark": 22438,
+      "why": "One runner of a workflow as GitHub runs it: its expression evaluator and job runner, read by their headings, found by searching; its YAML reader is split out (parse-yaml.mjs, #1056), and no other part stands alone for a reader of either."
+    },
+    "scripts/copies.mjs": { "mark": 34376, "why": "the question of a split is asked in #1102" },
+    "scripts/mutation-tools.mjs": { "mark": 23365, "why": "the question of a split is asked in #1253" },
+    "tests/mutation-tools-test.mjs": { "mark": 20863, "why": "the question of a split is asked in #1253" },
+    "tests/steps-write-test.mjs": { "mark": 27675, "why": "the question of a split is asked in #1253" },
+    "tests/converge-test.mjs": { "mark": 22202, "why": "the question of a split is asked in #1283" },
+    "scripts/labels.mjs": { "mark": 22008, "why": "the question of a split is asked in #1186" },
+    "scripts/sync.mjs": { "mark": 22147, "why": "the question of a split is asked in #1250" },
+    "SECURITY.md": { "mark": 21346, "why": "the question of a split is asked in #1255" },
+    ".github/sizes.json": { "mark": 20901, "why": "a list a script reads, each entry looked up by its path; no split lets anyone read less" },
+    "scripts/licences.mjs": { "mark": 52937, "why": "the question of a split is asked in #1151" },
+    "scripts/packages.mjs": { "mark": 25772, "why": "the question of a split is asked in #1151" },
+    "tests/exact-versions-test.mjs": { "mark": 20990, "why": "the question of a split is asked in #1151" },
+    "tasks/cleaning.md": { "mark": 23083, "why": "the question of a split is asked in #1132" },
+    "tasks/reviews.md": { "mark": 21736, "why": "the question of a split is asked in #1156" },
+    ".github/sizes.json": { "mark": 21377, "why": "A list scripts read whole and a session reads by the path of the one line it adds, found by searching; split, a script would read two files and no one less" },
+    ".github/workflows/security-review.yml": { "mark": 29919, "why": "One job that each project calls pinned, its shell inline so that nothing the pull request checks out runs with its token; a session reads the step it changes, found by its name, and a second called workflow would start a second job, billed a whole minute on a private repository's free plan" },
+    "scripts/staged.mjs": { "mark": 30534, "why": "the question of a split is asked in #1157" },
+    "scripts/init.mjs": { "mark": 30906, "why": "the question of a split is asked in #1098" },
+    "tests/check-test.mjs": { "mark": 36799, "why": "the question of a split is asked in #1073" },
+    "scripts/check.mjs": { "mark": 33867, "why": "the question of a split is asked in #1064" },
+    "scripts/checks.mjs": { "mark": 24179, "why": "the question of a split is asked in #1064" },
+    "scripts/code-scan.mjs": { "mark": 20998, "why": "the question of a split is asked in #1064" },
+    ".github/workflows/core.yml": {
+      "mark": 32543,
+      "why": "One job that each project calls pinned, holding the core's checks that need no secret as its steps (#376, #377): GitHub reads a job as one file, and a split into a second called workflow would start a second job, which bills a whole minute on a private repository's free plan"
+    },
+    "tests/copy-left-out-test.mjs": {
+      "mark": 27600,
+      "why": "One list's test: each check of the copy staged inside it and outside it on the scratch project they share; split by check, each file would write that project again and add to the suite's time"
+    },
+    "tests/mend-test.mjs": {
+      "mark": 20604,
+      "why": "One table of every check and the test that reads its failures, read whole against the workflows that name the scripts; split in two, a script could stand in neither half and go unread"
+    },
+    ".github/workflows/personal-terms.yml": {
+      "mark": 32432,
+      "why": "One job that every project calls pinned, its step holding the secret: its shell stays inline so that nothing the pull request checks out runs beside the terms, and a local action or script would be the caller's checkout, not the core's. A session reads the part it changes by its comment, found by searching."
+    },
+    "tests/personal-terms-test.mjs": {
+      "mark": 49085,
+      "why": "#929: the cases of how Betterleaks reads apart from what the check reads."
+    },
+    ".github/shape-baseline.json": {
+      "mark": 20951,
+      "why": "The shape check's one baseline (scripts/shape.mjs), which it reads whole and a session reads by the id of the one entry it adds or takes out, found by its name; main stood past the mark at 20,580 bytes with no entry here when #582 added its test's."
+    },
+    ".github/workflows/tests.yml": {
+      "mark": 75194,
+      "why": "A session reads the one step it changes, found by its name; split into workflows, each would be a job of its own, billed by the minute on a private repository's free plan, and its suites share one matrix."
+    },
+    "AGENTS.md": {
+      "mark": 67924,
+      "why": "Its rules that only some tasks break move to modules read on need in #845."
+    },
+    "scripts/licence-scan.mjs": {
+      "mark": 23622,
+      "why": "#946: its reading of pages and components is split off; what stands is the scan of a project's files, its download pins and their base, which call each other's readers (readAs, codeOf, covers), so a split would make a cycle of imports."
+    },
+    "README.md": {
+      "mark": 74465,
+      "why": "Past the large file mark, it is read by the section a task needs, found by searching, never whole (roles/shared/how-to-work.md, \"Read little\"), so no split lets a session read less; GitHub shows it whole as the repository's front page, to people."
+    },
+    "tests/hostile-packages-test.mjs": {
+      "mark": 24130,
+      "why": "#946: its header names licence-pages.mjs, so that the mutation tool still runs it on the page reader as before the split; a split of its cases by the input each reads is a cleaning task."
+    },
+    "tests/releases-test.mjs": {
+      "mark": 32769,
+      "why": "#958: the tests of cutting a release (release.mjs) apart from those of what a project follows (releases.mjs)."
+    },
+    "tests/pruning-test.mjs": {
+      "mark": 23922,
+      "why": "#895: its section on the rules with no holder moves to a test of its own."
+    },
+    "choices/010-the-core-s-foundations-judged-again-as-if.md": {
+      "mark": 29908,
+      "why": "#870: a choice record is one argued text, its criteria, long list and judgments read together; the foundations record was split from CHOICES.md, whole as it stood, and is read when the core's foundations are judged again."
+    },
+    "choices/030-one-parser-tree-sitter-carried-in-the-copy.md": {
+      "mark": 22196,
+      "why": "#870: a choice record is one argued text, its trial and its options read together; it was split from CHOICES.md, whole as it stood."
+    },
+    "tasks/choices.md": {
+      "mark": 22735,
+      "why": "#913: the rules of a move off what a project stands on apart from those of making a record."
+    },
+    "scripts/csharp-tree.mjs": {
+      "mark": 25832,
+      "why": "#884: the text the parser reads (the preprocessor, C# 14's extension headers) apart from the reading of the tree."
+    },
+    "tasks/game-design.md": {
+      "mark": 25119,
+      "why": "#441: the game rules split into a base and a file for each kind (#484, points 6 and 7)."
+    },
+    "tests/upgrade-test.mjs": {
+      "mark": 123905,
+      "why": "One flow over the projects it builds: each case takes a project as the one before left it (written, synced, merged, its own pull requests after), so a file of its own would build them again; and tests/ holds test files alone (#614), so no module beside it can hold a part. A session reads the case it changes, found by its section's heading."
+    },
+    "scripts/read-total.mjs": {
+      "mark": 20690,
+      "why": "Whoever changes how the total is counted reads its tree reader, its readers, its cut and its conditions together, each calling the others; split, that session opens more files and reads no less, and no other task reads it."
+    },
+    "scripts/reading.mjs": {
+      "mark": 32082,
+      "why": "The start hook runs it from git with no file beside it, so it stands alone (its opening says so): no part can be moved to a file of its own."
+    },
+    "scripts/size.mjs": {
+      "mark": 22030,
+      "why": "#892: the record of its caps' raises stands apart in scripts/size-raises.md; what stands is the measure of each role's start, the check of a raise and the look's due, which call each other's readers (capsOf, counted, sizesAt), and the raise check runs from the base's own copy of this one file, so a split of it would put the check's text in a file the base's copy has not."
+    },
+    "scripts/security-review.mjs": {
+      "mark": 39696,
+      "why": "#931: along what it reads, Codex's summary, who counts as a reviewer, what a review stands for, floor rule 3's count and the status posted."
+    },
+    "scripts/pointers.mjs": {
+      "mark": 26061,
+      "why": "One check whose forms of a pointer are read from one parse of each rule file and joined into one pointer by one glue (atoms(), GLUE), so one who changes a form reads how the others join it; the Markdown links' reading with lychee stands apart in links.mjs (#582), which is what a split along a part that is read on its own gave."
+    },
+    "scripts/nuget.mjs": {
+      "mark": 84129,
+      "why": "The NuGet check's readers of a project's build files, lock files and sources that all read one config and one tree through the one check(); a task that changes one reads how the others count against it, so a split would make it open each part."
+    },
+    "scripts/lookup.mjs": {
+      "mark": 32467,
+      "why": "One check's readers of a new package's registry entry (npm's and NuGet's, the lock files each reads, the pool of answers and their records) that all read the same lists against the same base through packagesOf(); a task that changes one reads how the others count, so a split would make it open each part."
+    },
+    "scripts/nuget-fetch.mjs": {
+      "mark": 27143,
+      "why": "The NuGet fetch before the restore: the sources, the base's lists, each package's content hash and the tools' lock files, read through the one fetchAll(); a task that changes one reads how the others count against the base, so a split would make it open each part."
+    },
+    "tests/packages-test.mjs": {
+      "mark": 68081,
+      "why": "Its checks of the lock file and the week's wait's reading gate the install below them (where one fails, nothing is installed or loaded), and the install's cases run on a copy of the same lock files; split, the install would run on a lock file that failed, or each file would read the lock files again, so the file stays one flow (#1008)."
+    },
+    "tests/pointers-test.mjs": {
+      "mark": 23333,
+      "why": "One script's cases (pointers.mjs) on the small projects they write for it (rule files with either line ending, a pointer that leads nowhere, a project with no SECURITY.md, the agent tools' files); the one section of another kind, what the check reads of Markdown, is 3 KB, too little for a split to give a reader less, and the file is 14% past the mark (#1008)."
+    },
+    "tests/pure-sync-test.mjs": {
+      "mark": 42307,
+      "why": "The two programs (sync.mjs and the proof pure-sync.mjs) run end to end on one scratch copy of the core with a short history and a project made from it, the later cases taking the project as the earlier left it; split, each file would build them again, adding to the suite's time (tasks/tests.md); the cases of the core's own files and parts the proof admits (#1083) take the same project (#1008)."
+    },
+    "tests/work-saved-test.mjs": {
+      "mark": 26522,
+      "why": "One hook's cases (work-saved.sh, run as a project registers it) on the one scratch project with a remote of its own that they share; split, each file would build it again, adding to the suite's time (tasks/tests.md) (#1008)."
+    },
+    "tests/nuget-test.mjs": {
+      "mark": 98920,
+      "why": "One script's cases (nuget.mjs) on the helpers and config they share; split along the script's parts, each file would write them again and add to the suite's time (tasks/tests.md)."
+    },
+    "tests/security-review-test.mjs": {
+      "mark": 71102,
+      "why": "One script's cases (security-review.mjs, judge() and its helpers) on the fixtures they share; split along the script's parts, each file would write them again and add to the suite's time (tasks/tests.md)."
+    },
+    "tests/security-review-workflow-test.mjs": {
+      "mark": 21768,
+      "why": "One workflow's cases (security-review.yml run as GitHub runs it) on the one scratch repository and stand-ins for GitHub's API they share; split, each file would set them up again, adding to the suite's time (tasks/tests.md)."
+    },
+    "scripts/mutate.mjs": {
+      "mark": 21409,
+      "why": "Its faults, working copies and run are read together by whoever changes one, and #815 retires the file for Stryker, so a split would be work on a file that goes."
+    },
+    "scripts/shape.mjs": {
+      "mark": 84826,
+      "why": "#884: along its sections, the survey apart from the baseline and the verdict."
+    },
+    "scripts/state-report.mjs": {
+      "mark": 22381,
+      "why": "Its sections are other scripts' already (holders, pruning, cited, read-total, merge-line); what stands is the one body that sets them in order, which whoever changes a section reads."
+    },
+    "tests/code-shape-test.mjs": {
+      "mark": 23288,
+      "why": "#884: the measures of code-shape.mjs apart from the JavaScript functions read on the parser."
+    },
+    "tests/holders-test.mjs": {
+      "mark": 39601,
+      "why": "Split by the reader each case tests in #852: its archive cases apart from the rest, and a project's own rules and share apart from the core's."
+    },
+    "tests/hostile-configs-test.mjs": { "mark": 24643, "why": "Split by the reader each case tests in #852." },
+    "tests/hostile-pr-changes-test.mjs": { "mark": 44725, "why": "Split by the reader each case tests in #852." },
+    "tests/init-test.mjs": {
+      "mark": 61827,
+      "why": "Its cases run on the one scratch project it writes from the starter kit; split, each file would write it again, adding to the suite's time (tasks/tests.md), and every case reads that setup."
+    },
+    "tests/issue-terms-test.mjs": {
+      "mark": 25234,
+      "why": "One script's cases (issue-terms.mjs): its texts, edits and terms file, all on the one fake host it sets up; split, each file would set that host up again, and a session changing the script reads every case of it."
+    },
+    "tests/look-test.mjs": { "mark": 37770, "why": "Split into the look's tests and the state report's in #852." },
+    "tests/reading-test.mjs": { "mark": 31106, "why": "Split by the part of reading.mjs each case tests in #852." },
+    "tests/shape-readers-test.mjs": { "mark": 41453, "why": "#884: by language, each reader's cases apart." },
+    "tests/shape-test.mjs": { "mark": 91943, "why": "#884: along its sections, in step with scripts/shape.mjs." },
+    "tests/releases-test.mjs": {
+      "mark": 41671,
+      "why": "One module's cases (releases.mjs, and release.mjs that cuts one) on the one scratch core it sets up with its release tags; split, each file would set it up again, adding to the suite's time (tasks/tests.md), and a session changing the module reads every case."
+    },
+    "tests/code-review-wait-test.mjs": {
+      "mark": 33431,
+      "why": "One script's cases (code-review-wait.mjs: judge() on a pull request's comments, on its commits and files, and the reviews' marks, then the command) on the fixtures they share (`pull`, `summary`, `said`, `is`); split along the script's parts, each file would write them again, and a session changing judge() reads each case (#1008)."
+    },
+    "tests/core-yml-test.mjs": {
+      "mark": 22488,
+      "why": "One workflow's job (core.yml, run as GitHub runs it) on the one scratch core every case builds, already run in two parts by the part given to it (`faults`, `places`), each a step of the suite; a file for each part would build the core again, adding to the suite's time (tasks/tests.md), and the file is 10% past the mark (#1008)."
+    },
+    "tests/hostile-build-files-test.mjs": {
+      "mark": 29868,
+      "why": "The sections of one input, a project's build, package and workflow files (too long, the wrong type, markup, a file path, out of range, nothing at all, and the reader of where the tests run), each trying every reader of it (licences.mjs, exact-versions.mjs, nuget.mjs, workflows.mjs, parse-yaml.mjs, runners.mjs, agent-tools.mjs) on the scratch project and the helpers they share; split by section, each file would set them up again, and a reader added to the input is added to every section (#1008)."
+    },
+    "tests/hostile-github-test.mjs": {
+      "mark": 22575,
+      "why": "The sections of one input, what GitHub's API answers (too long, the wrong type, markup, a file path, out of range, nothing at all), each trying every reader of it on the one scratch repository and stand-ins for git and gh they share; split by section, each file would set them up again, and a reader added to the input is added to every section (#1008)."
+    },
+    "tests/hostile-pr-comments-test.mjs": {
+      "mark": 22109,
+      "why": "The sections of one input, a pull request's comments and reviews as GitHub's API gives them (too long, the wrong type, markup, a file path, out of range, nothing at all), each trying every reader of it (security-review.mjs, code-review-wait.mjs, size.mjs, tools-read.mjs, review-marks.mjs, look.mjs) on the fixtures they share; split by section, each file would write them again, and a reader added to the input is added to every section; the file is 8% past the mark (#1008)."
+    },
+    "tests/licences-test.mjs": {
+      "mark": 24020,
+      "why": "One script's readers (licences.mjs: how a licence expression is read, which list allows what, a package known by its registry address, npm's settings, the config's schema) on invented names; their cases read the same lists, so whoever changes a list reads how the others count against it, and a split would make that session open each part (#1008)."
+    },
+    "tests/lookup-test.mjs": {
+      "mark": 21844,
+      "why": "#1008: the check run on a project and the sync step's cases are split off; what stands is lookup.mjs's readers (a lock file, what is new, the lookup, an entry's integrity) on the one set of recorded answers, each reading how the others count, as the script's own line says, so a split would make a reader open each part."
+    },
+    "tests/lookup-step-test.mjs": {
+      "mark": 33252,
+      "why": "#1008: one step's cases (the sync step that asks a lookup beside each exact-versions check) on the workflows each writes into the one scratch project; split along its sections, each file would build the project again, adding to the suite's time (tasks/tests.md), and a session changing the step reads every case."
+    },
+    "tests/merge-line-test.mjs": {
+      "mark": 23054,
+      "why": "One script's cases (merge-line.mjs: the facts read from the host for each kind of repository, where users get a release, the measure, the cancelling) through the stand-in for gh they share; split along the script's parts, each file would write it again, and the file is 13% past the mark (#1008)."
+    },
+    "tests/size-test.mjs": {
+      "mark": 28199,
+      "why": "One script's cases (size.mjs) and the size.yml steps that run it, on the one scratch core it sets up; split, each file would write it again, adding to the suite's time (tasks/tests.md), and a session changing the script reads every case."
+    },
+    "tasks/tests.md": {
+      "mark": 25951,
+      "why": "#943: the selection's rules apart from those of the suites' time and of the run of a tree that passed."
+    },
+    "tests/select-test.mjs": {
+      "mark": 32013,
+      "why": "#943: the matcher's cases and the cases of a tree that passed are split out; what is left is the selection's, whose cases (what a test reaches, the time the reading is allowed, the names a text holds, a pull request's run) read the one fixture project, texts and config, and split, each file would write it again."
+    },
+    ".github/shape-baseline.json": {
+      "mark": 27000,
+      "why": "A baseline the shape check reads and writes whole (--write), in the form every project's baseline takes; 'grown' gives the reason for some of the keys 'listed' holds, so a split along the two parts would make two files to keep in step, and none along who reads it was found."
+    },
+    "tests/staged-test.mjs": {
+      "mark": 125729,
+      "why": "#937: split into the three parts it already runs in, with the shared set-up in a module of its own."
+    },
+    "scripts/workflows.mjs": {
+      "mark": 26933,
+      "why": "One check's readers (the word, the calls a draft skips, the line breaks, the tools' findings against the base) that all read the same texts against the same base through the one baseOf(); a task that changes one reads how the others count against the base, so a split would make it open each part."
+    },
+    "tests/workflows-test.mjs": {
+      "mark": 70465,
+      "why": "One script's cases (workflows.mjs) on the texts and helpers they share (call, TYPES, hiding); split along the script's parts, each file would write them again and add to the suite's time (tasks/tests.md). The cases of workflow-tools.mjs, a script of its own, stand in tests/workflow-tools-test.mjs (#1017)."
+    },
+    "tests/nuget-fetch-test.mjs": {
+      "mark": 27539,
+      "why": "One feature's cases (the fetch before the NuGet check's restore) on the scratch project and the package files they share, each case reading what the one before committed; split, each file would write that project again and add to the suite's time"
+    }
+  }
+}

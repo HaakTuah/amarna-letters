@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: A move that pays is built in steps; one that must happen at once is capped",
+  "behind": [251],
+  "number": "correction: does not work; outcome: robust"
+}

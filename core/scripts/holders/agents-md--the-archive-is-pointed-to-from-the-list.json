@@ -1,0 +1,5 @@
+{
+  "rule": "AGENTS.md: The archive is pointed to from the list",
+  "holder": "check: scripts/holders.mjs",
+  "behind": [246]
+}

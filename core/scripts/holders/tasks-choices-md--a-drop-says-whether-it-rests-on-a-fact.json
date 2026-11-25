@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/choices.md: a drop says whether it rests on a fact",
+  "behind": [251],
+  "number": "correction: misread; outcome: asked"
+}

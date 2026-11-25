@@ -1,0 +1,6 @@
+{
+  "rule": "roles/orchestrator.md: Never held back in silence",
+  "holder": "check: scripts/stalled.mjs, in part",
+  "behind": ["#471"],
+  "number": "correction: does not work; outcome: asked"
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/done-when.md: An entry says how done will be judged",
+  "holder": "check: scripts/pr-description.mjs, in part"
+}

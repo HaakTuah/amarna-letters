@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: Each new priority is placed",
+  "behind": ["#492"],
+  "number": "correction: misread; outcome: asked"
+}

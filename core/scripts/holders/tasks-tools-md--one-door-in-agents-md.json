@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/tools.md: One door in: `AGENTS.md`",
+  "holder": "check: scripts/entry-files.mjs",
+  "behind": [232]
+}

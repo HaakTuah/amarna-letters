@@ -13,4 +13,5 @@ Rules cited: the floor's.
 - **Lower stakes:** a slowdown or crash confined to one user's own session, from input only that user chose, is Low;
   from input someone else shaped, it is not.
 - **The ways in:** the workflows (rule 2); dependencies and actions (rules 2, 7, 10, 15 and 17); outsiders' text
-  reaching an agent (rule 4), above all one holding sign-ins (rule 18); the project's own inputs (rule 5).
+  reaching an agent (rule 4), above all one holding sign-ins (rule 18); the project's own inputs (rule 5); in a team,
+  the account of any person the host lets write, whose words the agents follow (rule 4).

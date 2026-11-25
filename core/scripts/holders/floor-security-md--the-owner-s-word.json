@@ -1,0 +1,6 @@
+{
+  "rule": "floor/security.md: The owner's word",
+  "holder": "check: .github/workflows/personal-terms.yml, in part",
+  "behind": [134, 246, "#773"],
+  "number": "findings; outcome: readable; rare harm"
+}

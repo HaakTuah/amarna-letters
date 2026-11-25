@@ -1,0 +1,4 @@
+{
+  "about": "The agent tools the staged cases run in, each with its part in tools/ (tasks/tools.md, \"Each tool's part\"), the first the one the core's own sessions run in (scripts/staged.mjs). Read as data by scripts/stage-order.mjs too, which takes from a project's record only a tool named here or a bot's login, and by .github/workflows/core.yml: a repository whose core a library carries keeps the floor's own copy until each of these has passed the cases carried and no-floor (tasks/repositories.md).",
+  "tools": ["Claude Code", "Codex", "Kiro", "Antigravity", "GitHub Copilot"]
+}

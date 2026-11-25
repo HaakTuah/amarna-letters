@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/planning.md: The pull request that takes out a milestone's last line reaches it",
+  "holder": "check: scripts/pr-description.mjs"
+}

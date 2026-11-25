@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/tests.md: A test that guards only what a release brings runs where the release is made",
+  "holder": "check: .github/workflows/release.yml, in part",
+  "behind": ["#715.2"],
+  "number": "check fires; outcome: fast"
+}

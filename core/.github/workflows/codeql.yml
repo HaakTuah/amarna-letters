@@ -1,4 +1,4 @@
-# CodeQL, for every project that takes the core (modules/updates.md, "CodeQL checks every PR"). A project
+# CodeQL, for every project that takes the core (tasks/updates.md, "CodeQL checks every PR"). A project
 # calls it (workflow_call) from its own .github/workflows/codeql.yml, which keeps the triggers (every PR into main, every
 # push to it, and weekly), pinned to a full commit SHA ("How a project takes the core" in README.md,
 # point 5), passing its languages and granting the job actions: read, contents: read and security-events: write.
@@ -28,14 +28,19 @@ jobs:
       fail-fast: false
       matrix:
         language: ${{ fromJSON(inputs.languages) }}
+    # (a pull request's run gives way to a newer one for the same pull request, whose head it no longer is; a run on
+    # main, a schedule or a start by hand is its own group and is never cancelled; #388)
+    concurrency:
+      group: codeql-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}-${{ matrix.language }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: github/codeql-action/init@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: ${{ matrix.language }}
           build-mode: none
-      - uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           category: /language:${{ matrix.language }}

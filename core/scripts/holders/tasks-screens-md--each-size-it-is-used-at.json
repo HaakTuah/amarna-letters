@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/screens.md: Each size it is used at",
+  "holder": "check: scripts/screens.mjs, in part",
+  "behind": ["#484.1"],
+  "number": "correction: misread; outcome: asked"
+}

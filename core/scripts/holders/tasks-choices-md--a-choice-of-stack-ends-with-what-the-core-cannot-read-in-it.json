@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/choices.md: A choice of stack ends with what the core cannot read in it",
+  "holder": "check: scripts/choices.mjs, in part",
+  "behind": ["#486.1", "#459"],
+  "number": "correction: rule missing; outcome: robust"
+}

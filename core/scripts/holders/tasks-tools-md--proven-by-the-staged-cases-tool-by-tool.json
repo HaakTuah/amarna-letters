@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/tools.md: Proven by the staged cases, tool by tool",
+  "holder": "check: scripts/staged.mjs, in part",
+  "behind": [232]
+}

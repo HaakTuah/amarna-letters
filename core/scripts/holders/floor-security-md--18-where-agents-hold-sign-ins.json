@@ -1,0 +1,5 @@
+{
+  "rule": "floor/security.md: 18. Where agents hold sign-ins",
+  "holder": "check: .github/workflows/personal-terms.yml, in part",
+  "behind": [118, 119, 120, 122, 127, 149, "#492"]
+}

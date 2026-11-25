@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/code-shape.md: A new project starts as rules with no screen",
+  "holder": "check: scripts/shape.mjs, in part"
+}

@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/game-design.md: Strong computer players",
+  "behind": [82, 83, 90]
+}

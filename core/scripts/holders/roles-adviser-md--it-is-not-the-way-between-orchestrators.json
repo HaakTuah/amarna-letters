@@ -1,0 +1,5 @@
+{
+  "rule": "roles/adviser.md: It is not the way between orchestrators",
+  "behind": ["#492"],
+  "number": "correction: does not work; outcome: fast"
+}

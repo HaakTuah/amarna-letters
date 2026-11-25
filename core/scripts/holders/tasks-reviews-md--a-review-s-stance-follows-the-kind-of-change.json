@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/reviews.md: A review's stance follows the kind of change",
+  "behind": ["#397.1"],
+  "number": "correction: does not work; outcome: robust"
+}

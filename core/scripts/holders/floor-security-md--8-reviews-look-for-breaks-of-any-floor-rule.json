@@ -1,0 +1,5 @@
+{
+  "rule": "floor/security.md: 8. Reviews look for breaks of any floor rule",
+  "holder": ["check: .github/workflows/security-review.yml, in part", "check: scripts/pure-sync.mjs, in part", "check: scripts/queue-only.mjs, in part"],
+  "behind": [21, 139, 140, 174, 179, "#750.2", "#1083"]
+}

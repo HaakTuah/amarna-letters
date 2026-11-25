@@ -3,7 +3,11 @@
 # always passes and says what the check would have done, so nothing waits for it and no ruleset requires it. What it
 # takes as proof, what it does not hold, and what keeps a workflow that a comment can start safe are in the header of
 # the core's workflow: it runs the default branch's copy of the core's script, never a pull request's, and its token
-# can read, and write a commit status, nothing more. No secret.
+# can read, and write a commit status, nothing more. No secret. Before it, the core's queue-only.yml proves a pull
+# request that changes only the progress file, which then needs no review of its own (floor rule 8): its job alone may
+# read issues, and it runs wherever the check can; in a private repository, where each run is a billed job, only
+# where its call is given `with: private: true`, the owner's choice, and otherwise such a pull request is reviewed as
+# any other.
 name: security-review
 
 on:
@@ -16,9 +20,19 @@ permissions:
   contents: read
 
 jobs:
+  queue:
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    uses: {{core}}/.github/workflows/queue-only.yml@{{pin}}
   security-review:
+    needs: queue
+    if: ${{ !cancelled() }}
     permissions:
       contents: read
       pull-requests: read
       statuses: write
     uses: {{core}}/.github/workflows/security-review.yml@{{pin}}
+    with:
+      queue: ${{ needs.queue.outputs.head }}

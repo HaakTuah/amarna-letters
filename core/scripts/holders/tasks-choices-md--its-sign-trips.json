@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/choices.md: its sign trips",
+  "holder": "check: scripts/look.mjs, in part"
+}

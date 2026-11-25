@@ -1,0 +1,21 @@
+{
+  "rule": "AGENTS.md: A release says what it asks, step by step",
+  "holder": [
+    "check: tests/steps-test.mjs",
+    "check: tests/upgrade-test.mjs",
+    "check: tests/steps-write-test.mjs",
+    "check: tests/manifest-reads-test.mjs",
+    "check: tests/releases-test.mjs",
+    "check: tests/steps-fetched-test.mjs",
+    "check: tests/steps-fresh-test.mjs, in part",
+    "check: tests/held-test.mjs, in part",
+    "check: tests/packages-test.mjs, in part"
+  ],
+  "behind": [
+    215,
+    "#1091",
+    "#1094",
+    "#1095"
+  ],
+  "number": "check fires; outcome: robust"
+}

@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/dependencies.md: 17. Dependabot's own PRs",
+  "holder": "check: scripts/security-review.mjs, in part",
+  "behind": [34]
+}

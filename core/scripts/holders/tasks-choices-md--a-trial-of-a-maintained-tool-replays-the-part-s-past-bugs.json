@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/choices.md: A trial of a maintained tool replays the part's past bugs",
+  "holder": "check: .github/workflows/tests.yml, in part",
+  "behind": [256],
+  "number": "correction: does not work; outcome: robust"
+}

@@ -1,4 +1,4 @@
-# The versions check ("The newest stable version, unless there is a reason" in modules/updates.md): each version a
+# The versions check ("The newest stable version, unless there is a reason" in tasks/updates.md): each version a
 # config names is compared with its registry's (npm's or PyPI's) newest stable release old enough to take
 # (scripts/versions.mjs), and each one behind gets an enhancement issue for the owner, unless one it opened is still
 # open. A project calls it (workflow_call) from a monthly schedule of its own, with its config, pinned to a full commit
@@ -32,13 +32,20 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false # gh below takes its token from GH_TOKEN, nothing from the checkout
+      - name: Where the core's copy stands, for the versions check (core-manifest.md's "Core:" line; the core's tasks/repositories.md)
+        id: core-at
+        run: |
+          at=$(sed -n -E 's#^Core: [^ ]+( at [0-9a-f]{40}, copied whole|, carried by (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)) under (([A-Za-z0-9_][A-Za-z0-9._-]*/)+)( .*)?$#\4 \2#p' core-manifest.md 2>/dev/null | head -n 1)
+          set -- ${at:-core/}; [ -z "${2:-}" ] || [ -e "$1scripts" ] || git submodule update --init --depth 1 -- "${2%/}" || { echo "FAIL the library ${2%/}, a submodule that carries the core, could not be fetched here. Mend: commit the library's files in this repository, or make the submodule one this workflow can fetch with no token."; exit 1; }; echo "CORE_AT=$1" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version-file: ${{ inputs.config && 'core/.node-version' || '.node-version' }} # the one exact Node
+          node-version-file: ${{ inputs.config && format('{0}.node-version', env.CORE_AT) || '.node-version' }} # the one exact Node
+      - name: The core's packages, installed from its lock file for the versions check (#654)
+        run: if [ -f "${CORE_AT}scripts/install.mjs" ]; then node "${CORE_AT}scripts/install.mjs"; fi
       - name: The versions behind (no token)
         env:
           CONFIG: ${{ inputs.config || '.github/versions.json' }}
-          SCRIPT: ${{ inputs.config && 'core/scripts/versions.mjs' || 'scripts/versions.mjs' }}
+          SCRIPT: ${{ inputs.config && format('{0}scripts/versions.mjs', env.CORE_AT) || 'scripts/versions.mjs' }}
         run: node "$SCRIPT" "$CONFIG" --issues > "$RUNNER_TEMP/behind.json"
       - name: An issue for each, unless one is open
         env:

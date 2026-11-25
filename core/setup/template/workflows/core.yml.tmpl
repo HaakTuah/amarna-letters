@@ -1,6 +1,9 @@
 # The copy of the core (core-manifest.md): fails a change whose core/ is not the core, whole, at the commit the manifest
 # pins, or whose calls to the core's workflows are pinned where they differ from the core's at that pin. On every pull
-# request and push to main, docs-only changes included.
+# request and push to main, docs-only changes included; in a private repository, as the starter kit writes it, on a
+# pull request only once it is no draft (core/scripts/init.mjs, READY_ONLY), and with its checks that need no secret
+# as steps of this one job, its inputs naming them (oneJob, #376; a session may run the same steps by hand:
+# node core/scripts/checks.mjs).
 name: core
 
 on:

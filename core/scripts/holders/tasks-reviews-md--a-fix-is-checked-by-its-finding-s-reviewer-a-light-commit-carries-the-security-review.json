@@ -1,0 +1,12 @@
+{
+  "rule": "tasks/reviews.md: A fix is checked by its finding's reviewer; a light commit carries the security review",
+  "holder": [
+    "check: scripts/power.mjs, in part",
+    "check: scripts/security-review.mjs, in part",
+    "check: scripts/code-review-wait.mjs, in part"
+  ],
+  "behind": [
+    "#1134.1"
+  ],
+  "number": "check fires; outcome: fast"
+}

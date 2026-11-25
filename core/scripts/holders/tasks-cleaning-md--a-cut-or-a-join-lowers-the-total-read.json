@@ -1,0 +1,6 @@
+{
+  "rule": "tasks/cleaning.md: A cut or a join lowers the total read",
+  "holder": "check: scripts/read-total.mjs, in part",
+  "behind": ["#469"],
+  "number": "check fires; outcome: fast"
+}

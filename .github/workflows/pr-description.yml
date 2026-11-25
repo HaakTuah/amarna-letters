@@ -15,4 +15,4 @@ permissions:
 
 jobs:
   pr-description:
-    uses: HaakTuah/agent-core/.github/workflows/pr-description.yml@d79346a019b52cbfadc305d3898c280331f221be
+    uses: HaakTuah/agent-core/.github/workflows/pr-description.yml@16320a137f7323400af7902b44f5b2bc4ef38027

@@ -1,0 +1,4 @@
+{
+  "rule": "roles/orchestrator.md: On every wake",
+  "behind": [42, 44, 124, 200]
+}

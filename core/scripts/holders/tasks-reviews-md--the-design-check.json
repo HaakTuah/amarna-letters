@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/reviews.md: The design check",
+  "holder": "check: scripts/code-review-wait.mjs, in part",
+  "behind": [22]
+}

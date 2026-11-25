@@ -1,0 +1,5 @@
+{
+  "rule": "tasks/helpers.md: A brief is written as a rule is",
+  "holder": "check: scripts/general.mjs, in part",
+  "behind": [229]
+}

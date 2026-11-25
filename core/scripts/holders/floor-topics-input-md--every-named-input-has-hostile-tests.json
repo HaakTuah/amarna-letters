@@ -1,0 +1,5 @@
+{
+  "rule": "floor/topics/input.md: Every named input has hostile tests",
+  "holder": "check: scripts/steps.mjs, in part",
+  "behind": [227]
+}

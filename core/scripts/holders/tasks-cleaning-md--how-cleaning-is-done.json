@@ -1,0 +1,4 @@
+{
+  "rule": "tasks/cleaning.md: How cleaning is done",
+  "holder": "check: scripts/shape.mjs, in part"
+}
